@@ -1,11 +1,122 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
+<!-- Hero Section -->
 <div class="container mt-5">
-    <div class="p-5 text-center bg-light rounded-3">
-        <h1 class="text-success fw-bold">?????? ????? ? ?????? ???????</h1>
-        <p class="lead">????? ????? ???? ???????????? ????? ?? ???? ???????, ??????, ????????? ??? ????????? ????????? ??? ??? ???????</p>
-        <a class="btn btn-success btn-lg" href="#" role="button">?????? ???????? ?????</a>
+    <div class="p-5 text-center bg-light rounded-3 shadow-sm border">
+        <h1 class="text-success fw-bold mb-3">?????? ????? ? ?????? ???????</h1>
+        <p class="lead text-muted mb-4">????? ????? ???? ???????????? ????? ?? ???? ???????, ??????, ????????? ??? ????????? ????????? ??? ??? ???????</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a class="btn btn-success btn-lg px-4" href="#" role="button">?????? ???????? ?????</a>
+            <a class="btn btn-outline-success btn-lg px-4" href="#" role="button">??? ????</a>
+        </div>
+    </div>
+</div>
+
+<!-- Ongoing Programs Section -->
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block">????? ?????????????</h2>
+        <a href="#" class="text-success text-decoration-none fw-bold">?? ????? <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="row g-4">
+        {% for program in ongoing_programs %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                {% if program.image %}
+                    <img src="{{ program.image.url }}" class="card-img-top" alt="{{ program.title }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 200px;">??? ???</div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-success">{{ program.title }}</h5>
+                    <p class="card-text text-muted">{{ program.description|truncatewords:15 }}</p>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-3">
+                     <a href="#" class="btn btn-outline-success btn-sm w-100">????????? ?????</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-muted text-center">???????? ???? ????????? ????? ????</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Upcoming Events & Recent News Section -->
+<div class="container mt-5 mb-5">
+    <div class="row g-5">
+        <!-- Upcoming Events -->
+        <div class="col-lg-6">
+            <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block mb-4">????? ??????????</h2>
+            <div class="list-group list-group-flush shadow-sm rounded-3">
+                {% for event in upcoming_events %}
+                <div class="list-group-item p-4 border-0 mb-2 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-1 fw-bold text-dark">{{ event.title }}</h5>
+                        <small class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-calendar-alt me-1"></i> {{ event.date|date:"d M Y" }}</small>
+                    </div>
+                    <p class="mb-2 mt-2 text-muted">{{ event.description|truncatewords:12 }}</p>
+                    <small class="text-secondary"><i class="fas fa-map-marker-alt me-1 text-danger"></i> {{ event.location }}</small>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center p-3">???? ????? ?????? ????</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent News -->
+        <div class="col-lg-6">
+            <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block mb-4">??????? ???</h2>
+            <div class="row g-3">
+                {% for article in recent_news %}
+                <div class="col-12">
+                    <div class="card flex-row border-0 shadow-sm h-100">
+                        {% if article.image %}
+                            <img class="card-img-left" src="{{ article.image.url }}" style="width: 120px; object-fit: cover;" alt="{{ article.title }}">
+                        {% else %}
+                             <div class="bg-secondary text-white d-flex justify-content-center align-items-center" style="width: 120px;">??? ???</div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold text-success mb-1">{{ article.title }}</h6>
+                            <small class="text-muted mb-2 d-block"><i class="fas fa-clock me-1"></i> {{ article.publish_date|date:"d M Y" }}</small>
+                            <p class="card-text small text-muted mb-0">{{ article.content|truncatewords:10 }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                 <p class="text-muted text-center p-3 w-100">???? ??? ???????? ??????</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Gallery Snapshot -->
+<div class="bg-light py-5 mt-5">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block">???????? ??????</h2>
+        </div>
+        <div class="row g-2">
+            {% for photo in gallery_photos %}
+            <div class="col-6 col-md-3">
+                {% if photo.image %}
+                    <img src="{{ photo.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ photo.caption }}" style="height: 200px; width: 100%; object-fit: cover;">
+                {% endif %}
+            </div>
+            {% empty %}
+             <div class="col-12 text-center">
+                <p class="text-muted">?????????? ???? ??? ????</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+             <a href="#" class="btn btn-outline-secondary">???????? ???????? ?????</a>
+        </div>
     </div>
 </div>
 {% endblock %}
