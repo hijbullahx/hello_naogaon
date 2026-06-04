@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}সাফল্যের গল্প - Hello Naogaon{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h1 class="text-success fw-bold">সাফল্যের গল্প</h1>
+        <p class="text-muted">আমাদের কাজের মাধ্যমে যাদের মুখে হাসি ফুটেছে</p>
+    </div>
+
+    <div class="row g-4">
+        {% for story in stories %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100 p-4">
+                <div class="d-flex align-items-center mb-3">
+                    {% if story.image %}
+                        <img src="{{ story.image.url }}" class="rounded-circle border border-2 border-success p-1" style="width: 80px; height: 80px; object-fit: cover;" alt="{{ story.title }}">
+                    {% else %}
+                        <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 80px; height: 80px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                    {% endif %}
+                    <div class="ms-3">
+                        <h5 class="fw-bold text-dark mb-1">{{ story.title }}</h5>
+                        <small class="text-muted">{{ story.date|date:"d M Y" }}</small>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-muted fst-italic mb-0" style="line-height: 1.7;">
+                        <i class="fas fa-quote-left text-success me-2 opacity-50"></i>
+                        {{ story.content|linebreaksbr }}
+                        <i class="fas fa-quote-right text-success ms-2 opacity-50"></i>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-muted">সাফল্যের গল্প শীঘ্রই যোগ করা হবে।</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

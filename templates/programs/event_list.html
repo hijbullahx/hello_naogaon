@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}আসন্ন ইভেন্টসমূহ - Hello Naogaon{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h1 class="text-success fw-bold">আসন্ন ইভেন্টসমূহ</h1>
+        <p class="text-muted">হ্যালো নওগাঁ-এর আসন্ন ইভেন্ট ও ইভেন্টের বিস্তারিত</p>
+    </div>
+
+    <div class="row g-4">
+        {% for event in events %}
+        <div class="col-md-6">
+            <div class="card flex-row border-0 shadow-sm h-100 p-3 bg-light">
+                {% if event.image %}
+                    <img class="rounded shadow-sm" src="{{ event.image.url }}" style="width: 150px; height: 150px; object-fit: cover;" alt="{{ event.title }}">
+                {% else %}
+                    <div class="bg-secondary text-white rounded shadow-sm d-flex justify-content-center align-items-center" style="width: 150px; height: 150px;">
+                        <i class="fas fa-calendar-day fa-3x"></i>
+                    </div>
+                {% endif %}
+                <div class="card-body py-0 pe-0">
+                    <h5 class="card-title fw-bold text-success mb-2">{{ event.title }}</h5>
+                    <ul class="list-unstyled text-muted small mb-2">
+                        <li class="mb-1"><i class="fas fa-calendar-alt me-2 text-dark"></i>{{ event.date|date:"d M Y" }}</li>
+                        {% if event.time %}
+                        <li class="mb-1"><i class="fas fa-clock me-2 text-dark"></i>{{ event.time }}</li>
+                        {% endif %}
+                        <li class="mb-1"><i class="fas fa-map-marker-alt me-2 text-danger"></i>{{ event.location }}</li>
+                    </ul>
+                    <p class="card-text small text-muted mb-0">{{ event.description|truncatewords:15 }}</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-muted">কোনো আসন্ন ইভেন্ট নেই।</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

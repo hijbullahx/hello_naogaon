@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ program.title }} - Hello Naogaon{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="mb-4">
+                <span class="badge {% if program.status == 'ongoing' %}bg-success{% elif program.status == 'upcoming' %}bg-warning text-dark{% else %}bg-secondary{% endif %} mb-3 fs-6">
+                    {{ program.get_status_display }}
+                </span>
+                <h1 class="fw-bold text-success">{{ program.title }}</h1>
+                {% if program.start_date or program.end_date %}
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        {% if program.start_date %}{{ program.start_date|date:"d M Y" }}{% endif %}
+                        {% if program.start_date and program.end_date %} থেকে {% endif %}
+                        {% if program.end_date %}{{ program.end_date|date:"d M Y" }}{% endif %}
+                    </p>
+                {% endif %}
+            </div>
+
+            {% if program.image %}
+                <img src="{{ program.image.url }}" class="img-fluid rounded shadow-sm mb-4 w-100" alt="{{ program.title }}">
+            {% endif %}
+
+            <div class="content text-dark" style="line-height: 1.8;">
+                {{ program.description|linebreaks }}
+            </div>
+            
+            <div class="mt-5 border-top pt-4">
+                <a href="{% url 'programs:program_list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>সব কার্যক্রম দেখুন</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

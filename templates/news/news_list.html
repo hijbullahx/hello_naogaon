@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}খবর ও আপডেট - Hello Naogaon{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h1 class="text-success fw-bold">খবর ও আপডেট</h1>
+        <p class="text-muted">আমাদের সাম্প্রতিক কার্যক্রম ও অন্যান্য খবর</p>
+    </div>
+
+    <div class="row g-4">
+        {% for article in articles %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                {% if article.image %}
+                    <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 200px;"><i class="fas fa-newspaper fa-3x"></i></div>
+                {% endif %}
+                <div class="card-body">
+                    {% if article.category %}
+                        <span class="badge bg-success mb-2">{{ article.category.name }}</span>
+                    {% endif %}
+                    <h5 class="card-title fw-bold"><a href="{% url 'news:news_detail' article.id %}" class="text-dark text-decoration-none">{{ article.title }}</a></h5>
+                    <small class="text-muted d-block mb-3"><i class="fas fa-calendar-alt me-1"></i>{{ article.publish_date|date:"d M Y" }}</small>
+                    <p class="card-text text-muted">{{ article.content|truncatewords:15 }}</p>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-3">
+                    <a href="{% url 'news:news_detail' article.id %}" class="text-success fw-bold text-decoration-none">আরও পড়ুন <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-muted">বর্তমানে কোনো খবর নেই।</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

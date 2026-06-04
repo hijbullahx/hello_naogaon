@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}আমাদের কার্যক্রম - Hello Naogaon{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h1 class="text-success fw-bold">আমাদের কার্যক্রম</h1>
+        <p class="text-muted">হ্যালো নওগাঁ-এর সকল উদ্যোগ ও চলমান কার্যক্রমসমূহ</p>
+    </div>
+
+    <div class="row g-4">
+        {% for program in programs %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                {% if program.image %}
+                    <img src="{{ program.image.url }}" class="card-img-top" alt="{{ program.title }}" style="height: 250px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 250px;"><i class="fas fa-image fa-3x"></i></div>
+                {% endif %}
+                <div class="card-body">
+                    <span class="badge {% if program.status == 'ongoing' %}bg-success{% elif program.status == 'upcoming' %}bg-warning text-dark{% else %}bg-secondary{% endif %} mb-2">
+                        {{ program.get_status_display }}
+                    </span>
+                    <h5 class="card-title fw-bold text-dark">{{ program.title }}</h5>
+                    <p class="card-text text-muted">{{ program.description|truncatewords:20 }}</p>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-4">
+                    <a href="{% url 'programs:program_detail' program.id %}" class="btn btn-outline-success w-100">বিস্তারিত পড়ুন</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-muted">বর্তমানে কোনো কার্যক্রমের তথ্য নেই।</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
