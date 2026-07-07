@@ -4,5 +4,5 @@ from . import views
 app_name = 'gallery'
 
 urlpatterns = [
-    # Add gallery-related URLs here
+    path('', views.gallery_view, name='gallery_view'),
 ]
