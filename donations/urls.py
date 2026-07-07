@@ -1,8 +1,8 @@
 from django.urls import path
 from . import views
 
-app_name = 'programs'
+app_name = 'donations'
 
 urlpatterns = [
-    # Add program-related URLs here
+    # Add donation-related URLs here
 ]
