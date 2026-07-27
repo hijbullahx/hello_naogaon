@@ -31,23 +31,46 @@
                         <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active text-success{% endif %}" href="{% url 'core:about' %}">আমাদের সম্পর্কে</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">কার্যক্রম</a>
+                        <a class="nav-link" href="#">কার্যক্রম</a> {# TODO: Add url 'programs:program_list' #}
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">স্বেচ্ছাসেবক</a>
+                        <a class="nav-link" href="#">স্বেচ্ছাসেবক</a> {# TODO: Add url 'volunteers:apply' #}
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">খবর</a>
+                        <a class="nav-link" href="#">খবর</a> {# TODO: Add url 'news:article_list' #}
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">গ্যালারি</a>
+                        <a class="nav-link" href="{% url 'gallery:gallery_view' %}">গ্যালারি</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active text-success{% endif %}" href="{% url 'core:contact' %}">যোগাযোগ</a>
                     </li>
                 </ul>
-                <div class="d-flex ms-lg-3 mt-3 mt-lg-0">
-                    <a href="#" class="btn btn-success fw-bold px-4">দান করুন</a>
+                <div class="d-flex ms-lg-3 mt-3 mt-lg-0 align-items-center">
+                    <a href="{% url 'donations:donate' %}" class="btn btn-success fw-bold px-4 me-2">দান করুন</a>
+                    {% if user.is_authenticated %}
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user me-1"></i>{{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                {% if user.is_staff %}
+                                <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cogs me-2"></i>Admin</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li>
+                                    <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
+                                        {% csrf_token %}
+                                    </form>
+                                    <a class="dropdown-item" href="#" onclick="document.getElementById('logout-form').submit();">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-success fw-bold px-4">লগইন</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

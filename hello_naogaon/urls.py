@@ -11,6 +11,9 @@ urlpatterns = [
     path('gallery/', include('gallery.urls')),
     path('volunteers/', include('volunteers.urls')),
     path('donations/', include('donations.urls')),
+
+    # Add auth urls
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 # Serve media files in development

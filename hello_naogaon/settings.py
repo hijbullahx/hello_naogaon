@@ -31,10 +31,21 @@ DEBUG = env('DEBUG', default=True)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
+# To handle CSRF issues with cloud IDEs and other proxies
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
+    'http://localhost:8000',
+    'https://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://*.gitpod.io',
+    'https://*.github.dev',
+    'https://*.app.github.dev',
+])
+
 
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -136,3 +147,51 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Redirect users to the home page after login/logout
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+JAZZMIN_SETTINGS = {
+    # title of the window (Will default to current_admin_site.site_title if absent or None)
+    "site_title": "হ্যালো নওগাঁ অ্যাডমিন",
+
+    # Title on the login screen (19 chars max) (defaults to site_title)
+    "site_header": "হ্যালো নওগাঁ",
+
+    # Title on the brand (19 chars max) (defaults to site_header)
+    "site_brand": "হ্যালো নওগাঁ",
+
+    # Logo to use for your site, must be present in static files, use relative path
+    # "site_logo": "images/logo.png",
+
+    # Welcome text on the login screen
+    "welcome_sign": "হ্যালো নওগাঁ অ্যাডমিন প্যানেলে স্বাগতম",
+
+    # Copyright on the footer
+    "copyright": "হ্যালো নওগাঁ",
+
+    # Theming options
+    "theme": "default",
+    "theme_dark": False,
+
+    # UI Tweaks
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "order_with_respect_to": ["auth", "core", "programs", "news", "gallery", "volunteers", "donations"],
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "core": "fas fa-cog",
+        "programs": "fas fa-calendar-alt",
+        "news": "fas fa-newspaper",
+        "gallery": "fas fa-images",
+        "volunteers": "fas fa-hands-helping",
+        "donations": "fas fa-hand-holding-usd",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+}

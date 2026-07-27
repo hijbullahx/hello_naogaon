@@ -1,0 +1,16 @@
+/* Custom styles for Hello Naogaon */
+
+body {
+    font-family: 'Hind Siliguri', sans-serif; /* A nice Bengali font */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+.hover-white:hover {
+    color: white !important;
+}

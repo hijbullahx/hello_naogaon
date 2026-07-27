@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}দান করুন - হ্যালো নওগাঁ{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Hero Section -->
+    <section class="text-center bg-light p-5 rounded-3 mb-5">
+        <h1 class="display-4 fw-bold">{{ content.hero_title }}</h1>
+        <p class="lead text-muted">{{ content.hero_subtitle }}</p>
+        {% if content.hero_image %}
+        <img src="{{ content.hero_image.url }}" class="img-fluid rounded-3 mt-3" alt="Donation hero image">
+        {% endif %}
+    </section>
+
+    <div class="row g-5">
+        <!-- Main Donation Area -->
+        <div class="col-lg-8">
+            <!-- Donation Form -->
+            <section id="donation-form" class="mb-5">
+                <h2 class="mb-4 pb-2 border-bottom">আপনার অনুদান</h2>
+                <div class="p-4 border rounded-3 bg-white">
+                    <ul class="nav nav-pills mb-3" id="donation-type-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="one-time-tab" data-bs-toggle="tab" data-bs-target="#one-time" type="button" role="tab" aria-controls="one-time" aria-selected="true">এককালীন</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab" aria-controls="monthly" aria-selected="false">মাসিক</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="donation-type-tabContent">
+                        <div class="tab-pane fade show active" id="one-time" role="tabpanel" aria-labelledby="one-time-tab">
+                            <div class="d-flex flex-wrap gap-2 my-3">
+                                {% for impact in impacts %}
+                                <button type="button" class="btn btn-outline-secondary amount-btn">৳{{ impact.amount|floatformat:0 }}</button>
+                                {% endfor %}
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">৳</span>
+                                <input type="number" class="form-control" placeholder="অন্য পরিমাণ দিন">
+                                <button class="btn btn-success" type="button">দান করুন</button>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="monthly" role="tabpanel" aria-labelledby="monthly-tab">
+                            <!-- Monthly donation options can be added here -->
+                             <div class="d-flex flex-wrap gap-2 my-3">
+                                {% for impact in impacts %}
+                                <button type="button" class="btn btn-outline-secondary amount-btn">৳{{ impact.amount|floatformat:0 }}</button>
+                                {% endfor %}
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">৳</span>
+                                <input type="number" class="form-control" placeholder="অন্য পরিমাণ দিন">
+                                <button class="btn btn-success" type="button">মাসিক দান করুন</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Introduction Section -->
+            <section id="introduction" class="mb-5">
+                <h2 class="mb-4 pb-2 border-bottom">{{ content.intro_title }}</h2>
+                <div class="p-4 border rounded-3 bg-white">
+                    <p>{{ content.intro_text|linebreaks }}</p>
+                </div>
+            </section>
+
+            <!-- Why Donate Section -->
+            <section id="why-donate" class="mb-5">
+                <h2 class="mb-4 pb-2 border-bottom">{{ content.why_donate_title }}</h2>
+                <div class="p-4 border rounded-3 bg-white">
+                    <p>{{ content.why_donate_text|linebreaks }}</p>
+                </div>
+            </section>
+
+            <!-- Current Campaigns Section -->
+            {% if campaigns %}
+            <section id="campaigns" class="mb-5">
+                <h2 class="mb-4 pb-2 border-bottom">চলমান প্রচারাভিযান</h2>
+                <div class="row g-4">
+                    {% for campaign in campaigns %}
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <img src="{{ campaign.image.url }}" class="card-img-top" alt="{{ campaign.title }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ campaign.title }}</h5>
+                                <p class="card-text">{{ campaign.description|truncatewords:20 }}</p>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio campaign.raised_amount campaign.goal_amount 100 %}%;" aria-valuenow="{{ campaign.raised_amount }}" aria-valuemin="0" aria-valuemax="{{ campaign.goal_amount }}"></div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span><strong>উত্তোলিত:</strong> ৳{{ campaign.raised_amount|floatformat:2 }}</span>
+                                    <span><strong>লক্ষ্য:</strong> ৳{{ campaign.goal_amount|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-top-0">
+                                 <a href="#" class="btn btn-sm btn-success">বিস্তারিত ও দান</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Payment Methods Section -->
+            <section id="payment-methods" class="mb-5">
+                <h2 class="mb-4 pb-2 border-bottom">দান পাঠানোর পদ্ধতি</h2>
+                <div class="p-4 border rounded-3 bg-white">
+                    <ul class="nav nav-tabs" id="payment-method-tab" role="tablist">
+                        {% for method in donation_methods %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if forloop.first %}active{% endif %}" id="{{ method.name|slugify }}-tab" data-bs-toggle="tab" data-bs-target="#{{ method.name|slugify }}" type="button" role="tab" aria-controls="{{ method.name|slugify }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ method.name }}</button>
+                        </li>
+                        {% endfor %}
+                         <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="bank-transfer-tab" data-bs-toggle="tab" data-bs-target="#bank-transfer" type="button" role="tab" aria-controls="bank-transfer" aria-selected="false">ব্যাংক ট্রান্সফার</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content pt-4" id="payment-method-tabContent">
+                        {% for method in donation_methods %}
+                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="{{ method.name|slugify }}" role="tabpanel" aria-labelledby="{{ method.name|slugify }}-tab">
+                            <div class="row">
+                                {% for qr in method.qrcodes.all %}
+                                    <div class="col-md-6 text-center">
+                                        <img src="{{ qr.image.url }}" class="img-fluid rounded" alt="QR Code for {{ method.name }}" style="max-width: 200px;">
+                                        <p class="mt-2">{{ qr.details }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="tab-pane fade" id="bank-transfer" role="tabpanel" aria-labelledby="bank-transfer-tab">
+                            {% for bank in banks %}
+                            <div class="mb-3 p-3 border rounded">
+                                <h5>{{ bank.bank_name }}</h5>
+                                <p><strong>Account Name:</strong> {{ bank.account_name }}</p>
+                                <p><strong>Account Number:</strong> {{ bank.account_number }}</p>
+                                {% if bank.branch %}<p><strong>Branch:</strong> {{ bank.branch }}</p>{% endif %}
+                                {% if bank.swift_code %}<p><strong>SWIFT Code:</strong> {{ bank.swift_code }}</p>{% endif %}
+                            </div>
+                            {% empty %}
+                            <p>Bank account details will be added soon.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- FAQ Section -->
+            {% if faqs %}
+            <section id="faq" class="mb-5">
+                <h2 class="mb-4 pb-2 border-bottom">সাধারণ প্রশ্ন</h2>
+                <div class="accordion" id="faqAccordion">
+                    {% for item in faqs %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                                {{ item.question }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                {{ item.answer|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+             <!-- Transparency Section -->
+            <section id="transparency" class="mb-5">
+                <h2 class="mb-4 pb-2 border-bottom">{{ content.transparency_title }}</h2>
+                <div class="p-4 border rounded-3 bg-white">
+                    <p>{{ content.transparency_text|linebreaks }}</p>
+                    <div class="row g-4 text-center mt-3">
+                        {% for stat in statistics %}
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded">
+                                <i class="{{ stat.icon_class }} fa-2x text-success mb-2"></i>
+                                <h3 class="fw-bold">{{ stat.value }}</h3>
+                                <p class="text-muted">{{ stat.label }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+        </div>
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Donation Impact Section -->
+            {% if impacts %}
+            <div class="card mb-4">
+                <div class="card-header">আপনার দানের প্রভাব</div>
+                <div class="list-group list-group-flush">
+                    {% for impact in impacts %}
+                    <div class="list-group-item d-flex align-items-center">
+                        <i class="{{ impact.icon_class }} fa-2x me-3 text-success"></i>
+                        <div>
+                           <strong>৳{{ impact.amount|floatformat:0 }}</strong> - {{ impact.description }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Emergency Appeal Section -->
+            {% if emergency_appeals %}
+            <div class="card text-white bg-danger mb-4">
+                 {% for appeal in emergency_appeals %}
+                    {% if forloop.first %}
+                        <div class="card-header">{{ appeal.title }}</div>
+                        <div class="card-body">
+                            {% if appeal.image %}<img src="{{ appeal.image.url }}" class="img-fluid rounded mb-2" alt="{{ appeal.title }}">{% endif %}
+                            <p class="card-text">{{ appeal.description|truncatewords:30 }}</p>
+                            <a href="#" class="btn btn-light btn-sm">বিস্তারিত</a>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Contact for donation Section -->
+            <div class="card">
+                <div class="card-header">{{ content.contact_title }}</div>
+                <div class="card-body">
+                    {{ content.contact_text|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Thank You Section -->
+    <section id="thank-you" class="mt-5 text-center bg-light p-5 rounded-3">
+        <h2 class="fw-bold text-success">{{ content.thank_you_title }}</h2>
+        <p class="lead">{{ content.thank_you_text }}</p>
+    </section>
+
+</div>
+{% endblock %}
