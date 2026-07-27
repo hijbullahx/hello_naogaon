@@ -4,5 +4,5 @@ from . import views
 app_name = 'donations'
 
 urlpatterns = [
-    # Add donation-related URLs here
+    path('donate/', views.donation_page_view, name='donate'),
 ]
