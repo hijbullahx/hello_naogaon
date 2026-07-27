@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}লগইন - Hello Naogaon{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-center fw-bold mb-4">লগইন করুন</h2>
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            আপনার ইউজারনেম এবং পাসওয়ার্ড মেলেনি। অনুগ্রহ করে আবার চেষ্টা করুন।
+                        </div>
+                    {% endif %}
+
+                    {% if next %}
+                        {% if user.is_authenticated %}
+                            <div class="alert alert-warning" role="alert">
+                                আপনার অ্যাকাউন্টের এই পাতাটি দেখার অনুমতি নেই।
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info" role="alert">
+                                এই পাতাটি দেখতে অনুগ্রহ করে লগইন করুন।
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">ইউজারনেম</label>
+                            <input type="text" name="username" class="form-control" id="id_username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label">পাসওয়ার্ড</label>
+                            <input type="password" name="password" class="form-control" id="id_password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold">লগইন</button>
+                        </div>
+                        <input type="hidden" name="next" value="{{ next }}">
+                    </form>
+                    <hr>
+                    <div class="text-center">
+                        <a href="{% url 'password_reset' %}" class="text-decoration-none">পাসওয়ার্ড ভুলে গেছেন?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
