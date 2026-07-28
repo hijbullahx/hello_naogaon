@@ -1,0 +1,32 @@
+/*
+ Custom CSS for a card-based layout in Django Jazzmin admin.
+*/
+
+.app-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.app-list .app-label {
+    display: none; /* Hide the default app label header */
+}
+
+.app-list .model-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.app-list .model-link {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.app-list .model-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
