@@ -108,7 +108,7 @@ class Migration(migrations.Migration):
                 (
                     "hero_title",
                     models.CharField(
-                        default="আপনার দানে, হাসি ফুটবে ও মুখে", max_length=200
+                        default="আপনার দানে, হাসি ফুটবে মুখে", max_length=200
                     ),
                 ),
                 ("hero_subtitle", models.TextField(blank=True)),

@@ -123,8 +123,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-# Set default language to Bengali (Bangladesh)
-LANGUAGE_CODE = 'bn-bd'
+# Set default language to English (United States)
+LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Dhaka'
 
@@ -154,33 +154,38 @@ LOGOUT_REDIRECT_URL = '/'
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "হ্যালো নওগাঁ অ্যাডমিন",
+    "site_title": "Hello Naogaon Admin",
 
     # Title on the login screen (19 chars max) (defaults to site_title)
-    "site_header": "হ্যালো নওগাঁ",
+    "site_header": "Hello Naogaon",
 
     # Title on the brand (19 chars max) (defaults to site_header)
-    "site_brand": "হ্যালো নওগাঁ",
+    "site_brand": "Hello Naogaon",
 
     # Logo to use for your site, must be present in static files, use relative path
     # "site_logo": "images/logo.png",
 
     # Welcome text on the login screen
-    "welcome_sign": "হ্যালো নওগাঁ অ্যাডমিন প্যানেলে স্বাগতম",
+    "welcome_sign": "Welcome to Hello Naogaon Admin Panel",
 
     # Copyright on the footer
-    "copyright": "হ্যালো নওগাঁ",
+    "copyright": "Hello Naogaon",
 
     # Theming options
-    "theme": "default",
+    "theme": "flatly",
     "theme_dark": False,
 
     # UI Tweaks
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "hide_apps": [],
-    "hide_models": [],
+    "related_modal_active": True,
+    "show_ui_builder": False,
+    "changeform_format": "horizontal_tabs",
+    # override change forms on a per modeladmin basis
+    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
+
+    # App and model ordering
     "order_with_respect_to": ["auth", "core", "programs", "news", "gallery", "volunteers", "donations"],
+
+    # Icons for apps and models
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
@@ -194,4 +199,11 @@ JAZZMIN_SETTINGS = {
     },
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
+
+    # UI Tweaks for a card-based layout
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "custom_css": "jazzmin/css/card_layout.css",
 }
