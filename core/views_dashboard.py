@@ -11,6 +11,7 @@ from donations.models import (
     DonationPageContent, Campaign, EmergencyAppeal, DonationImpact, FAQ
 )
 from django.db.models import Sum
+from datetime import date
 
 @staff_member_required
 def dashboard_home(request):
