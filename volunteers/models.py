@@ -31,3 +31,31 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return self.name
+
+class BloodDonor(models.Model):
+    BLOOD_GROUPS = (
+        ('A+', 'A+'),
+        ('A-', 'A-'),
+        ('B+', 'B+'),
+        ('B-', 'B-'),
+        ('O+', 'O+'),
+        ('O-', 'O-'),
+        ('AB+', 'AB+'),
+        ('AB-', 'AB-'),
+    )
+    full_name = models.CharField(max_length=200)
+    blood_group = models.CharField(max_length=5, choices=BLOOD_GROUPS)
+    phone = models.CharField(max_length=20)
+    location = models.CharField(max_length=200, help_text="Area / Thana in Naogaon")
+    last_donated = models.DateField(blank=True, null=True)
+    is_available = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['blood_group', 'full_name']
+        verbose_name = "Blood Donor"
+        verbose_name_plural = "Blood Donors"
+
+    def __str__(self):
+        return f"{self.full_name} ({self.blood_group}) - {self.phone}"
+

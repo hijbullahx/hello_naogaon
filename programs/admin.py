@@ -3,9 +3,10 @@ from .models import Program, Event, SuccessStory
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
-    list_display = ('title', 'status', 'start_date', 'end_date')
+    list_display = ('title', 'status', 'icon_class', 'badge_color', 'order')
+    list_editable = ('status', 'order')
     list_filter = ('status',)
-    search_fields = ('title', 'description')
+    search_fields = ('title', 'description', 'short_description')
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):

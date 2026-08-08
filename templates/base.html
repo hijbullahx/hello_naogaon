@@ -4,130 +4,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}হ্যালো নওগাঁ - Hello Naogaon{% endblock %}</title>
-    <!-- Bootstrap CSS -->
+    <title>{% block title %}{{ site_setting.title|default:"Helpline Hello Naogaon" }} - {{ site_setting.tagline|default:"সবসময় আপনার পাশে" }}{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS (if any) -->
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-3 align-items-center">
+                <span><i class="fas fa-phone-alt me-1"></i> {{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</span>
+                <span class="d-none d-sm-inline"><i class="fas fa-envelope me-1"></i> {{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="social-links d-flex gap-2">
+                    {% if site_setting.facebook_url %}<a href="{{ site_setting.facebook_url }}" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>{% endif %}
+                    {% if site_setting.youtube_url %}<a href="{{ site_setting.youtube_url }}" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>{% endif %}
+                    {% if site_setting.whatsapp_number %}<a href="https://wa.me/{{ site_setting.whatsapp_number }}" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>{% endif %}
+                </div>
+                <a href="{% url 'core:contact' %}" class="btn-contact ms-2 text-white">যোগাযোগ করুন</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-2">
         <div class="container">
-            <a class="navbar-brand fw-bold text-success" href="{% url 'core:home' %}">
-                <i class="fas fa-hands-helping me-2"></i>হ্যালো নওগাঁ
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'core:home' %}">
+                {% if site_setting.logo %}
+                    <img src="{{ site_setting.logo.url }}" alt="Logo" class="navbar-brand-logo">
+                {% else %}
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fas fa-hands-helping fa-lg"></i>
+                    </div>
+                {% endif %}
+                <div class="lh-1">
+                    <div class="brand-title">{{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}</div>
+                    <div class="brand-tagline">সবসময় আপনার পাশে</div>
+                    <div class="brand-subtagline">একটি স্বেচ্ছাসেবী সংগঠন</div>
+                </div>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-semibold">
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-semibold align-items-lg-center">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active text-success{% endif %}" href="{% url 'core:home' %}">হোম</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'core:home' %}">হোম</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active text-success{% endif %}" href="{% url 'core:about' %}">আমাদের সম্পর্কে</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'core:about' %}">আমাদের সম্পর্কে</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">কার্যক্রম</a> {# TODO: Add url 'programs:program_list' #}
+                        <a class="nav-link {% if request.resolver_match.app_name == 'programs' %}active{% endif %}" href="{% url 'programs:program_list' %}">কার্যক্রম</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">স্বেচ্ছাসেবক</a> {# TODO: Add url 'volunteers:apply' #}
+                        <a class="nav-link {% if request.resolver_match.url_name == 'blood_donors' %}active{% endif %}" href="{% url 'volunteers:blood_donors' %}">রক্তদাতা</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">খবর</a> {# TODO: Add url 'news:article_list' #}
+                        <a class="nav-link {% if request.resolver_match.url_name == 'apply' %}active{% endif %}" href="{% url 'volunteers:apply' %}">স্বেচ্ছাসেবক</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'gallery:gallery_view' %}">গ্যালারি</a>
+                        <a class="nav-link {% if request.resolver_match.app_name == 'news' %}active{% endif %}" href="{% url 'news:article_list' %}">সংবাদ</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active text-success{% endif %}" href="{% url 'core:contact' %}">যোগাযোগ</a>
+                        <a class="nav-link {% if request.resolver_match.app_name == 'gallery' %}active{% endif %}" href="{% url 'gallery:gallery_view' %}">গ্যালারি</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.app_name == 'donations' %}active{% endif %}" href="{% url 'donations:donate' %}">অনুদান</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}" href="{% url 'core:contact' %}">যোগাযোগ</a>
                     </li>
                 </ul>
-                <div class="d-flex ms-lg-3 mt-3 mt-lg-0 align-items-center">
-                    <a href="{% url 'donations:donate' %}" class="btn btn-success fw-bold px-4 me-2">দান করুন</a>
-                    {% if user.is_authenticated %}
-                        <div class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user me-1"></i>{{ user.username }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                {% if user.is_staff %}
-                                <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cogs me-2"></i>Admin</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                {% endif %}
-                                <li>
-                                    <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
-                                        {% csrf_token %}
-                                    </form>
-                                    <a class="dropdown-item" href="#" onclick="document.getElementById('logout-form').submit();">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-outline-success fw-bold px-4">লগইন</a>
-                    {% endif %}
+
+                {% if user.is_authenticated %}
+                <div class="dropdown ms-lg-3">
+                    <button class="btn btn-sm btn-outline-success dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle me-1"></i> {{ user.username }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenu">
+                        {% if user.is_staff %}
+                        <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cogs me-2"></i>অ্যাডমিন প্যানেল</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% endif %}
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger"><i class="fas fa-sign-out-alt me-2"></i>লগআউট</button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
+                {% endif %}
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Messages Container -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Body Content -->
     <main>
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white pt-5 pb-3 mt-auto">
+    <footer>
         <div class="container">
             <div class="row gy-4">
+                <!-- Col 1: About -->
                 <div class="col-lg-4 col-md-6">
-                    <h5 class="fw-bold text-success mb-3"><i class="fas fa-hands-helping me-2"></i>হ্যালো নওগাঁ</h5>
-                    <p class="text-secondary small">আমাদের লক্ষ্য সমাজকে এগিয়ে নিয়ে যাওয়া এবং দরিদ্র ও অসহায় মানুষের পাশে দাঁড়ানো।</p>
-                    <div class="d-flex gap-2 mt-3">
-                        <a href="#" class="btn btn-outline-secondary btn-sm rounded-circle"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="btn btn-outline-secondary btn-sm rounded-circle"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="btn btn-outline-secondary btn-sm rounded-circle"><i class="fab fa-youtube"></i></a>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        {% if site_setting.logo %}
+                            <img src="{{ site_setting.logo.url }}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain;">
+                        {% else %}
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-hands-helping"></i>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-0 text-white fw-bold">{{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}</h5>
+                            <small class="text-white-50">সবসময় আপনার পাশে - একটি স্বেচ্ছাসেবী সংগঠন</small>
+                        </div>
+                    </div>
+                    <p class="small text-light opacity-75 mb-3">
+                        {{ site_setting.footer_about|default:"Helpline Hello Naogaon একটি স্বেচ্ছাসেবী সংগঠন। আমাদের লক্ষ্য সমাজকে এগিয়ে নিয়ে যাওয়া এবং অসহায় মানুষের পাশে দাঁড়ানো।" }}
+                    </p>
+                    <div class="d-flex">
+                        {% if site_setting.facebook_url %}<a href="{{ site_setting.facebook_url }}" target="_blank" class="footer-social-icon"><i class="fab fa-facebook-f"></i></a>{% endif %}
+                        {% if site_setting.youtube_url %}<a href="{{ site_setting.youtube_url }}" target="_blank" class="footer-social-icon"><i class="fab fa-youtube"></i></a>{% endif %}
+                        {% if site_setting.whatsapp_number %}<a href="https://wa.me/{{ site_setting.whatsapp_number }}" target="_blank" class="footer-social-icon"><i class="fab fa-whatsapp"></i></a>{% endif %}
                     </div>
                 </div>
+
+                <!-- Col 2: Quick Links -->
                 <div class="col-lg-2 col-md-6">
-                    <h5 class="fw-bold mb-3">গুরুত্বপূর্ণ লিংক</h5>
-                    <ul class="list-unstyled small">
-                        <li class="mb-2"><a href="{% url 'core:about' %}" class="text-secondary text-decoration-none hover-white">আমাদের সম্পর্কে</a></li>
-                        <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-white">কার্যক্রম</a></li>
-                        <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-white">গ্যালারি</a></li>
-                        <li class="mb-2"><a href="{% url 'core:contact' %}" class="text-secondary text-decoration-none hover-white">যোগাযোগ</a></li>
+                    <h5>দ্রুত লিংক</h5>
+                    <ul class="list-unstyled small lh-lg mb-0">
+                        <li><a href="{% url 'core:home' %}"><i class="fas fa-angle-right me-1 text-success"></i> হোম</a></li>
+                        <li><a href="{% url 'core:about' %}"><i class="fas fa-angle-right me-1 text-success"></i> আমাদের সম্পর্কে</a></li>
+                        <li><a href="{% url 'programs:program_list' %}"><i class="fas fa-angle-right me-1 text-success"></i> কার্যক্রম</a></li>
+                        <li><a href="{% url 'volunteers:blood_donors' %}"><i class="fas fa-angle-right me-1 text-success"></i> রক্তদাতা</a></li>
+                        <li><a href="{% url 'volunteers:apply' %}"><i class="fas fa-angle-right me-1 text-success"></i> স্বেচ্ছাসেবক</a></li>
+                        <li><a href="{% url 'news:article_list' %}"><i class="fas fa-angle-right me-1 text-success"></i> সংবাদ</a></li>
+                        <li><a href="{% url 'gallery:gallery_view' %}"><i class="fas fa-angle-right me-1 text-success"></i> গ্যালারি</a></li>
+                        <li><a href="{% url 'donations:donate' %}"><i class="fas fa-angle-right me-1 text-success"></i> অনুদান</a></li>
+                        <li><a href="{% url 'core:contact' %}"><i class="fas fa-angle-right me-1 text-success"></i> যোগাযোগ</a></li>
                     </ul>
                 </div>
+
+                <!-- Col 3: Contact Info -->
                 <div class="col-lg-3 col-md-6">
-                    <h5 class="fw-bold mb-3">যোগাযোগ</h5>
-                    <ul class="list-unstyled small text-secondary">
-                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> নওগাঁ, বাংলাদেশ</li>
-                        <li class="mb-2"><i class="fas fa-envelope me-2"></i> info@hellonaogaon.org</li>
-                        <li class="mb-2"><i class="fas fa-phone-alt me-2"></i> +880 1XXXXXXXXX</li>
+                    <h5>যোগাযোগ</h5>
+                    <ul class="list-unstyled small lh-lg opacity-88">
+                        <li class="d-flex align-items-start gap-2 mb-2">
+                            <i class="fas fa-map-marker-alt text-success mt-1"></i>
+                            <span>{{ site_setting.contact_address|default:"Helpline Hello Naogaon Public Library, মহাদেবপুর, নওগাঁ - ৬৬০০" }}</span>
+                        </li>
+                        <li class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-phone-alt text-success"></i>
+                            <span>{{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</span>
+                        </li>
+                        <li class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-envelope text-success"></i>
+                            <span>{{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</span>
+                        </li>
+                        <li class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fab fa-facebook text-success"></i>
+                            <span>facebook.com/hello.naogaon</span>
+                        </li>
                     </ul>
                 </div>
+
+                <!-- Col 4: Location Map -->
                 <div class="col-lg-3 col-md-6">
-                    <h5 class="fw-bold mb-3">নিউজলেটার</h5>
-                    <p class="text-secondary small">আমাদের সর্বশেষ খবর পেতে সাবস্ক্রাইব করুন</p>
-                    <div class="input-group mb-3">
-                        <input type="email" class="form-control form-control-sm" placeholder="ইমেইল">
-                        <button class="btn btn-success btn-sm" type="button">সাবস্ক্রাইব</button>
+                    <h5>আমাদের অবস্থান</h5>
+                    <div class="rounded overflow-hidden shadow-sm" style="height: 150px;">
+                        {% if site_setting.google_map_embed_url %}
+                            {{ site_setting.google_map_embed_url|safe }}
+                        {% else %}
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14515.77259163777!2d88.7516806!3d24.8105741!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39fc96fb24aa7a8d%3A0x7d0251aa3d4be0c2!2sNaogaon%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd" 
+                                width="100%" height="150" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-            <hr class="border-secondary mt-4">
-            <div class="text-center text-secondary small">
-                &copy; {% now "Y" %} হ্যালো নওগাঁ। সর্বস্বত্ব সংরক্ষিত।
+
+            <!-- Bottom Copyright Bar -->
+            <div class="footer-bottom-bar d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                <div>&copy; {% now "Y" %} Helpline Hello Naogaon. All Rights Reserved.</div>
+                <div>Developed with <i class="fas fa-heart text-danger"></i> for Humanity</div>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

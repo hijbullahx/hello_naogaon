@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}স্বেচ্ছাসেবক আবেদন - {{ site_setting.title }}{% endblock %}
+
+{% block content %}
+<div class="bg-success text-white py-4 mb-4">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-1"><i class="fas fa-heart me-2"></i>স্বেচ্ছাসেবক হিসেবে যোগ দিন</h2>
+        <p class="mb-0 text-white-50">নওগাঁর উন্নয়নে আমাদের সাথে কাঁধে কাঁধ মিলিয়ে কাজ করুন</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-lg p-4 rounded-3">
+                <h4 class="fw-bold text-success mb-3">আবেদন ফর্ম</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label fw-semibold">আপনার পূর্ণ নাম *</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="আপনার নাম লিখুন">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">ইমেইল এড্রেস</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="example@gmail.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label fw-semibold">ফোন নম্বর *</label>
+                        <input type="text" class="form-control" id="phone" name="phone" required placeholder="017XXXXXXXX">
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label fw-semibold">ঠিকানা / এলাকা</label>
+                        <textarea class="form-control" id="address" name="address" rows="3" placeholder="গ্রাম/মহল্লা, থানা, নওগাঁ"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success fw-bold px-4 w-100 py-2">আবেদন জমা দিন</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
