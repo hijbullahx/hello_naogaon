@@ -2,162 +2,396 @@
 {% load static %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="container-fluid bg-light py-5 mb-5 border-bottom">
+<!-- 1. Hero Section -->
+<section class="hero-section">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 text-center text-lg-start mb-4 mb-lg-0">
-                <h1 class="text-success fw-bold mb-3 display-4">{{ site_setting.hero_title|default:"হ্যালো নওগাঁ - মানবতার সেবায়" }}</h1>
-                <p class="lead text-muted mb-4">{{ site_setting.hero_subtitle|default:"আমরা একটি অলাভজনক সংস্থা যা দরিদ্র, অসহায় এবং সুবিধাবঞ্চিত মানুষের জীবনমান উন্নয়নে কাজ করে যাচ্ছি।" }}</p>
-                <div class="d-flex justify-content-center justify-content-lg-start gap-3">
-                    <a class="btn btn-success btn-lg px-4 shadow-sm" href="#" role="button"><i class="fas fa-heart me-2"></i>স্বেচ্ছাসেবক হোন</a>
-                    <a class="btn btn-outline-success btn-lg px-4 shadow-sm" href="{% url 'core:about' %}" role="button">আরও জানুন</a>
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-6">
+                <div class="hero-badge">
+                    <i class="fas fa-hand-holding-heart me-1"></i> {{ site_setting.hero_badge|default:"মানবতার পাশে, নওগাঁর প্রতিটি মানুষের জন্য" }}
+                </div>
+                <h1 class="hero-title mb-3">
+                    {{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}
+                </h1>
+                <p class="hero-subtitle mb-4">
+                    {{ site_setting.hero_subtitle|default:"আমরা একটি অরাজনৈতিক, অলাভজনক ও স্বেচ্ছাসেবী সংগঠন, যা সমাজের অসহায় মানুষের পাশে দাঁড়াতে প্রতিশ্রুতিবদ্ধ।" }}
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'programs:program_list' %}" class="btn btn-hn-primary">আমাদের কার্যক্রম</a>
+                    <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-hn-secondary">রক্তদাতা হন</a>
                 </div>
             </div>
-            <div class="col-lg-6 text-center">
-                <!-- Placeholder for Hero Image -->
-                <img src="https://via.placeholder.com/600x400?text=Hello+Naogaon" class="img-fluid rounded-3 shadow-lg" alt="Hello Naogaon Hero">
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Ongoing Programs Section -->
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block">চলমান কার্যক্রমসমূহ</h2>
-        <a href="#" class="text-success text-decoration-none fw-bold">সব দেখুন <i class="fas fa-arrow-right"></i></a>
-    </div>
-    <div class="row g-4">
-        {% for program in ongoing_programs %}
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0">
-                {% if program.image %}
-                    <img src="{{ program.image.url }}" class="card-img-top" alt="{{ program.title }}" style="height: 200px; object-fit: cover;">
+            <div class="col-lg-6">
+                {% if site_setting.hero_image %}
+                    <img src="{{ site_setting.hero_image.url }}" alt="Hero Image" class="hero-img">
                 {% else %}
-                    <div class="bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 200px;"><i class="fas fa-image fa-2x"></i></div>
+                    <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1000&q=80" alt="Helpline Hello Naogaon Volunteers" class="hero-img">
                 {% endif %}
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-success">{{ program.title }}</h5>
-                    <p class="card-text text-muted">{{ program.description|truncatewords:15 }}</p>
-                </div>
-                <div class="card-footer bg-white border-top-0 pb-3">
-                     <a href="#" class="btn btn-outline-success btn-sm w-100">বিস্তারিত দেখুন</a>
-                </div>
             </div>
         </div>
-        {% empty %}
-        <div class="col-12">
-            <p class="text-muted text-center">বর্তমানে কোনো চলমান কার্যক্রম নেই।</p>
-        </div>
-        {% endfor %}
+    </div>
+</section>
+
+<!-- 2. Floating Stats Counters Section -->
+<div class="container stats-container mb-5">
+    <div class="row g-3 justify-content-center">
+        {% if stat_counters %}
+            {% for stat in stat_counters %}
+            <div class="col-6 col-md-4 col-lg-2-4">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-icon-{{ stat.badge_color|default:'success' }}">
+                        <i class="{{ stat.icon_class|default:'fas fa-heart' }}"></i>
+                    </div>
+                    <div class="stat-value">{{ stat.value }}</div>
+                    <div class="stat-title">{{ stat.title }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Default Stats Fallback matching image -->
+            <div class="col-6 col-md-4 col-lg-2-4">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-icon-danger"><i class="fas fa-tint"></i></div>
+                    <div class="stat-value">500+</div>
+                    <div class="stat-title">রক্তদান</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2-4">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-icon-success"><i class="fas fa-users"></i></div>
+                    <div class="stat-value">2,000+</div>
+                    <div class="stat-title">পরিবারকে সহায়তা</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2-4">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-icon-warning"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="stat-value">300+</div>
+                    <div class="stat-title">শিক্ষার্থী সহায়তা</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2-4">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-icon-primary"><i class="fas fa-hands-holding-heart"></i></div>
+                    <div class="stat-value">100+</div>
+                    <div class="stat-title">স্বেচ্ছাসেবক</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2-4">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-icon-info"><i class="fas fa-seedling"></i></div>
+                    <div class="stat-value">50+</div>
+                    <div class="stat-title">সামাজিক কর্মসূচি</div>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 
-<!-- Upcoming Events & Recent News Section -->
-<div class="container mt-5 mb-5">
-    <div class="row g-5">
-        <!-- Upcoming Events -->
-        <div class="col-lg-6">
-            <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block mb-4">আসন্ন ইভেন্টসমূহ</h2>
-            <div class="list-group list-group-flush shadow-sm rounded-3">
-                {% for event in upcoming_events %}
-                <div class="list-group-item p-4 border-0 mb-2 bg-light rounded">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="mb-0 fw-bold text-dark">{{ event.title }}</h5>
-                        <span class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-calendar-alt me-1"></i> {{ event.date|date:"d M Y" }}</span>
-                    </div>
-                    <p class="mb-2 text-muted">{{ event.description|truncatewords:12 }}</p>
-                    <small class="text-secondary"><i class="fas fa-map-marker-alt me-1 text-danger"></i> {{ event.location }}</small>
-                </div>
-                {% empty %}
-                <p class="text-muted text-center p-3">কোনো আসন্ন ইভেন্ট নেই।</p>
-                {% endfor %}
-            </div>
+<!-- Custom CSS snippet for 5-column layout on desktop -->
+<style>
+@media (min-width: 992px) {
+    .col-lg-2-4 {
+        flex: 0 0 auto;
+        width: 20%;
+    }
+}
+</style>
+
+<!-- 3. "আমাদের সম্পর্কে" Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="section-title">{{ site_setting.about_heading|default:"আমাদের সম্পর্কে" }}</h2>
+        <div class="section-divider">
+            <div class="section-divider-line"></div>
+            <div class="section-divider-dot"></div>
+            <div class="section-divider-line"></div>
         </div>
 
-        <!-- Recent News -->
-        <div class="col-lg-6">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block">সর্বশেষ খবর</h2>
-                <a href="#" class="text-success text-decoration-none fw-bold small">সব খবর <i class="fas fa-arrow-right"></i></a>
+        <div class="row align-items-center gy-4 mt-2">
+            <div class="col-lg-5">
+                <p class="lead text-dark fw-normal mb-4" style="line-height: 1.8;">
+                    {{ site_setting.about_text|default:"Helpline Hello Naogaon একটি স্বেচ্ছাসেবী ও মানবিক সংগঠন। আমরা রক্তদান, শিক্ষা সহায়তা, মানবিক সহায়তা, পরিবেশ সুরক্ষা ও দুর্যোগকালীন সেবাসহ বিভিন্ন সামাজিক কার্যক্রম পরিচালনা করে থাকি।" }}
+                </p>
+                <a href="{% url 'core:about' %}" class="btn btn-hn-primary">বিস্তারিত জানুন</a>
             </div>
             
-            <div class="row g-3">
-                {% for article in recent_news %}
-                <div class="col-12">
-                    <div class="card flex-row border-0 shadow-sm h-100">
-                        {% if article.image %}
-                            <img class="card-img-left rounded-start" src="{{ article.image.url }}" style="width: 140px; object-fit: cover;" alt="{{ article.title }}">
+            <div class="col-lg-7">
+                <div class="row g-2">
+                    <div class="col-md-7">
+                        {% if about_featured_image %}
+                            <img src="{{ about_featured_image.image.url }}" alt="{{ about_featured_image.caption }}" class="about-grid-featured">
                         {% else %}
-                             <div class="bg-secondary text-white rounded-start d-flex justify-content-center align-items-center" style="width: 140px;"><i class="fas fa-newspaper fa-2x"></i></div>
+                            <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=800&q=80" alt="About Main" class="about-grid-featured">
                         {% endif %}
-                        <div class="card-body py-2">
-                            <h6 class="card-title fw-bold text-success mb-1">{{ article.title }}</h6>
-                            <small class="text-muted mb-2 d-block"><i class="fas fa-clock me-1"></i> {{ article.publish_date|date:"d M Y" }}</small>
-                            <p class="card-text small text-muted mb-0">{{ article.content|truncatewords:8 }}</p>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="row g-2">
+                            {% if about_grid_images %}
+                                {% for item in about_grid_images %}
+                                <div class="col-6">
+                                    <img src="{{ item.image.url }}" alt="{{ item.caption }}" class="about-grid-sm">
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Default grid fallback images matching design layout -->
+                                <div class="col-6">
+                                    <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=400&q=80" alt="Sub 1" class="about-grid-sm">
+                                </div>
+                                <div class="col-6">
+                                    <img src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=400&q=80" alt="Sub 2" class="about-grid-sm">
+                                </div>
+                                <div class="col-6">
+                                    <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=400&q=80" alt="Sub 3" class="about-grid-sm">
+                                </div>
+                                <div class="col-6">
+                                    <img src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=400&q=80" alt="Sub 4" class="about-grid-sm">
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-                {% empty %}
-                 <p class="text-muted text-center p-3 w-100">কোনো খবর প্রকাশিত হয়নি।</p>
-                {% endfor %}
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Success Stories -->
-<div class="container mt-5 mb-5">
-    <div class="text-center mb-5">
-        <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block">সাফল্যের গল্প</h2>
-        <p class="text-muted mt-2">যাদের মুখে হাসি ফোটাতে পেরেছি আমরা</p>
+<!-- 4. "আমাদের কার্যক্রম" Section -->
+<section class="py-5" style="background-color: #f8fafc;">
+    <div class="container">
+        <h2 class="section-title">আমাদের কার্যক্রম</h2>
+        <div class="section-divider">
+            <div class="section-divider-line"></div>
+            <div class="section-divider-dot"></div>
+            <div class="section-divider-line"></div>
+        </div>
+
+        <div class="row g-3 mt-2 justify-content-center">
+            {% if ongoing_programs %}
+                {% for prog in ongoing_programs %}
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                    <div class="program-card">
+                        <div class="program-card-badge bg-{{ prog.badge_color|default:'success' }} text-white">
+                            <i class="{{ prog.icon_class|default:'fas fa-heart' }}"></i>
+                        </div>
+                        {% if prog.image %}
+                            <img src="{{ prog.image.url }}" alt="{{ prog.title }}" class="program-img">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=500&q=80" alt="{{ prog.title }}" class="program-img">
+                        {% endif %}
+                        <div class="program-card-body">
+                            <div>
+                                <h3 class="program-card-title">{{ prog.title }}</h3>
+                                <p class="program-card-text">
+                                    {{ prog.short_description|default:prog.description|truncatewords:10 }}
+                                </p>
+                            </div>
+                            <div>
+                                <a href="{% url 'programs:program_detail' prog.pk %}" class="btn-detail-sm">বিস্তারিত</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Fallback matching exact reference image -->
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                    <div class="program-card">
+                        <div class="program-card-badge bg-danger text-white"><i class="fas fa-tint"></i></div>
+                        <img src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=500&q=80" class="program-img" alt="রক্তদান">
+                        <div class="program-card-body">
+                            <div>
+                                <h3 class="program-card-title">রক্তদান সেবা</h3>
+                                <p class="program-card-text">জরুরি রক্তদাতা খুঁজে দেয়া ও রক্তদাতা ডাটাবেস পরিচালনা।</p>
+                            </div>
+                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm">বিস্তারিত</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                    <div class="program-card">
+                        <div class="program-card-badge bg-success text-white"><i class="fas fa-book-reader"></i></div>
+                        <img src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=500&q=80" class="program-img" alt="শিক্ষা সহায়তা">
+                        <div class="program-card-body">
+                            <div>
+                                <h3 class="program-card-title">শিক্ষা সহায়তা</h3>
+                                <p class="program-card-text">দরিদ্র শিক্ষার্থীদের বই, শিক্ষা উপকরণ ও বৃত্তি প্রদান।</p>
+                            </div>
+                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm">বিস্তারিত</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                    <div class="program-card">
+                        <div class="program-card-badge bg-warning text-white"><i class="fas fa-hands-holding-child"></i></div>
+                        <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=500&q=80" class="program-img" alt="মানবিক সহায়তা">
+                        <div class="program-card-body">
+                            <div>
+                                <h3 class="program-card-title">মানবিক সহায়তা</h3>
+                                <p class="program-card-text">অসহায় ও দুঃস্থ পরিবারের পাশে দাঁড়ানো।</p>
+                            </div>
+                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm">বিস্তারিত</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                    <div class="program-card">
+                        <div class="program-card-badge bg-success text-white"><i class="fas fa-leaf"></i></div>
+                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&q=80" class="program-img" alt="পরিবেশ কর্মসূচি">
+                        <div class="program-card-body">
+                            <div>
+                                <h3 class="program-card-title">পরিবেশ কর্মসূচি</h3>
+                                <p class="program-card-text">বৃক্ষরোপণ ও পরিবেশ সচেতনতা বৃদ্ধি।</p>
+                            </div>
+                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm">বিস্তারিত</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                    <div class="program-card">
+                        <div class="program-card-badge bg-info text-white"><i class="fas fa-ambulance"></i></div>
+                        <img src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=500&q=80" class="program-img" alt="দুর্যোগ সহায়তা">
+                        <div class="program-card-body">
+                            <div>
+                                <h3 class="program-card-title">দুর্যোগ সহায়তা</h3>
+                                <p class="program-card-text">বন্যা, ঝড় ও দুর্ঘটনায় জরুরি সহায়তা প্রদান।</p>
+                            </div>
+                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm">বিস্তারিত</a></div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
-    <div class="row g-4">
-        {% for story in success_stories %}
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm text-center p-3">
-                {% if story.image %}
-                    <img src="{{ story.image.url }}" class="rounded-circle mx-auto mb-3 border border-3 border-success p-1" style="width: 100px; height: 100px; object-fit: cover;" alt="{{ story.title }}">
+</section>
+
+<!-- 5. Full-Width CTA Banner -->
+<section class="cta-banner">
+    <div class="container">
+        <h2 class="cta-banner-title">{{ site_setting.cta_banner_title|default:"আসুন, আমরা সবাই মিলে একটি মানবিক ও সুন্দর সমাজ গড়ে তুলি" }}</h2>
+        <a href="{% url 'volunteers:apply' %}" class="btn-hn-yellow">{{ site_setting.cta_banner_button_text|default:"স্বেচ্ছাসেবক হন" }}</a>
+    </div>
+</section>
+
+<!-- 6. Two-Column Grid: Recent News & Donate Box -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Left Column: Recent News -->
+            <div class="col-lg-6">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold text-dark mb-0 fs-4">সাম্প্রতিক সংবাদ</h3>
+                    <a href="{% url 'news:article_list' %}" class="text-success text-decoration-none fw-semibold small">সব দেখুন <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+
+                {% if recent_news %}
+                    {% for article in recent_news %}
+                    <div class="news-item-card">
+                        {% if article.image %}
+                            <img src="{{ article.image.url }}" alt="{{ article.title }}" class="news-thumb">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=200&q=80" alt="{{ article.title }}" class="news-thumb">
+                        {% endif %}
+                        <div>
+                            <div class="news-title">
+                                <a href="{% url 'news:article_detail' article.pk %}" class="text-dark text-decoration-none">{{ article.title }}</a>
+                            </div>
+                            <div class="news-date mb-1">
+                                <i class="far fa-calendar-alt me-1"></i> {{ article.publish_date|date:"d M Y" }}
+                            </div>
+                            <p class="news-excerpt">
+                                {{ article.content|truncatewords:8 }}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
                 {% else %}
-                    <div class="bg-success text-white rounded-circle mx-auto mb-3 d-flex justify-content-center align-items-center border border-3 border-white shadow" style="width: 100px; height: 100px;">
-                        <i class="fas fa-quote-left fa-2x"></i>
+                    <!-- News fallbacks matching image -->
+                    <div class="news-item-card">
+                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=200&q=80" class="news-thumb" alt="News 1">
+                        <div>
+                            <div class="news-title">বৃক্ষরোপণ কর্মসূচি সম্পন্ন</div>
+                            <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ১০ জুন, ২০২৪</div>
+                            <p class="news-excerpt">নওগাঁর বিভিন্ন এলাকায় বৃক্ষরোপণ কর্মসূচি পালন করা হয়েছে।</p>
+                        </div>
+                    </div>
+
+                    <div class="news-item-card">
+                        <img src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=200&q=80" class="news-thumb" alt="News 2">
+                        <div>
+                            <div class="news-title">রক্তদান কর্মসূচি সফল</div>
+                            <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ০৫ জুন, ২০২৪</div>
+                            <p class="news-excerpt">স্বেচ্ছামূলক রক্তদান কর্মসূচিতে অনেকেই অংশগ্রহণ করেন।</p>
+                        </div>
+                    </div>
+
+                    <div class="news-item-card">
+                        <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=200&q=80" class="news-thumb" alt="News 3">
+                        <div>
+                            <div class="news-title">শীতবস্ত্র বিতরণ</div>
+                            <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ২০ মে, ২০২৪</div>
+                            <p class="news-excerpt">শীতার্ত মানুষের মাঝে শীতবস্ত্র বিতরণ করা হয়েছে।</p>
+                        </div>
                     </div>
                 {% endif %}
-                <h5 class="fw-bold text-dark">{{ story.title }}</h5>
-                <p class="text-muted small fst-italic">"{{ story.content|truncatewords:20 }}"</p>
             </div>
-        </div>
-        {% empty %}
-        <div class="col-12 text-center">
-            <p class="text-muted">সাফল্যের গল্প শীঘ্রই যোগ করা হবে।</p>
-        </div>
-        {% endfor %}
-    </div>
-</div>
 
-<!-- Quick Gallery Snapshot -->
-<div class="bg-light py-5 mt-5">
-    <div class="container">
-        <div class="text-center mb-4">
-            <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block">আমাদের গ্যালারি</h2>
-        </div>
-        <div class="row g-2">
-            {% for photo in gallery_photos %}
-            <div class="col-6 col-md-4 col-lg-2">
-                {% if photo.image %}
-                    <img src="{{ photo.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ photo.caption }}" style="height: 150px; width: 100%; object-fit: cover;">
-                {% endif %}
+            <!-- Right Column: Donation Box -->
+            <div class="col-lg-6">
+                <div class="donation-box">
+                    <h3 class="fw-bold text-success mb-1 fs-4">অনুদান করুন</h3>
+                    <p class="text-secondary small mb-3">আপনার সামান্য অনুদান আমাদের বড় কাজে সহায়তা করবে।</p>
+
+                    <!-- Payment Badges -->
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="payment-badge badge-bkash"><i class="fas fa-mobile-alt"></i> bKash</span>
+                        <span class="payment-badge badge-nagad"><i class="fas fa-wallet"></i> নগদ</span>
+                        <span class="payment-badge badge-rocket"><i class="fas fa-university"></i> রকেট</span>
+                    </div>
+
+                    <!-- QR Code & Bank Details -->
+                    <div class="row align-items-center g-3">
+                        <div class="col-sm-5 text-center">
+                            {% if qrcodes and qrcodes.first.image %}
+                                <img src="{{ qrcodes.first.image.url }}" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">
+                            {% else %}
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=HelplineHelloNaogaonDonation" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">
+                            {% endif %}
+                        </div>
+
+                        <div class="col-sm-7">
+                            {% if banks %}
+                                {% with bank=banks.first %}
+                                <div class="bank-info-box">
+                                    <div class="fw-bold text-success mb-1">ব্যাংক একাউন্ট</div>
+                                    <div class="fw-bold text-dark">{{ bank.account_name|default:"Helpline Hello Naogaon" }}</div>
+                                    <div class="small text-secondary">{{ bank.bank_name|default:"Dutch-Bangla Bank" }}</div>
+                                    <div class="small text-dark mt-1"><strong>Account:</strong> {{ bank.account_number|default:"1234567890" }}</div>
+                                    {% if bank.swift_code %}
+                                        <div class="small text-dark"><strong>Routing:</strong> {{ bank.swift_code }}</div>
+                                    {% else %}
+                                        <div class="small text-dark"><strong>Routing:</strong> 0902600925</div>
+                                    {% endif %}
+                                </div>
+                                {% endwith %}
+                            {% else %}
+                                <div class="bank-info-box">
+                                    <div class="fw-bold text-success mb-1">ব্যাংক একাউন্ট</div>
+                                    <div class="fw-bold text-dark">Helpline Hello Naogaon</div>
+                                    <div class="small text-secondary">Dutch-Bangla Bank</div>
+                                    <div class="small text-dark mt-1"><strong>Account:</strong> 1234567890</div>
+                                    <div class="small text-dark"><strong>Routing:</strong> 0902600925</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
-            {% empty %}
-             <div class="col-12 text-center">
-                <p class="text-muted">গ্যালারিতে কোনো ছবি নেই।</p>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="text-center mt-4">
-             <a href="{% url 'gallery:gallery_view' %}" class="btn btn-outline-secondary">সম্পূর্ণ গ্যালারি দেখুন</a>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}

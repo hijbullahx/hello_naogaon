@@ -85,6 +85,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.admin_dashboard_stats',
             ],
         },
     },
@@ -153,57 +154,131 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 JAZZMIN_SETTINGS = {
-    # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "Hello Naogaon Admin",
+    "site_title": "Helpline Hello Naogaon Admin",
+    "site_header": "Helpline Hello Naogaon",
+    "site_brand": "Hello Naogaon Admin",
+    "welcome_sign": "হেল্পলাইন হ্যালো নওগাঁ - অ্যাডমিন প্যানেলে স্বাগতম",
+    "copyright": "Helpline Hello Naogaon",
 
-    # Title on the login screen (19 chars max) (defaults to site_title)
-    "site_header": "Hello Naogaon",
+    # Top Menu Links
+    "topmenu_links": [
+        {"name": "ওয়েবসাইট দেখুন", "url": "/", "new_window": True},
+        {"name": "আমাদের সম্পর্কে", "url": "/about/", "new_window": True},
+        {"name": "যোগাযোগের বার্তা", "model": "core.contactmessage"},
+    ],
 
-    # Title on the brand (19 chars max) (defaults to site_header)
-    "site_brand": "Hello Naogaon",
-
-    # Logo to use for your site, must be present in static files, use relative path
-    # "site_logo": "images/logo.png",
-
-    # Welcome text on the login screen
-    "welcome_sign": "Welcome to Hello Naogaon Admin Panel",
-
-    # Copyright on the footer
-    "copyright": "Hello Naogaon",
-
-    # Theming options
-    "theme": "flatly",
-    "theme_dark": False,
-
-    # UI Tweaks
-    "related_modal_active": True,
-    "show_ui_builder": False,
-    "changeform_format": "horizontal_tabs",
-    # override change forms on a per modeladmin basis
-    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
+    "usermenu_links": [
+        {"name": "ওয়েবসাইটে ফিরে যান", "url": "/", "new_window": True},
+    ],
 
     # App and model ordering
-    "order_with_respect_to": ["auth", "core", "programs", "news", "gallery", "volunteers", "donations"],
+    "order_with_respect_to": [
+        "core.sitesetting",
+        "core.statcounter",
+        "core.aboutimage",
+        "core.contactmessage",
+        "programs.program",
+        "programs.event",
+        "programs.successstory",
+        "news.article",
+        "news.category",
+        "gallery.photo",
+        "gallery.album",
+        "volunteers.blooddonor",
+        "volunteers.volunteer",
+        "volunteers.teammember",
+        "donations.bank",
+        "donations.qrcode",
+        "donations.donationmethod",
+        "donations.campaign",
+        "auth",
+    ],
 
-    # Icons for apps and models
+    # Custom Icons for all apps and models
     "icons": {
         "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
+        "auth.user": "fas fa-user-shield",
         "auth.Group": "fas fa-users",
-        "core": "fas fa-cog",
-        "programs": "fas fa-calendar-alt",
+
+        "core": "fas fa-cogs",
+        "core.sitesetting": "fas fa-sliders-h text-success",
+        "core.statcounter": "fas fa-sort-numeric-up text-info",
+        "core.aboutimage": "fas fa-images text-warning",
+        "core.contactmessage": "fas fa-envelope-open-text text-danger",
+
+        "programs": "fas fa-hands-helping",
+        "programs.program": "fas fa-hand-holding-heart text-success",
+        "programs.event": "fas fa-calendar-alt text-primary",
+        "programs.successstory": "fas fa-star text-warning",
+
         "news": "fas fa-newspaper",
-        "gallery": "fas fa-images",
-        "volunteers": "fas fa-hands-helping",
+        "news.article": "fas fa-file-alt text-info",
+        "news.category": "fas fa-folder text-secondary",
+
+        "gallery": "fas fa-photo-video",
+        "gallery.photo": "fas fa-image text-success",
+        "gallery.album": "fas fa-folder-plus text-primary",
+
+        "volunteers": "fas fa-user-friends",
+        "volunteers.blooddonor": "fas fa-tint text-danger",
+        "volunteers.volunteer": "fas fa-user-check text-success",
+        "volunteers.teammember": "fas fa-id-card text-info",
+
         "donations": "fas fa-hand-holding-usd",
+        "donations.bank": "fas fa-university text-success",
+        "donations.qrcode": "fas fa-qrcode text-dark",
+        "donations.donationmethod": "fas fa-wallet text-info",
+        "donations.campaign": "fas fa-bullhorn text-warning",
+        "donations.donationpagecontent": "fas fa-file-invoice",
+        "donations.donationimpact": "fas fa-chart-line",
+        "donations.emergencyappeal": "fas fa-exclamation-triangle text-danger",
+        "donations.faq": "fas fa-question-circle text-primary",
+        "donations.donationstatistic": "fas fa-chart-bar",
     },
+
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
 
-    # UI Tweaks for a card-based layout
+    # UI Customizations
     "show_sidebar": True,
     "navigation_expanded": True,
     "hide_apps": [],
     "hide_models": [],
-    "custom_css": "jazzmin/css/card_layout.css",
+    "related_modal_active": True,
+    "custom_css": "css/admin_custom.css",
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
 }
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-success",
+    "navbar": "navbar-success navbar-dark",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-success",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "flatly",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-success",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+}
+

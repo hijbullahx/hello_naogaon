@@ -4,5 +4,7 @@ from . import views
 app_name = 'volunteers'
 
 urlpatterns = [
-    # Add volunteer-related URLs here
+    path('blood-donors/', views.blood_donors_list, name='blood_donors'),
+    path('apply/', views.apply_volunteer, name='apply'),
 ]
+

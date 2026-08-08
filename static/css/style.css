@@ -1,7 +1,20 @@
-/* Custom styles for Hello Naogaon */
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --hn-green: #006a4e;
+    --hn-green-dark: #004d34;
+    --hn-green-light: #e8f5e9;
+    --hn-yellow: #ffc107;
+    --hn-yellow-dark: #d39e00;
+    --hn-blue: #0288d1;
+    --hn-text-dark: #2c3e50;
+    --hn-text-muted: #6c757d;
+}
 
 body {
-    font-family: 'Hind Siliguri', sans-serif; /* A nice Bengali font */
+    font-family: 'Hind Siliguri', sans-serif;
+    color: var(--hn-text-dark);
+    background-color: #fcfcfc;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -11,6 +24,491 @@ main {
     flex: 1;
 }
 
-.hover-white:hover {
-    color: white !important;
+/* Top Bar Styling */
+.top-bar {
+    background-color: var(--hn-green-dark);
+    color: #ffffff;
+    font-size: 0.9rem;
+    padding: 6px 0;
+}
+
+.top-bar a {
+    color: #ffffff;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.top-bar a:hover {
+    opacity: 0.85;
+}
+
+.top-bar .btn-contact {
+    background-color: #007a5a;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 3px 14px;
+    border-radius: 4px;
+    border: none;
+}
+
+.top-bar .btn-contact:hover {
+    background-color: #005a42;
+    color: white;
+}
+
+/* Main Navbar */
+.navbar-brand-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.brand-title {
+    color: var(--hn-green);
+    font-weight: 700;
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+
+.brand-tagline {
+    color: #e63946;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.brand-subtagline {
+    color: var(--hn-text-muted);
+    font-size: 0.7rem;
+}
+
+.nav-link {
+    font-weight: 600;
+    color: #333333 !important;
+    padding: 8px 14px !important;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--hn-green) !important;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, rgba(232, 245, 233, 0.4) 0%, rgba(255, 255, 255, 0.9) 100%);
+    padding: 50px 0 80px 0;
+    position: relative;
+}
+
+.hero-badge {
+    color: var(--hn-green);
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+}
+
+.hero-title {
+    color: #1a252f;
+    font-weight: 800;
+    font-size: 2.8rem;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    color: #4a5568;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.btn-hn-primary {
+    background-color: var(--hn-green);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 6px;
+    border: none;
+    transition: all 0.25s ease;
+}
+
+.btn-hn-primary:hover {
+    background-color: var(--hn-green-dark);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 106, 78, 0.3);
+}
+
+.btn-hn-secondary {
+    background-color: var(--hn-blue);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 6px;
+    border: none;
+    transition: all 0.25s ease;
+}
+
+.btn-hn-secondary:hover {
+    background-color: #0277bd;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 136, 209, 0.3);
+}
+
+.hero-img {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    max-height: 420px;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Floating Stats Section */
+.stats-container {
+    margin-top: -50px;
+    position: relative;
+    z-index: 10;
+}
+
+.stat-card {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 20px 12px;
+    text-align: center;
+    transition: transform 0.25s ease;
+    border: 1px solid #f0f0f0;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+
+.stat-icon-danger { background-color: #fee2e2; color: #dc2626; }
+.stat-icon-success { background-color: #d1fae5; color: #059669; }
+.stat-icon-warning { background-color: #fef3c7; color: #d97706; }
+.stat-icon-primary { background-color: #dbeafe; color: #2563eb; }
+.stat-icon-info { background-color: #e0f2fe; color: #0284c7; }
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1f2937;
+    line-height: 1.1;
+}
+
+.stat-title {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* Section Header Dividers */
+.section-title {
+    color: var(--hn-green-dark);
+    font-weight: 700;
+    font-size: 1.8rem;
+    text-align: center;
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.section-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.section-divider-line {
+    height: 2px;
+    width: 60px;
+    background-color: var(--hn-green);
+}
+
+.section-divider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--hn-green);
+}
+
+/* About Section Photo Grid */
+.about-grid-featured {
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.about-grid-sm {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease;
+}
+
+.about-grid-sm:hover {
+    transform: scale(1.02);
+}
+
+/* Programs Section Cards */
+.program-card {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.25s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    position: relative;
+}
+
+.program-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+}
+
+.program-card-badge {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    z-index: 2;
+}
+
+.program-img {
+    height: 170px;
+    width: 100%;
+    object-fit: cover;
+}
+
+.program-card-body {
+    padding: 20px 15px 15px 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.program-card-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--hn-green-dark);
+    margin-bottom: 8px;
+}
+
+.program-card-text {
+    font-size: 0.88rem;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.btn-detail-sm {
+    background-color: var(--hn-green);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 5px 18px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s;
+}
+
+.btn-detail-sm:hover {
+    background-color: var(--hn-green-dark);
+    color: #ffffff;
+}
+
+/* Mid-Page Call to Action Banner */
+.cta-banner {
+    background: linear-gradient(rgba(0, 77, 52, 0.88), rgba(0, 77, 52, 0.88)),
+                url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+    padding: 45px 20px;
+    text-align: center;
+    color: #ffffff;
+    border-radius: 0;
+}
+
+.cta-banner-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.btn-hn-yellow {
+    background-color: var(--hn-yellow);
+    color: #1f2937;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 10px 30px;
+    border-radius: 6px;
+    border: none;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    display: inline-block;
+}
+
+.btn-hn-yellow:hover {
+    background-color: var(--hn-yellow-dark);
+    color: #1f2937;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+}
+
+/* News List Card Layout */
+.news-item-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #f0f0f0;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: box-shadow 0.2s;
+}
+
+.news-item-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.news-thumb {
+    width: 100px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.news-date {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.news-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.news-excerpt {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin-bottom: 0;
+}
+
+/* Donation Card Box */
+.donation-box {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 24px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.payment-badge {
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.badge-bkash { background-color: #e2136e; color: white; }
+.badge-nagad { background-color: #f7921e; color: white; }
+.badge-rocket { background-color: #8c3494; color: white; }
+
+.bank-info-box {
+    background-color: #f9fafb;
+    border-left: 4px solid var(--hn-green);
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+}
+
+/* Footer Styling */
+footer {
+    background-color: var(--hn-green-dark);
+    color: #d1d5db;
+    font-size: 0.9rem;
+    padding-top: 50px;
+    padding-bottom: 20px;
+    margin-top: auto;
+}
+
+footer h5 {
+    color: #ffffff;
+    font-weight: 700;
+    margin-bottom: 18px;
+    font-size: 1.1rem;
+}
+
+footer a {
+    color: #d1d5db;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+footer a:hover {
+    color: #ffffff;
+}
+
+.footer-social-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    transition: background-color 0.2s;
+}
+
+.footer-social-icon:hover {
+    background-color: var(--hn-green);
+    color: white;
+}
+
+.footer-bottom-bar {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 40px;
+    padding-top: 20px;
+    font-size: 0.82rem;
+    color: #9ca3af;
 }
