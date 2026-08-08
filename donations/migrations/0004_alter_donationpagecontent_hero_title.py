@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='donationpagecontent',
             name='hero_title',
-            field=models.CharField(default='আপনার দানে, হাসি ফুটবে ও মুখে', max_length=200),
+            field=models.CharField(default='চলুন আনন্দ ছড়াই', max_length=200),
         ),
     ]
