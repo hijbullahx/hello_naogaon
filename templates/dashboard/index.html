@@ -37,6 +37,9 @@
             <button class="nav-link fw-bold" id="news-tab" data-bs-toggle="tab" data-bs-target="#news-section" type="button" role="tab"><i class="fas fa-newspaper me-1"></i> সংবাদ ({{ articles.count }})</button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-success" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance-section" type="button" role="tab"><i class="fas fa-wallet me-1"></i> অর্থায়ন ও আয়-ব্যয়</button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="bank-tab" data-bs-toggle="tab" data-bs-target="#bank-section" type="button" role="tab"><i class="fas fa-university me-1"></i> অনুদান ও ব্যাংক</button>
         </li>
         <li class="nav-item" role="presentation">
@@ -562,6 +565,230 @@
             </div>
         </div>
 
+        <!-- ================= TAB: FINANCIAL MANAGEMENT ================= -->
+        <div class="tab-pane fade" id="finance-section" role="tabpanel">
+            <!-- 3 Summary Metric Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 bg-success text-white p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-white-50 fw-bold">সর্বমোট আয় / অনুদান (Total Income)</small>
+                                <h3 class="fw-bold mb-0 mt-1">৳ {{ total_income|floatformat:2 }}</h3>
+                            </div>
+                            <div class="bg-white text-success rounded-circle p-3 shadow-sm">
+                                <i class="fas fa-arrow-down fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 bg-danger text-white p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-white-50 fw-bold">সর্বমোট ব্যয় / খরচ (Total Expenses)</small>
+                                <h3 class="fw-bold mb-0 mt-1">৳ {{ total_expense|floatformat:2 }}</h3>
+                            </div>
+                            <div class="bg-white text-danger rounded-circle p-3 shadow-sm">
+                                <i class="fas fa-arrow-up fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 bg-primary text-white p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-white-50 fw-bold">বর্তমান তহবিলের ব্যালেন্স (Net Balance)</small>
+                                <h3 class="fw-bold mb-0 mt-1">৳ {{ net_balance|floatformat:2 }}</h3>
+                            </div>
+                            <div class="bg-white text-primary rounded-circle p-3 shadow-sm">
+                                <i class="fas fa-wallet fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & Print/Excel Export Toolbar Card -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4 bg-light">
+                <div class="card-body py-3">
+                    <form method="get" id="dateFilterForm" class="row g-2 align-items-end">
+                        <input type="hidden" name="tab" value="finance-section">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-dark mb-1"><i class="fas fa-calendar-alt me-1 text-success"></i>শুরুর তারিখ (Start Date)</label>
+                            <input type="date" id="filter_start_date" name="start_date" value="{{ request.GET.start_date }}" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-dark mb-1"><i class="fas fa-calendar-alt me-1 text-danger"></i>শেষ তারিখ (End Date)</label>
+                            <input type="date" id="filter_end_date" name="end_date" value="{{ request.GET.end_date }}" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6 d-flex gap-2 flex-wrap justify-content-md-end">
+                            <button type="submit" class="btn btn-dark btn-sm fw-bold"><i class="fas fa-filter me-1"></i> ফিল্টার করুন</button>
+                            <a href="{% url 'core:dashboard' %}?tab=finance-section" class="btn btn-outline-secondary btn-sm fw-bold">রিসেট</a>
+                            <button type="button" onclick="triggerPrintReport()" class="btn btn-outline-success btn-sm fw-bold"><i class="fas fa-print me-1"></i> প্রিন্ট রিপোর্ট (Print)</button>
+                            <button type="button" onclick="triggerExcelExport()" class="btn btn-success btn-sm fw-bold"><i class="fas fa-file-excel me-1"></i> এক্সেল ডাউনলোড (Excel)</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function triggerPrintReport() {
+                    const start = document.getElementById('filter_start_date').value;
+                    const end = document.getElementById('filter_end_date').value;
+                    const printUrl = "{% url 'core:print_statement' %}?start_date=" + encodeURIComponent(start) + "&end_date=" + encodeURIComponent(end);
+                    window.open(printUrl, '_blank');
+                }
+                function triggerExcelExport() {
+                    const start = document.getElementById('filter_start_date').value;
+                    const end = document.getElementById('filter_end_date').value;
+                    const excelUrl = "{% url 'core:export_excel' %}?start_date=" + encodeURIComponent(start) + "&end_date=" + encodeURIComponent(end);
+                    window.location.href = excelUrl;
+                }
+            </script>
+
+            <!-- Finance Ledger Card -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>তহবিল ও আয়-ব্যয়ের হিসাব খাতা (Financial Ledger)</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#incomeModal"><i class="fas fa-plus-circle me-1"></i> নতুন আয়/অনুদান লিখুন</button>
+                        <button class="btn btn-danger btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#expenseModal"><i class="fas fa-minus-circle me-1"></i> নতুন ব্যয়/খরচ লিখুন</button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>তারিখ</th>
+                                    <th>টাইপ</th>
+                                    <th>খাতের নাম / বিবরণ</th>
+                                    <th>ক্যাটাগরি</th>
+                                    <th>দাতা / গ্রহণকারী</th>
+                                    <th>পেমেন্ট মাধ্যম & Trx ID</th>
+                                    <th>পরিমাণ (টাকা)</th>
+                                    <th>অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trx in transactions %}
+                                <tr>
+                                    <td><small class="fw-bold text-secondary">{{ trx.date|date:"d M Y" }}</small></td>
+                                    <td>
+                                        {% if trx.transaction_type == 'income' %}
+                                            <span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>আয়</span>
+                                        {% else %}
+                                            <span class="badge bg-danger"><i class="fas fa-arrow-up me-1"></i>ব্যয়</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ trx.title }}</div>
+                                        {% if trx.note %}<small class="text-muted d-block">{{ trx.note }}</small>{% endif %}
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">{{ trx.category }}</span></td>
+                                    <td><small class="fw-semibold">{{ trx.donor_name|default:"-" }}</small></td>
+                                    <td>
+                                        <span class="badge bg-info text-dark">{{ trx.payment_method }}</span>
+                                        {% if trx.trx_id %}<small class="text-secondary d-block">ID: {{ trx.trx_id }}</small>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if trx.transaction_type == 'income' %}
+                                            <span class="fw-bold text-success fs-6">+ ৳ {{ trx.amount }}</span>
+                                        {% else %}
+                                            <span class="fw-bold text-danger fs-6">- ৳ {{ trx.amount }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}"><i class="fas fa-edit"></i></button>
+                                        <a href="{% url 'core:delete_transaction' trx.id %}" onclick="return confirm('অর্থায়াক হিসাবটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+
+                                <!-- Edit Transaction Modal -->
+                                <div class="modal fade" id="editTrxModal_{{ trx.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header {% if trx.transaction_type == 'income' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                                                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> হিসাব এডিট করুন</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{% url 'core:save_transaction' %}" method="post" enctype="multipart/form-data">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="transaction_id" value="{{ trx.id }}">
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">টাইপ *</label>
+                                                        <select name="transaction_type" class="form-select" required>
+                                                            <option value="income" {% if trx.transaction_type == 'income' %}selected{% endif %}>আয় / অনুদান (Income)</option>
+                                                            <option value="expense" {% if trx.transaction_type == 'expense' %}selected{% endif %}>ব্যয় / খরচ (Expense)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">খাতের নাম / বিবরণ *</label>
+                                                        <input type="text" name="title" value="{{ trx.title }}" required class="form-control">
+                                                    </div>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
+                                                            <input type="number" step="0.01" name="amount" value="{{ trx.amount }}" required class="form-control fw-bold">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">ক্যাটাগরি</label>
+                                                            <input type="text" name="category" value="{{ trx.category }}" class="form-control">
+                                                        </div>
+                                                    </div>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">পেমেন্ট মাধ্যম</label>
+                                                            <select name="payment_method" class="form-select">
+                                                                <option value="bKash" {% if trx.payment_method == 'bKash' %}selected{% endif %}>bKash</option>
+                                                                <option value="Nagad" {% if trx.payment_method == 'Nagad' %}selected{% endif %}>Nagad</option>
+                                                                <option value="Bank Transfer" {% if trx.payment_method == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
+                                                                <option value="Cash" {% if trx.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">Trx ID / মেমো নং</label>
+                                                            <input type="text" name="trx_id" value="{{ trx.trx_id }}" class="form-control">
+                                                        </div>
+                                                    </div>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">দাতা / গ্রহীতার নাম</label>
+                                                            <input type="text" name="donor_name" value="{{ trx.donor_name }}" class="form-control">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">তারিখ *</label>
+                                                            <input type="date" name="date" value="{{ trx.date|date:'Y-m-d' }}" required class="form-control">
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">অতিরিক্ত নোট</label>
+                                                        <textarea name="note" rows="2" class="form-control">{{ trx.note }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                                                    <button type="submit" class="btn btn-primary fw-bold">আপডেট করুন</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <tr><td colspan="8" class="text-center py-4 text-muted">কোনো আয়-ব্যয়ের হিসাব পাওয়া যায়নি।</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ================= TAB 6: BANK & DONATIONS ================= -->
         <div class="tab-pane fade" id="bank-section" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-3">
@@ -894,7 +1121,136 @@
                     <button type="submit" class="btn btn-primary fw-bold">সংরক্ষণ করুন</button>
                 </div>
             </form>
+</div>
+
+<!-- Income Modal -->
+<div class="modal fade" id="incomeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন আয় / অনুদান এন্ট্রি করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_transaction' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="transaction_type" value="income">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">খাতের নাম / টাইটেল *</label>
+                        <input type="text" name="title" required class="form-control" placeholder="যেমন: প্রবাসী সমিতি অনুদান / সাধারণ অনুদান">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
+                            <input type="number" step="0.01" name="amount" required class="form-control fw-bold" placeholder="5000">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ক্যাটাগরি</label>
+                            <input type="text" name="category" value="সাধারণ অনুদান" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">পেমেন্ট মাধ্যম</label>
+                            <select name="payment_method" class="form-select">
+                                <option value="bKash">bKash</option>
+                                <option value="Nagad">Nagad</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cash">Cash</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Trx ID / মেমো নম্বর</label>
+                            <input type="text" name="trx_id" class="form-control" placeholder="BK9873421">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">দাতার নাম</label>
+                            <input type="text" name="donor_name" class="form-control" placeholder="দাতার নাম (ঐচ্ছিক)">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">তারিখ *</label>
+                            <input type="date" name="date" required class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">অতিরিক্ত নোট</label>
+                        <textarea name="note" rows="2" class="form-control" placeholder="নোট বা বিবরণ..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-success fw-bold">সংরক্ষণ করুন</button>
+                </div>
+            </form>
         </div>
+    </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-minus-circle me-1"></i> নতুন ব্যয় / খরচ এন্ট্রি করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_transaction' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="transaction_type" value="expense">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">খরচের খাতের নাম *</label>
+                        <input type="text" name="title" required class="form-control" placeholder="যেমন: খাতা-কলম বিতরণ / ব্যানার প্রিন্টিং">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
+                            <input type="number" step="0.01" name="amount" required class="form-control fw-bold" placeholder="2000">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ক্যাটাগরি</label>
+                            <input type="text" name="category" value="কর্মসূচি খরচ" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">পেমেন্ট মাধ্যম</label>
+                            <select name="payment_method" class="form-select">
+                                <option value="Cash">Cash</option>
+                                <option value="bKash">bKash</option>
+                                <option value="Nagad">Nagad</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ভাউচার / মেমো নং</label>
+                            <input type="text" name="trx_id" class="form-control" placeholder="VOUCHER-01">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">গ্রহীতা / দোকানের নাম</label>
+                            <input type="text" name="donor_name" class="form-control" placeholder="দোকান বা সংস্থার নাম">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">তারিখ *</label>
+                            <input type="date" name="date" required class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">অতিরিক্ত নোট</label>
+                        <textarea name="note" rows="2" class="form-control" placeholder="নোট বা বিবরণ..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-danger fw-bold">সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>

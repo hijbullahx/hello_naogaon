@@ -25,6 +25,10 @@ urlpatterns = [
     path('dashboard/delete-volunteer/<int:pk>/', views_dashboard.delete_volunteer, name='delete_volunteer'),
     path('dashboard/save-team-member/', views_dashboard.save_team_member, name='save_team_member'),
     path('dashboard/delete-team-member/<int:pk>/', views_dashboard.delete_team_member, name='delete_team_member'),
+    path('dashboard/save-transaction/', views_dashboard.save_financial_transaction, name='save_transaction'),
+    path('dashboard/delete-transaction/<int:pk>/', views_dashboard.delete_financial_transaction, name='delete_transaction'),
+    path('dashboard/export-excel/', views_dashboard.export_financial_excel, name='export_excel'),
+    path('dashboard/print-statement/', views_dashboard.print_financial_statement, name='print_statement'),
     path('dashboard/save-gallery/', views_dashboard.save_gallery_photo, name='save_gallery'),
     path('dashboard/update-footer/', views_dashboard.update_footer_section, name='update_footer'),
 ]

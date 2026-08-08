@@ -6,13 +6,14 @@ from programs.models import Program, Event, SuccessStory
 from news.models import Article, Category
 from volunteers.models import BloodDonor, Volunteer, TeamMember
 from gallery.models import Photo, Album
-from donations.models import Bank, QRCode, DonationMethod
+from donations.models import Bank, QRCode, DonationMethod, FinancialTransaction
+from django.db.models import Sum
 
 @staff_member_required
 def dashboard_home(request):
     """
     Main Custom Cardly Front-End Admin Control Panel.
-    Provides section-by-section edit cards for Hero, About, Programs, Blood Donors, Volunteers, News, Gallery, Donations & Footer.
+    Provides section-by-section edit cards for Hero, About, Programs, Blood Donors, Volunteers, Financial Management, News, Gallery, Donations & Footer.
     """
     site_setting, _ = SiteSetting.objects.get_or_create(pk=1)
     stat_counters = StatCounter.objects.all().order_by('order')
@@ -29,6 +30,20 @@ def dashboard_home(request):
     qrcodes = QRCode.objects.all()
     messages_list = ContactMessage.objects.all().order_by('-created_at')
 
+    # Financial Management Calculations & Date Range Filter
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    transactions = FinancialTransaction.objects.all().order_by('-date', '-id')
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    total_income = transactions.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_expense = transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    net_balance = total_income - total_expense
+
     context = {
         'site_setting': site_setting,
         'stat_counters': stat_counters,
@@ -43,6 +58,10 @@ def dashboard_home(request):
         'banks': banks,
         'qrcodes': qrcodes,
         'messages_list': messages_list,
+        'transactions': transactions,
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'net_balance': net_balance,
     }
     return render(request, 'dashboard/index.html', context)
 
@@ -125,6 +144,147 @@ def delete_team_member(request, pk):
     mem.delete()
     messages.success(request, f'টিম মেম্বার "{name}" মুছে ফেলা হয়েছে!')
     return redirect('/dashboard/?tab=volunteers-section')
+
+@staff_member_required
+def save_financial_transaction(request):
+    """Create or update a Financial Transaction (Income/Expense)"""
+    if request.method == 'POST':
+        trx_pk = request.POST.get('transaction_id')
+        transaction_type = request.POST.get('transaction_type', 'income')
+        title = request.POST.get('title')
+        category = request.POST.get('category', 'সাধারণ অনুদান')
+        amount = request.POST.get('amount')
+        payment_method = request.POST.get('payment_method', 'bKash')
+        trx_id = request.POST.get('trx_id', '')
+        donor_name = request.POST.get('donor_name', '')
+        trx_date = request.POST.get('date')
+        note = request.POST.get('note', '')
+
+        if trx_pk:
+            trx = get_object_or_404(FinancialTransaction, pk=trx_pk)
+            trx.transaction_type = transaction_type
+            trx.title = title
+            trx.category = category
+            trx.amount = amount
+            trx.payment_method = payment_method
+            trx.trx_id = trx_id
+            trx.donor_name = donor_name
+            if trx_date:
+                trx.date = trx_date
+            trx.note = note
+            if 'receipt' in request.FILES:
+                trx.receipt = request.FILES['receipt']
+            trx.save()
+            messages.success(request, f'অর্থায়াক এন্ট্রি "{title}" সফলভাবে আপডেট করা হয়েছে!')
+        else:
+            trx = FinancialTransaction.objects.create(
+                transaction_type=transaction_type,
+                title=title,
+                category=category,
+                amount=amount,
+                payment_method=payment_method,
+                trx_id=trx_id,
+                donor_name=donor_name,
+                date=trx_date or date.today(),
+                note=note,
+                receipt=request.FILES.get('receipt')
+            )
+            messages.success(request, f'নতুন অর্থায়াক এন্ট্রি "{title}" যুক্ত করা হয়েছে!')
+    return redirect('/dashboard/?tab=finance-section')
+
+@staff_member_required
+def delete_financial_transaction(request, pk):
+    """Delete a Financial Transaction"""
+    trx = get_object_or_404(FinancialTransaction, pk=pk)
+    title = trx.title
+    trx.delete()
+    messages.success(request, f'অর্থায়াক এন্ট্রি "{title}" মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=finance-section')
+
+import csv
+from django.http import HttpResponse
+
+@staff_member_required
+def export_financial_excel(request):
+    """Export Financial Transactions to Excel (CSV with UTF-8 BOM)"""
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    transactions = FinancialTransaction.objects.all().order_by('date', 'id')
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    filename = f"financial_report_{start_date or 'all'}_to_{end_date or 'all'}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    # Header Row
+    writer.writerow(['তারিখ (Date)', 'টাইপ (Type)', 'খাতের নাম / বিবরণ', 'ক্যাটাগরি', 'দাতা / গ্রহণকারী', 'পেমেন্ট মাধ্যম', 'Trx ID / মেমো', 'পরিমাণ (টাকা)', 'নোট (Note)'])
+
+    total_inc = 0
+    total_exp = 0
+
+    for trx in transactions:
+        t_type = "আয় (Income)" if trx.transaction_type == 'income' else "ব্যয় (Expense)"
+        if trx.transaction_type == 'income':
+            total_inc += float(trx.amount)
+        else:
+            total_exp += float(trx.amount)
+
+        writer.writerow([
+            trx.date.strftime('%d-%m-%Y'),
+            t_type,
+            trx.title,
+            trx.category,
+            trx.donor_name or '',
+            trx.payment_method,
+            trx.trx_id or '',
+            float(trx.amount),
+            trx.note or ''
+        ])
+
+    # Summary Rows
+    writer.writerow([])
+    writer.writerow(['', '', '', '', '', '', 'সর্বমোট আয় (Total Income):', total_inc])
+    writer.writerow(['', '', '', '', '', '', 'সর্বমোট ব্যয় (Total Expense):', total_exp])
+    writer.writerow(['', '', '', '', '', '', 'বর্তমান নিট ব্যালেন্স (Net Balance):', total_inc - total_exp])
+
+    return response
+
+@staff_member_required
+def print_financial_statement(request):
+    """Render Printable Financial Report with custom date range"""
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    transactions = FinancialTransaction.objects.all().order_by('date', 'id')
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    total_income = sum(t.amount for t in transactions if t.transaction_type == 'income')
+    total_expense = sum(t.amount for t in transactions if t.transaction_type == 'expense')
+    net_balance = total_income - total_expense
+
+    site_setting, _ = SiteSetting.objects.get_or_create(pk=1)
+
+    context = {
+        'site_setting': site_setting,
+        'transactions': transactions,
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'net_balance': net_balance,
+        'print_date': date.today(),
+    }
+    return render(request, 'dashboard/print_financial_statement.html', context)
+
+
 
 
 @staff_member_required

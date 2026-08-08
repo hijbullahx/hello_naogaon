@@ -92,8 +92,12 @@ The default Django Admin panel has been **completely replaced** with a custom **
 ### 5. 📰 সংবাদ প্রকাশনা (News Articles)
 - Publish news, upload news thumbnails, edit contents, and manage published articles.
 
-### 6. 💳 ব্যাংক একাউন্ট ও অনুদান (Donations & Bank)
-- Update Dutch-Bangla Bank details (Account Name, Number, Routing Number) and upload bKash/Nagad QR Code image.
+### 6. 💰 অর্থায়ন ও বাজেট ব্যবস্থাপনা (Financial Management Control Panel)
+- **তহবিল মিটার ও পরিসংখ্যান (Financial Summary Metrics)**: Real-time calculation of Total Income (`total_income`), Total Expenses (`total_expense`), and Current Net Balance (`net_balance`).
+- **কাস্টম তারিখ ডিউরেশন ফিল্টার (Custom Date Range Filter)**: Filter transactions by Start Date (`start_date`) and End Date (`end_date`).
+- **প্রিন্টমেন্ট বিবরণী রির্পোট (Printable Financial Statement)**: Generate official printable financial statement with letterhead logo, summary boxes, transaction ledger, and signature lines (`/dashboard/print-statement/`).
+- **এক্সেল ডাউনলোড (Export to Excel/CSV)**: Export itemized ledger directly to Excel CSV with UTF-8 BOM encoding for Bengali font compatibility (`/dashboard/export-excel/`).
+- **আয়/অনুদান ও ব্যয় ট্র্যাকিং (Income & Expense Ledger)**: Add, edit, and delete incoming & outgoing funds with Trx IDs, memo vouchers, categories, and payment methods.
 
 ### 7. 🖼️ ফটো গ্যালারি (Gallery)
 - Upload new high-resolution photos with captions directly to the gallery grid.

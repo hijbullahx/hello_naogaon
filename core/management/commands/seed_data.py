@@ -189,4 +189,72 @@ class Command(BaseCommand):
             )
         self.stdout.write("[OK] Volunteers initialized.")
 
+        # 9. Financial Transactions
+        from donations.models import FinancialTransaction
+        from datetime import date
+
+        fin_data = [
+            {
+                "transaction_type": "income",
+                "title": "মহাদেবপুর প্রবাসী সমিতি অনুদান",
+                "category": "শিক্ষা সহায়তা",
+                "amount": 25000.00,
+                "payment_method": "Bank Transfer",
+                "trx_id": "DBBL98273641",
+                "donor_name": "আনিসুর রহমান (প্রবাসী)",
+                "date": date(2024, 6, 1),
+                "note": "অসহায় শিক্ষার্থীদের বই খাতা ক্রয়ের জন্য।"
+            },
+            {
+                "transaction_type": "income",
+                "title": "রক্তদান ক্যাম্প ফান্ড",
+                "category": "রক্তদান কর্মসূচি",
+                "amount": 12000.00,
+                "payment_method": "bKash",
+                "trx_id": "BK87634521",
+                "donor_name": "শুভাকাঙ্ক্ষীবৃন্দ",
+                "date": date(2024, 6, 5),
+                "note": "ব্লাড গ্রুপিং কিট কেনা।"
+            },
+            {
+                "transaction_type": "expense",
+                "title": "রক্তদান ক্যাম্পের স্বাস্থ্য কিট ও ব্যানার ক্রয়",
+                "category": "রক্তদান কর্মসূচি",
+                "amount": 4500.00,
+                "payment_method": "Cash",
+                "trx_id": "EXP-101",
+                "donor_name": "মেসার্স নওগাঁ প্যাথলজি",
+                "date": date(2024, 6, 6),
+                "note": "ব্যানার, তুলা, অ্যালকোহল ও সিরিঞ্জ।"
+            },
+            {
+                "transaction_type": "income",
+                "title": "সাধারণ তহবিল অনুদান",
+                "category": "সাধারণ তহবিল",
+                "amount": 15000.00,
+                "payment_method": "Nagad",
+                "trx_id": "NG99210088",
+                "donor_name": "মো: জহুরুল হক",
+                "date": date(2024, 6, 8),
+                "note": "সংগঠনের জরুরি ফান্ড।"
+            },
+            {
+                "transaction_type": "expense",
+                "title": "দরিদ্র শিক্ষার্থীদের মাঝে খাতা ও কলম বিতরণ",
+                "category": "শিক্ষা সহায়তা",
+                "amount": 8000.00,
+                "payment_method": "Cash",
+                "trx_id": "EXP-102",
+                "donor_name": "স্টেশন লাইব্রেরি",
+                "date": date(2024, 6, 10),
+                "note": "৫০ জন শিক্ষার্থীকে খাতা-কলম সেট প্রদান।"
+            },
+        ]
+        for item in fin_data:
+            FinancialTransaction.objects.get_or_create(
+                title=item["title"],
+                defaults=item
+            )
+        self.stdout.write("[OK] Financial Transactions initialized.")
+
         self.stdout.write(self.style.SUCCESS("All seed data successfully created!"))

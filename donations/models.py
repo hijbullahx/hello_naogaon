@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 class DonationPageContent(models.Model):
-    hero_title = models.CharField(max_length=200, default="আপনার দানে, হাসি ফুটবে ও মুখে")
+    hero_title = models.CharField(max_length=200, default="চলুন আনন্দ ছড়াই")
     hero_subtitle = models.TextField(blank=True)
     hero_image = models.ImageField(upload_to='donations/hero/', blank=True, null=True)
     
@@ -138,3 +138,30 @@ class DonationStatistic(models.Model):
         
     def __str__(self):
         return f"{self.label}: {self.value}"
+
+class FinancialTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('income', 'আয় / অনুদান (Income)'),
+        ('expense', 'ব্যয় / খরচ (Expense)'),
+    ]
+
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES, default='income')
+    title = models.CharField(max_length=255, help_text="খাতের নাম বা শিরোনাম")
+    category = models.CharField(max_length=100, default="সাধারণ অনুদান")
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    payment_method = models.CharField(max_length=50, default="bKash")
+    trx_id = models.CharField(max_length=100, blank=True, help_text="Transaction ID / Receipt No")
+    donor_name = models.CharField(max_length=200, blank=True, help_text="দাতা বা গ্রহণকারীর নাম")
+    date = models.DateField()
+    note = models.TextField(blank=True)
+    receipt = models.ImageField(upload_to='donations/receipts/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Financial Transaction")
+        verbose_name_plural = _("Financial Transactions")
+        ordering = ['-date', '-id']
+
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - {self.title}: ৳{self.amount}"
+
