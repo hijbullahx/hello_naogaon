@@ -6,7 +6,10 @@ from programs.models import Program, Event, SuccessStory
 from news.models import Article, Category
 from volunteers.models import BloodDonor, Volunteer, TeamMember
 from gallery.models import Photo, Album
-from donations.models import Bank, QRCode, DonationMethod, FinancialTransaction
+from donations.models import (
+    Bank, QRCode, DonationMethod, FinancialTransaction,
+    DonationPageContent, Campaign, EmergencyAppeal, DonationImpact, FAQ
+)
 from django.db.models import Sum
 
 @staff_member_required
@@ -29,6 +32,13 @@ def dashboard_home(request):
     banks = Bank.objects.all()
     qrcodes = QRCode.objects.all()
     messages_list = ContactMessage.objects.all().order_by('-created_at')
+
+    # Donation Page Models
+    donation_content, _ = DonationPageContent.objects.get_or_create(pk=1)
+    campaigns = Campaign.objects.all().order_by('-id')
+    emergency_appeals = EmergencyAppeal.objects.all().order_by('-created_at')
+    impacts = DonationImpact.objects.all().order_by('amount')
+    faqs = FAQ.objects.all()
 
     # Financial Management Calculations & Date Range Filter
     start_date = request.GET.get('start_date')
@@ -58,6 +68,11 @@ def dashboard_home(request):
         'banks': banks,
         'qrcodes': qrcodes,
         'messages_list': messages_list,
+        'donation_content': donation_content,
+        'campaigns': campaigns,
+        'emergency_appeals': emergency_appeals,
+        'impacts': impacts,
+        'faqs': faqs,
         'transactions': transactions,
         'total_income': total_income,
         'total_expense': total_expense,
@@ -475,6 +490,173 @@ def update_bank_and_donation(request):
 
         messages.success(request, 'ব্যাংক একাউন্ট ও অনুদান তথ্য আপডেট করা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def update_donation_page_content(request):
+    """Update general text and hero banner on the Donation Page"""
+    if request.method == 'POST':
+        content, _ = DonationPageContent.objects.get_or_create(pk=1)
+        content.hero_title = request.POST.get('hero_title', content.hero_title)
+        content.hero_subtitle = request.POST.get('hero_subtitle', content.hero_subtitle)
+        content.intro_title = request.POST.get('intro_title', content.intro_title)
+        content.intro_text = request.POST.get('intro_text', content.intro_text)
+        content.why_donate_title = request.POST.get('why_donate_title', content.why_donate_title)
+        content.why_donate_text = request.POST.get('why_donate_text', content.why_donate_text)
+        content.transparency_title = request.POST.get('transparency_title', content.transparency_title)
+        content.transparency_text = request.POST.get('transparency_text', content.transparency_text)
+        
+        if 'hero_image' in request.FILES:
+            content.hero_image = request.FILES['hero_image']
+            
+        content.save()
+        messages.success(request, 'অনুদান পেজের সকল টেক্সট ও ব্যানার ফটো আপডেট করা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def save_campaign(request):
+    """Create or update a Donation Campaign"""
+    if request.method == 'POST':
+        c_id = request.POST.get('campaign_id')
+        title = request.POST.get('title')
+        description = request.POST.get('description', '')
+        goal_amount = request.POST.get('goal_amount', 0)
+        raised_amount = request.POST.get('raised_amount', 0)
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+        if c_id:
+            camp = get_object_or_404(Campaign, pk=c_id)
+            camp.title = title
+            camp.description = description
+            camp.goal_amount = goal_amount
+            camp.raised_amount = raised_amount
+            if start_date:
+                camp.start_date = start_date
+            if end_date:
+                camp.end_date = end_date
+            if 'image' in request.FILES:
+                camp.image = request.FILES['image']
+            camp.save()
+            messages.success(request, f'ক্যাম্পেইন "{title}" আপডেট করা হয়েছে!')
+        else:
+            camp = Campaign.objects.create(
+                title=title,
+                description=description,
+                goal_amount=goal_amount,
+                raised_amount=raised_amount,
+                start_date=start_date or date.today(),
+                end_date=end_date or None,
+                image=request.FILES.get('image')
+            )
+            messages.success(request, f'নতুন ক্যাম্পেইন "{title}" তৈরি করা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def delete_campaign(request, pk):
+    """Delete a Campaign"""
+    camp = get_object_or_404(Campaign, pk=pk)
+    title = camp.title
+    camp.delete()
+    messages.success(request, f'ক্যাম্পেইন "{title}" মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def save_emergency_appeal(request):
+    """Create or update an Emergency Appeal"""
+    if request.method == 'POST':
+        appeal_id = request.POST.get('appeal_id')
+        title = request.POST.get('title')
+        description = request.POST.get('description', '')
+
+        if appeal_id:
+            app = get_object_or_404(EmergencyAppeal, pk=appeal_id)
+            app.title = title
+            app.description = description
+            if 'image' in request.FILES:
+                app.image = request.FILES['image']
+            app.save()
+            messages.success(request, f'জরুরি আবেদন "{title}" আপডেট করা হয়েছে!')
+        else:
+            EmergencyAppeal.objects.create(
+                title=title,
+                description=description,
+                image=request.FILES.get('image')
+            )
+            messages.success(request, f'নতুন জরুরি আবেদন "{title}" তৈরি করা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def delete_emergency_appeal(request, pk):
+    """Delete an Emergency Appeal"""
+    app = get_object_or_404(EmergencyAppeal, pk=pk)
+    title = app.title
+    app.delete()
+    messages.success(request, f'জরুরি আবেদন "{title}" মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def save_donation_impact(request):
+    """Create or update a Donation Impact item"""
+    if request.method == 'POST':
+        imp_id = request.POST.get('impact_id')
+        amount = request.POST.get('amount')
+        description = request.POST.get('description')
+        icon_class = request.POST.get('icon_class', 'fas fa-heart')
+
+        if imp_id:
+            imp = get_object_or_404(DonationImpact, pk=imp_id)
+            imp.amount = amount
+            imp.description = description
+            imp.icon_class = icon_class
+            imp.save()
+            messages.success(request, f'দান প্রভাব (৳{amount}) আপডেট করা হয়েছে!')
+        else:
+            DonationImpact.objects.create(
+                amount=amount,
+                description=description,
+                icon_class=icon_class
+            )
+            messages.success(request, f'নতুন দান প্রভাব (৳{amount}) যুক্ত করা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def delete_donation_impact(request, pk):
+    """Delete a Donation Impact item"""
+    imp = get_object_or_404(DonationImpact, pk=pk)
+    imp.delete()
+    messages.success(request, 'দান প্রভাব আইটেম মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def save_faq(request):
+    """Create or update a Donation FAQ"""
+    if request.method == 'POST':
+        faq_id = request.POST.get('faq_id')
+        question = request.POST.get('question')
+        answer = request.POST.get('answer')
+
+        if faq_id:
+            faq = get_object_or_404(FAQ, pk=faq_id)
+            faq.question = question
+            faq.answer = answer
+            faq.save()
+            messages.success(request, 'প্রশ্নোত্তর (FAQ) আপডেট করা হয়েছে!')
+        else:
+            FAQ.objects.create(
+                question=question,
+                answer=answer
+            )
+            messages.success(request, 'নতুন প্রশ্নোত্তর (FAQ) যুক্ত করা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
+@staff_member_required
+def delete_faq(request, pk):
+    """Delete a Donation FAQ"""
+    faq = get_object_or_404(FAQ, pk=pk)
+    faq.delete()
+    messages.success(request, 'প্রশ্নোত্তর (FAQ) মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=bank-section')
+
 
 @staff_member_required
 def save_donor(request):

@@ -92,12 +92,12 @@ The default Django Admin panel has been **completely replaced** with a custom **
 ### 5. 📰 সংবাদ প্রকাশনা (News Articles)
 - Publish news, upload news thumbnails, edit contents, and manage published articles.
 
-### 6. 💰 অর্থায়ন ও বাজেট ব্যবস্থাপনা (Financial Management Control Panel)
-- **তহবিল মিটার ও পরিসংখ্যান (Financial Summary Metrics)**: Real-time calculation of Total Income (`total_income`), Total Expenses (`total_expense`), and Current Net Balance (`net_balance`).
-- **কাস্টম তারিখ ডিউরেশন ফিল্টার (Custom Date Range Filter)**: Filter transactions by Start Date (`start_date`) and End Date (`end_date`).
-- **প্রিন্টমেন্ট বিবরণী রির্পোট (Printable Financial Statement)**: Generate official printable financial statement with letterhead logo, summary boxes, transaction ledger, and signature lines (`/dashboard/print-statement/`).
-- **এক্সেল ডাউনলোড (Export to Excel/CSV)**: Export itemized ledger directly to Excel CSV with UTF-8 BOM encoding for Bengali font compatibility (`/dashboard/export-excel/`).
-- **আয়/অনুদান ও ব্যয় ট্র্যাকিং (Income & Expense Ledger)**: Add, edit, and delete incoming & outgoing funds with Trx IDs, memo vouchers, categories, and payment methods.
+### 6. 💳 অনুদান পেজ ও ব্যাংক একাউন্ট সেটআপ (Donation Page & Bank Control Panel)
+- **১. হিরো ব্যানার ও টেক্সট কন্টেন্ট (Donation Page Content)**: Edit Hero Title, Hero Subtitle, Hero Banner Image, Why Donate Text, and Transparency Text (`/dashboard/update-donation-content/`).
+- **২. ব্যাংক একাউন্ট ও QR কোড (Bank & QR Code)**: Update Dutch-Bangla Bank details (Account Name, Number, Routing Number) and bKash/Nagad QR Code upload (`/dashboard/update-bank/`).
+- **৩. বিশেষ অনুদান ক্যাম্পেইন (Donation Campaigns)**: Create, edit, list, and delete active donation campaigns with Goal Amounts, Raised Amounts, Date Durations, and Images (`/dashboard/save-campaign/`).
+- **৪. জরুরি আবেদন (Emergency Appeals)**: Add and delete emergency appeals for flood relief, medical emergencies, etc. (`/dashboard/save-emergency-appeal/`).
+- **৫. দান প্রভাব ও FAQ (Donation Impact & FAQs)**: Add and delete donation impact thresholds (e.g. ৳500 for student supplies) and donation FAQs (`/dashboard/save-impact/` and `/dashboard/save-faq/`).
 
 ### 7. 🖼️ ফটো গ্যালারি (Gallery)
 - Upload new high-resolution photos with captions directly to the gallery grid.
