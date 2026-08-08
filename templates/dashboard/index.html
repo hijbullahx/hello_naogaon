@@ -1,0 +1,929 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}অ্যাডমিন কন্ট্রোল প্যানেল - {{ site_setting.title }}{% endblock %}
+
+{% block content %}
+<div class="bg-success text-white py-4 mb-4 shadow-sm" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%) !important;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold mb-1"><i class="fas fa-sliders-h me-2"></i>অ্যাডমিন কন্ট্রোল প্যানেল</h2>
+                <p class="mb-0 text-white-50">ওয়েবসাইটের প্রতি পেজের প্রতিটি সেকশন সহজেই এডিট ও আপডেট করুন</p>
+            </div>
+            <div>
+                <a href="{% url 'core:home' %}" target="_blank" class="btn btn-light btn-sm fw-bold me-2"><i class="fas fa-external-link-alt me-1"></i> লাইভ ওয়েবসাইট দেখুন</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills nav-fill bg-white p-2 rounded shadow-sm mb-4 border" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-section" type="button" role="tab"><i class="fas fa-home me-1"></i> হোম পেজ সেকশন</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="programs-tab" data-bs-toggle="tab" data-bs-target="#programs-section" type="button" role="tab"><i class="fas fa-tasks me-1"></i> কার্যক্রম ({{ programs.count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="donors-tab" data-bs-toggle="tab" data-bs-target="#donors-section" type="button" role="tab"><i class="fas fa-tint me-1 text-danger"></i> রক্তদাতা ({{ donors.count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="volunteers-tab" data-bs-toggle="tab" data-bs-target="#volunteers-section" type="button" role="tab"><i class="fas fa-hands-helping me-1"></i> স্বেচ্ছাসেবক ({{ volunteers.count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="news-tab" data-bs-toggle="tab" data-bs-target="#news-section" type="button" role="tab"><i class="fas fa-newspaper me-1"></i> সংবাদ ({{ articles.count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="bank-tab" data-bs-toggle="tab" data-bs-target="#bank-section" type="button" role="tab"><i class="fas fa-university me-1"></i> অনুদান ও ব্যাংক</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery-section" type="button" role="tab"><i class="fas fa-images me-1"></i> গ্যালারি ({{ photos.count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages-section" type="button" role="tab"><i class="fas fa-envelope me-1"></i> ইনবক্স ({{ messages_list.count }})</button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="dashboardTabsContent">
+
+        <!-- ================= TAB 1: HOME PAGE SECTIONS ================= -->
+        <div class="tab-pane fade show active" id="home-section" role="tabpanel">
+            <div class="row g-4">
+
+                <!-- 1. Hero & Top Bar Card -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-3 h-100">
+                        <div class="card-header bg-success text-white py-3">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-desktop me-2"></i>১. হেডার ও হিরো সেকশন এডিট</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{% url 'core:update_hero' %}" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">লোগো ছবি (Logo Image)</label>
+                                    {% if site_setting.logo %}
+                                        <div class="mb-2"><img src="{{ site_setting.logo.url }}" alt="Logo" style="height: 40px;"></div>
+                                    {% endif %}
+                                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">হিরো সাইড/ব্যাকগ্রাউন্ড ছবি (Hero Image)</label>
+                                    {% if site_setting.hero_image %}
+                                        <div class="mb-2"><img src="{{ site_setting.hero_image.url }}" alt="Hero" style="height: 60px; object-fit: cover;" class="rounded border"></div>
+                                    {% endif %}
+                                    <input type="file" name="hero_image" class="form-control form-control-sm" accept="image/*">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">হিরো ট্যাগলাইন ব্যাজ</label>
+                                    <input type="text" name="hero_badge" value="{{ site_setting.hero_badge }}" class="form-control">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">হিরো মেইন টাইটেল</label>
+                                    <input type="text" name="hero_title" value="{{ site_setting.hero_title }}" class="form-control">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">হিরো সাবটাইটেল বিবরণ</label>
+                                    <textarea name="hero_subtitle" rows="3" class="form-control">{{ site_setting.hero_subtitle }}</textarea>
+                                </div>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">ফোন নম্বর</label>
+                                        <input type="text" name="contact_phone" value="{{ site_setting.contact_phone }}" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">ইমেইল এড্রেস</label>
+                                        <input type="email" name="contact_email" value="{{ site_setting.contact_email }}" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">ফেসবুক লিংক</label>
+                                        <input type="url" name="facebook_url" value="{{ site_setting.facebook_url }}" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">ইউটিউব লিংক</label>
+                                        <input type="url" name="youtube_url" value="{{ site_setting.youtube_url }}" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">হোয়াটসঅ্যাপ নম্বর</label>
+                                        <input type="text" name="whatsapp_number" value="{{ site_setting.whatsapp_number }}" class="form-control form-control-sm">
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-success fw-bold w-100"><i class="fas fa-save me-1"></i> হিরো সেকশন আপডেট করুন</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. About Us Section Card -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-3 h-100">
+                        <div class="card-header bg-primary text-white py-3">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-info-circle me-2"></i>২. 'আমাদের সম্পর্কে' সেকশন এডিট</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{% url 'core:update_about' %}" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">সেকশন হেডিং</label>
+                                    <input type="text" name="about_heading" value="{{ site_setting.about_heading }}" class="form-control">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">মেইন প্যারাগ্রাফ/বিবরণ</label>
+                                    <textarea name="about_text" rows="5" class="form-control">{{ site_setting.about_text }}</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">মেইন বড় ফিচারড ফটো (Featured Main Photo)</label>
+                                    {% if about_featured_image %}
+                                        <div class="mb-2"><img src="{{ about_featured_image.image.url }}" style="height: 70px; object-fit: cover;" class="rounded border"></div>
+                                    {% endif %}
+                                    <input type="file" name="featured_image" class="form-control form-control-sm" accept="image/*">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">সাব ফটো গ্রিডে নতুন ছবি যোগ করুন (একসাথে একাধিক ছবি সিলেক্ট করতে পারবেন)</label>
+                                    <input type="file" name="sub_images" class="form-control form-control-sm" accept="image/*" multiple>
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i> Ctrl / Shift চেপে একসাথে একাধিক ফটো নির্বাচন করুন</small>
+                                </div>
+
+                                {% if about_grid_images %}
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">বর্তমান সাব গ্রিড ফটোগুলো (মুছে ফেলতে ট্যাপ করুন):</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for gimg in about_grid_images %}
+                                        <div class="position-relative border rounded p-1 bg-light text-center">
+                                            <img src="{{ gimg.image.url }}" style="width: 60px; height: 50px; object-fit: cover;" class="rounded">
+                                            <a href="{% url 'core:delete_about_image' gimg.id %}" onclick="return confirm('ছবিটি মুছে ফেলতে চান?');" class="position-absolute top-0 end-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center text-decoration-none" style="width: 20px; height: 20px; font-size: 10px; transform: translate(30%, -30%);"><i class="fas fa-times"></i></a>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <button type="submit" class="btn btn-primary fw-bold w-100 mt-2"><i class="fas fa-save me-1"></i> আমাদের সম্পর্কে আপডেট করুন</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Stat Counters Card -->
+                <div class="col-lg-12">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-header bg-info text-white py-3">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-sort-numeric-up me-2"></i>৩. হোমপেজ কাউন্টার কার্ডসমূহ এডিট (5 Stat Cards)</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{% url 'core:update_stats' %}" method="post">
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    {% for stat in stat_counters %}
+                                    <input type="hidden" name="stat_id" value="{{ stat.id }}">
+                                    <div class="col-md-4 col-lg-2-4">
+                                        <div class="p-3 border rounded bg-light">
+                                            <div class="mb-2">
+                                                <label class="form-label small fw-bold">টাইটেল</label>
+                                                <input type="text" name="title_{{ stat.id }}" value="{{ stat.title }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small fw-bold">সংখ্যা (Value)</label>
+                                                <input type="text" name="value_{{ stat.id }}" value="{{ stat.value }}" class="form-control form-control-sm fw-bold">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small fw-bold">FontAwesome Icon</label>
+                                                <input type="text" name="icon_{{ stat.id }}" value="{{ stat.icon_class }}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small fw-bold">ব্যাজ কালার</label>
+                                                <select name="color_{{ stat.id }}" class="form-select form-select-sm">
+                                                    <option value="danger" {% if stat.badge_color == 'danger' %}selected{% endif %}>Danger (Red)</option>
+                                                    <option value="success" {% if stat.badge_color == 'success' %}selected{% endif %}>Success (Green)</option>
+                                                    <option value="warning" {% if stat.badge_color == 'warning' %}selected{% endif %}>Warning (Yellow)</option>
+                                                    <option value="primary" {% if stat.badge_color == 'primary' %}selected{% endif %}>Primary (Blue)</option>
+                                                    <option value="info" {% if stat.badge_color == 'info' %}selected{% endif %}>Info (Teal)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="submit" class="btn btn-info text-white fw-bold mt-3"><i class="fas fa-save me-1"></i> কাউন্টারসমূহ আপডেট করুন</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Footer & Map Card -->
+                <div class="col-lg-12">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-header bg-dark text-white py-3">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt me-2"></i>৪. ফুটার ও গুগল ম্যাপ ইমবেড এডিট</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{% url 'core:update_footer' %}" method="post">
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">ফুটার টেক্সট (About Footer)</label>
+                                        <textarea name="footer_about" rows="3" class="form-control">{{ site_setting.footer_about }}</textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">ঠিকানা (Contact Address)</label>
+                                        <textarea name="contact_address" rows="3" class="form-control">{{ site_setting.contact_address }}</textarea>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold">গুগল ম্যাপ ইমবেড আইফ্রেম (Google Map Embed Code)</label>
+                                        <textarea name="google_map_embed_url" rows="2" class="form-control" placeholder="<iframe src='...'></iframe>">{{ site_setting.google_map_embed_url }}</textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-dark fw-bold mt-3"><i class="fas fa-save me-1"></i> ফুটার আপডেট করুন</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: PROGRAMS ================= -->
+        <div class="tab-pane fade" id="programs-section" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-tasks me-2"></i>আমাদের কার্যক্রমসমূহ (Programs Management)</h5>
+                    <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#programModal"><i class="fas fa-plus-circle me-1"></i> নতুন প্রোগ্রাম যোগ করুন</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ছবি & আইকন</th>
+                                    <th>টাইটেল</th>
+                                    <th>সংক্ষিপ্ত বিবরণ</th>
+                                    <th>স্ট্যাটাস</th>
+                                    <th>অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prog in programs %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-{{ prog.badge_color }} p-2"><i class="{{ prog.icon_class }}"></i></span>
+                                            {% if prog.image %}<img src="{{ prog.image.url }}" style="width: 50px; height: 35px; object-fit: cover;" class="rounded">{% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold">{{ prog.title }}</td>
+                                    <td><small class="text-secondary">{{ prog.short_description|truncatewords:10 }}</small></td>
+                                    <td><span class="badge bg-success">{{ prog.status }}</span></td>
+                                    <td>
+                                        <a href="{% url 'core:delete_program' prog.id %}" onclick="return confirm('আপনি কি নিশ্চিত যে এই প্রোগ্রামটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center py-4 text-muted">কোনো প্রোগ্রাম যোগ করা হয়নি।</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: BLOOD DONORS ================= -->
+        <div class="tab-pane fade" id="donors-section" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-tint me-2"></i>রক্তদাতা ডাটাবেস (Blood Donors Database)</h5>
+                    <button class="btn btn-light btn-sm fw-bold text-danger" data-bs-toggle="modal" data-bs-target="#donorModal"><i class="fas fa-plus-circle me-1"></i> নতুন রক্তদাতা যোগ করুন</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>নাম</th>
+                                    <th>গ্রুপ</th>
+                                    <th>ফোন</th>
+                                    <th>এলাকা</th>
+                                    <th>অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in donors %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td class="fw-bold">{{ d.full_name }}</td>
+                                    <td><span class="badge bg-danger fs-6">{{ d.blood_group }}</span></td>
+                                    <td><a href="tel:{{ d.phone }}" class="text-success fw-semibold">{{ d.phone }}</a></td>
+                                    <td>{{ d.location }}</td>
+                                    <td>
+                                        <a href="{% url 'core:delete_donor' d.id %}" onclick="return confirm('মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center py-4 text-muted">কোনো রক্তদাতার তথ্য পাওয়া যায়নি।</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 4: VOLUNTEERS & TEAM MEMBERS ================= -->
+        <div class="tab-pane fade" id="volunteers-section" role="tabpanel">
+            <div class="row g-4">
+                <!-- 1. Team Members Management Card -->
+                <div class="col-lg-12">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও পরিচালনা পর্ষদ (Team Members)</h5>
+                            <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#teamMemberModal"><i class="fas fa-plus-circle me-1"></i> নতুন টিম মেম্বার যোগ করুন</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ছবি</th>
+                                            <th>নাম</th>
+                                            <th>পদবী / ভূমিকা (Role)</th>
+                                            <th>বিবরণ (Bio)</th>
+                                            <th>অ্যাকশন</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for tm in team_members %}
+                                        <tr>
+                                            <td>
+                                                {% if tm.image %}<img src="{{ tm.image.url }}" style="width: 45px; height: 45px; object-fit: cover;" class="rounded-circle border">
+                                                {% else %}<div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 45px; height: 45px;"><i class="fas fa-user-tie"></i></div>{% endif %}
+                                            </td>
+                                            <td class="fw-bold">{{ tm.name }}</td>
+                                            <td><span class="badge bg-success">{{ tm.role }}</span></td>
+                                            <td><small class="text-secondary">{{ tm.bio|truncatewords:10|default:"-" }}</small></td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTeamMemberModal_{{ tm.id }}"><i class="fas fa-edit"></i> এডিট</button>
+                                                <a href="{% url 'core:delete_team_member' tm.id %}" onclick="return confirm('মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Edit Team Member Modal -->
+                                        <div class="modal fade" id="editTeamMemberModal_{{ tm.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-primary text-white">
+                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> টিম মেম্বার এডিট করুন</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form action="{% url 'core:save_team_member' %}" method="post" enctype="multipart/form-data">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="member_id" value="{{ tm.id }}">
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">সদস্যের নাম *</label>
+                                                                <input type="text" name="name" value="{{ tm.name }}" required class="form-control">
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">পদবী / ভূমিকা (Role) *</label>
+                                                                <input type="text" name="role" value="{{ tm.role }}" required class="form-control">
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
+                                                                <textarea name="bio" rows="3" class="form-control">{{ tm.bio }}</textarea>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">ছবি পরিবর্তন করুন</label>
+                                                                {% if tm.image %}<div class="mb-2"><img src="{{ tm.image.url }}" style="height: 50px;" class="rounded border"></div>{% endif %}
+                                                                <input type="file" name="image" class="form-control" accept="image/*">
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                                                            <button type="submit" class="btn btn-primary fw-bold">আপডেট করুন</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <tr><td colspan="5" class="text-center py-4 text-muted">কোনো টিম মেম্বার তথ্য যোগ করা হয়নি।</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Registered Volunteers Management Card -->
+                <div class="col-lg-12">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-user-check me-2"></i>স্বেচ্ছাসেবক ডাটাবেস ও আবেদনপত্রসমূহ</h5>
+                            <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#volunteerModal"><i class="fas fa-plus-circle me-1"></i> নতুন স্বেচ্ছাসেবক যোগ করুন</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>স্বেচ্ছাসেবকের নাম</th>
+                                            <th>ইমেইল</th>
+                                            <th>ফোন নম্বর</th>
+                                            <th>ঠিকানা</th>
+                                            <th>আবেদনের তারিখ</th>
+                                            <th>স্ট্যাটাস</th>
+                                            <th>অ্যাকশন</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for v in volunteers %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td class="fw-bold">{{ v.full_name }}</td>
+                                            <td>{{ v.email|default:"-" }}</td>
+                                            <td><a href="tel:{{ v.phone }}" class="text-success fw-bold">{{ v.phone }}</a></td>
+                                            <td>{{ v.address|default:"-" }}</td>
+                                            <td><small class="text-secondary">{{ v.application_date|date:"d M Y" }}</small></td>
+                                            <td><span class="badge bg-success">{{ v.status }}</span></td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editVolunteerModal_{{ v.id }}"><i class="fas fa-edit"></i> এডিট</button>
+                                                <a href="{% url 'core:delete_volunteer' v.id %}" onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Edit Volunteer Modal -->
+                                        <div class="modal fade" id="editVolunteerModal_{{ v.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-success text-white">
+                                                        <h5 class="modal-title fw-bold"><i class="fas fa-user-edit me-1"></i> স্বেচ্ছাসেবক এডিট করুন</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form action="{% url 'core:save_volunteer' %}" method="post">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="volunteer_id" value="{{ v.id }}">
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">পূর্ণ নাম *</label>
+                                                                <input type="text" name="full_name" value="{{ v.full_name }}" required class="form-control">
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">ইমেইল এড্রেস</label>
+                                                                <input type="email" name="email" value="{{ v.email }}" class="form-control">
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">ফোন নম্বর *</label>
+                                                                <input type="text" name="phone" value="{{ v.phone }}" required class="form-control">
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">ঠিকানা / এলাকা</label>
+                                                                <textarea name="address" rows="2" class="form-control">{{ v.address }}</textarea>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">স্ট্যাটাস</label>
+                                                                <select name="status" class="form-select">
+                                                                    <option value="approved" {% if v.status == 'approved' %}selected{% endif %}>Approved (অনুমোদিত)</option>
+                                                                    <option value="pending" {% if v.status == 'pending' %}selected{% endif %}>Pending (অপেক্ষমাণ)</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-modal="dismiss">বাতিল</button>
+                                                            <button type="submit" class="btn btn-success fw-bold">আপডেট করুন</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <tr><td colspan="8" class="text-center py-4 text-muted">কোনো স্বেচ্ছাসেবক তথ্য পাওয়া যায়নি।</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 5: NEWS ================= -->
+        <div class="tab-pane fade" id="news-section" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-newspaper me-2"></i>সংবাদ ও প্রেস রিলিজ প্রকাশনা</h5>
+                    <button class="btn btn-dark btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#newsModal"><i class="fas fa-pen me-1"></i> নতুন খবর প্রকাশ করুন</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ছবি</th>
+                                    <th>শিরোনাম</th>
+                                    <th>প্রকাশের তারিখ</th>
+                                    <th>অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for art in articles %}
+                                <tr>
+                                    <td>{% if art.image %}<img src="{{ art.image.url }}" style="width: 60px; height: 40px; object-fit: cover;" class="rounded">{% endif %}</td>
+                                    <td class="fw-bold">{{ art.title }}</td>
+                                    <td><small class="text-secondary">{{ art.publish_date|date:"d M Y" }}</small></td>
+                                    <td>
+                                        <a href="{% url 'core:delete_news' art.id %}" onclick="return confirm('খবরটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">কোনো খবর প্রকাশিত হয়নি।</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 6: BANK & DONATIONS ================= -->
+        <div class="tab-pane fade" id="bank-section" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-teal text-white py-3" style="background-color: #20c997 !important;">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-university me-2"></i>ব্যাংক একাউন্ট ও অনুদান সেটআপ</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'core:update_bank' %}" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% with bank=banks.first %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">ব্যাংকের নাম</label>
+                                <input type="text" name="bank_name" value="{{ bank.bank_name|default:'Dutch-Bangla Bank' }}" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">একাউন্ট নাম (Account Name)</label>
+                                <input type="text" name="account_name" value="{{ bank.account_name|default:'Helpline Hello Naogaon' }}" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">একাউন্ট নম্বর (Account Number)</label>
+                                <input type="text" name="account_number" value="{{ bank.account_number|default:'1234567890' }}" class="form-control fw-bold">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">রাউটিং নম্বর (Routing Number)</label>
+                                <input type="text" name="swift_code" value="{{ bank.swift_code|default:'0902600925' }}" class="form-control">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">bKash/Nagad QR কোড ছবি আপলোড করুন</label>
+                                {% if qrcodes.first and qrcodes.first.image %}
+                                    <div class="mb-2"><img src="{{ qrcodes.first.image.url }}" style="height: 100px;" class="rounded border p-1"></div>
+                                {% endif %}
+                                <input type="file" name="qr_image" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success fw-bold mt-4"><i class="fas fa-save me-1"></i> ব্যাংক ও অনুদান আপডেট করুন</button>
+                        {% endwith %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 7: GALLERY ================= -->
+        <div class="tab-pane fade" id="gallery-section" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-images me-2"></i>ফটো গ্যালারি আপলোড</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'core:save_gallery' %}" method="post" enctype="multipart/form-data" class="mb-4 p-3 border rounded bg-light">
+                        {% csrf_token %}
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold">ছবি নির্বাচন করুন</label>
+                                <input type="file" name="image" class="form-control" accept="image/*" required>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold">ক্যাপশন (Caption)</label>
+                                <input type="text" name="caption" placeholder="ছবির ক্যাপশন লিখুন" class="form-control">
+                            </div>
+                            <div class="col-md-2 mt-auto">
+                                <button type="submit" class="btn btn-dark w-100 fw-bold"><i class="fas fa-upload me-1"></i> আপলোড</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <h6 class="fw-bold text-secondary mb-3">আপলোডকৃত ফটোগুলো:</h6>
+                    <div class="row g-3">
+                        {% for photo in photos %}
+                        <div class="col-6 col-md-3 col-lg-2">
+                            <div class="card h-100 border-0 shadow-sm overflow-hidden">
+                                {% if photo.image %}<img src="{{ photo.image.url }}" style="height: 120px; object-fit: cover;" class="img-fluid">{% endif %}
+                                <div class="p-2 text-center small text-muted">{{ photo.caption|default:"Photo" }}</div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted text-center w-100 py-3">কোনো ছবি নেই।</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 8: INBOX MESSAGES ================= -->
+        <div class="tab-pane fade" id="messages-section" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-purple text-white py-3" style="background-color: #6f42c1 !important;">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-envelope-open-text me-2"></i>ওয়েবসাইট থেকে আগত বার্তাসমূহ</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>প্রেরকের নাম</th>
+                                    <th>ইমেইল</th>
+                                    <th>বিষয়</th>
+                                    <th>বার্তা</th>
+                                    <th>তারিখ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in messages_list %}
+                                <tr>
+                                    <td class="fw-bold">{{ m.name }}</td>
+                                    <td>{{ m.email }}</td>
+                                    <td class="fw-semibold">{{ m.subject }}</td>
+                                    <td><small class="text-dark">{{ m.message }}</small></td>
+                                    <td><small class="text-secondary">{{ m.created_at|date:"d M Y, h:i A" }}</small></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center py-4 text-muted">কোনো নতুন বার্তা আসেনি।</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Program Modal -->
+<div class="modal fade" id="programModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন প্রোগ্রাম তৈরি করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_program' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">প্রোগ্রাম টাইটেল *</label>
+                        <input type="text" name="title" required class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Short Description)</label>
+                        <input type="text" name="short_description" class="form-control" placeholder="কার্ডে দেখানোর জন্য">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">পূর্ণ বিবরণ (Full Description)</label>
+                        <textarea name="description" rows="3" class="form-control"></textarea>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">FontAwesome Icon</label>
+                            <input type="text" name="icon_class" value="fas fa-hands-helping" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ব্যাজ কালার</label>
+                            <select name="badge_color" class="form-select">
+                                <option value="success">Green (Success)</option>
+                                <option value="danger">Red (Danger)</option>
+                                <option value="warning">Yellow (Warning)</option>
+                                <option value="info">Teal (Info)</option>
+                                <option value="primary">Blue (Primary)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">প্রোগ্রামের ছবি আপলোড করুন</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-success fw-bold">সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Donor Modal -->
+<div class="modal fade" id="donorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন রক্তদাতা যোগ করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_donor' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">পূর্ণ নাম *</label>
+                        <input type="text" name="full_name" required class="form-control">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">রক্তের গ্রুপ *</label>
+                            <select name="blood_group" class="form-select" required>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ফোন নম্বর *</label>
+                            <input type="text" name="phone" required class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">এলাকা / থানা *</label>
+                        <input type="text" name="location" required class="form-control" placeholder="মহাদেবপুর, নওগাঁ">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-danger fw-bold">সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- News Modal -->
+<div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="fas fa-pen me-1"></i> নতুন খবর প্রকাশ করুন</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_news' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">সংবাদের শিরোনাম *</label>
+                        <input type="text" name="title" required class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">সংবাদের পূর্ণ বিবরণ *</label>
+                        <textarea name="content" rows="5" required class="form-control"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ছবি আপলোড করুন</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-warning fw-bold text-dark">প্রকাশ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<!-- Volunteer Modal -->
+<div class="modal fade" id="volunteerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন স্বেচ্ছাসেবক যোগ করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_volunteer' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">পূর্ণ নাম *</label>
+                        <input type="text" name="full_name" required class="form-control" placeholder="স্বেচ্ছাসেবকের নাম">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ইমেইল এড্রেস</label>
+                        <input type="email" name="email" class="form-control" placeholder="example@gmail.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ফোন নম্বর *</label>
+                        <input type="text" name="phone" required class="form-control" placeholder="017XXXXXXXX">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ঠিকানা / এলাকা</label>
+                        <textarea name="address" rows="2" class="form-control" placeholder="মহাদেবপুর, নওগাঁ"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">স্ট্যাটাস</label>
+                        <select name="status" class="form-select">
+                            <option value="approved">Approved (অনুমোদিত)</option>
+                            <option value="pending">Pending (অপেক্ষমাণ)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-success fw-bold">সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Team Member Modal -->
+<div class="modal fade" id="teamMemberModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-1"></i> নতুন টিম মেম্বার যোগ করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_team_member' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">সদস্যের নাম *</label>
+                        <input type="text" name="name" required class="form-control" placeholder="মো: আরিফুল ইসলাম">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">পদবী / ভূমিকা (Role) *</label>
+                        <input type="text" name="role" required class="form-control" placeholder="যেমন: সভাপতি / সাধারণ সম্পাদক">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
+                        <textarea name="bio" rows="2" class="form-control" placeholder="সংক্ষিপ্ত পরিচয়..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">প্রোফাইল ছবি আপলোড করুন</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-primary fw-bold">সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Check URL search param e.g. ?tab=volunteers-section
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeTabId = urlParams.get('tab');
+
+    // 2. Fallback to localStorage if no URL param
+    if (!activeTabId) {
+        activeTabId = localStorage.getItem('activeDashboardTab');
+    }
+
+    if (activeTabId) {
+        const tabTriggerEl = document.querySelector(`button[data-bs-target="#${activeTabId}"]`);
+        if (tabTriggerEl) {
+            const tab = new bootstrap.Tab(tabTriggerEl);
+            tab.show();
+        }
+    }
+
+    // Store current active tab on user click
+    const tabButtons = document.querySelectorAll('#dashboardTabs button[data-bs-toggle="tab"]');
+    tabButtons.forEach(button => {
+        button.addEventListener('shown.bs.tab', function(event) {
+            const targetId = event.target.getAttribute('data-bs-target').replace('#', '');
+            localStorage.setItem('activeDashboardTab', targetId);
+        });
+    });
+});
+</script>
+{% endblock %}

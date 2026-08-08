@@ -1,42 +1,135 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}স্বেচ্ছাসেবক আবেদন - {{ site_setting.title }}{% endblock %}
+{% block title %}স্বেচ্ছাসেবক ও টিম সদস্যবৃন্দ - {{ site_setting.title }}{% endblock %}
 
 {% block content %}
-<div class="bg-success text-white py-4 mb-4">
+<!-- Page Header Banner -->
+<div class="bg-success text-white py-4 mb-4" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%) !important;">
     <div class="container text-center">
-        <h2 class="fw-bold mb-1"><i class="fas fa-heart me-2"></i>স্বেচ্ছাসেবক হিসেবে যোগ দিন</h2>
-        <p class="mb-0 text-white-50">নওগাঁর উন্নয়নে আমাদের সাথে কাঁধে কাঁধ মিলিয়ে কাজ করুন</p>
+        <h2 class="fw-bold mb-1"><i class="fas fa-users me-2"></i>স্বেচ্ছাসেবক ও সদস্য তালিকা</h2>
+        <p class="mb-3 text-white-50">নওগাঁর সেবায় নিয়োজিত আমাদের নিবেদিতপ্রাণ সদস্য ও স্বেচ্ছাসেবকবৃন্দ</p>
+        <button type="button" class="btn btn-warning fw-bold px-4 py-2 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#joinVolunteerModal">
+            <i class="fas fa-user-plus me-2"></i>স্বেচ্ছাসেবক হিসেবে যোগ দিন
+        </button>
     </div>
 </div>
 
 <div class="container mb-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-lg p-4 rounded-3">
-                <h4 class="fw-bold text-success mb-3">আবেদন ফর্ম</h4>
-                <form method="post">
-                    {% csrf_token %}
+
+    <!-- 1. Team Members / Leadership Grid Section -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-success mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও পরিচালনা পর্ষদ</h4>
+            <span class="badge bg-success rounded-pill px-3">{{ team_members.count|default:"3" }} জন সদস্য</span>
+        </div>
+
+        <div class="row g-4">
+            {% for member in team_members %}
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-3 rounded-3">
+                    {% if member.image %}
+                        <img src="{{ member.image.url }}" class="rounded-circle mx-auto mb-3 border border-3 border-success p-1" style="width: 110px; height: 110px; object-fit: cover;" alt="{{ member.name }}">
+                    {% else %}
+                        <div class="bg-success text-white rounded-circle mx-auto mb-3 d-flex justify-content-center align-items-center border border-3 border-white shadow-sm" style="width: 110px; height: 110px;">
+                            <i class="fas fa-user-tie fa-3x"></i>
+                        </div>
+                    {% endif %}
+                    <h5 class="fw-bold text-dark mb-1">{{ member.name }}</h5>
+                    <div class="badge bg-success-subtle text-success border border-success mb-2 px-3 py-1">{{ member.role }}</div>
+                    {% if member.bio %}
+                        <p class="text-secondary small mb-0">{{ member.bio|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-4 text-muted">
+                <p class="mb-0">কোনো টিম মেম্বার তথ্য পাওয়া যায়নি।</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 2. Registered Volunteers Member List Section -->
+    <div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-dark mb-0"><i class="fas fa-hands-helping text-success me-2"></i>নিবন্ধিত স্বেচ্ছাসেবকবৃন্দ</h4>
+            <button type="button" class="btn btn-outline-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#joinVolunteerModal">
+                <i class="fas fa-plus me-1"></i> আপনিও যোগ দিন
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-sm overflow-hidden rounded-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>স্বেচ্ছাসেবকের নাম</th>
+                            <th>ফোন নম্বর</th>
+                            <th>ঠিকানা / এলাকা</th>
+                            <th>যোগদানের তারিখ</th>
+                            <th>স্ট্যাটাস</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vol in volunteers_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td class="fw-bold text-dark">{{ vol.full_name }}</td>
+                            <td><a href="tel:{{ vol.phone }}" class="text-success text-decoration-none fw-semibold"><i class="fas fa-phone me-1"></i> {{ vol.phone }}</a></td>
+                            <td>{{ vol.address|default:"নওগাঁ" }}</td>
+                            <td><small class="text-secondary">{{ vol.application_date|date:"d M Y" }}</small></td>
+                            <td><span class="badge bg-success">{{ vol.status }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">কোনো নিবন্ধিত স্বেচ্ছাসেবকের তথ্য পাওয়া যায়নি।</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Join Volunteer Popup Modal -->
+<div class="modal fade" id="joinVolunteerModal" tabindex="-1" aria-labelledby="joinVolunteerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title fw-bold" id="joinVolunteerModalLabel"><i class="fas fa-heart me-2"></i>স্বেচ্ছাসেবক হিসেবে রেজিস্ট্রেশন করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'volunteers:apply' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <p class="text-secondary small mb-3">আমাদের সংস্থায় যোগ দিয়ে নওগাঁর মানবিক কর্মকাণ্ডে অংশগ্রহণ করুন।</p>
+                    
                     <div class="mb-3">
-                        <label for="full_name" class="form-label fw-semibold">আপনার পূর্ণ নাম *</label>
-                        <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="আপনার নাম লিখুন">
+                        <label for="full_name" class="form-label fw-bold">আপনার পূর্ণ নাম *</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="উদাহরণ: মো: আরিফুল ইসলাম">
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label fw-semibold">ইমেইল এড্রেস</label>
+                        <label for="email" class="form-label fw-bold">ইমেইল এড্রেস</label>
                         <input type="email" class="form-control" id="email" name="email" placeholder="example@gmail.com">
                     </div>
                     <div class="mb-3">
-                        <label for="phone" class="form-label fw-semibold">ফোন নম্বর *</label>
+                        <label for="phone" class="form-label fw-bold">মোবাইল নম্বর *</label>
                         <input type="text" class="form-control" id="phone" name="phone" required placeholder="017XXXXXXXX">
                     </div>
                     <div class="mb-3">
-                        <label for="address" class="form-label fw-semibold">ঠিকানা / এলাকা</label>
+                        <label for="address" class="form-label fw-bold">ঠিকানা / এলাকা</label>
                         <textarea class="form-control" id="address" name="address" rows="3" placeholder="গ্রাম/মহল্লা, থানা, নওগাঁ"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-success fw-bold px-4 w-100 py-2">আবেদন জমা দিন</button>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4"><i class="fas fa-paper-plane me-1"></i> আবেদন জমা দিন</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

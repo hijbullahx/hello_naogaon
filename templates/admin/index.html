@@ -1,0 +1,264 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div class="col-12">
+    <!-- Welcome Header Banner Card -->
+    <div class="card bg-gradient-success text-white shadow-sm mb-4 border-0">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fas fa-tachometer-alt me-2"></i>হেল্পলাইন হ্যালো নওগাঁ - অ্যাডমিন ড্যাশবোর্ড</h3>
+                <p class="mb-0 text-white-50 fs-6">ওয়েবসাইটের রক্তদাতা, তথ্য, কার্যক্রম ও অনুদানের সমস্ত হিসাব সহজে পরিচালনা করুন</p>
+            </div>
+            <div>
+                <a href="/" target="_blank" class="btn btn-light btn-sm fw-bold me-2"><i class="fas fa-external-link-alt me-1"></i> ওয়েবসাইট দেখুন</a>
+                <a href="{% url 'admin:programs_program_add' %}" class="btn btn-outline-light btn-sm fw-bold"><i class="fas fa-plus me-1"></i> নতুন প্রোগ্রাম যোগ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. Top Stat Metric Cards Grid -->
+    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-chart-bar me-2"></i>সংক্ষিপ্ত তথ্য ও পরিসংখ্যান</h5>
+    <div class="row g-3 mb-4">
+        <!-- Stat Card 1: Blood Donors -->
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="small-box bg-danger shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="fw-extrabold">{{ dashboard_stats.total_donors }}</h3>
+                    <p class="fw-semibold mb-0">রক্তদাতা তালিকা</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <a href="{% url 'admin:volunteers_blooddonor_changelist' %}" class="small-box-footer py-1 px-3 d-block text-white text-decoration-none">
+                    বিস্তারিত দেখুন <i class="fas fa-arrow-circle-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stat Card 2: Volunteers -->
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="small-box bg-success shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="fw-extrabold">{{ dashboard_stats.total_volunteers }}</h3>
+                    <p class="fw-semibold mb-0">স্বেচ্ছাসেবক আবেদন</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <a href="{% url 'admin:volunteers_volunteer_changelist' %}" class="small-box-footer py-1 px-3 d-block text-white text-decoration-none">
+                    বিস্তারিত দেখুন <i class="fas fa-arrow-circle-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stat Card 3: Ongoing Programs -->
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="small-box bg-info shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="fw-extrabold">{{ dashboard_stats.ongoing_programs }}</h3>
+                    <p class="fw-semibold mb-0">চলমান কার্যক্রম</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <a href="{% url 'admin:programs_program_changelist' %}" class="small-box-footer py-1 px-3 d-block text-white text-decoration-none">
+                    বিস্তারিত দেখুন <i class="fas fa-arrow-circle-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stat Card 4: News Articles -->
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="small-box bg-warning shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3 text-dark">
+                    <h3 class="fw-extrabold text-dark">{{ dashboard_stats.total_articles }}</h3>
+                    <p class="fw-semibold mb-0 text-dark">প্রকাশিত সংবাদ</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-newspaper"></i>
+                </div>
+                <a href="{% url 'admin:news_article_changelist' %}" class="small-box-footer py-1 px-3 d-block text-dark text-decoration-none">
+                    বিস্তারিত দেখুন <i class="fas fa-arrow-circle-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stat Card 5: Unread Messages -->
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="small-box bg-purple shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="fw-extrabold">{{ dashboard_stats.unread_messages }}</h3>
+                    <p class="fw-semibold mb-0">নতুন বার্তা</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <a href="{% url 'admin:core_contactmessage_changelist' %}" class="small-box-footer py-1 px-3 d-block text-white text-decoration-none">
+                    বিস্তারিত দেখুন <i class="fas fa-arrow-circle-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stat Card 6: Gallery Photos -->
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="small-box bg-teal shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="fw-extrabold">{{ dashboard_stats.total_photos }}</h3>
+                    <p class="fw-semibold mb-0">গ্যালারি ছবি</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-images"></i>
+                </div>
+                <a href="{% url 'admin:gallery_photo_changelist' %}" class="small-box-footer py-1 px-3 d-block text-white text-decoration-none">
+                    বিস্তারিত দেখুন <i class="fas fa-arrow-circle-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Management Modules Grid (Cardly Layout) -->
+    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-th-large me-2"></i>মডিউল ও ম্যানেজমেন্ট কার্ডসমূহ</h5>
+    <div class="row g-4 mb-5">
+        <!-- Module Card 1: Site Setup -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-lg overflow-hidden card-module">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-sliders-h me-2"></i>ওয়েবসাইট সেটিং ও লেআউট</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-secondary small">ওয়েবসাইটের হেডার টাইটেল, ফোন/ইমেইল, সোশাল লিংক, ফুটার ঠিকানা, কাউন্টার কার্ড ও ফটো কলেজ পরিবর্তন করুন।</p>
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <a href="{% url 'admin:core_sitesetting_changelist' %}" class="btn btn-outline-success btn-sm text-start"><i class="fas fa-cog me-2"></i> সাইট সেটিং পরিবর্তন করুন</a>
+                        <a href="{% url 'admin:core_statcounter_changelist' %}" class="btn btn-outline-info btn-sm text-start"><i class="fas fa-sort-numeric-up me-2"></i> হোমপেজ কাউন্টার কার্ডসমূহ</a>
+                        <a href="{% url 'admin:core_aboutimage_changelist' %}" class="btn btn-outline-warning btn-sm text-start"><i class="fas fa-images me-2"></i> সম্পর্কে ফটো কলেজ গ্রিড</a>
+                        <a href="{% url 'admin:core_contactmessage_changelist' %}" class="btn btn-outline-danger btn-sm text-start"><i class="fas fa-envelope-open-text me-2"></i> যোগাযোগের বার্তাসমূহ ({{ dashboard_stats.unread_messages }})</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Card 2: Programs & Events -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-lg overflow-hidden card-module">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-hand-holding-heart me-2"></i>সামাজিক কার্যক্রম ও ইভেন্ট</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-secondary small">রক্তদান সেবা, শিক্ষা সহায়তা, পরিবেশ কর্মসূচি, মানবিক সাহায্য ও ত্রাণ কার্যক্রম পরিচালনা।</p>
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <a href="{% url 'admin:programs_program_changelist' %}" class="btn btn-outline-primary btn-sm text-start"><i class="fas fa-tasks me-2"></i> সকল প্রোগ্রাম পরিচালনা</a>
+                        <a href="{% url 'admin:programs_program_add' %}" class="btn btn-primary btn-sm text-start fw-bold"><i class="fas fa-plus-circle me-2"></i> নতুন প্রোগ্রাম যোগ করুন</a>
+                        <a href="{% url 'admin:programs_event_changelist' %}" class="btn btn-outline-info btn-sm text-start"><i class="fas fa-calendar-alt me-2"></i> ইভেন্ট তালিকা</a>
+                        <a href="{% url 'admin:programs_successstory_changelist' %}" class="btn btn-outline-warning btn-sm text-start"><i class="fas fa-star me-2"></i> সাফল্যের গল্পসমূহ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Card 3: Blood Donors & Volunteers -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-lg overflow-hidden card-module">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-tint me-2"></i>রক্তদাতা ও স্বেচ্ছাসেবক ডাটাবেস</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-secondary small">নওগাঁর নিবন্ধিত জরুরি রক্তদাতা খুঁজুন ও আপডেট করুন। নতুন স্বেচ্ছাসেবক আবেদন পরিচালনা করুন।</p>
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <a href="{% url 'admin:volunteers_blooddonor_changelist' %}" class="btn btn-outline-danger btn-sm text-start"><i class="fas fa-tint me-2"></i> রক্তদাতা ডাটাবেস ({{ dashboard_stats.total_donors }})</a>
+                        <a href="{% url 'admin:volunteers_blooddonor_add' %}" class="btn btn-danger btn-sm text-start fw-bold"><i class="fas fa-plus-circle me-2"></i> নতুন রক্তদাতা যোগ করুন</a>
+                        <a href="{% url 'admin:volunteers_volunteer_changelist' %}" class="btn btn-outline-success btn-sm text-start"><i class="fas fa-user-check me-2"></i> স্বেচ্ছাসেবক আবেদনপত্র</a>
+                        <a href="{% url 'admin:volunteers_teammember_changelist' %}" class="btn btn-outline-info btn-sm text-start"><i class="fas fa-id-card me-2"></i> টিম মেম্বারদের তালিকা</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Card 4: News Articles -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-lg overflow-hidden card-module">
+                <div class="card-header bg-warning text-dark py-3">
+                    <h5 class="card-title fw-bold mb-0 text-dark"><i class="fas fa-newspaper me-2"></i>সংবাদ ও প্রেস প্রকাশনা</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-secondary small">সংস্থার উন্নয়নমূলক কার্যক্রম, শীতবস্ত্র বিতরণ, বৃক্ষরোপণ ও সামাজিক খবরের আপডেট প্রকাশ করুন।</p>
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <a href="{% url 'admin:news_article_changelist' %}" class="btn btn-outline-dark btn-sm text-start"><i class="fas fa-newspaper me-2"></i> সকল খবর দেখুন</a>
+                        <a href="{% url 'admin:news_article_add' %}" class="btn btn-warning btn-sm text-start fw-bold text-dark"><i class="fas fa-pen-alt me-2"></i> নতুন খবর প্রকাশ করুন</a>
+                        <a href="{% url 'admin:news_category_changelist' %}" class="btn btn-outline-secondary btn-sm text-start"><i class="fas fa-folder me-2"></i> ক্যাটাগরি তালিকা</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Card 5: Bank Accounts & Donations -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-lg overflow-hidden card-module">
+                <div class="card-header bg-teal text-white py-3">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-university me-2"></i>ব্যাংক একাউন্ট ও অনুদান সেটআপ</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-secondary small">ডাচ-বাংলা ব্যাংক নম্বর, বিকাশ, নগদ ও রকেট QR কোড এবং অনুদান নির্দেশিকা পরিবর্তন করুন।</p>
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <a href="{% url 'admin:donations_bank_changelist' %}" class="btn btn-outline-teal btn-sm text-start"><i class="fas fa-university me-2"></i> ব্যাংক একাউন্ট নম্বরসমূহ</a>
+                        <a href="{% url 'admin:donations_qrcode_changelist' %}" class="btn btn-outline-dark btn-sm text-start"><i class="fas fa-qrcode me-2"></i> বিকাশ/নগদ QR কোড</a>
+                        <a href="{% url 'admin:donations_donationmethod_changelist' %}" class="btn btn-outline-info btn-sm text-start"><i class="fas fa-wallet me-2"></i> পেমেন্ট মেথড তালিকা</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Card 6: Gallery -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-lg overflow-hidden card-module">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-photo-video me-2"></i>ফটো গ্যালারি</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-secondary small">সামাজিক কার্যক্রমের ছবির গ্যালারিতে ছবি যোগ করুন ও অ্যালবাম সাজান।</p>
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <a href="{% url 'admin:gallery_photo_changelist' %}" class="btn btn-outline-dark btn-sm text-start"><i class="fas fa-images me-2"></i> সকল গ্যালারি ফটো ({{ dashboard_stats.total_photos }})</a>
+                        <a href="{% url 'admin:gallery_photo_add' %}" class="btn btn-dark btn-sm text-start fw-bold"><i class="fas fa-upload me-2"></i> নতুন ফটো আপলোড করুন</a>
+                        <a href="{% url 'admin:gallery_album_changelist' %}" class="btn btn-outline-secondary btn-sm text-start"><i class="fas fa-folder-plus me-2"></i> অ্যালবামসমূহ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-success {
+    background: linear-gradient(135deg, #004d34 0%, #006a4e 100%) !important;
+}
+
+.card-module {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-module:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12) !important;
+}
+
+.bg-purple {
+    background-color: #6f42c1 !important;
+    color: white !important;
+}
+
+.bg-teal {
+    background-color: #20c997 !important;
+    color: white !important;
+}
+
+.btn-outline-teal {
+    color: #20c997;
+    border-color: #20c997;
+}
+
+.btn-outline-teal:hover {
+    background-color: #20c997;
+    color: white;
+}
+</style>
+{% endblock %}

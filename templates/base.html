@@ -93,7 +93,7 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenu">
                         {% if user.is_staff %}
-                        <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cogs me-2"></i>অ্যাডমিন প্যানেল</a></li>
+                        <li><a class="dropdown-item fw-bold text-success" href="{% url 'core:dashboard' %}"><i class="fas fa-sliders-h me-2"></i>অ্যাডমিন কন্ট্রোল প্যানেল</a></li>
                         <li><hr class="dropdown-divider"></li>
                         {% endif %}
                         <li>

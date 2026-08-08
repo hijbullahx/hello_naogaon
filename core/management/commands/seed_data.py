@@ -163,4 +163,30 @@ class Command(BaseCommand):
             )
         self.stdout.write("[OK] Blood Donors initialized.")
 
+        # 7. Team Members
+        from volunteers.models import TeamMember, Volunteer
+        team_data = [
+            {"name": "আরিফুল ইসলাম", "role": "সভাপতি & প্রতিষ্ঠাতা", "bio": "সামাজিক উন্নয়ন ও মানবিক সেবায় নিয়োজিত।", "order": 1},
+            {"name": "সাব্বির রহমান", "role": "সাধারণ সম্পাদক", "bio": "রক্তদান ক্যাম্প ও শিক্ষা সহায়তা কার্যক্রম সমন্বয়ক।", "order": 2},
+            {"name": "তানভীর আহমেদ", "role": "সাংগঠনিক সম্পাদক", "bio": "পরিবেশ ও স্বেচ্ছাসেবক টিম পরিচালক।", "order": 3},
+        ]
+        for tm in team_data:
+            TeamMember.objects.get_or_create(
+                name=tm["name"],
+                defaults=tm
+            )
+        self.stdout.write("[OK] Team Members initialized.")
+
+        # 8. Volunteers
+        volunteer_data = [
+            {"full_name": "মো: রফিকুল ইসলাম", "email": "rofiq@gmail.com", "phone": "01711223344", "address": "মহাদেবপুর, নওগাঁ", "status": "approved"},
+            {"full_name": "মো: নাজমুল হাসান", "email": "nazmul@gmail.com", "phone": "01822334455", "address": "নওগাঁ সদর", "status": "approved"},
+        ]
+        for vol in volunteer_data:
+            Volunteer.objects.get_or_create(
+                phone=vol["phone"],
+                defaults=vol
+            )
+        self.stdout.write("[OK] Volunteers initialized.")
+
         self.stdout.write(self.style.SUCCESS("All seed data successfully created!"))

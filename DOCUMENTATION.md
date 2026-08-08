@@ -69,15 +69,37 @@ hello_naogaon/
 
 ---
 
-## 🛠️ Dynamic Django Admin Management Guide
+## 🛠️ Custom Front-End Cardly Admin Control Panel Guide
 
-## 🛠️ Dynamic Django Admin Management Guide
+The default Django Admin panel has been **completely replaced** with a custom **Section-by-Section Card Control Dashboard** accessible at `/dashboard/` or `/admin/`:
 
-The Admin Panel (`/admin/`) has been completely customized using **Django Jazzmin** and custom CSS to match the exact visual branding (`#004d34` / `#006a4e` emerald theme, Bengali welcome header, custom model icons, and responsive tabs):
+### 1. 🏠 হোম পেজ সেকশনসমূহ (Home Page Section Cards)
+- **হেডার ও হিরো সেকশন এডিট**: Upload logo & hero image, edit tagline badge, main title, subtitle, phone, email, Facebook, YouTube, WhatsApp.
+- **কাউন্টার কার্ডসমূহ এডিট**: Edit titles, values (`500+`, `2,000+`, etc.), FontAwesome icons, and badge colors for all 5 stats cards.
+- **আমাদের সম্পর্কে এডিট**: Edit main text paragraph, featured photo upload, batch upload multiple sub-grid photos at once (`multiple` selection), and view/delete current grid photos.
+- **ফুটার ও মানচিত্র এডিট**: Edit footer text, address, phone, email, and Google Map embed snippet.
 
-- **Header Bar**: Branded as **Helpline Hello Naogaon Admin** with direct top menu link to *"ওয়েবসাইট দেখুন"*.
-- **Sidebar Icons**: Custom color-coded FontAwesome icons for Site Settings, Stat Counters, About Images, Programs, News, Gallery, Blood Donors, and Donations.
-- **Custom CSS Theme**: [static/css/admin_custom.css](file:///d:/Projects/hello_naogaon/static/css/admin_custom.css) enforces matching emerald header, active menu highlight, rounded card components, and Bengali typography.
+### 2. 🎯 আমাদের কার্যক্রম (Programs)
+- Manage existing programs, upload program photos, assign circular icon badges (`fas fa-tint`, `fas fa-book-reader`, `fas fa-leaf`, `fas fa-ambulance`), set short descriptions, and add new programs via modal.
+
+### 3. 🩸 রক্তদাতা ডাটাবেস (Blood Donors Database)
+- List, add, filter, and delete blood donors with name, blood group (`A+`, `B+`, `O+`, `AB+`), phone, and location.
+
+### 4. 🤝 স্বেচ্ছাসেবক আবেদনপত্র ও মেম্বার তালিকা (Volunteers & Team Members Management)
+- **টিম মেম্বার পরিচালনা (Team Members)**: Add, list, edit, upload photos, assign roles (e.g. President, Secretary), and delete team leadership members via modal.
+- **স্বেচ্ছাসেবক পরিচালনা (Volunteers Database)**: Add, list, edit, filter, approve, and delete volunteer members via modal.
+
+### 5. 📰 সংবাদ প্রকাশনা (News Articles)
+- Publish news, upload news thumbnails, edit contents, and manage published articles.
+
+### 6. 💳 ব্যাংক একাউন্ট ও অনুদান (Donations & Bank)
+- Update Dutch-Bangla Bank details (Account Name, Number, Routing Number) and upload bKash/Nagad QR Code image.
+
+### 7. 🖼️ ফটো গ্যালারি (Gallery)
+- Upload new high-resolution photos with captions directly to the gallery grid.
+
+### 8. ✉️ ইনবক্স (Messages)
+- View incoming messages submitted from the contact form.
 - Navigate to **Site Settings**:
   - `tagline`: Header tagline (e.g. `সবসময় আপনার পাশে - একটি স্বেচ্ছাসেবী সংগঠন`)
   - `logo`: Upload organization logo image

@@ -2,9 +2,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core import views_dashboard
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', views_dashboard.dashboard_home),
+    path('django-admin/', admin.site.urls),
     path('', include('core.urls')),
     path('programs/', include('programs.urls')),
     path('news/', include('news.urls')),

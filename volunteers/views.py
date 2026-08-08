@@ -27,9 +27,17 @@ def apply_volunteer(request):
                 phone=phone,
                 address=address
             )
-            messages.success(request, 'আপনার স্বেচ্ছাসেবক আবেদনটি জমা নেওয়া হয়েছে। আমরা শীঘ্রই যোগাযোগ করব।')
+            messages.success(request, 'আপনার স্বেচ্ছাসেবক আবেদনটি সফলভাবে জমা নেওয়া হয়েছে। আমাদের টিম আপনার সাথে শীঘ্রই যোগাযোগ করবে।')
             return redirect('volunteers:apply')
         else:
-            messages.error(request, 'দয়া করে নাম ও ফোন নম্বর প্রদান করুন।')
-    return render(request, 'volunteers/volunteer_form.html')
+            messages.error(request, 'দয়া করে আপনার নাম ও ফোন নম্বর সঠিকভাবে প্রদান করুন।')
+
+    team_members = TeamMember.objects.all()
+    volunteers_list = Volunteer.objects.all().order_by('-id')
+
+    context = {
+        'team_members': team_members,
+        'volunteers_list': volunteers_list,
+    }
+    return render(request, 'volunteers/volunteer_form.html', context)
 
