@@ -8,7 +8,7 @@ from volunteers.models import BloodDonor, Volunteer, TeamMember
 from gallery.models import Photo, Album
 from donations.models import (
     Bank, QRCode, DonationMethod, FinancialTransaction,
-    DonationPageContent, Campaign, EmergencyAppeal, DonationImpact, FAQ
+    DonationPageContent, Campaign, ProgramDonation, EmergencyAppeal, DonationImpact, FAQ
 )
 from django.db.models import Sum
 from datetime import date
@@ -75,6 +75,8 @@ def dashboard_home(request):
         'impacts': impacts,
         'faqs': faqs,
         'transactions': transactions,
+        'program_donations': ProgramDonation.objects.all().order_by('-created_at'),
+        'total_program_donations': ProgramDonation.objects.aggregate(Sum('amount'))['amount__sum'] or 0,
         'total_income': total_income,
         'total_expense': total_expense,
         'net_balance': net_balance,
@@ -291,6 +293,8 @@ def print_financial_statement(request):
     context = {
         'site_setting': site_setting,
         'transactions': transactions,
+        'program_donations': ProgramDonation.objects.all().order_by('-created_at'),
+        'total_program_donations': ProgramDonation.objects.aggregate(Sum('amount'))['amount__sum'] or 0,
         'start_date': start_date,
         'end_date': end_date,
         'total_income': total_income,

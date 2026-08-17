@@ -59,3 +59,13 @@ class FAQAdmin(admin.ModelAdmin):
 class DonationStatisticAdmin(admin.ModelAdmin):
     list_display = ('label', 'value', 'is_active')
     list_filter = ('is_active',)
+
+
+from .models import ProgramDonation
+
+@admin.register(ProgramDonation)
+class ProgramDonationAdmin(admin.ModelAdmin):
+    list_display = ('donor_name', 'program', 'amount', 'payment_method', 'membership_id', 'donor_phone', 'status', 'created_at')
+    list_filter = ('status', 'payment_method', 'program', 'created_at')
+    search_fields = ('donor_name', 'donor_phone', 'donor_email', 'membership_id', 'trx_id', 'program__title')
+    ordering = ('-created_at',)
