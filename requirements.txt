@@ -2,5 +2,7 @@ asgiref==3.11.1
 Django==5.2.15
 django-environ==0.13.0
 pillow==12.2.0
+PyMySQL==1.1.1
 sqlparse==0.5.5
 tzdata==2026.2
+
