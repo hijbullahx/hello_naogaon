@@ -10,6 +10,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            sql="ALTER TABLE core_sitesetting CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;",
+            reverse_sql=migrations.RunSQL.noop,
+        ),
         migrations.CreateModel(
             name='AboutImage',
             fields=[
