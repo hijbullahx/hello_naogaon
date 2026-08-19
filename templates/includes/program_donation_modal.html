@@ -1,0 +1,122 @@
+<!-- Program Financial Contribution Modal -->
+<div class="modal fade" id="programDonationModal" tabindex="-1" aria-labelledby="programDonationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="programDonationModalLabel">
+                    <i class="fas fa-hand-holding-heart me-2"></i>আর্থিক সাহায্য করুন
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'donations:program_donation' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="program_id" id="modal_program_id" value="">
+                
+                <div class="modal-body p-4">
+                    <div class="alert alert-success d-flex align-items-center mb-4">
+                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                        <div>
+                            <strong>কার্যক্রম:</strong> <span id="modal_program_title_display" class="fw-bold fs-6">সাধারণ কার্যক্রম</span>
+                            <br><small class="text-muted">আপনার আর্থিক সহায়তা হেল্পলাইন হ্যালো নওগাঁর মানবসেবামূলক কার্যক্রম বাস্তবায়নে ব্যবহৃত হবে।</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Amount -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-coins text-warning me-1"></i> সহায়তার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text fw-bold">৳</span>
+                                <input type="number" name="amount" id="modal_donation_amount" class="form-control form-control-lg" placeholder="যেমন: ৫০০, ১০০০, ৫০০০" min="1" step="any" required>
+                            </div>
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn btn-outline-success btn-sm quick-amount-btn" onclick="setDonationAmount(100)">৳ ১০০</button>
+                                <button type="button" class="btn btn-outline-success btn-sm quick-amount-btn" onclick="setDonationAmount(500)">৳ ৫০০</button>
+                                <button type="button" class="btn btn-outline-success btn-sm quick-amount-btn" onclick="setDonationAmount(1000)">৳ ১,০০০</button>
+                                <button type="button" class="btn btn-outline-success btn-sm quick-amount-btn" onclick="setDonationAmount(5000)">৳ ৫,০০০</button>
+                            </div>
+                        </div>
+
+                        <!-- Membership ID (optional) -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-id-card text-primary me-1"></i> মেম্বারশিপ আইডি <small class="text-muted">(যদি থাকে)</small></label>
+                            <input type="text" name="membership_id" class="form-control" placeholder="যেমন: HN-1024">
+                        </div>
+
+                        <!-- Donor Name -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-user text-success me-1"></i> আপনার নাম <span class="text-danger">*</span></label>
+                            <input type="text" name="donor_name" class="form-control" placeholder="আপনার পূর্ণ নাম" required>
+                        </div>
+
+                        <!-- Donor Phone -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-phone text-info me-1"></i> মোবাইল নম্বর <span class="text-danger">*</span></label>
+                            <input type="tel" name="donor_phone" class="form-control" placeholder="০১XXXXXXXXX" required>
+                        </div>
+
+                        <!-- Donor Email -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-envelope text-secondary me-1"></i> ইমেইল ঠিকানা <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <input type="email" name="donor_email" class="form-control" placeholder="example@email.com">
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-wallet text-danger me-1"></i> পেমেন্ট মেথড</label>
+                            <select name="payment_method" class="form-select">
+                                <option value="bKash" selected>bKash (বিকাশ)</option>
+                                <option value="Nagad">Nagad (নগদ)</option>
+                                <option value="Rocket">Rocket (রকেট)</option>
+                                <option value="Bank Transfer">Bank Transfer (ব্যাংক ট্রান্সফার)</option>
+                                <option value="Cash / Hand">Cash (নগদ জমা)</option>
+                            </select>
+                        </div>
+
+                        <!-- Trx ID -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-receipt text-warning me-1"></i> ট্রানজেকশন আইডি / Trx ID <small class="text-muted">(যদি থাকে)</small></label>
+                            <input type="text" name="trx_id" class="form-control" placeholder="যেমন: 8N7A6D5E">
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-comment-alt text-secondary me-1"></i> মন্তব্য বা পরামর্শ <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <textarea name="note" class="form-control" rows="2" placeholder="আপনার কোনো বার্তা থাকলে লিখুন..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4"><i class="fas fa-paper-plane me-2"></i>আর্থিক সহায়তা জমা দিন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function setDonationAmount(val) {
+    var elem = document.getElementById('modal_donation_amount');
+    if (elem) elem.value = val;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var modalElem = document.getElementById('programDonationModal');
+    if (modalElem) {
+        modalElem.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+            if (button) {
+                var pId = button.getAttribute('data-program-id') || '';
+                var pTitle = button.getAttribute('data-program-title') || 'সাধারণ কার্যক্রম';
+                
+                var inputId = document.getElementById('modal_program_id');
+                var inputTitle = document.getElementById('modal_program_title_display');
+                
+                if (inputId) inputId.value = pId;
+                if (inputTitle) inputTitle.textContent = pTitle;
+            }
+        });
+    }
+});
+</script>

@@ -165,3 +165,32 @@ class FinancialTransaction(models.Model):
     def __str__(self):
         return f"{self.get_transaction_type_display()} - {self.title}: ৳{self.amount}"
 
+
+
+class ProgramDonation(models.Model):
+    STATUS_CHOICES = [
+        ('pending', _('অপেক্ষমাণ (Pending)')),
+        ('approved', _('অনুমোদিত (Approved)')),
+        ('rejected', _('বাতিল (Rejected)')),
+    ]
+
+    program = models.ForeignKey('programs.Program', on_delete=models.SET_NULL, null=True, blank=True, related_name='donations', verbose_name=_('কার্যক্রম (Program)'))
+    donor_name = models.CharField(max_length=200, verbose_name=_('দাতা/সহায়তাকারীর নাম'))
+    donor_email = models.EmailField(blank=True, verbose_name=_('ইমেইল'))
+    donor_phone = models.CharField(max_length=20, verbose_name=_('মোবাইল নম্বর'))
+    membership_id = models.CharField(max_length=50, blank=True, null=True, help_text=_('মেম্বারশিপ আইডি (যদি থাকে)'), verbose_name=_('মেম্বারশিপ আইডি'))
+    amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('আর্থিক সহায়তার পরিমাণ (BDT)'))
+    payment_method = models.CharField(max_length=50, default='bKash', verbose_name=_('পেমেন্ট মেথড'))
+    trx_id = models.CharField(max_length=100, blank=True, verbose_name=_('ট্রানজেকশন আইডি / Trx ID'))
+    note = models.TextField(blank=True, verbose_name=_('মন্তব্য / নোট'))
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved', verbose_name=_('স্ট্যাটাস'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('তারিখ ও সময়'))
+
+    class Meta:
+        verbose_name = _('Program Donation')
+        verbose_name_plural = _('Program Donations')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        prog_title = self.program.title if self.program else 'সাধারণ কার্যক্রম'
+        return f'{self.donor_name} - {prog_title} (৳{self.amount})'
