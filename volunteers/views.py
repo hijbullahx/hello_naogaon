@@ -24,7 +24,6 @@ def send_member_notifications(volunteer):
         f"ধন্যবাদ,\nHelpline Hello Naogaon টিম"
     )
 
-    # 1. Send Email Notification from info@helplinehellonaogaon.com
     if volunteer.email:
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@helplinehellonaogaon.com') or 'info@helplinehellonaogaon.com'
         try:
@@ -39,7 +38,6 @@ def send_member_notifications(volunteer):
         except Exception as e:
             print(f"[EMAIL ERROR] {e}")
 
-    # 2. Send SMS Notification (Logged & Ready for SMS Gateway)
     if volunteer.phone:
         sms_text = f"Helpline Hello Naogaon: ধন্যবাদ {volunteer.full_name}! আপনার সদস্য আইডি: {volunteer.member_id}"
         print(f"[SMS SUCCESS] Sent Member ID {volunteer.member_id} to {volunteer.phone} | Content: {sms_text}")
@@ -68,6 +66,18 @@ def apply_volunteer(request):
         address = request.POST.get('address', '').strip()
         is_public_details = request.POST.get('is_public_details') == 'on'
         image = request.FILES.get('image')
+
+        # 100 KB Max Image Limit Validation
+        if image:
+            max_size_bytes = 100 * 1024  # 100 KB
+            if image.size > max_size_bytes:
+                size_kb = image.size / 1024
+                messages.error(
+                    request,
+                    f'ছবির সাইজ সর্বোচ্চ 100 KB হতে পারবে (আপনার ছবির সাইজ: {size_kb:.1f} KB)। '
+                    f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কমিয়ে আপলোড করুন।'
+                )
+                return redirect('volunteers:apply')
 
         if full_name and phone:
             vol = Volunteer.objects.create(
