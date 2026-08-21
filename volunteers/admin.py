@@ -3,9 +3,9 @@ from .models import Volunteer, TeamMember, BloodDonor
 
 @admin.register(Volunteer)
 class VolunteerAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'email', 'phone', 'status', 'application_date')
-    list_filter = ('status',)
-    search_fields = ('full_name', 'email', 'phone')
+    list_display = ('member_id', 'full_name', 'phone', 'blood_group', 'is_public_details', 'status', 'application_date')
+    list_filter = ('status', 'blood_group', 'is_public_details')
+    search_fields = ('member_id', 'full_name', 'email', 'phone', 'blood_group')
     list_per_page = 20
 
 @admin.register(TeamMember)
@@ -21,4 +21,3 @@ class BloodDonorAdmin(admin.ModelAdmin):
     search_fields = ('full_name', 'phone', 'location')
     list_editable = ('is_available',)
     list_per_page = 20
-
