@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+﻿from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from core.models import SiteSetting, StatCounter, AboutImage, ContactMessage
@@ -12,6 +12,18 @@ from donations.models import (
 )
 from django.db.models import Sum
 from datetime import date
+
+def validate_image_100kb(request, image_file, field_name="ছবি"):
+    """Validates that uploaded image/file is <= 100 KB"""
+    if image_file and image_file.size > 100 * 1024:
+        size_kb = image_file.size / 1024
+        messages.error(
+            request,
+            f'{field_name}-র সাইজ সর্বোচ্চ 100 KB হতে পারবে (আপনার ফাইলের সাইজ: {size_kb:.1f} KB)। '
+            f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কমিয়ে পুনরায় আপলোড করুন।'
+        )
+        return False
+    return True
 
 @staff_member_required
 def dashboard_home(request):
@@ -84,344 +96,115 @@ def dashboard_home(request):
     return render(request, 'dashboard/index.html', context)
 
 @staff_member_required
-def save_volunteer(request):
-    """Create or update a Volunteer"""
-    if request.method == 'POST':
-        vol_id = request.POST.get('volunteer_id')
-        full_name = request.POST.get('full_name')
-        email = request.POST.get('email', '')
-        phone = request.POST.get('phone')
-        address = request.POST.get('address', '')
-        status = request.POST.get('status', 'approved')
-
-        if vol_id:
-            vol = get_object_or_404(Volunteer, pk=vol_id)
-            vol.full_name = full_name
-            vol.email = email
-            vol.phone = phone
-            vol.address = address
-            vol.status = status
-            vol.save()
-            messages.success(request, f'স্বেচ্ছাসেবক "{full_name}" তথ্য আপডেট করা হয়েছে!')
-        else:
-            Volunteer.objects.create(
-                full_name=full_name,
-                email=email,
-                phone=phone,
-                address=address,
-                status=status
-            )
-            messages.success(request, f'নতুন স্বেচ্ছাসেবক "{full_name}" সফলভাবে যুক্ত করা হয়েছে!')
-    return redirect('/dashboard/?tab=volunteers-section')
-
-@staff_member_required
-def delete_volunteer(request, pk):
-    """Delete a Volunteer"""
-    vol = get_object_or_404(Volunteer, pk=pk)
-    name = vol.full_name
-    vol.delete()
-    messages.success(request, f'স্বেচ্ছাসেবক "{name}" তথ্য মুছে ফেলা হয়েছে!')
-    return redirect('/dashboard/?tab=volunteers-section')
-
-@staff_member_required
-def save_team_member(request):
-    """Create or update a Team Member"""
-    if request.method == 'POST':
-        member_id = request.POST.get('member_id')
-        name = request.POST.get('name')
-        role = request.POST.get('role')
-        bio = request.POST.get('bio', '')
-        order = request.POST.get('order', 0)
-
-        if member_id:
-            mem = get_object_or_404(TeamMember, pk=member_id)
-            mem.name = name
-            mem.role = role
-            mem.bio = bio
-            mem.order = order
-            if 'image' in request.FILES:
-                mem.image = request.FILES['image']
-            mem.save()
-            messages.success(request, f'টিম মেম্বার "{name}" তথ্য আপডেট করা হয়েছে!')
-        else:
-            TeamMember.objects.create(
-                name=name,
-                role=role,
-                bio=bio,
-                order=order,
-                image=request.FILES.get('image')
-            )
-            messages.success(request, f'নতুন টিম মেম্বার "{name}" যুক্ত করা হয়েছে!')
-    return redirect('/dashboard/?tab=volunteers-section')
-
-@staff_member_required
-def delete_team_member(request, pk):
-    """Delete a Team Member"""
-    mem = get_object_or_404(TeamMember, pk=pk)
-    name = mem.name
-    mem.delete()
-    messages.success(request, f'টিম মেম্বার "{name}" মুছে ফেলা হয়েছে!')
-    return redirect('/dashboard/?tab=volunteers-section')
-
-@staff_member_required
-def save_financial_transaction(request):
-    """Create or update a Financial Transaction (Income/Expense)"""
-    if request.method == 'POST':
-        trx_pk = request.POST.get('transaction_id')
-        transaction_type = request.POST.get('transaction_type', 'income')
-        title = request.POST.get('title')
-        category = request.POST.get('category', 'সাধারণ অনুদান')
-        amount = request.POST.get('amount')
-        payment_method = request.POST.get('payment_method', 'bKash')
-        trx_id = request.POST.get('trx_id', '')
-        donor_name = request.POST.get('donor_name', '')
-        trx_date = request.POST.get('date')
-        note = request.POST.get('note', '')
-
-        if trx_pk:
-            trx = get_object_or_404(FinancialTransaction, pk=trx_pk)
-            trx.transaction_type = transaction_type
-            trx.title = title
-            trx.category = category
-            trx.amount = amount
-            trx.payment_method = payment_method
-            trx.trx_id = trx_id
-            trx.donor_name = donor_name
-            if trx_date:
-                trx.date = trx_date
-            trx.note = note
-            if 'receipt' in request.FILES:
-                trx.receipt = request.FILES['receipt']
-            trx.save()
-            messages.success(request, f'অর্থায়াক এন্ট্রি "{title}" সফলভাবে আপডেট করা হয়েছে!')
-        else:
-            trx = FinancialTransaction.objects.create(
-                transaction_type=transaction_type,
-                title=title,
-                category=category,
-                amount=amount,
-                payment_method=payment_method,
-                trx_id=trx_id,
-                donor_name=donor_name,
-                date=trx_date or date.today(),
-                note=note,
-                receipt=request.FILES.get('receipt')
-            )
-            messages.success(request, f'নতুন অর্থায়াক এন্ট্রি "{title}" যুক্ত করা হয়েছে!')
-    return redirect('/dashboard/?tab=finance-section')
-
-@staff_member_required
-def delete_financial_transaction(request, pk):
-    """Delete a Financial Transaction"""
-    trx = get_object_or_404(FinancialTransaction, pk=pk)
-    title = trx.title
-    trx.delete()
-    messages.success(request, f'অর্থায়াক এন্ট্রি "{title}" মুছে ফেলা হয়েছে!')
-    return redirect('/dashboard/?tab=finance-section')
-
-import csv
-from django.http import HttpResponse
-
-@staff_member_required
-def export_financial_excel(request):
-    """Export Financial Transactions to Excel (CSV with UTF-8 BOM)"""
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-
-    transactions = FinancialTransaction.objects.all().order_by('date', 'id')
-    if start_date:
-        transactions = transactions.filter(date__gte=start_date)
-    if end_date:
-        transactions = transactions.filter(date__lte=end_date)
-
-    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    filename = f"financial_report_{start_date or 'all'}_to_{end_date or 'all'}.csv"
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
-    writer = csv.writer(response)
-    # Header Row
-    writer.writerow(['তারিখ (Date)', 'টাইপ (Type)', 'খাতের নাম / বিবরণ', 'ক্যাটাগরি', 'দাতা / গ্রহণকারী', 'পেমেন্ট মাধ্যম', 'Trx ID / মেমো', 'পরিমাণ (টাকা)', 'নোট (Note)'])
-
-    total_inc = 0
-    total_exp = 0
-
-    for trx in transactions:
-        t_type = "আয় (Income)" if trx.transaction_type == 'income' else "ব্যয় (Expense)"
-        if trx.transaction_type == 'income':
-            total_inc += float(trx.amount)
-        else:
-            total_exp += float(trx.amount)
-
-        writer.writerow([
-            trx.date.strftime('%d-%m-%Y'),
-            t_type,
-            trx.title,
-            trx.category,
-            trx.donor_name or '',
-            trx.payment_method,
-            trx.trx_id or '',
-            float(trx.amount),
-            trx.note or ''
-        ])
-
-    # Summary Rows
-    writer.writerow([])
-    writer.writerow(['', '', '', '', '', '', 'সর্বমোট আয় (Total Income):', total_inc])
-    writer.writerow(['', '', '', '', '', '', 'সর্বমোট ব্যয় (Total Expense):', total_exp])
-    writer.writerow(['', '', '', '', '', '', 'বর্তমান নিট ব্যালেন্স (Net Balance):', total_inc - total_exp])
-
-    return response
-
-@staff_member_required
-def print_financial_statement(request):
-    """Render Printable Financial Report with custom date range"""
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-
-    transactions = FinancialTransaction.objects.all().order_by('date', 'id')
-    if start_date:
-        transactions = transactions.filter(date__gte=start_date)
-    if end_date:
-        transactions = transactions.filter(date__lte=end_date)
-
-    total_income = sum(t.amount for t in transactions if t.transaction_type == 'income')
-    total_expense = sum(t.amount for t in transactions if t.transaction_type == 'expense')
-    net_balance = total_income - total_expense
-
-    site_setting, _ = SiteSetting.objects.get_or_create(pk=1)
-
-    context = {
-        'site_setting': site_setting,
-        'transactions': transactions,
-        'program_donations': ProgramDonation.objects.all().order_by('-created_at'),
-        'total_program_donations': ProgramDonation.objects.aggregate(Sum('amount'))['amount__sum'] or 0,
-        'start_date': start_date,
-        'end_date': end_date,
-        'total_income': total_income,
-        'total_expense': total_expense,
-        'net_balance': net_balance,
-        'print_date': date.today(),
-    }
-    return render(request, 'dashboard/print_financial_statement.html', context)
-
-
-
-
-@staff_member_required
 def update_hero_section(request):
-    """Handle POST request for editing Top bar & Hero Section"""
+    """Update Site Title, Taglines & Hero/Logo Images"""
     if request.method == 'POST':
         setting, _ = SiteSetting.objects.get_or_create(pk=1)
-        setting.hero_badge = request.POST.get('hero_badge', setting.hero_badge)
         setting.hero_title = request.POST.get('hero_title', setting.hero_title)
         setting.hero_subtitle = request.POST.get('hero_subtitle', setting.hero_subtitle)
-        setting.contact_phone = request.POST.get('contact_phone', setting.contact_phone)
-        setting.contact_email = request.POST.get('contact_email', setting.contact_email)
-        setting.facebook_url = request.POST.get('facebook_url', setting.facebook_url)
-        setting.youtube_url = request.POST.get('youtube_url', setting.youtube_url)
-        setting.whatsapp_number = request.POST.get('whatsapp_number', setting.whatsapp_number)
+        setting.title = request.POST.get('title', setting.title)
+        setting.tagline = request.POST.get('tagline', setting.tagline)
 
         if 'logo' in request.FILES:
+            if not validate_image_100kb(request, request.FILES['logo'], 'লোগো ছবি'):
+                return redirect('/dashboard/?tab=home-section')
             setting.logo = request.FILES['logo']
+
         if 'hero_image' in request.FILES:
+            if not validate_image_100kb(request, request.FILES['hero_image'], 'হিরো ছবি'):
+                return redirect('/dashboard/?tab=home-section')
             setting.hero_image = request.FILES['hero_image']
 
         setting.save()
-        messages.success(request, 'হেডার ও হিরো সেকশন সফলভাবে আপডেট করা হয়েছে!')
+        messages.success(request, 'হিরো সেকশনের তথ্য সফলভাবে আপডেট হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required
 def update_about_section(request):
-    """Handle POST request for editing 'আমাদের সম্পর্কে' Section"""
+    """Update About Us Text & Upload Featured/Grid Images"""
     if request.method == 'POST':
         setting, _ = SiteSetting.objects.get_or_create(pk=1)
-        setting.about_heading = request.POST.get('about_heading', setting.about_heading)
         setting.about_text = request.POST.get('about_text', setting.about_text)
+        setting.about_video_url = request.POST.get('about_video_url', setting.about_video_url)
         setting.save()
 
         # Handle Featured Main Image
         if 'featured_image' in request.FILES:
+            if not validate_image_100kb(request, request.FILES['featured_image'], 'ফিচারড ছবি'):
+                return redirect('/dashboard/?tab=home-section')
             AboutImage.objects.filter(is_featured=True).delete()
-            AboutImage.objects.create(
-                image=request.FILES['featured_image'],
-                caption='Featured Main Image',
-                is_featured=True
-            )
+            AboutImage.objects.create(image=request.FILES['featured_image'], is_featured=True)
 
-        # Handle Multiple Sub Image Grid Uploads
-        sub_images = request.FILES.getlist('sub_images')
-        for img in sub_images:
-            AboutImage.objects.create(
-                image=img,
-                caption='Sub Grid Image',
-                is_featured=False
-            )
+        # Handle Grid Image Upload
+        if 'grid_image' in request.FILES:
+            if not validate_image_100kb(request, request.FILES['grid_image'], 'গ্রিড ছবি'):
+                return redirect('/dashboard/?tab=home-section')
+            AboutImage.objects.create(image=request.FILES['grid_image'], is_featured=False)
 
-        messages.success(request, 'আমাদের সম্পর্কে সেকশন সফলভাবে আপডেট করা হয়েছে!')
+        messages.success(request, 'আমাদের সম্পর্কে সেকশনের তথ্য আপডেট হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required
 def delete_about_image(request, pk):
-    """Delete a specific sub-image from the About Grid"""
+    """Delete an About section grid image"""
     img = get_object_or_404(AboutImage, pk=pk)
     img.delete()
     messages.success(request, 'ছবিটি সফলভাবে মুছে ফেলা হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
 
-
 @staff_member_required
 def update_stat_counters(request):
-    """Handle POST request for updating 5 Stat Counters"""
+    """Update 4 Stat Counters"""
     if request.method == 'POST':
-        stat_ids = request.POST.getlist('stat_id')
-        for sid in stat_ids:
-            try:
-                stat = StatCounter.objects.get(pk=sid)
-                stat.title = request.POST.get(f'title_{sid}', stat.title)
-                stat.value = request.POST.get(f'value_{sid}', stat.value)
-                stat.icon_class = request.POST.get(f'icon_{sid}', stat.icon_class)
-                stat.badge_color = request.POST.get(f'color_{sid}', stat.badge_color)
-                stat.save()
-            except StatCounter.DoesNotExist:
-                pass
-        messages.success(request, 'হোমপেজ কাউন্টার কার্ডসমূহ আপডেট করা হয়েছে!')
+        for i in range(1, 5):
+            title = request.POST.get(f'stat_title_{i}')
+            value = request.POST.get(f'stat_value_{i}')
+            icon = request.POST.get(f'stat_icon_{i}')
+            if title and value:
+                counter, _ = StatCounter.objects.get_or_create(order=i)
+                counter.title = title
+                counter.value = value
+                counter.icon = icon or counter.icon
+                counter.save()
+        messages.success(request, 'পরিসংখ্যান কাউন্টার আপডেট হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required
 def save_program(request):
     """Create or update a Program"""
     if request.method == 'POST':
-        program_id = request.POST.get('program_id')
+        prog_id = request.POST.get('program_id')
         title = request.POST.get('title')
-        short_desc = request.POST.get('short_description', '')
-        desc = request.POST.get('description', '')
-        icon = request.POST.get('icon_class', 'fas fa-heart')
-        color = request.POST.get('badge_color', 'success')
+        short_description = request.POST.get('short_description', '')
+        description = request.POST.get('description', '')
         status = request.POST.get('status', 'ongoing')
+        badge_color = request.POST.get('badge_color', 'bg-success')
 
-        if program_id:
-            prog = get_object_or_404(Program, pk=program_id)
+        image_file = request.FILES.get('image')
+        if image_file and not validate_image_100kb(request, image_file, 'কার্যক্রমের ছবি'):
+            return redirect('/dashboard/?tab=programs-section')
+
+        if prog_id:
+            prog = get_object_or_404(Program, pk=prog_id)
             prog.title = title
-            prog.short_description = short_desc
-            prog.description = desc
-            prog.icon_class = icon
-            prog.badge_color = color
+            prog.short_description = short_description
+            prog.description = description
             prog.status = status
-            if 'image' in request.FILES:
-                prog.image = request.FILES['image']
+            prog.badge_color = badge_color
+            if image_file:
+                prog.image = image_file
             prog.save()
-            messages.success(request, f'প্রোগ্রাম "{title}" আপডেট করা হয়েছে!')
+            messages.success(request, f'কার্যক্রম "{title}" আপডেট হয়েছে!')
         else:
             prog = Program.objects.create(
                 title=title,
-                short_description=short_desc,
-                description=desc,
-                icon_class=icon,
-                badge_color=color,
+                short_description=short_description,
+                description=description,
                 status=status,
-                image=request.FILES.get('image')
+                badge_color=badge_color,
+                image=image_file
             )
-            messages.success(request, f'নতুন প্রোগ্রাম "{title}" তৈরি করা হয়েছে!')
+            messages.success(request, f'নতুন কার্যক্রম "{title}" যোগ করা হয়েছে!')
     return redirect('/dashboard/?tab=programs-section')
 
 @staff_member_required
@@ -430,30 +213,39 @@ def delete_program(request, pk):
     prog = get_object_or_404(Program, pk=pk)
     title = prog.title
     prog.delete()
-    messages.success(request, f'প্রোগ্রাম "{title}" মুছে ফেলা হয়েছে!')
+    messages.success(request, f'কার্যক্রম "{title}" মুছে ফেলা হয়েছে!')
     return redirect('/dashboard/?tab=programs-section')
 
 @staff_member_required
 def save_news(request):
     """Create or update a News Article"""
     if request.method == 'POST':
-        article_id = request.POST.get('article_id')
+        art_id = request.POST.get('article_id')
         title = request.POST.get('title')
-        content = request.POST.get('content')
+        content = request.POST.get('content', '')
+        category_name = request.POST.get('category', 'সাধারণ')
 
-        if article_id:
-            art = get_object_or_404(Article, pk=article_id)
+        image_file = request.FILES.get('image')
+        if image_file and not validate_image_100kb(request, image_file, 'সংবাদের ছবি'):
+            return redirect('/dashboard/?tab=news-section')
+
+        category, _ = Category.objects.get_or_create(name=category_name)
+
+        if art_id:
+            art = get_object_or_404(Article, pk=art_id)
             art.title = title
             art.content = content
-            if 'image' in request.FILES:
-                art.image = request.FILES['image']
+            art.category = category
+            if image_file:
+                art.image = image_file
             art.save()
-            messages.success(request, f'সংবাদ "{title}" আপডেট করা হয়েছে!')
+            messages.success(request, f'সংবাদ "{title}" আপডেট হয়েছে!')
         else:
             Article.objects.create(
                 title=title,
                 content=content,
-                image=request.FILES.get('image'),
+                category=category,
+                image=image_file,
                 is_published=True
             )
             messages.success(request, f'নতুন সংবাদ "{title}" প্রকাশ করা হয়েছে!')
@@ -470,56 +262,73 @@ def delete_news(request, pk):
 
 @staff_member_required
 def update_bank_and_donation(request):
-    """Update Bank Account details and QR Code"""
+    """Update Bank Account details & bKash QR code image"""
     if request.method == 'POST':
+        b_id = request.POST.get('bank_id')
         bank_name = request.POST.get('bank_name')
         account_name = request.POST.get('account_name')
         account_number = request.POST.get('account_number')
-        swift_code = request.POST.get('swift_code')
+        branch = request.POST.get('branch', '')
+        swift_code = request.POST.get('swift_code', '')
 
-        bank, _ = Bank.objects.get_or_create(pk=1)
-        bank.bank_name = bank_name
-        bank.account_name = account_name
-        bank.account_number = account_number
-        bank.swift_code = swift_code
-        bank.save()
+        if bank_name and account_number:
+            if b_id:
+                bank = get_object_or_404(Bank, pk=b_id)
+                bank.bank_name = bank_name
+                bank.account_name = account_name
+                bank.account_number = account_number
+                bank.branch = branch
+                bank.swift_code = swift_code
+                bank.save()
+            else:
+                Bank.objects.create(
+                    bank_name=bank_name,
+                    account_name=account_name,
+                    account_number=account_number,
+                    branch=branch,
+                    swift_code=swift_code
+                )
 
         if 'qr_image' in request.FILES:
-            method, _ = DonationMethod.objects.get_or_create(name='bKash')
-            QRCode.objects.all().delete()
-            QRCode.objects.create(
-                method=method,
-                image=request.FILES['qr_image'],
-                details='bKash Merchant / Personal'
-            )
+            qr_file = request.FILES['qr_image']
+            if not validate_image_100kb(request, qr_file, 'QR কোড ছবি'):
+                return redirect('/dashboard/?tab=bank-section')
 
-        messages.success(request, 'ব্যাংক একাউন্ট ও অনুদান তথ্য আপডেট করা হয়েছে!')
+            bkash_method, _ = DonationMethod.objects.get_or_create(name='bKash')
+            qr = QRCode.objects.filter(method=bkash_method).first()
+            if qr:
+                qr.image = qr_file
+                qr.save()
+            else:
+                QRCode.objects.create(method=bkash_method, image=qr_file)
+
+        messages.success(request, 'ব্যাংক হিসাব ও পেমেন্ট তথ্য সফলভাবে সেভ করা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
 def update_donation_page_content(request):
-    """Update general text and hero banner on the Donation Page"""
+    """Update Donation Page texts and Hero Image"""
     if request.method == 'POST':
         content, _ = DonationPageContent.objects.get_or_create(pk=1)
         content.hero_title = request.POST.get('hero_title', content.hero_title)
         content.hero_subtitle = request.POST.get('hero_subtitle', content.hero_subtitle)
-        content.intro_title = request.POST.get('intro_title', content.intro_title)
-        content.intro_text = request.POST.get('intro_text', content.intro_text)
         content.why_donate_title = request.POST.get('why_donate_title', content.why_donate_title)
         content.why_donate_text = request.POST.get('why_donate_text', content.why_donate_text)
         content.transparency_title = request.POST.get('transparency_title', content.transparency_title)
         content.transparency_text = request.POST.get('transparency_text', content.transparency_text)
-        
+
         if 'hero_image' in request.FILES:
+            if not validate_image_100kb(request, request.FILES['hero_image'], 'দানের পেজ হিরো ছবি'):
+                return redirect('/dashboard/?tab=bank-section')
             content.hero_image = request.FILES['hero_image']
-            
+
         content.save()
-        messages.success(request, 'অনুদান পেজের সকল টেক্সট ও ব্যানার ফটো আপডেট করা হয়েছে!')
+        messages.success(request, 'দানের পেজের তথ্য সফলভাবে আপডেট করা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
 def save_campaign(request):
-    """Create or update a Donation Campaign"""
+    """Create or update a Campaign"""
     if request.method == 'POST':
         c_id = request.POST.get('campaign_id')
         title = request.POST.get('title')
@@ -528,6 +337,10 @@ def save_campaign(request):
         raised_amount = request.POST.get('raised_amount', 0)
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
+
+        image_file = request.FILES.get('image')
+        if image_file and not validate_image_100kb(request, image_file, 'ক্যাম্পেইন ছবি'):
+            return redirect('/dashboard/?tab=bank-section')
 
         if c_id:
             camp = get_object_or_404(Campaign, pk=c_id)
@@ -539,8 +352,8 @@ def save_campaign(request):
                 camp.start_date = start_date
             if end_date:
                 camp.end_date = end_date
-            if 'image' in request.FILES:
-                camp.image = request.FILES['image']
+            if image_file:
+                camp.image = image_file
             camp.save()
             messages.success(request, f'ক্যাম্পেইন "{title}" আপডেট করা হয়েছে!')
         else:
@@ -551,7 +364,7 @@ def save_campaign(request):
                 raised_amount=raised_amount,
                 start_date=start_date or date.today(),
                 end_date=end_date or None,
-                image=request.FILES.get('image')
+                image=image_file
             )
             messages.success(request, f'নতুন ক্যাম্পেইন "{title}" তৈরি করা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
@@ -573,19 +386,23 @@ def save_emergency_appeal(request):
         title = request.POST.get('title')
         description = request.POST.get('description', '')
 
+        image_file = request.FILES.get('image')
+        if image_file and not validate_image_100kb(request, image_file, 'জরুরি আপিল ছবি'):
+            return redirect('/dashboard/?tab=bank-section')
+
         if appeal_id:
             app = get_object_or_404(EmergencyAppeal, pk=appeal_id)
             app.title = title
             app.description = description
-            if 'image' in request.FILES:
-                app.image = request.FILES['image']
+            if image_file:
+                app.image = image_file
             app.save()
             messages.success(request, f'জরুরি আবেদন "{title}" আপডেট করা হয়েছে!')
         else:
             EmergencyAppeal.objects.create(
                 title=title,
                 description=description,
-                image=request.FILES.get('image')
+                image=image_file
             )
             messages.success(request, f'নতুন জরুরি আবেদন "{title}" তৈরি করা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
@@ -621,7 +438,7 @@ def save_donation_impact(request):
                 description=description,
                 icon_class=icon_class
             )
-            messages.success(request, f'নতুন দান প্রভাব (৳{amount}) যুক্ত করা হয়েছে!')
+            messages.success(request, f'নতুন দান প্রভাব (৳{amount}) তৈরি করা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
@@ -629,7 +446,7 @@ def delete_donation_impact(request, pk):
     """Delete a Donation Impact item"""
     imp = get_object_or_404(DonationImpact, pk=pk)
     imp.delete()
-    messages.success(request, 'দান প্রভাব আইটেম মুছে ফেলা হয়েছে!')
+    messages.success(request, 'দান প্রভাব উপাদান মুছে ফেলা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
@@ -645,13 +462,13 @@ def save_faq(request):
             faq.question = question
             faq.answer = answer
             faq.save()
-            messages.success(request, 'প্রশ্নোত্তর (FAQ) আপডেট করা হয়েছে!')
+            messages.success(request, 'জিজ্ঞাসাবাদ (FAQ) আপডেট করা হয়েছে!')
         else:
             FAQ.objects.create(
                 question=question,
                 answer=answer
             )
-            messages.success(request, 'নতুন প্রশ্নোত্তর (FAQ) যুক্ত করা হয়েছে!')
+            messages.success(request, 'নতুন জিজ্ঞাসাবাদ (FAQ) তৈরি করা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
@@ -659,7 +476,7 @@ def delete_faq(request, pk):
     """Delete a Donation FAQ"""
     faq = get_object_or_404(FAQ, pk=pk)
     faq.delete()
-    messages.success(request, 'প্রশ্নোত্তর (FAQ) মুছে ফেলা হয়েছে!')
+    messages.success(request, 'জিজ্ঞাসাবাদ (FAQ) মুছে ফেলা হয়েছে!')
     return redirect('/dashboard/?tab=bank-section')
 
 
@@ -702,20 +519,166 @@ def delete_donor(request, pk):
     return redirect('/dashboard/?tab=donors-section')
 
 @staff_member_required
+def save_volunteer(request):
+    """Create or update a Volunteer"""
+    if request.method == 'POST':
+        vol_id = request.POST.get('volunteer_id')
+        full_name = request.POST.get('full_name')
+        email = request.POST.get('email', '')
+        phone = request.POST.get('phone')
+        address = request.POST.get('address', '')
+        status = request.POST.get('status', 'approved')
+
+        if vol_id:
+            vol = get_object_or_404(Volunteer, pk=vol_id)
+            vol.full_name = full_name
+            vol.email = email
+            vol.phone = phone
+            vol.address = address
+            vol.status = status
+            vol.save()
+            messages.success(request, f'স্বেচ্ছাসেবক "{full_name}" তথ্য আপডেট করা হয়েছে!')
+        else:
+            Volunteer.objects.create(
+                full_name=full_name,
+                email=email,
+                phone=phone,
+                address=address,
+                status=status
+            )
+            messages.success(request, f'নতুন স্বেচ্ছাসেবক "{full_name}" তালিকাভুক্ত করা হয়েছে!')
+    return redirect('/dashboard/?tab=volunteers-section')
+
+@staff_member_required
+def delete_volunteer(request, pk):
+    """Delete a Volunteer"""
+    vol = get_object_or_404(Volunteer, pk=pk)
+    name = vol.full_name
+    vol.delete()
+    messages.success(request, f'স্বেচ্ছাসেবক "{name}" মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=volunteers-section')
+
+@staff_member_required
+def save_team_member(request):
+    """Create or update a Leadership Team Member"""
+    if request.method == 'POST':
+        tm_id = request.POST.get('member_id')
+        name = request.POST.get('name')
+        role = request.POST.get('role')
+        bio = request.POST.get('bio', '')
+        order = request.POST.get('order', 0)
+
+        image_file = request.FILES.get('image')
+        if image_file and not validate_image_100kb(request, image_file, 'টিম সদস্যের ছবি'):
+            return redirect('/dashboard/?tab=volunteers-section')
+
+        if tm_id:
+            tm = get_object_or_404(TeamMember, pk=tm_id)
+            tm.name = name
+            tm.role = role
+            tm.bio = bio
+            tm.order = order
+            if image_file:
+                tm.image = image_file
+            tm.save()
+            messages.success(request, f'টিম সদস্য "{name}" তথ্য আপডেট হয়েছে!')
+        else:
+            TeamMember.objects.create(
+                name=name,
+                role=role,
+                bio=bio,
+                order=order,
+                image=image_file
+            )
+            messages.success(request, f'নতুন টিম সদস্য "{name}" যোগ করা হয়েছে!')
+    return redirect('/dashboard/?tab=volunteers-section')
+
+@staff_member_required
+def delete_team_member(request, pk):
+    """Delete a Team Member"""
+    tm = get_object_or_404(TeamMember, pk=pk)
+    name = tm.name
+    tm.delete()
+    messages.success(request, f'টিম সদস্য "{name}" মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=volunteers-section')
+
+@staff_member_required
+def save_financial_transaction(request):
+    """Create or update a Financial Transaction"""
+    if request.method == 'POST':
+        trx_id_db = request.POST.get('transaction_id')
+        t_type = request.POST.get('transaction_type', 'income')
+        title = request.POST.get('title')
+        category = request.POST.get('category', 'সাধারণ')
+        amount = request.POST.get('amount')
+        payment_method = request.POST.get('payment_method', 'bKash')
+        trx_id = request.POST.get('trx_id', '')
+        donor_name = request.POST.get('donor_name', '')
+        date_val = request.POST.get('date') or date.today()
+        note = request.POST.get('note', '')
+
+        receipt_file = request.FILES.get('receipt')
+        if receipt_file and not validate_image_100kb(request, receipt_file, 'রশিদ/ভাউচার ফাইল'):
+            return redirect('/dashboard/?tab=finance-section')
+
+        if trx_id_db:
+            trx = get_object_or_404(FinancialTransaction, pk=trx_id_db)
+            trx.transaction_type = t_type
+            trx.title = title
+            trx.category = category
+            trx.amount = amount
+            trx.payment_method = payment_method
+            trx.trx_id = trx_id
+            trx.donor_name = donor_name
+            trx.date = date_val
+            trx.note = note
+            if receipt_file:
+                trx.receipt = receipt_file
+            trx.save()
+            messages.success(request, 'আর্থিক লেনদেন আপডেট করা হয়েছে!')
+        else:
+            FinancialTransaction.objects.create(
+                transaction_type=t_type,
+                title=title,
+                category=category,
+                amount=amount,
+                payment_method=payment_method,
+                trx_id=trx_id,
+                donor_name=donor_name,
+                date=date_val,
+                note=note,
+                receipt=receipt_file
+            )
+            messages.success(request, 'নতুন আর্থিক লেনদেন অন্তর্ভুক্ত করা হয়েছে!')
+    return redirect('/dashboard/?tab=finance-section')
+
+@staff_member_required
+def delete_financial_transaction(request, pk):
+    """Delete a Financial Transaction"""
+    trx = get_object_or_404(FinancialTransaction, pk=pk)
+    trx.delete()
+    messages.success(request, 'আর্থিক লেনদেন মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=finance-section')
+
+@staff_member_required
 def save_gallery_photo(request):
     """Upload new gallery photo"""
     if request.method == 'POST':
         caption = request.POST.get('caption', '')
         if 'image' in request.FILES:
+            image_file = request.FILES['image']
+            if not validate_image_100kb(request, image_file, 'গ্যালারির ছবি'):
+                return redirect('/dashboard/?tab=gallery-section')
+
             album, _ = Album.objects.get_or_create(title='Main Gallery')
             Photo.objects.create(
                 album=album,
-                image=request.FILES['image'],
+                image=image_file,
                 caption=caption
             )
             messages.success(request, 'গ্যালারিতে নতুন ছবি আপলোড করা হয়েছে!')
         else:
-            messages.error(request, 'দয়া করে ছবি নির্বাচন করুন।')
+            messages.error(request, 'দয়া করে একটি ছবি নির্বাচন করুন')
     return redirect('/dashboard/?tab=gallery-section')
 
 @staff_member_required
@@ -729,5 +692,75 @@ def update_footer_section(request):
         setting.contact_email = request.POST.get('contact_email', setting.contact_email)
         setting.google_map_embed_url = request.POST.get('google_map_embed_url', setting.google_map_embed_url)
         setting.save()
-        messages.success(request, 'ফুটার ও যোগাযোগ তথ্য আপডেট করা হয়েছে!')
+        messages.success(request, 'ফুটার ও যোগাযোগের তথ্য আপডেট হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
+import openpyxl
+from django.http import HttpResponse
+
+@staff_member_required
+def export_financial_excel(request):
+    """Export Financial Transactions to Excel"""
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    transactions = FinancialTransaction.objects.all().order_by('-date', '-id')
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Financial Statement"
+
+    headers = ['তারিখ', 'ধরণ', 'শিরোনাম/বিবরণ', 'ক্যাটাগরি', 'দাতা/গ্রহীতা', 'পেমেন্ট মেথড', 'Trx ID', 'পরিমাণ (BDT)', 'নোট']
+    ws.append(headers)
+
+    for trx in transactions:
+        t_type = "আয় (Income)" if trx.transaction_type == 'income' else "ব্যয় (Expense)"
+        ws.append([
+            str(trx.date),
+            t_type,
+            trx.title,
+            trx.category,
+            trx.donor_name or "-",
+            trx.payment_method,
+            trx.trx_id or "-",
+            float(trx.amount),
+            trx.note or "-"
+        ])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=Financial_Statement.xlsx'
+    wb.save(response)
+    return response
+
+@staff_member_required
+def print_financial_statement(request):
+    """Print Statement View"""
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    transactions = FinancialTransaction.objects.all().order_by('-date', '-id')
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    total_income = transactions.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_expense = transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    net_balance = total_income - total_expense
+
+    site_setting, _ = SiteSetting.objects.get_or_create(pk=1)
+
+    context = {
+        'site_setting': site_setting,
+        'transactions': transactions,
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'net_balance': net_balance,
+        'start_date': start_date,
+        'end_date': end_date,
+        'today': date.today()
+    }
+    return render(request, 'dashboard/print_financial_statement.html', context)

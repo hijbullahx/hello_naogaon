@@ -1,4 +1,4 @@
-from django.db import models
+﻿from django.db import models
 from django.contrib.auth import get_user_model
 from datetime import date
 
@@ -45,7 +45,7 @@ class Volunteer(models.Model):
     def save(self, *args, **kwargs):
         if not self.member_id:
             today = date.today()
-            prefix = today.strftime("%d%m%y")  # e.g. 210826 for 21 Aug 2026
+            prefix = today.strftime("%d%m%y")  # e.g. 210826 for 21 Aug 2026, 220826 for 22 Aug 2026
             todays_volunteers = Volunteer.objects.filter(member_id__startswith=prefix).values_list('member_id', flat=True)
             max_seq = 0
             for mid in todays_volunteers:
@@ -55,9 +55,8 @@ class Volunteer(models.Model):
                         max_seq = seq
             next_seq = max_seq + 1
             if next_seq > 99:
-                self.member_id = f"{prefix}{next_seq}"
-            else:
-                self.member_id = f"{prefix}{next_seq:02d}"
+                raise ValueError("আজকের দিনের জন্য সর্বোচ্চ ৯৯ জন সদস্য নিবন্ধনের কোটা পূর্ণ হয়েছে। অনুগ্রহ করে আগামীকাল পুনরায় চেষ্টা করুন।")
+            self.member_id = f"{prefix}{next_seq:02d}"
         super().save(*args, **kwargs)
 
 class TeamMember(models.Model):

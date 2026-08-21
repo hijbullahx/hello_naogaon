@@ -80,17 +80,21 @@ def apply_volunteer(request):
                 return redirect('volunteers:apply')
 
         if full_name and phone:
-            vol = Volunteer.objects.create(
-                full_name=full_name,
-                email=email if email else None,
-                phone=phone,
-                blood_group=blood_group if blood_group else None,
-                occupation=occupation if occupation else None,
-                address=address if address else None,
-                is_public_details=is_public_details,
-                image=image,
-                status='approved'
-            )
+            try:
+                vol = Volunteer.objects.create(
+                    full_name=full_name,
+                    email=email if email else None,
+                    phone=phone,
+                    blood_group=blood_group if blood_group else None,
+                    occupation=occupation if occupation else None,
+                    address=address if address else None,
+                    is_public_details=is_public_details,
+                    image=image,
+                    status='approved'
+                )
+            except ValueError as e:
+                messages.error(request, str(e))
+                return redirect('volunteers:apply')
             
             send_member_notifications(vol)
 

@@ -71,7 +71,7 @@
                                     {% if site_setting.logo %}
                                         {% if site_setting.logo %}<div class="mb-2"><img src="{{ site_setting.logo.url }}" alt="Logo" style="height: 40px;"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*">
+                                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage100kb(this)">
                                 </div>
 
                                 <div class="mb-3">
@@ -79,7 +79,7 @@
                                     {% if site_setting.hero_image %}
                                         {% if site_setting.hero_image %}<div class="mb-2"><img src="{{ site_setting.hero_image.url }}" alt="Hero" style="height: 60px; object-fit: cover;" class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="hero_image" class="form-control form-control-sm" accept="image/*">
+                                    <input type="file" name="hero_image" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage100kb(this)">
                                 </div>
 
                                 <div class="mb-3">
@@ -153,12 +153,12 @@
                                     {% if about_featured_image %}
                                         {% if about_featured_image and about_featured_image.image %}<div class="mb-2"><img src="{{ about_featured_image.image.url }}" style="height: 70px; object-fit: cover;" class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="featured_image" class="form-control form-control-sm" accept="image/*">
+                                    <input type="file" name="featured_image" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage100kb(this)">
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">সাব ফটো গ্রিডে নতুন ছবি যোগ করুন (একসাথে একাধিক ছবি সিলেক্ট করতে পারবেন)</label>
-                                    <input type="file" name="sub_images" class="form-control form-control-sm" accept="image/*" multiple>
+                                    <input type="file" name="sub_images" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage100kb(this)" multiple>
                                     <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i> Ctrl / Shift চেপে একসাথে একাধিক ফটো নির্বাচন করুন</small>
                                 </div>
 
@@ -412,7 +412,7 @@
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">ছবি পরিবর্তন করুন</label>
                                                                 {% if tm.image %}<div class="mb-2"><img src="{{ tm.image.url }}" style="height: 50px;" class="rounded border"></div>{% endif %}
-                                                                <input type="file" name="image" class="form-control" accept="image/*">
+                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
@@ -877,7 +877,7 @@
                                     {% if donation_content.hero_image %}
                                         {% if donation_content.hero_image %}<div class="mb-2"><img src="{{ donation_content.hero_image.url }}" style="height: 70px;" class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="hero_image" class="form-control" accept="image/*">
+                                    <input type="file" name="hero_image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">কেন দান করবেন? (Why Donate Title)</label>
@@ -927,7 +927,7 @@
                                         {% if qrcodes.first and qrcodes.first.image %}
                                             {% if qrcodes.first and qrcodes.first.image %}<div class="mb-2"><img src="{{ qrcodes.first.image.url }}" style="height: 100px;" class="rounded border p-1"></div>{% endif %}
                                         {% endif %}
-                                        <input type="file" name="qr_image" class="form-control" accept="image/*">
+                                        <input type="file" name="qr_image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-success fw-bold mt-4"><i class="fas fa-save me-1"></i> ব্যাংক ও QR কোড আপডেট করুন</button>
@@ -1025,7 +1025,7 @@
                                                                 {% if c.image %}
                                                                     {% if c.image %}<div class="mb-2"><img src="{{ c.image.url }}" style="height: 60px;" class="rounded"></div>{% endif %}
                                                                 {% endif %}
-                                                                <input type="file" name="image" class="form-control" accept="image/*">
+                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
@@ -1134,7 +1134,7 @@
                         <div class="row g-2 align-items-center">
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold">ছবি নির্বাচন করুন</label>
-                                <input type="file" name="image" class="form-control" accept="image/*" required>
+                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)" required>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold">ক্যাপশন (Caption)</label>
@@ -1244,7 +1244,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">প্রোগ্রামের ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1325,7 +1325,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1404,7 +1404,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">প্রোফাইল ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1585,7 +1585,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">কভার ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1618,7 +1618,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
                     </div>
                 </div>
                 <div class="modal-footer">
