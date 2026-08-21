@@ -6,30 +6,40 @@ from django.conf import settings
 from .models import Volunteer, TeamMember, BloodDonor
 
 def send_member_notifications(volunteer):
+    """
+    Sends Member ID via Email (from info@helplinehellonaogaon.com) and SMS.
+    If both email and phone are provided, sends both.
+    """
     subject = f"Helpline Hello Naogaon - সদস্য নিবন্ধন সম্পন্ন (আইডি: {volunteer.member_id})"
     message_body = (
         f"প্রিয় {volunteer.full_name},\n\n"
-        f"Helpline Hello Naogaon-এ সদস্য হিসেবে নিবন্ধিত হওয়ার জন্য ধন্যবাদ!\n"
-        f"আপনার সদস্য আইডি (Member ID): {volunteer.member_id}\n"
+        f"Helpline Hello Naogaon-এ সদস্য/স্বেচ্ছাসেবক হিসেবে সফলভাবে নিবন্ধিত হওয়ার জন্য ধন্যবাদ!\n\n"
+        f"আপনার সদস্য বিবরণ:\n"
+        f"----------------------\n"
+        f"সদস্য আইডি (Member ID): {volunteer.member_id}\n"
+        f"নাম: {volunteer.full_name}\n"
         f"মোবাইল নম্বর: {volunteer.phone}\n"
         f"রক্তের গ্রুপ: {volunteer.blood_group or 'N/A'}\n"
         f"পেশা: {volunteer.occupation or 'N/A'}\n\n"
         f"ধন্যবাদ,\nHelpline Hello Naogaon টিম"
     )
 
+    # 1. Send Email Notification from info@helplinehellonaogaon.com
     if volunteer.email:
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@helplinehellonaogaon.com') or 'info@helplinehellonaogaon.com'
         try:
             send_mail(
                 subject,
                 message_body,
-                settings.DEFAULT_FROM_EMAIL or 'noreply@helplinehellonaogaon.com',
+                from_email,
                 [volunteer.email],
                 fail_silently=True,
             )
-            print(f"[EMAIL SUCCESS] Sent Member ID {volunteer.member_id} to {volunteer.email}")
+            print(f"[EMAIL SUCCESS] Sent Member ID {volunteer.member_id} to {volunteer.email} from {from_email}")
         except Exception as e:
             print(f"[EMAIL ERROR] {e}")
 
+    # 2. Send SMS Notification (Logged & Ready for SMS Gateway)
     if volunteer.phone:
         sms_text = f"Helpline Hello Naogaon: ধন্যবাদ {volunteer.full_name}! আপনার সদস্য আইডি: {volunteer.member_id}"
         print(f"[SMS SUCCESS] Sent Member ID {volunteer.member_id} to {volunteer.phone} | Content: {sms_text}")

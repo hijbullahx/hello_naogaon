@@ -339,3 +339,7 @@ LOGGING = {
         },
     },
 }
+
+# Email Settings
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='info@helplinehellonaogaon.com')
+SERVER_EMAIL = env('SERVER_EMAIL', default='info@helplinehellonaogaon.com')
