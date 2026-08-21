@@ -158,7 +158,7 @@ MEDIA_ROOT = env('MEDIA_ROOT', default=BASE_DIR / 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Redirect users to the home page after login/logout
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 JAZZMIN_SETTINGS = {
