@@ -23,7 +23,7 @@
             </div>
             <div class="col-lg-6">
                 {% if site_setting.hero_image %}
-                    <img src="{{ site_setting.hero_image.url }}" alt="Hero Image" class="hero-img">
+                    {% if site_setting.hero_image %}<img src="{{ site_setting.hero_image.url }}" alt="Hero Image" class="hero-img">{% endif %}
                 {% else %}
                     <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1000&q=80" alt="Helpline Hello Naogaon Volunteers" class="hero-img">
                 {% endif %}
@@ -120,7 +120,7 @@
                 <div class="row g-2">
                     <div class="col-md-7">
                         {% if about_featured_image %}
-                            <img src="{{ about_featured_image.image.url }}" alt="{{ about_featured_image.caption }}" class="about-grid-featured">
+                            {% if about_featured_image and about_featured_image.image %}<img src="{{ about_featured_image.image.url }}" alt="{{ about_featured_image.caption }}" class="about-grid-featured">{% endif %}
                         {% else %}
                             <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=800&q=80" alt="About Main" class="about-grid-featured">
                         {% endif %}
@@ -130,7 +130,7 @@
                             {% if about_grid_images %}
                                 {% for item in about_grid_images %}
                                 <div class="col-6">
-                                    <img src="{{ item.image.url }}" alt="{{ item.caption }}" class="about-grid-sm">
+                                    {% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.caption }}" class="about-grid-sm">{% endif %}
                                 </div>
                                 {% endfor %}
                             {% else %}
@@ -357,7 +357,7 @@
                     <div class="row align-items-center g-3">
                         <div class="col-sm-5 text-center">
                             {% if qrcodes and qrcodes.first.image %}
-                                <img src="{{ qrcodes.first.image.url }}" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">
+                                {% if qrcodes.first and qrcodes.first.image %}<img src="{{ qrcodes.first.image.url }}" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">{% endif %}
                             {% else %}
                                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=HelplineHelloNaogaonDonation" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">
                             {% endif %}
