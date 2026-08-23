@@ -47,7 +47,7 @@
                 </div>
 
                 <div class="card-body p-4 bg-white">
-                    <form action="{% url 'donations:submit' %}" method="post" id="financialContributionForm">
+                    <form action="{% url 'donations:initiate_payment' %}" method="post" id="financialContributionForm">
                         {% csrf_token %}
 
                         <!-- Member Registration Invitation Banner -->
@@ -142,117 +142,7 @@
                             </div>
                         </div>
 
-                        <hr class="my-4">
-
-                        <!-- Step 5: Payment Method & Dynamic QR Code Box -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">
-                                <i class="fas fa-wallet text-success me-1"></i>পেমেন্ট মাধ্যম নির্বাচন করুন <span class="text-danger">*</span>
-                            </label>
-
-                            <!-- Method Tabs / Buttons -->
-                            <div class="row g-2 mb-3">
-                                {% for method in donation_methods %}
-                                <div class="col-6 col-md-3">
-                                    <input type="radio" class="btn-check" name="payment_method" id="method_{{ method.name|slugify }}" value="{{ method.name }}" {% if forloop.first %}checked{% endif %} autocomplete="off" onchange="updatePaymentDetails('{{ method.name|escapejs }}', '{{ method.account_number|escapejs }}', '{{ method.account_type|escapejs }}', '{{ method.instructions|escapejs }}', '{% if method.qrcodes.first %}{{ method.qrcodes.first.image.url }}{% endif %}')">
-                                    <label class="btn btn-outline-success w-100 py-3 px-2 text-center rounded-3 h-100" for="method_{{ method.name|slugify }}">
-                                        <i class="{{ method.icon_class|default:'fas fa-mobile-alt' }} fa-lg d-block mb-1"></i>
-                                        <span class="fw-bold small">{{ method.name }}</span>
-                                    </label>
-                                </div>
-                                {% empty %}
-                                <div class="col-6 col-md-3">
-                                    <input type="radio" class="btn-check" name="payment_method" id="method_bkash" value="bKash" checked autocomplete="off" onchange="updatePaymentDetails('bKash', '01700000000', 'Personal', 'বিকাশ অ্যাপে Send Money করুন এবং TrxID নিচে দিন।', '')">
-                                    <label class="btn btn-outline-success w-100 py-3 text-center rounded-3" for="method_bkash">
-                                        <i class="fas fa-mobile-alt fa-lg d-block mb-1"></i>
-                                        <span class="fw-bold">বিকাশ (bKash)</span>
-                                    </label>
-                                </div>
-                                {% endfor %}
-
-                                {% if banks %}
-                                <div class="col-6 col-md-3">
-                                    <input type="radio" class="btn-check" name="payment_method" id="method_bank" value="Bank Transfer" autocomplete="off" onchange="showBankDetails()">
-                                    <label class="btn btn-outline-success w-100 py-3 px-2 text-center rounded-3 h-100" for="method_bank">
-                                        <i class="fas fa-university fa-lg d-block mb-1"></i>
-                                        <span class="fw-bold small">ব্যাংক ট্রান্সফার</span>
-                                    </label>
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Dynamic Payment Detail & Single QR Code Container -->
-                            <div class="card border border-2 border-success-subtle rounded-4 p-4 bg-light shadow-sm" id="paymentDetailsCard">
-                                <div class="row g-3 align-items-center">
-                                    <!-- QR Code Area -->
-                                    <div class="col-md-4 text-center">
-                                        <div class="bg-white p-3 rounded-3 border shadow-sm d-inline-block position-relative">
-                                            <img id="dynamicQrImage" src="{% if donation_methods.first.qrcodes.first %}{{ donation_methods.first.qrcodes.first.image.url }}{% else %}https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=01700000000{% endif %}" alt="Payment QR Code" class="img-fluid rounded" style="max-height: 160px; max-width: 160px;">
-                                            <div class="small fw-bold text-muted mt-2">
-                                                <i class="fas fa-qrcode text-success me-1"></i>স্ক্যান করে পে করুন
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Account Number & Steps Area -->
-                                    <div class="col-md-8">
-                                        <div class="d-flex align-items-center gap-2 mb-2">
-                                            <span class="badge bg-success fs-6 px-3 py-1" id="displayMethodName">
-                                                {{ donation_methods.first.name|default:"bKash" }}
-                                            </span>
-                                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 small" id="displayAccountType">
-                                                {{ donation_methods.first.account_type|default:"Personal / Send Money" }}
-                                            </span>
-                                        </div>
-
-                                        <!-- Copyable Account Number -->
-                                        <div class="input-group mb-2">
-                                            <input type="text" class="form-control fs-5 fw-bold bg-white text-dark" id="displayAccountNumber" value="{{ donation_methods.first.account_number|default:'01700000000' }}" readonly>
-                                            <button class="btn btn-success fw-bold px-3" type="button" onclick="copyAccountNumber()">
-                                                <i class="fas fa-copy me-1" id="copyIcon"></i><span id="copyBtnText">কপি করুন</span>
-                                            </button>
-                                        </div>
-
-                                        <p class="text-secondary small mb-0" id="displayInstructions">
-                                            {{ donation_methods.first.instructions|default:"বিকাশ অ্যাপ বা ডায়াল কোডের মাধ্যমে Send Money অপশনে গিয়ে উপরে উল্লেখিত নম্বরে টাকা পাঠান এবং সফল ট্রানজেকশন আইডি (TrxID) নিচের বক্সে লিখুন।" }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Bank Accounts Box (Hidden by default, shown if Bank Transfer selected) -->
-                            <div class="card border border-2 border-primary-subtle rounded-4 p-3 bg-white shadow-sm d-none mt-3" id="bankDetailsCard">
-                                <h6 class="fw-bold text-primary mb-3">
-                                    <i class="fas fa-university me-2"></i>সংগঠনের ব্যাংক একাউন্ট তথ্য
-                                </h6>
-                                <div class="row g-3">
-                                    {% for bank in banks %}
-                                    <div class="col-md-6">
-                                        <div class="p-3 border rounded-3 bg-light">
-                                            <h6 class="fw-bold text-dark mb-1">{{ bank.bank_name }}</h6>
-                                            <div class="small text-secondary mb-1"><strong>Account Name:</strong> {{ bank.account_name }}</div>
-                                            <div class="small text-secondary mb-1">
-                                                <strong>Account No:</strong> <span class="fw-bold text-dark">{{ bank.account_number }}</span>
-                                            </div>
-                                            {% if bank.branch %}<div class="small text-secondary mb-1"><strong>Branch:</strong> {{ bank.branch }}</div>{% endif %}
-                                            {% if bank.routing_number %}<div class="small text-secondary"><strong>Routing No:</strong> {{ bank.routing_number }}</div>{% endif %}
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Step 6: Transaction ID (TrxID) Field -->
-                        <div class="mb-4">
-                            <label for="trx_id" class="form-label fw-bold text-dark mb-1">
-                                <i class="fas fa-receipt text-success me-1"></i>ট্রানজেকশন আইডি (TrxID) <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control form-control-lg text-uppercase fw-bold" id="trx_id" name="trx_id" required placeholder="যেমন: 9J3K8L2M">
-                            <div class="form-text text-muted small">টাকা পাঠানোর পর প্রাপ্ত ফিরতি SMS বা অ্যাপ থেকে TrxID দিন।</div>
-                        </div>
-
-                        <!-- Step 7: General Donor Contact Details (Shown ONLY for General Citizens) -->
+                        <!-- Step 4: General Donor Contact Details (Shown ONLY for General Citizens) -->
                         <div id="generalDonorContactSection" class="{% if member_id_param or prefill_volunteer %}d-none{% endif %}">
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
@@ -270,6 +160,30 @@
                             </div>
                         </div>
 
+                        <!-- Step 5: Automated Payment Gateway Showcase Box -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">
+                                <i class="fas fa-shield-alt text-success me-1"></i>নিরাপদ অনলাইন পেমেন্ট গেটওয়ে
+                            </label>
+                            <div class="p-3 bg-light border border-2 border-success-subtle rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                        <i class="fas fa-lock fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">বিকাশ, নগদ, রকেট, উপায় ও কার্ড পেমেন্ট</div>
+                                        <small class="text-muted">অনলাইন গেটওয়ের মাধ্যমে স্বয়ংক্রিয়ভাবে ট্রানজেকশন সম্পন্ন ও ভেরিফাই হবে।</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge bg-white text-dark border px-2 py-1 shadow-sm"><i class="fas fa-mobile-alt text-danger me-1"></i>bKash</span>
+                                    <span class="badge bg-white text-dark border px-2 py-1 shadow-sm"><i class="fas fa-wallet text-warning me-1"></i>Nagad</span>
+                                    <span class="badge bg-white text-dark border px-2 py-1 shadow-sm"><i class="fas fa-money-check-alt text-purple me-1"></i>Rocket</span>
+                                    <span class="badge bg-white text-dark border px-2 py-1 shadow-sm"><i class="fas fa-credit-card text-primary me-1"></i>Cards</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Optional Note Field -->
                         <div class="mb-4">
                             <label for="donation_note" class="form-label fw-bold">মন্তব্য বা দোয়া/পরামর্শ <small class="text-muted">(ঐচ্ছিক)</small></label>
@@ -279,7 +193,7 @@
                         <!-- Submit Button -->
                         <div class="text-center pt-2">
                             <button type="submit" class="btn btn-success btn-lg fw-bold px-5 py-3 rounded-pill shadow">
-                                <i class="fas fa-heart me-2"></i>আর্থিক সহায়তা সম্পন্ন করুন
+                                <i class="fas fa-lock me-2"></i>অনলাইনে পেমেন্ট সম্পন্ন করুন &rarr;
                             </button>
                         </div>
                     </form>
@@ -505,52 +419,7 @@ function setAmount(val) {
     });
 }
 
-function updatePaymentDetails(name, number, type, instructions, qrUrl) {
-    document.getElementById('displayMethodName').innerText = name;
-    document.getElementById('displayAccountType').innerText = type || 'Personal / Send Money';
-    document.getElementById('displayAccountNumber').value = number || '01700000000';
-    document.getElementById('displayInstructions').innerText = instructions || 'উক্ত নম্বরে অর্থ পাঠিয়ে TrxID নিচের ফর্মে প্রদান করুন।';
-    
-    var qrImg = document.getElementById('dynamicQrImage');
-    if (qrUrl) {
-        qrImg.src = qrUrl;
-    } else {
-        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(number || '01700000000');
-    }
 
-    document.getElementById('paymentDetailsCard').classList.remove('d-none');
-    var bankCard = document.getElementById('bankDetailsCard');
-    if (bankCard) bankCard.classList.add('d-none');
-}
-
-function showBankDetails() {
-    var bankCard = document.getElementById('bankDetailsCard');
-    if (bankCard) bankCard.classList.remove('d-none');
-    
-    document.getElementById('displayMethodName').innerText = 'Bank Transfer';
-    document.getElementById('displayAccountType').innerText = 'Official Bank Account';
-    document.getElementById('displayAccountNumber').value = 'নিচে প্রদত্ত ব্যাংক একাউন্ট নম্বর';
-    document.getElementById('displayInstructions').innerText = 'যেকোনো ব্যাংক বা অনলাইন ব্যাংকিং থেকে নিচের ব্যাংক একাউন্টে অর্থ ট্রান্সফার করে TrxID / ডিপোজিট স্লিপ নম্বর ফর্মে দিন।';
-    
-    var qrImg = document.getElementById('dynamicQrImage');
-    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=HelplineHelloNaogaonBank';
-}
-
-function copyAccountNumber() {
-    var numInput = document.getElementById('displayAccountNumber');
-    if (numInput) {
-        navigator.clipboard.writeText(numInput.value).then(function() {
-            var btnText = document.getElementById('copyBtnText');
-            var icon = document.getElementById('copyIcon');
-            btnText.innerText = 'কপি হয়েছে!';
-            icon.className = 'fas fa-check me-1';
-            setTimeout(function() {
-                btnText.innerText = 'কপি করুন';
-                icon.className = 'fas fa-copy me-1';
-            }, 2000);
-        });
-    }
-}
 
 document.addEventListener('DOMContentLoaded', function() {
     var memInput = document.getElementById('donation_membership_id');

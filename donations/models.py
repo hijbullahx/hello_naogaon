@@ -188,8 +188,9 @@ class ProgramDonation(models.Model):
 
     STATUS_CHOICES = [
         ('pending', _('অপেক্ষমাণ (Pending)')),
-        ('approved', _('অনুমোদিত (Approved)')),
-        ('rejected', _('বাতিল (Rejected)')),
+        ('approved', _('সফল / অনুমোদিত (Approved)')),
+        ('failed', _('ব্যর্থ (Failed)')),
+        ('cancelled', _('বাতিল (Cancelled)')),
     ]
 
     donation_type = models.CharField(max_length=30, choices=DONATION_TYPE_CHOICES, default='general', verbose_name=_('সহায়তার ধরন'))
@@ -200,10 +201,13 @@ class ProgramDonation(models.Model):
     donor_phone = models.CharField(max_length=20, verbose_name=_('মোবাইল নম্বর'))
     membership_id = models.CharField(max_length=50, blank=True, null=True, help_text=_('মেম্বারশিপ আইডি (যদি থাকে)'), verbose_name=_('মেম্বারশিপ আইডি'))
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('আর্থিক সহায়তার পরিমাণ (BDT)'))
-    payment_method = models.CharField(max_length=50, default='bKash', verbose_name=_('পেমেন্ট মেথড'))
+    payment_method = models.CharField(max_length=50, default='Online Gateway', verbose_name=_('পেমেন্ট মেথড'))
+    tran_id = models.CharField(max_length=100, unique=True, blank=True, null=True, verbose_name=_('গেটওয়ে ট্রানজেকশন আইডি'))
+    bank_tran_id = models.CharField(max_length=100, blank=True, verbose_name=_('ব্যাংক / ভ্যালিডেশন ট্রানজেকশন আইডি'))
+    card_type = models.CharField(max_length=50, blank=True, verbose_name=_('পেমেন্ট চ্যানেল / কার্ড টাইপ'))
     trx_id = models.CharField(max_length=100, blank=True, verbose_name=_('ট্রানজেকশন আইডি / Trx ID'))
     note = models.TextField(blank=True, verbose_name=_('মন্তব্য / নোট'))
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved', verbose_name=_('স্ট্যাটাস'))
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name=_('স্ট্যাটাস'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('তারিখ ও সময়'))
 
     class Meta:
@@ -213,4 +217,4 @@ class ProgramDonation(models.Model):
 
     def __str__(self):
         type_lbl = self.get_donation_type_display()
-        return f'{self.donor_name} - {type_lbl} (৳{self.amount})'
+        return f'{self.donor_name} - {type_lbl} (৳{self.amount}) - {self.get_status_display()}'
