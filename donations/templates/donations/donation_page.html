@@ -1,209 +1,227 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}দান করুন - হ্যালো নওগাঁ{% endblock %}
+{% block title %}আর্থিক সহায়তা করুন - হ্যালো নওগাঁ{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <!-- Hero Section -->
-    <section class="text-center bg-light p-5 rounded-3 mb-5">
-        <h1 class="display-4 fw-bold">{{ content.hero_title }}</h1>
-        <p class="lead text-muted">{{ content.hero_subtitle }}</p>
-        {% if content.hero_image %}
-        <img src="{{ content.hero_image.url }}" class="img-fluid rounded-3 mt-3" alt="Donation hero image">
-        {% endif %}
-    </section>
+<!-- 1. Hero Banner Section -->
+<div class="py-5 text-white mb-4 shadow-sm" style="background: linear-gradient(135deg, #0f5132 0%, #198754 50%, #20c997 100%);">
+    <div class="container text-center py-2">
+        <div class="d-inline-flex align-items-center bg-white bg-opacity-25 px-3 py-1 rounded-pill mb-3 text-white small fw-bold">
+            <i class="fas fa-hand-holding-heart me-2"></i>স্বচ্ছ ও জবাবদিহিতামূলক মানবসেবা
+        </div>
+        <h1 class="display-5 fw-bold mb-2">আর্থিক সহায়তা করুন</h1>
+        <p class="lead text-white-50 mx-auto mb-0" style="max-width: 750px;">
+            আপনার সামান্য আর্থিক অনুদান একজন মুমূর্ষু রোগীর জীবন বাঁচাতে পারে, সুবিধাবঞ্চিত শিশুর মুখে হাসি ফোটাতে পারে এবং সংগঠনের মানবিক কার্যক্রমগুলোকে সচল রাখতে সহায়তা করে।
+        </p>
+    </div>
+</div>
 
-    <div class="row g-5">
-        <!-- Main Donation Area -->
+<div class="container mb-5">
+    <div class="row g-4">
+        <!-- Main Contribution Area -->
         <div class="col-lg-8">
-            <!-- Donation Form -->
-            <section id="donation-form" class="mb-5">
-                <h2 class="mb-4 pb-2 border-bottom">আপনার অনুদান</h2>
-                <div class="p-4 border rounded-3 bg-white">
-                    <ul class="nav nav-pills mb-3" id="donation-type-tab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="one-time-tab" data-bs-toggle="tab" data-bs-target="#one-time" type="button" role="tab" aria-controls="one-time" aria-selected="true">এককালীন</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab" aria-controls="monthly" aria-selected="false">মাসিক</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="donation-type-tabContent">
-                        <div class="tab-pane fade show active" id="one-time" role="tabpanel" aria-labelledby="one-time-tab">
-                            <div class="d-flex flex-wrap gap-2 my-3">
-                                {% for impact in impacts %}
-                                <button type="button" class="btn btn-outline-secondary amount-btn">৳{{ impact.amount|floatformat:0 }}</button>
-                                {% endfor %}
-                            </div>
-                            <div class="input-group">
-                                <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" placeholder="অন্য পরিমাণ দিন">
-                                <button class="btn btn-success" type="button">দান করুন</button>
-                            </div>
+
+            <!-- Flash / Messages Alert -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm border-0 d-flex align-items-center" role="alert">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle text-success{% else %}fa-info-circle text-primary{% endif %} fa-lg me-3"></i>
+                    <div>{{ message }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Member Quick Action Banner (Triggers Modal) -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px dashed #86efac !important;">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-success text-white rounded-circle p-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 56px; height: 56px;">
+                            <i class="fas fa-id-card fa-2x"></i>
                         </div>
-                        <div class="tab-pane fade" id="monthly" role="tabpanel" aria-labelledby="monthly-tab">
-                            <!-- Monthly donation options can be added here -->
-                             <div class="d-flex flex-wrap gap-2 my-3">
-                                {% for impact in impacts %}
-                                <button type="button" class="btn btn-outline-secondary amount-btn">৳{{ impact.amount|floatformat:0 }}</button>
-                                {% endfor %}
-                            </div>
-                            <div class="input-group">
-                                <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" placeholder="অন্য পরিমাণ দিন">
-                                <button class="btn btn-success" type="button">মাসিক দান করুন</button>
-                            </div>
+                        <div>
+                            <h5 class="fw-bold text-success mb-1">আপনি কি হেল্পলাইন হ্যালো নওগাঁর নিবন্ধিত সদস্য?</h5>
+                            <p class="text-secondary small mb-0">সদস্য আইডি দিয়ে সহজেই মাসিক/নিয়মিত চাঁদা ও সহায়তা পরিশোধ করতে এখানে ক্লিক করুন।</p>
                         </div>
                     </div>
+                    <button type="button" class="btn btn-success btn-lg fw-bold px-4 py-2 rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#memberPaymentModal">
+                        <i class="fas fa-user-check me-2"></i>সদস্য চাঁদা পরিশোধ (পপ-আপ) &rarr;
+                    </button>
                 </div>
-            </section>
+            </div>
 
-            <!-- Introduction Section -->
-            <section id="introduction" class="mb-5">
-                <h2 class="mb-4 pb-2 border-bottom">{{ content.intro_title }}</h2>
-                <div class="p-4 border rounded-3 bg-white">
-                    <p>{{ content.intro_text|linebreaks }}</p>
+            <!-- General Public Donation Card -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-dark text-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-heart text-success me-2"></i>সাধারণ নাগরিক / শুভানুধ্যায়ী অনুদান ফর্ম
+                    </h5>
+                    <span class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill small">
+                        <i class="fas fa-lock me-1"></i>SSL Secured Gateway
+                    </span>
                 </div>
-            </section>
 
-            <!-- Why Donate Section -->
-            <section id="why-donate" class="mb-5">
-                <h2 class="mb-4 pb-2 border-bottom">{{ content.why_donate_title }}</h2>
-                <div class="p-4 border rounded-3 bg-white">
-                    <p>{{ content.why_donate_text|linebreaks }}</p>
-                </div>
-            </section>
+                <div class="card-body p-4 bg-white">
+                    <form action="{% url 'donations:initiate_payment' %}" method="post" id="generalDonationForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="donor_identity_type" value="general">
+                        <input type="hidden" name="frequency" value="one_time">
 
-            <!-- Current Campaigns Section -->
-            {% if campaigns %}
-            <section id="campaigns" class="mb-5">
-                <h2 class="mb-4 pb-2 border-bottom">চলমান প্রচারাভিযান</h2>
-                <div class="row g-4">
-                    {% for campaign in campaigns %}
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <img src="{{ campaign.image.url }}" class="card-img-top" alt="{{ campaign.title }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ campaign.title }}</h5>
-                                <p class="card-text">{{ campaign.description|truncatewords:20 }}</p>
-                                <div class="progress mb-2">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio campaign.raised_amount campaign.goal_amount 100 %}%;" aria-valuenow="{{ campaign.raised_amount }}" aria-valuemin="0" aria-valuemax="{{ campaign.goal_amount }}"></div>
+                        <!-- Step 1: Amount Selection -->
+                        <div class="mb-4">
+                            <label for="general_donation_amount" class="form-label fw-bold text-dark mb-2">
+                                <i class="fas fa-money-bill-wave text-success me-1"></i>আর্থিক সহায়তার পরিমাণ <span class="text-danger">*</span>
+                            </label>
+                            <!-- Quick amount pills -->
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="btn btn-outline-secondary general-amount-pill px-3 py-1 rounded-pill" onclick="setGeneralAmount(100)">৳১০০</button>
+                                <button type="button" class="btn btn-outline-secondary general-amount-pill px-3 py-1 rounded-pill" onclick="setGeneralAmount(250)">৳২৫০</button>
+                                <button type="button" class="btn btn-outline-secondary general-amount-pill px-3 py-1 rounded-pill active" onclick="setGeneralAmount(500)">৳৫০০</button>
+                                <button type="button" class="btn btn-outline-secondary general-amount-pill px-3 py-1 rounded-pill" onclick="setGeneralAmount(1000)">৳১,০০০</button>
+                                <button type="button" class="btn btn-outline-secondary general-amount-pill px-3 py-1 rounded-pill" onclick="setGeneralAmount(2000)">৳২,০০০</button>
+                                <button type="button" class="btn btn-outline-secondary general-amount-pill px-3 py-1 rounded-pill" onclick="setGeneralAmount(5000)">৳৫,০০০</button>
+                            </div>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
+                                <input type="number" class="form-control fw-bold fs-4 text-success" id="general_donation_amount" name="amount" value="500" min="10" required placeholder="টাকার পরিমাণ লিখুন">
+                            </div>
+                        </div>
+
+                        <!-- Step 2: General Donor Contact Details -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="donor_name" class="form-label fw-bold">আপনার নাম <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="donor_name" name="donor_name" required placeholder="যেমন: মো: আবদুর রহিম">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="donor_phone" class="form-label fw-bold">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="donor_phone" name="donor_phone" required placeholder="017XXXXXXXX">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="donor_email" class="form-label fw-bold">ইমেইল ঠিকানা <small class="text-muted">(ঐচ্ছিক)</small></label>
+                                <input type="email" class="form-control" id="donor_email" name="donor_email" placeholder="example@gmail.com">
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Automated Payment Gateway Showcase Box -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">
+                                <i class="fas fa-shield-alt text-success me-1"></i>নিরাপদ অনলাইন পেমেন্ট গেটওয়ে
+                            </label>
+                            <div class="p-3 bg-light border border-2 border-success-subtle rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                        <i class="fas fa-lock fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">বিকাশ, নগদ, রকেট, উপায় ও কার্ড পেমেন্ট</div>
+                                        <small class="text-muted">অনলাইন গেটওয়ের মাধ্যমে স্বয়ংক্রিয়ভাবে ট্রানজেকশন সম্পন্ন ও ভেরিফাই হবে।</small>
+                                    </div>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <span><strong>উত্তোলিত:</strong> ৳{{ campaign.raised_amount|floatformat:2 }}</span>
-                                    <span><strong>লক্ষ্য:</strong> ৳{{ campaign.goal_amount|floatformat:2 }}</span>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge bg-white text-dark border px-2 py-1 shadow-sm"><i class="fas fa-mobile-alt text-danger me-1"></i>bKash</span>
+                                    <span class="badge bg-white text-dark border px-2 py-1 shadow-sm"><i class="fas fa-wallet text-warning me-1"></i>Nagad</span>
+                                    <span class="badge bg-white text-dark border px-2 py-1 shadow-sm"><i class="fas fa-money-check-alt text-purple me-1"></i>Rocket</span>
+                                    <span class="badge bg-white text-dark border px-2 py-1 shadow-sm"><i class="fas fa-credit-card text-primary me-1"></i>Cards</span>
                                 </div>
                             </div>
-                            <div class="card-footer bg-white border-top-0">
-                                 <a href="#" class="btn btn-sm btn-success">বিস্তারিত ও দান</a>
-                            </div>
+                        </div>
+
+                        <!-- Optional Note Field -->
+                        <div class="mb-4">
+                            <label for="donation_note" class="form-label fw-bold">মন্তব্য বা দোয়া/পরামর্শ <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <textarea class="form-control" id="donation_note" name="note" rows="2" placeholder="আপনার কোনো বিশেষ নির্দেশনা বা বার্তা থাকলে লিখুন..."></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="text-center pt-2">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold px-5 py-3 rounded-pill shadow">
+                                <i class="fas fa-lock me-2"></i>অনলাইনে পেমেন্ট গেটওয়েতে যান &rarr;
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Transparency & Audit Section -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fas fa-shield-alt fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">১০০% স্বচ্ছতা ও হিসাব নিশ্চিতকরণ</h5>
+                        <p class="text-muted small mb-0">আপনার অনুদানের প্রতিটি টাকার ডিজিটাল হিসাব ও অডিট সংরক্ষণ করা হয়।</p>
+                    </div>
+                </div>
+                <div class="row g-3 text-center mt-1">
+                    {% for stat in statistics %}
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <i class="{{ stat.icon_class|default:'fas fa-chart-pie' }} fa-2x text-success mb-2"></i>
+                            <h4 class="fw-bold mb-1">{{ stat.value }}</h4>
+                            <p class="text-muted small mb-0">{{ stat.label }}</p>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-            </section>
-            {% endif %}
+            </div>
 
-            <!-- Payment Methods Section -->
-            <section id="payment-methods" class="mb-5">
-                <h2 class="mb-4 pb-2 border-bottom">দান পাঠানোর পদ্ধতি</h2>
-                <div class="p-4 border rounded-3 bg-white">
-                    <ul class="nav nav-tabs" id="payment-method-tab" role="tablist">
-                        {% for method in donation_methods %}
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link {% if forloop.first %}active{% endif %}" id="{{ method.name|slugify }}-tab" data-bs-toggle="tab" data-bs-target="#{{ method.name|slugify }}" type="button" role="tab" aria-controls="{{ method.name|slugify }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ method.name }}</button>
-                        </li>
-                        {% endfor %}
-                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="bank-transfer-tab" data-bs-toggle="tab" data-bs-target="#bank-transfer" type="button" role="tab" aria-controls="bank-transfer" aria-selected="false">ব্যাংক ট্রান্সফার</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content pt-4" id="payment-method-tabContent">
-                        {% for method in donation_methods %}
-                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="{{ method.name|slugify }}" role="tabpanel" aria-labelledby="{{ method.name|slugify }}-tab">
-                            <div class="row">
-                                {% for qr in method.qrcodes.all %}
-                                    <div class="col-md-6 text-center">
-                                        <img src="{{ qr.image.url }}" class="img-fluid rounded" alt="QR Code for {{ method.name }}" style="max-width: 200px;">
-                                        <p class="mt-2">{{ qr.details }}</p>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                        <div class="tab-pane fade" id="bank-transfer" role="tabpanel" aria-labelledby="bank-transfer-tab">
-                            {% for bank in banks %}
-                            <div class="mb-3 p-3 border rounded">
-                                <h5>{{ bank.bank_name }}</h5>
-                                <p><strong>Account Name:</strong> {{ bank.account_name }}</p>
-                                <p><strong>Account Number:</strong> {{ bank.account_number }}</p>
-                                {% if bank.branch %}<p><strong>Branch:</strong> {{ bank.branch }}</p>{% endif %}
-                                {% if bank.swift_code %}<p><strong>SWIFT Code:</strong> {{ bank.swift_code }}</p>{% endif %}
-                            </div>
-                            {% empty %}
-                            <p>Bank account details will be added soon.</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
             <!-- FAQ Section -->
             {% if faqs %}
-            <section id="faq" class="mb-5">
-                <h2 class="mb-4 pb-2 border-bottom">সাধারণ প্রশ্ন</h2>
-                <div class="accordion" id="faqAccordion">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-question-circle text-success me-2"></i>সাধারণ প্রশ্নোত্তর (FAQ)</h5>
+                <div class="accordion accordion-flush" id="faqAccordion">
                     {% for item in faqs %}
-                    <div class="accordion-item">
+                    <div class="accordion-item border rounded-3 mb-2 overflow-hidden">
                         <h2 class="accordion-header" id="heading{{ forloop.counter }}">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
                                 {{ item.question }}
                             </button>
                         </h2>
                         <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
+                            <div class="accordion-body text-secondary small">
                                 {{ item.answer|linebreaks }}
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-            </section>
+            </div>
             {% endif %}
 
-             <!-- Transparency Section -->
-            <section id="transparency" class="mb-5">
-                <h2 class="mb-4 pb-2 border-bottom">{{ content.transparency_title }}</h2>
-                <div class="p-4 border rounded-3 bg-white">
-                    <p>{{ content.transparency_text|linebreaks }}</p>
-                    <div class="row g-4 text-center mt-3">
-                        {% for stat in statistics %}
-                        <div class="col-md-4">
-                            <div class="p-3 border rounded">
-                                <i class="{{ stat.icon_class }} fa-2x text-success mb-2"></i>
-                                <h3 class="fw-bold">{{ stat.value }}</h3>
-                                <p class="text-muted">{{ stat.label }}</p>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
-
         </div>
-        <!-- Sidebar -->
+
+        <!-- Sidebar Section -->
         <div class="col-lg-4">
-            <!-- Donation Impact Section -->
+
+            <!-- Member Registration Invitation Box -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4 p-4 bg-white border-start border-success border-4">
+                <h6 class="fw-bold text-dark mb-2"><i class="fas fa-user-plus text-success me-2"></i>সংগঠনের সদস্য হতে চান?</h6>
+                <p class="small text-muted mb-3">হেল্পলাইন হ্যালো নওগাঁর সমাজকল্যাণমূলক কার্যক্রমে স্বেচ্ছাসেবক হিসেবে নিজেকে যুক্ত করতে ফরম পূরণ করুন।</p>
+                <a href="{% url 'volunteers:apply' %}" class="btn btn-outline-success btn-sm fw-bold w-100 rounded-pill">
+                    সদস্য হিসেবে রেজিস্ট্রেশন করুন &rarr;
+                </a>
+            </div>
+
+            <!-- Impact Section -->
             {% if impacts %}
-            <div class="card mb-4">
-                <div class="card-header">আপনার দানের প্রভাব</div>
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-header bg-success text-white py-3 px-4">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-seedling me-2"></i>আপনার সহায়তার প্রভাব</h6>
+                </div>
                 <div class="list-group list-group-flush">
                     {% for impact in impacts %}
-                    <div class="list-group-item d-flex align-items-center">
-                        <i class="{{ impact.icon_class }} fa-2x me-3 text-success"></i>
+                    <div class="list-group-item p-3 d-flex align-items-center gap-3">
+                        <div class="bg-success-subtle text-success p-2 rounded-circle">
+                            <i class="{{ impact.icon_class|default:'fas fa-heart' }} fa-lg"></i>
+                        </div>
                         <div>
-                           <strong>৳{{ impact.amount|floatformat:0 }}</strong> - {{ impact.description }}
+                            <div class="fw-bold text-success fs-6">৳{{ impact.amount|floatformat:0 }}</div>
+                            <div class="text-secondary small">{{ impact.description }}</div>
                         </div>
                     </div>
                     {% endfor %}
@@ -211,37 +229,249 @@
             </div>
             {% endif %}
 
-            <!-- Emergency Appeal Section -->
+            <!-- Emergency Appeal (if active) -->
             {% if emergency_appeals %}
-            <div class="card text-white bg-danger mb-4">
-                 {% for appeal in emergency_appeals %}
-                    {% if forloop.first %}
-                        <div class="card-header">{{ appeal.title }}</div>
-                        <div class="card-body">
-                            {% if appeal.image %}<img src="{{ appeal.image.url }}" class="img-fluid rounded mb-2" alt="{{ appeal.title }}">{% endif %}
-                            <p class="card-text">{{ appeal.description|truncatewords:30 }}</p>
-                            <a href="#" class="btn btn-light btn-sm">বিস্তারিত</a>
-                        </div>
+            {% for appeal in emergency_appeals %}
+            {% if forloop.first %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden text-white" style="background: linear-gradient(135deg, #c0392b 0%, #8a0303 100%);">
+                <div class="card-body p-4">
+                    <span class="badge bg-warning text-dark fw-bold mb-2">জরুরি আপিল</span>
+                    <h5 class="fw-bold mb-2">{{ appeal.title }}</h5>
+                    {% if appeal.image %}
+                    <img src="{{ appeal.image.url }}" class="img-fluid rounded mb-3" alt="{{ appeal.title }}">
                     {% endif %}
-                {% endfor %}
+                    <p class="small text-white-50 mb-3">{{ appeal.description|truncatewords:25 }}</p>
+                    <a href="#generalDonationForm" class="btn btn-warning btn-sm fw-bold px-3">
+                        <i class="fas fa-hand-holding-medical me-1"></i>এই তহবিলে দিন
+                    </a>
+                </div>
             </div>
             {% endif %}
+            {% endfor %}
+            {% endif %}
 
-            <!-- Contact for donation Section -->
-            <div class="card">
-                <div class="card-header">{{ content.contact_title }}</div>
-                <div class="card-body">
-                    {{ content.contact_text|linebreaks }}
+            <!-- Contact & Help Box (Synchronized from Site Settings) -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h6 class="fw-bold text-dark mb-3"><i class="fas fa-headset text-success me-2"></i>সাহায্য ও যোগাযোগ</h6>
+                <p class="small text-secondary mb-3">আর্থিক সহায়তা সংক্রান্ত যেকোনো তথ্য বা প্রশ্নের জন্য আমাদের প্রতিনিধিদলের সাথে সরাসরি যোগাযোগ করতে পারেন:</p>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fas fa-phone-alt text-success"></i>
+                    <a href="tel:{{ site_setting.contact_phone|default:'+8801748470965' }}" class="text-decoration-none fw-bold text-dark">{{ site_setting.contact_phone|default:'01748-470965' }}</a>
                 </div>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="fas fa-envelope text-success"></i>
+                    <a href="mailto:{{ site_setting.contact_email|default:'hello.naogaon@gmail.com' }}" class="text-decoration-none small text-secondary">{{ site_setting.contact_email|default:'hello.naogaon@gmail.com' }}</a>
+                </div>
+                <div class="small text-muted border-top pt-2">
+                    <i class="fas fa-map-marker-alt text-success me-1"></i>{{ site_setting.contact_address|default:"নওগাঁ সদর, নওগাঁ, বাংলাদেশ" }}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MEMBER POP-UP PAYMENT MODAL (পপ-আপ)        -->
+<!-- ========================================== -->
+<div class="modal fade" id="memberPaymentModal" tabindex="-1" aria-labelledby="memberPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="modal-header bg-success text-white py-3 px-4">
+                <div>
+                    <h5 class="modal-title fw-bold text-white mb-0" id="memberPaymentModalLabel">
+                        <i class="fas fa-id-card me-2"></i>সদস্য চাঁদা ও সহায়তা পরিশোধ
+                    </h5>
+                    <small class="text-white-50">সদস্য আইডি দিয়ে এক ক্লিকে পেমেন্ট সম্পন্ন করুন</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-4">
+                <form action="{% url 'donations:initiate_payment' %}" method="post" id="memberModalForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="donor_identity_type" value="member">
+                    <input type="hidden" name="frequency" id="modal_donation_frequency" value="{{ prefill_volunteer.contribution_frequency|default:'one_time' }}">
+
+                    <!-- Step 1: Member ID Input -->
+                    <div class="mb-3">
+                        <label for="modal_membership_id" class="form-label fw-bold text-dark">
+                            <i class="fas fa-hashtag text-success me-1"></i>আপনার সদস্য আইডি (Member ID) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light text-success fw-bold"><i class="fas fa-id-badge"></i></span>
+                            <input type="text" class="form-control fw-bold" id="modal_membership_id" name="membership_id" value="{{ member_id_param }}" placeholder="যেমন: 26082301" oninput="modalLookupMember(this.value)">
+                            <button class="btn btn-success fw-bold px-3" type="button" onclick="modalLookupMember(document.getElementById('modal_membership_id').value)">
+                                <i class="fas fa-search me-1"></i>যাচাই
+                            </button>
+                        </div>
+                        <div id="modalMemberFeedback" class="form-text small mt-1 text-muted">
+                            সদস্য আইডি লিখলে আপনার নাম ও প্রতিশ্রুত চাঁদা স্বয়ংক্রিয়ভাবে লোড হবে।
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Member Details & Amount (Shown when verified) -->
+                    <div id="modalMemberDetailsBox" class="{% if not prefill_volunteer %}d-none{% endif %}">
+                        
+                        <!-- Verified Member Card -->
+                        <div class="alert alert-success d-flex align-items-center p-3 rounded-4 mb-3 border-success">
+                            <div class="bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                <i class="fas fa-user-check fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold fs-5 text-dark" id="modalMemberName">{{ prefill_volunteer.full_name|default:'' }}</div>
+                                <div class="small text-muted d-flex align-items-center justify-content-between flex-wrap gap-1">
+                                    <span><i class="fas fa-phone-alt me-1 text-success"></i><span id="modalMemberPhone">{{ prefill_volunteer.phone|default:'' }}</span></span>
+                                    <span id="modalMemberPledgeTag" class="badge bg-success">
+                                        {{ prefill_volunteer.get_contribution_frequency_display|default:'নিয়মিত সহায়তা' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Amount Selection Box -->
+                        <div class="mb-3">
+                            <label for="modal_amount" class="form-label fw-bold text-dark mb-2">
+                                <i class="fas fa-money-bill-wave text-success me-1"></i>পরিশোধের পরিমাণ (BDT) <span class="text-danger">*</span>
+                            </label>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="btn btn-outline-secondary modal-amount-pill px-3 py-1 rounded-pill" onclick="setModalAmount(100)">৳১০০</button>
+                                <button type="button" class="btn btn-outline-secondary modal-amount-pill px-3 py-1 rounded-pill" onclick="setModalAmount(250)">৳২৫০</button>
+                                <button type="button" class="btn btn-outline-secondary modal-amount-pill px-3 py-1 rounded-pill {% if not prefill_volunteer.contribution_amount or prefill_volunteer.contribution_amount == 500 %}active{% endif %}" onclick="setModalAmount(500)">৳৫০০</button>
+                                <button type="button" class="btn btn-outline-secondary modal-amount-pill px-3 py-1 rounded-pill" onclick="setModalAmount(1000)">৳১,০০০</button>
+                                <button type="button" class="btn btn-outline-secondary modal-amount-pill px-3 py-1 rounded-pill" onclick="setModalAmount(2000)">৳২,০০০</button>
+                                <button type="button" class="btn btn-outline-secondary modal-amount-pill px-3 py-1 rounded-pill" onclick="setModalAmount(5000)">৳৫,০০০</button>
+                            </div>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
+                                <input type="number" class="form-control fw-bold fs-3 text-success" id="modal_amount" name="amount" value="{{ prefill_volunteer.contribution_amount|default:500 }}" min="10" required placeholder="টাকার পরিমাণ লিখুন" oninput="updateModalBtnAmount(this.value)">
+                            </div>
+                        </div>
+
+                        <!-- Optional Note Field -->
+                        <div class="mb-3">
+                            <label for="modal_note" class="form-label small fw-bold text-muted">মন্তব্য বা বিবরণ (ঐচ্ছিক)</label>
+                            <input type="text" class="form-control" id="modal_note" name="note" placeholder="যেমন: চলতি মাসের চাঁদা">
+                        </div>
+
+                        <!-- Submit Button to Gateway -->
+                        <div class="d-grid pt-2">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold py-3 rounded-pill shadow" id="modalSubmitBtn">
+                                <i class="fas fa-lock me-2"></i>অনলাইনে ৳<span id="modalPayBtnText">{{ prefill_volunteer.contribution_amount|default:500|floatformat:0 }}</span> পেমেন্ট গেটওয়েতে যান &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer bg-light py-2 px-4 justify-content-between text-muted small">
+                <span><i class="fas fa-info-circle text-primary me-1"></i>পেমেন্ট গেটওয়ে ইন্টিগ্রেশন শীঘ্রই আসছে</span>
+                <button type="button" class="btn btn-sm btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">বন্ধ করুন</button>
             </div>
         </div>
     </div>
-    
-    <!-- Thank You Section -->
-    <section id="thank-you" class="mt-5 text-center bg-light p-5 rounded-3">
-        <h2 class="fw-bold text-success">{{ content.thank_you_title }}</h2>
-        <p class="lead">{{ content.thank_you_text }}</p>
-    </section>
-
 </div>
+
+<script>
+let modalLookupTimeout = null;
+
+function setGeneralAmount(val) {
+    document.getElementById('general_donation_amount').value = val;
+    document.querySelectorAll('.general-amount-pill').forEach(function(pill) {
+        pill.classList.remove('active');
+        if (pill.innerText.includes(Number(val).toLocaleString('bn-BD')) || pill.innerText.includes(val)) {
+            pill.classList.add('active');
+        }
+    });
+}
+
+function setModalAmount(val) {
+    document.getElementById('modal_amount').value = val;
+    updateModalBtnAmount(val);
+    document.querySelectorAll('.modal-amount-pill').forEach(function(pill) {
+        pill.classList.remove('active');
+        if (pill.innerText.includes(Number(val).toLocaleString('bn-BD')) || pill.innerText.includes(val)) {
+            pill.classList.add('active');
+        }
+    });
+}
+
+function updateModalBtnAmount(val) {
+    var num = Number(val) || 0;
+    document.getElementById('modalPayBtnText').innerText = num.toLocaleString('bn-BD');
+}
+
+function modalLookupMember(memberId) {
+    if (modalLookupTimeout) clearTimeout(modalLookupTimeout);
+    
+    var trimmedId = (memberId || '').trim();
+    var feedbackDiv = document.getElementById('modalMemberFeedback');
+    var detailsBox = document.getElementById('modalMemberDetailsBox');
+    var freqInput = document.getElementById('modal_donation_frequency');
+
+    if (!trimmedId || trimmedId.length < 6) {
+        if (detailsBox) detailsBox.classList.add('d-none');
+        if (feedbackDiv) feedbackDiv.innerHTML = '<span class="text-muted">সদস্য আইডি লিখলে আপনার নাম ও প্রতিশ্রুত চাঁদা স্বয়ংক্রিয়ভাবে লোড হবে।</span>';
+        return;
+    }
+
+    modalLookupTimeout = setTimeout(async function() {
+        try {
+            const response = await fetch('/donations/api/member-pledge/?member_id=' + encodeURIComponent(trimmedId));
+            if (response.ok) {
+                const data = await response.json();
+                if (data.found) {
+                    if (feedbackDiv) feedbackDiv.innerHTML = '<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>সদস্য পাওয়া গেছে: ' + data.full_name + '</span>';
+                    
+                    document.getElementById('modalMemberName').innerText = data.full_name;
+                    document.getElementById('modalMemberPhone').innerText = data.phone;
+                    
+                    if (data.frequency_display) {
+                        document.getElementById('modalMemberPledgeTag').innerText = data.frequency_display;
+                    }
+                    if (freqInput) freqInput.value = data.frequency || 'one_time';
+
+                    if (data.amount && data.amount > 0) {
+                        setModalAmount(data.amount);
+                    } else {
+                        setModalAmount(500);
+                    }
+
+                    if (detailsBox) detailsBox.classList.remove('d-none');
+                } else {
+                    if (detailsBox) detailsBox.classList.add('d-none');
+                    if (feedbackDiv) feedbackDiv.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>সদস্য আইডি পাওয়া যায়নি। অনুগ্রহ করে সঠিক আইডি লিখুন।</span>';
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching member details:', err);
+        }
+    }, 300);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var memInput = document.getElementById('modal_membership_id');
+    if (memInput && memInput.value.trim()) {
+        // Auto open modal and lookup member
+        var modalEl = document.getElementById('memberPaymentModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            var myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
+        }
+        modalLookupMember(memInput.value.trim());
+    }
+});
+</script>
+
+<style>
+.general-amount-pill.active,
+.modal-amount-pill.active {
+    background-color: #198754 !important;
+    color: #fff !important;
+    border-color: #198754 !important;
+}
+</style>
 {% endblock %}

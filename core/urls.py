@@ -6,7 +6,7 @@ app_name = 'core'
 urlpatterns = [
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
-    path('contact/', views.contact, name='contact'),
+
     
     # Custom Section-by-Section Card Control Admin Dashboard
     path('dashboard/', views_dashboard.dashboard_home, name='dashboard'),
@@ -14,6 +14,8 @@ urlpatterns = [
     path('dashboard/update-about/', views_dashboard.update_about_section, name='update_about'),
     path('dashboard/delete-about-image/<int:pk>/', views_dashboard.delete_about_image, name='delete_about_image'),
     path('dashboard/update-stats/', views_dashboard.update_stat_counters, name='update_stats'),
+    path('dashboard/save-stat-counter/', views_dashboard.save_stat_counter, name='save_stat_counter'),
+    path('dashboard/delete-stat-counter/<int:pk>/', views_dashboard.delete_stat_counter, name='delete_stat_counter'),
     path('dashboard/save-program/', views_dashboard.save_program, name='save_program'),
     path('dashboard/delete-program/<int:pk>/', views_dashboard.delete_program, name='delete_program'),
     path('dashboard/save-news/', views_dashboard.save_news, name='save_news'),
@@ -40,5 +42,7 @@ urlpatterns = [
     path('dashboard/print-statement/', views_dashboard.print_financial_statement, name='print_statement'),
     path('dashboard/save-gallery/', views_dashboard.save_gallery_photo, name='save_gallery'),
     path('dashboard/update-footer/', views_dashboard.update_footer_section, name='update_footer'),
+    path('dashboard/approve-donation/<int:pk>/', views_dashboard.approve_program_donation, name='approve_donation'),
+    path('dashboard/delete-donation/<int:pk>/', views_dashboard.delete_program_donation, name='delete_donation'),
 ]
 

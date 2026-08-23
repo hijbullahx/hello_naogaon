@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}অনুদান প্রাপ্তি রশিদ #{{ donation.id }} - হেল্পলাইন হ্যালো নওগাঁ{% endblock %}
+
+{% block content %}
+<div class="bg-light py-5">
+    <div class="container py-3">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+
+                <!-- Success Confirmation Header -->
+                <div class="text-center mb-4">
+                    <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 72px; height: 72px;">
+                        <i class="fas fa-check fa-3x"></i>
+                    </div>
+                    <h3 class="fw-bold text-success">আর্থিক সহায়তা সফলভাবে সম্পন্ন হয়েছে!</h3>
+                    <p class="text-secondary">আপনার অনুদান আমাদের সমাজকল্যাণমূলক কার্যক্রমে গুরুত্বপূর্ণ ভূমিকা রাখবে। নিচে আপনার অফিসিয়াল ডিজিটাল রশিদ দেওয়া হলো:</p>
+                </div>
+
+                <!-- Printable Receipt Card -->
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4 bg-white" id="printableReceipt">
+                    <!-- Top Ribbon -->
+                    <div class="bg-success text-white p-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h4 class="fw-bold mb-0 text-white">হেল্পলাইন হ্যালো নওগাঁ</h4>
+                            <small class="text-white-50">একটি অরাজনৈতিক ও স্বেচ্ছাসেবী মানবিক সংগঠন | নওগাঁ, বাংলাদেশ</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-white text-success fs-6 fw-bold px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i>পরিশোধিত (PAID)
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Receipt Body -->
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 flex-wrap gap-2">
+                            <div>
+                                <span class="text-muted small">রশিদ নম্বর (Receipt No):</span>
+                                <div class="fw-bold text-dark font-monospace fs-5">HN-REC-{{ donation.id|stringformat:"06d" }}</div>
+                            </div>
+                            <div class="text-md-end">
+                                <span class="text-muted small">তারিখ ও সময়:</span>
+                                <div class="fw-bold text-dark">{{ donation.created_at|date:"d F Y, h:i A" }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Donor & Contribution Details Table -->
+                        <div class="table-responsive mb-4">
+                            <table class="table table-borderless table-striped align-middle mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted" style="width: 35%;">সহায়তাকারীর নাম:</td>
+                                        <td class="fw-bold text-dark fs-6">{{ donation.donor_name }}</td>
+                                    </tr>
+                                    {% if donation.membership_id %}
+                                    <tr>
+                                        <td class="text-muted">সদস্য আইডি (Member ID):</td>
+                                        <td class="fw-bold text-success font-monospace">{{ donation.membership_id }} (নিবন্ধিত সদস্য)</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td class="text-muted">মোবাইল নম্বর:</td>
+                                        <td class="fw-bold text-dark">{{ donation.donor_phone }}</td>
+                                    </tr>
+                                    {% if donation.donor_email %}
+                                    <tr>
+                                        <td class="text-muted">ইমেইল ঠিকানা:</td>
+                                        <td class="text-dark">{{ donation.donor_email }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td class="text-muted">সহায়তার খাত:</td>
+                                        <td class="text-dark">{{ donation.get_donation_type_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">পেমেন্ট গেটওয়ে চ্যানেল:</td>
+                                        <td class="fw-bold text-dark"><span class="badge bg-success-subtle text-success border px-2 py-1">{{ donation.payment_method }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">ট্রানজেকশন আইডি (TrxID):</td>
+                                        <td class="fw-bold font-monospace text-primary">{{ donation.trx_id|default:donation.tran_id }}</td>
+                                    </tr>
+                                    {% if donation.note %}
+                                    <tr>
+                                        <td class="text-muted">মন্তব্য / বার্তা:</td>
+                                        <td class="text-secondary small">{{ donation.note }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Amount Highlight Box -->
+                        <div class="bg-light p-4 rounded-4 border d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                            <div>
+                                <span class="text-muted small d-block">প্রদত্ত মোট সহায়তার পরিমাণ:</span>
+                                <span class="text-success fw-bold fs-2">৳{{ donation.amount|floatformat:2 }} BDT</span>
+                            </div>
+                            <div class="text-end">
+                                <div class="badge bg-success text-white px-3 py-2">অটোমেটেড গেটওয়ে ভেরিফাইড</div>
+                            </div>
+                        </div>
+
+                        <!-- Receipt Footer & Stamp -->
+                        <div class="row pt-4 border-top align-items-center">
+                            <div class="col-sm-6 text-muted small mb-3 mb-sm-0">
+                                <em>এটি একটি কম্পিউটার জেনারেটেড ডিজিটাল মানি রিসিট। এতে কোনো সিল বা স্বাক্ষরের প্রয়োজন নেই।</em>
+                            </div>
+                            <div class="col-sm-6 text-sm-end">
+                                <div class="text-muted small">অনুমোদনকারী:</div>
+                                <div class="fw-bold text-dark">হেল্পলাইন হ্যালো নওগাঁ ফাইন্যান্স টিম</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receipt Actions -->
+                <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap no-print">
+                    <button type="button" class="btn btn-outline-dark px-4 py-2 rounded-pill shadow-sm" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>রশিদ প্রিন্ট করুন
+                    </button>
+                    <a href="{% url 'donations:donate' %}" class="btn btn-success px-4 py-2 rounded-pill shadow-sm">
+                        <i class="fas fa-hand-holding-heart me-1"></i>পুনরায় সহায়তা করুন
+                    </a>
+                    <a href="{% url 'core:home' %}" class="btn btn-outline-secondary px-4 py-2 rounded-pill shadow-sm">
+                        <i class="fas fa-home me-1"></i>মূল পাতা
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .no-print, header, footer, .navbar {
+        display: none !important;
+    }
+    body, .bg-light {
+        background-color: #fff !important;
+    }
+    #printableReceipt {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
+</style>
+{% endblock %}

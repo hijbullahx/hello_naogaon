@@ -3,6 +3,13 @@
 from django.db import migrations, models
 
 
+def convert_to_utf8mb4(apps, schema_editor):
+    if schema_editor.connection.vendor == 'mysql':
+        schema_editor.execute(
+            "ALTER TABLE core_sitesetting CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+        )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,10 +17,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql="ALTER TABLE core_sitesetting CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;",
-            reverse_sql=migrations.RunSQL.noop,
-        ),
+        migrations.RunPython(convert_to_utf8mb4, reverse_code=migrations.RunPython.noop),
         migrations.AddField(
             model_name='sitesetting',
             name='about_heading',

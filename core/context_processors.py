@@ -1,9 +1,24 @@
+from core.models import SiteSetting
 from volunteers.models import BloodDonor, Volunteer
 from programs.models import Program
 from news.models import Article
-from core.models import ContactMessage
 from gallery.models import Photo
 from donations.models import Bank
+
+def site_settings_context(request):
+    """
+    Global context processor to ensure a single source of truth for organization contact info.
+    Synchronizes Phone, Email, Address, Google Map, Social links across the entire project.
+    """
+    try:
+        setting = SiteSetting.objects.first()
+        if not setting:
+            setting, _ = SiteSetting.objects.get_or_create(pk=1)
+    except Exception:
+        setting = None
+    return {
+        'site_setting': setting,
+    }
 
 def admin_dashboard_stats(request):
     """
@@ -14,7 +29,6 @@ def admin_dashboard_stats(request):
         total_volunteers = Volunteer.objects.count()
         ongoing_programs = Program.objects.filter(status='ongoing').count()
         total_articles = Article.objects.filter(is_published=True).count()
-        unread_messages = ContactMessage.objects.filter(is_read=False).count()
         total_photos = Photo.objects.count()
         total_banks = Bank.objects.count()
     except Exception:
@@ -22,7 +36,6 @@ def admin_dashboard_stats(request):
         total_volunteers = 0
         ongoing_programs = 0
         total_articles = 0
-        unread_messages = 0
         total_photos = 0
         total_banks = 0
 
@@ -32,7 +45,6 @@ def admin_dashboard_stats(request):
             'total_volunteers': total_volunteers,
             'ongoing_programs': ongoing_programs,
             'total_articles': total_articles,
-            'unread_messages': unread_messages,
             'total_photos': total_photos,
             'total_banks': total_banks,
         }

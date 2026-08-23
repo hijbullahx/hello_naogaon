@@ -3,9 +3,9 @@ from .models import Volunteer, TeamMember, BloodDonor
 
 @admin.register(Volunteer)
 class VolunteerAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'email', 'phone', 'status', 'application_date')
-    list_filter = ('status',)
-    search_fields = ('full_name', 'email', 'phone')
+    list_display = ('member_id', 'full_name', 'phone', 'blood_group', 'is_public_details', 'status', 'application_date')
+    list_filter = ('status', 'blood_group', 'is_public_details')
+    search_fields = ('member_id', 'full_name', 'email', 'phone', 'blood_group')
     list_per_page = 20
 
 @admin.register(TeamMember)
@@ -16,9 +16,8 @@ class TeamMemberAdmin(admin.ModelAdmin):
 
 @admin.register(BloodDonor)
 class BloodDonorAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'blood_group', 'phone', 'location', 'last_donated', 'is_available')
-    list_filter = ('blood_group', 'is_available', 'location')
-    search_fields = ('full_name', 'phone', 'location')
-    list_editable = ('is_available',)
+    list_display = ('full_name', 'member_id', 'blood_group', 'phone', 'location', 'last_donated', 'is_public_details', 'is_available')
+    list_filter = ('blood_group', 'is_available', 'is_public_details', 'location')
+    search_fields = ('full_name', 'member_id', 'phone', 'location')
+    list_editable = ('is_available', 'is_public_details')
     list_per_page = 20
-

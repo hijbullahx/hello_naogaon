@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="bn-bd">
+<html lang="bn-BD" id="hn-html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,43 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* ── Language Toggle Button ── */
+        #hn-lang-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1.5px solid #198754;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #198754;
+            transition: all 0.2s ease;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        #hn-lang-toggle:hover {
+            background: #198754;
+            color: #fff;
+        }
+        #hn-lang-toggle .hn-lang-active {
+            background: #198754;
+            color: #fff;
+            border-radius: 12px;
+            padding: 1px 7px;
+            font-size: 0.75rem;
+        }
+        #hn-lang-toggle:hover .hn-lang-active {
+            background: rgba(255,255,255,0.2);
+        }
+        .hn-lang-divider {
+            opacity: 0.4;
+            font-weight: 300;
+        }
+    </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -28,7 +65,6 @@
                     {% if site_setting.youtube_url %}<a href="{{ site_setting.youtube_url }}" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>{% endif %}
                     {% if site_setting.whatsapp_number %}<a href="https://wa.me/{{ site_setting.whatsapp_number }}" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>{% endif %}
                 </div>
-                <a href="{% url 'core:contact' %}" class="btn-contact ms-2 text-white">যোগাযোগ করুন</a>
             </div>
         </div>
     </div>
@@ -46,8 +82,8 @@
                 {% endif %}
                 <div class="lh-1">
                     <div class="brand-title">{{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}</div>
-                    <div class="brand-tagline">মানব সেবায় আমরা</div>
-                    <div class="brand-subtagline">একটি অরাজনৈতিক সংগঠন</div>
+                    <div class="brand-tagline" data-i18n="brand.tagline">মানব সেবায় আমরা</div>
+                    <div class="brand-subtagline" data-i18n="brand.subtagline">একটি অরাজনৈতিক সংগঠন</div>
                 </div>
             </a>
 
@@ -58,58 +94,62 @@
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-semibold align-items-lg-center">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'core:home' %}">হোম</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'core:home' %}" data-i18n="nav.home">হোম</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'core:about' %}">আমাদের সম্পর্কে</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'core:about' %}" data-i18n="nav.about">আমাদের সম্পর্কে</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_name == 'programs' %}active{% endif %}" href="{% url 'programs:program_list' %}">কার্যক্রম</a>
+                        <a class="nav-link {% if request.resolver_match.app_name == 'programs' %}active{% endif %}" href="{% url 'programs:program_list' %}" data-i18n="nav.programs">কার্যক্রম</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'blood_donors' %}active{% endif %}" href="{% url 'volunteers:blood_donors' %}">রক্তদাতা</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'blood_donors' %}active{% endif %}" href="{% url 'volunteers:blood_donors' %}" data-i18n="nav.blood_donors">রক্তদাতা</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'apply' %}active{% endif %}" href="{% url 'volunteers:apply' %}">স্বেচ্ছাসেবক</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'apply' %}active{% endif %}" href="{% url 'volunteers:apply' %}" data-i18n="nav.volunteers">স্বেচ্ছাসেবক</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_name == 'news' %}active{% endif %}" href="{% url 'news:article_list' %}">সংবাদ</a>
+                        <a class="nav-link {% if request.resolver_match.app_name == 'news' %}active{% endif %}" href="{% url 'news:article_list' %}" data-i18n="nav.news">সংবাদ</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_name == 'gallery' %}active{% endif %}" href="{% url 'gallery:gallery_view' %}">গ্যালারি</a>
+                        <a class="nav-link {% if request.resolver_match.app_name == 'gallery' %}active{% endif %}" href="{% url 'gallery:gallery_view' %}" data-i18n="nav.gallery">গ্যালারি</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_name == 'donations' %}active{% endif %}" href="{% url 'donations:donate' %}">দান করুন</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}" href="{% url 'core:contact' %}">যোগাযোগ</a>
+                        <a class="nav-link {% if request.resolver_match.app_name == 'donations' %}active{% endif %}" href="{% url 'donations:donate' %}" data-i18n="nav.donate">আর্থিক সহায়তা</a>
                     </li>
                 </ul>
 
+                <!-- Language Toggle Button -->
+                <button id="hn-lang-toggle" onclick="HN_I18N.toggle()" class="ms-lg-3" title="Switch Language / ভাষা পরিবর্তন">
+                    <i class="fas fa-language"></i>
+                    <span class="hn-lang-active">বাং</span>
+                    <span class="hn-lang-divider">|</span>
+                    <span class="hn-lang-en" style="display:none;">EN</span>
+                    <span class="hn-lang-bn" style="display:none;">বাং</span>
+                </button>
+
                 {% if user.is_authenticated %}
-                <div class="dropdown ms-lg-3">
+                <div class="dropdown ms-lg-2">
                     <button class="btn btn-sm btn-outline-success dropdown-toggle fw-bold" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user-circle me-1"></i> {{ user.username }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenu">
                         {% if user.is_staff %}
-                        <li><a class="dropdown-item fw-bold text-success" href="{% url 'core:dashboard' %}"><i class="fas fa-sliders-h me-2"></i>ড্যাশবোর্ড প্যানেল</a></li>
+                        <li><a class="dropdown-item" href="{% url 'core:dashboard' %}"><i class="fas fa-tachometer-alt me-2 text-success"></i> <span data-i18n="nav.dashboard">অ্যাডমিন ড্যাশবোর্ড</span></a></li>
                         <li><hr class="dropdown-divider"></li>
                         {% endif %}
                         <li>
                             <form action="{% url 'logout' %}" method="post" class="d-inline">
                                 {% csrf_token %}
-                                <button type="submit" class="dropdown-item text-danger"><i class="fas fa-sign-out-alt me-2"></i>লগআউট</button>
+                                <button type="submit" class="dropdown-item text-danger"><i class="fas fa-sign-out-alt me-2"></i> <span data-i18n="nav.logout">লগআউট</span></button>
                             </form>
                         </li>
                     </ul>
                 </div>
                 {% else %}
-                <div class="ms-lg-3 mt-2 mt-lg-0">
-                    <a href="{% url 'login' %}" class="btn btn-sm btn-success fw-bold px-3 py-1 shadow-sm d-inline-flex align-items-center gap-1">
-                        <i class="fas fa-sign-in-alt me-1"></i> Log In
-                    </a>
-                </div>
+                <a href="{% url 'login' %}" class="btn btn-sm btn-outline-success ms-lg-2 fw-bold">
+                    <i class="fas fa-sign-in-alt me-1"></i> <span data-i18n="nav.login">লগইন</span>
+                </a>
                 {% endif %}
             </div>
         </div>
@@ -127,42 +167,50 @@
     </div>
     {% endif %}
 
-    <!-- Main Body Content -->
-    <main>
+    <!-- Main Content -->
+    <main class="flex-grow-1">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer>
+    <footer class="footer bg-dark text-white pt-5 pb-3">
         <div class="container">
-            <div class="row g-4">
-                <!-- Col 1: About Organization -->
+            <div class="row g-4 mb-4">
+                <!-- Col 1: Org Info -->
                 <div class="col-lg-4 col-md-6">
-                    <h5 class="d-flex align-items-center gap-2">
-                        <i class="fas fa-hands-helping text-success"></i>
-                        {{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}
-                    </h5>
-                    <p class="text-white-50 small mt-3">
-                        {{ site_setting.about_text|default:"Helpline Hello Naogaon একটি অরাজনৈতিক ও মানবসেবামূলক সংগঠন। রক্তদান, খাদ্য বিতরণ, শীতবস্ত্র বিতরণ ও জরুরি সহায়তায় নিবেদিত।"|truncatewords:25 }}
+                    <div class="footer-logo mb-3">
+                        <h4 class="fw-bold text-success mb-1">
+                            <i class="fas fa-hands-helping me-2"></i>{{ site_setting.site_name|default:"হেল্পলাইন হ্যালো নওগাঁ" }}
+                        </h4>
+                        <p class="text-white-50 small mb-0">{{ site_setting.tagline|default:"মানবতার সেবায় আমরা আছি আপনার পাশে" }}</p>
+                    </div>
+                    <p class="text-white-50 small mb-3">
+                        {{ site_setting.about_text|default:"নওগাঁ জেলার অসহায়, দরিদ্র ও সুবিধা বঞ্চিত মানুষের সার্বিক সহায়তা এবং সামাজিক উন্নয়নে নিবেদিত একটি স্বেচ্ছাসেবী প্রতিষ্ঠান।"|truncatewords:25 }}
                     </p>
+                    <div class="footer-social d-flex gap-2">
+                        {% if site_setting.facebook_url %}<a href="{{ site_setting.facebook_url }}" target="_blank" class="social-icon"><i class="fab fa-facebook-f"></i></a>{% endif %}
+                        {% if site_setting.youtube_url %}<a href="{{ site_setting.youtube_url }}" target="_blank" class="social-icon"><i class="fab fa-youtube"></i></a>{% endif %}
+                        {% if site_setting.twitter_url %}<a href="{{ site_setting.twitter_url }}" target="_blank" class="social-icon"><i class="fab fa-twitter"></i></a>{% endif %}
+                        {% if site_setting.instagram_url %}<a href="{{ site_setting.instagram_url }}" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>{% endif %}
+                    </div>
                 </div>
 
                 <!-- Col 2: Quick Links -->
                 <div class="col-lg-2 col-md-6">
-                    <h5>দ্রুত লিঙ্ক</h5>
+                    <h5 data-i18n="footer.quick_links">দ্রুত লিঙ্ক</h5>
                     <ul class="list-unstyled footer-links">
-                        <li><a href="{% url 'core:home' %}"><i class="fas fa-angle-right me-1 text-success"></i> হোম</a></li>
-                        <li><a href="{% url 'core:about' %}"><i class="fas fa-angle-right me-1 text-success"></i> আমাদের সম্পর্কে</a></li>
-                        <li><a href="{% url 'programs:program_list' %}"><i class="fas fa-angle-right me-1 text-success"></i> কার্যক্রম</a></li>
-                        <li><a href="{% url 'volunteers:blood_donors' %}"><i class="fas fa-angle-right me-1 text-success"></i> রক্তদাতা</a></li>
-                        <li><a href="{% url 'volunteers:apply' %}"><i class="fas fa-angle-right me-1 text-success"></i> স্বেচ্ছাসেবক</a></li>
-                        <li><a href="{% url 'donations:donate' %}"><i class="fas fa-angle-right me-1 text-success"></i> দান করুন</a></li>
+                        <li><a href="{% url 'core:home' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.home">হোম</span></a></li>
+                        <li><a href="{% url 'core:about' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.about">আমাদের সম্পর্কে</span></a></li>
+                        <li><a href="{% url 'programs:program_list' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.programs">কার্যক্রম</span></a></li>
+                        <li><a href="{% url 'volunteers:blood_donors' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.blood_donors">রক্তদাতা</span></a></li>
+                        <li><a href="{% url 'volunteers:apply' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.volunteers">স্বেচ্ছাসেবক</span></a></li>
+                        <li><a href="{% url 'donations:donate' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.donate">আর্থিক সহায়তা</span></a></li>
                     </ul>
                 </div>
 
                 <!-- Col 3: Contact Info -->
                 <div class="col-lg-3 col-md-6">
-                    <h5>যোগাযোগ</h5>
+                    <h5 data-i18n="footer.contact">যোগাযোগ</h5>
                     <ul class="list-unstyled footer-contact text-white-50 small">
                         <li class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-map-marker-alt text-success"></i>
@@ -181,29 +229,27 @@
 
                 <!-- Col 4: Location Map -->
                 <div class="col-lg-3 col-md-6">
-                    <h5>আমাদের অবস্থান</h5>
-                    <div class="rounded overflow-hidden shadow-sm" style="height: 150px;">
-                        {% if site_setting.google_map_embed_url %}
-                            {{ site_setting.google_map_embed_url|safe }}
-                        {% else %}
-                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14515.77259163777!2d88.7516806!3d24.8105741!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39fc96fb24aa7a8d%3A0x7d0251aa3d4be0c2!2sNaogaon%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd" 
-                                width="100%" height="150" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                        {% endif %}
+                    <h5 data-i18n="footer.location">আমাদের অবস্থান</h5>
+                    <div class="rounded overflow-hidden shadow-sm" style="height: 150px; width: 100%;">
+                        {{ site_setting.google_map_embed_html|safe }}
                     </div>
                 </div>
             </div>
 
             <!-- Bottom Copyright Bar -->
-            <div class="footer-bottom-bar d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-                <div>&copy; {% now "Y" %} Helpline Hello Naogaon. All Rights Reserved.</div>
-                <div>Developed with <i class="fas fa-heart text-danger"></i> for Humanity</div>
+            <div class="footer-bottom-bar text-center py-3 border-top border-secondary-subtle mt-4">
+                <div class="small">
+                    &copy; {% now "Y" %} Helpline Hello Naogaon — All Rights Reserved | Developed by 
+                    <a href="https://hijbullah.me/" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none fw-bold">Md. Taher Bin Omar Hijbullah</a>
+                </div>
             </div>
         </div>
     </footer>
 
     <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- i18n Translation Engine -->
+    <script src="{% static 'js/i18n.js' %}"></script>
     {% include 'includes/program_donation_modal.html' %}
     {% block extra_js %}{% endblock %}
 </body>

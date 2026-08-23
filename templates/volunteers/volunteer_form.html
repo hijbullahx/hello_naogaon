@@ -1,61 +1,91 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}স্বেচ্ছাসেবক ও টিম সদস্যবৃন্দ - {{ site_setting.title }}{% endblock %}
+{% block title %}স্বেচ্ছাসেবক ও সদস্য তালিকা - {{ site_setting.title }}{% endblock %}
 
 {% block content %}
 <!-- Page Header Banner -->
 <div class="bg-success text-white py-4 mb-4" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%) !important;">
     <div class="container text-center">
-        <h2 class="fw-bold mb-1"><i class="fas fa-users me-2"></i>স্বেচ্ছাসেবক ও সদস্য তালিকা</h2>
-        <p class="mb-3 text-white-50">নওগাঁর সেবায় নিয়োজিত আমাদের নিবেদিতপ্রাণ সদস্য ও স্বেচ্ছাসেবকবৃন্দ</p>
+        <h2 class="fw-bold mb-1"><i class="fas fa-users me-2"></i><span data-i18n="vol.title">স্বেচ্ছাসেবক ও সদস্য তালিকা</span></h2>
+        <p class="mb-3 text-white-50">মানব সেবায় নিবেদিত Helpline Hello Naogaon-এর নিবন্ধিত সকল সদস্য ও স্বেচ্ছাসেবকবৃন্দ</p>
         <button type="button" class="btn btn-warning fw-bold px-4 py-2 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#joinVolunteerModal">
-            <i class="fas fa-user-plus me-2"></i>স্বেচ্ছাসেবক হিসেবে যোগ দিন
+            <i class="fas fa-user-plus me-2"></i><span data-i18n="vol.submit">স্বেচ্ছাসেবক হিসেবে রেজিস্ট্রেশন করুন</span>
         </button>
     </div>
 </div>
 
 <div class="container mb-5">
 
-    <!-- 1. Team Members / Leadership Grid Section -->
-    <div class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold text-success mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও পরিচালনা পর্ষদ</h4>
-            <span class="badge bg-success rounded-pill px-3">{{ team_members.count|default:"3" }} জন সদস্য</span>
-        </div>
-
-        <div class="row g-4">
-            {% for member in team_members %}
-            <div class="col-md-4 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm text-center p-3 rounded-3">
-                    {% if member.image %}
-                        <img src="{{ member.image.url }}" class="rounded-circle mx-auto mb-3 border border-3 border-success p-1" style="width: 110px; height: 110px; object-fit: cover;" alt="{{ member.name }}">
-                    {% else %}
-                        <div class="bg-success text-white rounded-circle mx-auto mb-3 d-flex justify-content-center align-items-center border border-3 border-white shadow-sm" style="width: 110px; height: 110px;">
-                            <i class="fas fa-user-tie fa-3x"></i>
-                        </div>
-                    {% endif %}
-                    <h5 class="fw-bold text-dark mb-1">{{ member.name }}</h5>
-                    <div class="badge bg-success-subtle text-success border border-success mb-2 px-3 py-1">{{ member.role }}</div>
-                    {% if member.bio %}
-                        <p class="text-secondary small mb-0">{{ member.bio|truncatewords:15 }}</p>
-                    {% endif %}
+    <!-- 1. Search Bar & Filter Section -->
+    <div class="card border-0 shadow-sm p-3 mb-4 bg-white rounded-3 border-top border-4 border-success">
+        <form method="get" action="{% url 'volunteers:apply' %}" id="volunteerFilterForm" class="row g-3">
+            <!-- Row 1: Search Query + Blood Group -->
+            <div class="col-lg-7">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-search me-1 text-success"></i>অনুসন্ধান</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-success"><i class="fas fa-search"></i></span>
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="সদস্য আইডি (যেমন: 26082301), নাম, গ্রাম/মহল্লা বা মোবাইল...">
                 </div>
             </div>
-            {% empty %}
-            <div class="col-12 text-center py-4 text-muted">
-                <p class="mb-0">কোনো টিম মেম্বার তথ্য পাওয়া যায়নি।</p>
+            <div class="col-lg-5">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-tint me-1 text-danger"></i>রক্তের গ্রুপ</label>
+                <select name="group" class="form-select">
+                    <option value="">সকল রক্তের গ্রুপ</option>
+                    {% for bg in groups %}
+                        <option value="{{ bg }}" {% if blood_group_filter == bg %}selected{% endif %}>{{ bg }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            {% endfor %}
-        </div>
+
+            <!-- Row 2: Cascading Address Filters (Division, District, Thana/Upazila) -->
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-map-marker-alt me-1 text-success"></i>বিভাগ ফিল্টার</label>
+                <select name="division" class="form-select filter-division-select" 
+                    data-district-target="filter_vol_district" 
+                    data-upazila-target="filter_vol_upazila"
+                    data-selected-val="{{ selected_division }}">
+                    <option value="">সকল বিভাগ</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-city me-1 text-success"></i>জেলা ফিল্টার</label>
+                <select name="district" id="filter_vol_district" class="form-select filter-district-select"
+                    data-upazila-target="filter_vol_upazila"
+                    data-selected-val="{{ selected_district }}">
+                    <option value="">সকল জেলা</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-building me-1 text-success"></i>থানা / উপজেলা ফিল্টার</label>
+                <select name="upazila" id="filter_vol_upazila" class="form-select filter-upazila-select"
+                    data-selected-val="{{ selected_upazila }}">
+                    <option value="">সকল থানা / উপজেলা</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end gap-1">
+                <button type="submit" class="btn btn-success fw-bold w-100"><i class="fas fa-filter me-1"></i>ফিল্টার</button>
+                {% if search_query or blood_group_filter or selected_division or selected_district or selected_upazila %}
+                    <a href="{% url 'volunteers:apply' %}" class="btn btn-outline-secondary" title="রিসেট"><i class="fas fa-undo"></i></a>
+                {% endif %}
+            </div>
+        </form>
     </div>
 
     <!-- 2. Registered Volunteers Member List Section -->
-    <div>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold text-dark mb-0"><i class="fas fa-hands-helping text-success me-2"></i>নিবন্ধিত স্বেচ্ছাসেবকবৃন্দ</h4>
-            <button type="button" class="btn btn-outline-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#joinVolunteerModal">
-                <i class="fas fa-plus me-1"></i> আপনিও যোগ দিন
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="fw-bold text-dark mb-0">
+                <i class="fas fa-id-card text-success me-2"></i>নিবন্ধিত স্বেচ্ছাসেবক ও সদস্যবৃন্দ 
+                {% if volunteers_list %}
+                    <span class="badge bg-success rounded-pill fs-6 ms-2">{{ volunteers_list.count }} জন</span>
+                {% endif %}
+            </h4>
+            <button type="button" class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#joinVolunteerModal">
+                <i class="fas fa-user-plus me-1"></i> নতুন সদস্য হন
             </button>
         </div>
 
@@ -64,27 +94,155 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th>#</th>
-                            <th>স্বেচ্ছাসেবকের নাম</th>
-                            <th>ফোন নম্বর</th>
-                            <th>ঠিকানা / এলাকা</th>
-                            <th>যোগদানের তারিখ</th>
-                            <th>স্ট্যাটাস</th>
+                            <th>সদস্য আইডি</th>
+                            <th>ছবি</th>
+                            <th>সদস্যের নাম</th>
+                            <th>রক্তের গ্রুপ</th>
+                            <th>মোবাইল নম্বর</th>
+                            <th>ঠিকানা</th>
+                            <th>পেশা</th>
+                            <th>বিস্তারিত</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for vol in volunteers_list %}
                         <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td class="fw-bold text-dark">{{ vol.full_name }}</td>
-                            <td><a href="tel:{{ vol.phone }}" class="text-success text-decoration-none fw-semibold"><i class="fas fa-phone me-1"></i> {{ vol.phone }}</a></td>
-                            <td>{{ vol.address|default:"নওগাঁ" }}</td>
-                            <td><small class="text-secondary">{{ vol.application_date|date:"d M Y" }}</small></td>
-                            <td><span class="badge bg-success">{{ vol.status }}</span></td>
+                            <td>
+                                <span class="badge bg-success fs-6 fw-bold px-3 py-2">
+                                    <i class="fas fa-barcode me-1"></i>{{ vol.member_id|default:"N/A" }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if vol.image %}
+                                    <img src="{{ vol.image.url }}" class="rounded-circle border border-2 border-success" style="width: 45px; height: 45px; object-fit: cover;" alt="{{ vol.full_name }}">
+                                {% else %}
+                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px;">
+                                        {{ vol.full_name|slice:":1" }}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if vol.is_public_details %}
+                                    <a href="#" class="fw-bold text-success text-decoration-none" data-bs-toggle="modal" data-bs-target="#memberModal_{{ vol.id }}">
+                                        {{ vol.full_name }} <i class="fas fa-info-circle ms-1 small"></i>
+                                    </a>
+                                {% else %}
+                                    <span class="fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#memberModal_{{ vol.id }}" style="cursor: pointer;">
+                                        {{ vol.full_name }} <i class="fas fa-lock text-secondary ms-1 small"></i>
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if vol.blood_group %}
+                                    <span class="badge bg-danger fs-6"><i class="fas fa-tint me-1"></i>{{ vol.blood_group }}</span>
+                                {% else %}
+                                    <span class="text-muted small">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if vol.is_public_details %}
+                                    <a href="tel:{{ vol.phone }}" class="text-success text-decoration-none fw-semibold">
+                                        <i class="fas fa-phone me-1"></i>{{ vol.phone }}
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-secondary px-2 py-1"><i class="fas fa-user-lock me-1"></i>গোপনীয়</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-secondary fw-semibold"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ vol.full_address }}</small>
+                            </td>
+                            <td>
+                                <small class="text-secondary fw-semibold">{{ vol.occupation|default:"-" }}</small>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-success fw-bold" data-bs-toggle="modal" data-bs-target="#memberModal_{{ vol.id }}">
+                                    <i class="fas fa-eye me-1"></i>প্রোফাইল
+                                </button>
+                            </td>
                         </tr>
+
+                        <!-- Member Details Pop-up Modal -->
+                        <div class="modal fade" id="memberModal_{{ vol.id }}" tabindex="-1" aria-labelledby="memberModalLabel_{{ vol.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg rounded-3">
+                                    <div class="modal-header bg-success text-white py-3">
+                                        <h5 class="modal-title fw-bold" id="memberModalLabel_{{ vol.id }}">
+                                            <i class="fas fa-user-shield me-2"></i>সদস্য প্রোফাইল
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body p-4 text-center">
+                                        {% if vol.image %}
+                                            <img src="{{ vol.image.url }}" class="rounded-circle border border-3 border-success mb-3 shadow-sm" style="width: 110px; height: 110px; object-fit: cover;" alt="{{ vol.full_name }}">
+                                        {% else %}
+                                            <div class="bg-success text-white rounded-circle mx-auto mb-3 d-flex justify-content-center align-items-center shadow-sm" style="width: 110px; height: 110px; font-size: 40px;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+
+                                        <h4 class="fw-bold text-dark mb-1">{{ vol.full_name }}</h4>
+                                        <div class="mb-3">
+                                            <span class="badge bg-success fs-6 px-3 py-1">আইডি: {{ vol.member_id|default:"N/A" }}</span>
+                                            {% if vol.blood_group %}
+                                                <span class="badge bg-danger fs-6 px-3 py-1 ms-1"><i class="fas fa-tint me-1"></i>{{ vol.blood_group }}</span>
+                                            {% endif %}
+                                        </div>
+
+                                        {% if vol.is_public_details %}
+                                            <div class="text-start bg-light p-3 rounded-3 border">
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <small class="text-muted d-block"><i class="fas fa-phone text-success me-1"></i>মোবাইল নম্বর:</small>
+                                                        <a href="tel:{{ vol.phone }}" class="fw-bold text-success text-decoration-none">{{ vol.phone }}</a>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small class="text-muted d-block"><i class="fas fa-briefcase text-info me-1"></i>পেশা:</small>
+                                                        <span class="fw-bold text-dark">{{ vol.occupation|default:"উল্লেখ নেই" }}</span>
+                                                    </div>
+                                                    {% if vol.email %}
+                                                    <div class="col-12 mt-2">
+                                                        <small class="text-muted d-block"><i class="fas fa-envelope text-primary me-1"></i>ইমেইল:</small>
+                                                        <a href="mailto:{{ vol.email }}" class="fw-bold text-dark text-decoration-none">{{ vol.email }}</a>
+                                                    </div>
+                                                    {% endif %}
+                                                    <div class="col-12 mt-2">
+                                                        <small class="text-muted d-block"><i class="fas fa-map-marker-alt text-danger me-1"></i>ঠিকানা:</small>
+                                                        <span class="fw-semibold text-dark">{{ vol.full_address }}</span>
+                                                    </div>
+                                                    {% if vol.blood_group and vol.last_donated %}
+                                                    <div class="col-12 mt-2 bg-white p-2 rounded border">
+                                                        <small class="text-muted d-block"><i class="fas fa-hand-holding-droplet text-danger me-1"></i>সর্বশেষ রক্তদান:</small>
+                                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                                            <span class="fw-bold text-dark">{{ vol.last_donated|date:"d M Y" }}</span>
+                                                            {% if vol.is_eligible_to_donate %}
+                                                                <span class="badge bg-success">রক্তদানে প্রস্তুত</span>
+                                                            {% else %}
+                                                                <span class="badge bg-warning text-dark">বিশ্রামে ({{ vol.days_until_eligible }} দিন বাকি)</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-secondary py-2 small mb-0">
+                                                <i class="fas fa-user-lock me-1"></i> নিরাপত্তা ও প্রাইভেসির কারণে সদস্যের যোগাযোগের তথ্য ও ঠিকানা গোপন রাখা হয়েছে।
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer bg-light py-2">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">বন্ধ করুন</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">কোনো নিবন্ধিত স্বেচ্ছাসেবকের তথ্য পাওয়া যায়নি।</td>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fas fa-user-slash fa-3x text-secondary mb-2 d-block"></i>
+                                কোনো নিবন্ধিত সদস্য বা স্বেচ্ছাসেবক পাওয়া যায়নি।
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -93,44 +251,368 @@
         </div>
     </div>
 
+    <!-- 3. Advisory / Executive Board Members Section -->
+    <div class="mb-4">
+        <h4 class="fw-bold text-dark mb-4 text-center">
+            <i class="fas fa-user-tie text-success me-2"></i>পরিচালনা পর্ষদ ও উপদেষ্টা মণ্ডলী
+        </h4>
+
+        <div class="row g-4 justify-content-center">
+            {% for member in team_members %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-3 rounded-3 team-card">
+                    <div class="team-img-wrapper mb-3 mx-auto">
+                        {% if member.image %}
+                            <img src="{{ member.image.url }}" class="rounded-circle border border-3 border-success shadow-sm" style="width: 120px; height: 120px; object-fit: cover;" alt="{{ member.name }}">
+                        {% else %}
+                            <div class="bg-success text-white rounded-circle mx-auto d-flex justify-content-center align-items-center shadow-sm" style="width: 120px; height: 120px; font-size: 45px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ member.name }}</h5>
+                    <div class="badge bg-success-subtle text-success border border-success mb-2 px-3 py-1">{{ member.role }}</div>
+                    {% if member.bio %}
+                        <p class="text-secondary small mb-0">{{ member.bio|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-3 text-muted">
+                <p class="mb-0">পরিচালনা পর্ষদের তথ্য শীঘ্রই হালনাগাদ করা হবে।</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
 </div>
 
-<!-- Join Volunteer Popup Modal -->
+<!-- Join Volunteer Registration Popup Modal -->
 <div class="modal fade" id="joinVolunteerModal" tabindex="-1" aria-labelledby="joinVolunteerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-3">
             <div class="modal-header bg-success text-white py-3">
-                <h5 class="modal-title fw-bold" id="joinVolunteerModalLabel"><i class="fas fa-heart me-2"></i>স্বেচ্ছাসেবক হিসেবে রেজিস্ট্রেশন করুন</h5>
+                <h5 class="modal-title fw-bold" id="joinVolunteerModalLabel">
+                    <i class="fas fa-user-plus me-2"></i>স্বেচ্ছাসেবক / সদস্য হিসেবে রেজিস্ট্রেশন করুন
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{% url 'volunteers:apply' %}" method="post">
+            <form action="{% url 'volunteers:apply' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body p-4">
-                    <p class="text-secondary small mb-3">আমাদের সংস্থায় যোগ দিয়ে নওগাঁর মানবিক কর্মকাণ্ডে অংশগ্রহণ করুন।</p>
-                    
-                    <div class="mb-3">
-                        <label for="full_name" class="form-label fw-bold">আপনার পূর্ণ নাম *</label>
-                        <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="উদাহরণ: মো: আরিফুল ইসলাম">
+                    <div class="alert alert-success d-flex align-items-center mb-4">
+                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                        <div>
+                            <strong>স্বয়ংক্রিয় সদস্য আইডি:</strong> নিবন্ধন শেষে আপনাকে একটি ইউনিক সদস্য আইডি (Member ID) প্রদান করা হবে এবং আপনার ইমেইল/মোবাইলে বার্তা পাঠানো হবে।
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-bold">ইমেইল এড্রেস</label>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="example@gmail.com">
-                    </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label fw-bold">মোবাইল নম্বর *</label>
-                        <input type="text" class="form-control" id="phone" name="phone" required placeholder="017XXXXXXXX">
-                    </div>
-                    <div class="mb-3">
-                        <label for="address" class="form-label fw-bold">ঠিকানা / এলাকা</label>
-                        <textarea class="form-control" id="address" name="address" rows="3" placeholder="গ্রাম/মহল্লা, থানা, নওগাঁ"></textarea>
+
+                    <div class="row g-3">
+                        <!-- Full Name -->
+                        <div class="col-md-6">
+                            <label for="full_name" class="form-label fw-bold">আপনার পূর্ণ নাম <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="যেমন: মো: আবদুর রহিম">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label fw-bold">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required placeholder="017XXXXXXXX">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-bold">ইমেইল ঠিকানা <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="example@gmail.com">
+                        </div>
+
+                        <!-- Blood Group -->
+                        <div class="col-md-6">
+                            <label for="blood_group" class="form-label fw-bold">রক্তের গ্রুপ <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <select class="form-select" id="blood_group" name="blood_group">
+                                <option value="">-- রক্তের গ্রুপ নির্বাচন করুন --</option>
+                                {% for bg in groups %}
+                                    <option value="{{ bg }}">{{ bg }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Last Donated Date Calendar -->
+                        <div class="col-md-6">
+                            <label for="volunteer_last_donated" class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ <small class="text-muted">(ঐচ্ছিক - রক্তদাতা হলে)</small></label>
+                            <input type="date" class="form-control past-date-picker" id="volunteer_last_donated" name="last_donated">
+                        </div>
+
+                        <!-- Occupation -->
+                        <div class="col-md-6">
+                            <label for="occupation" class="form-label fw-bold">পেশা <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <input type="text" class="form-control" id="occupation" name="occupation" placeholder="যেমন: ছাত্র, শিক্ষক, ব্যবসায়ী">
+                        </div>
+
+                        <!-- Profile Image with 500KB limit & free resizer link -->
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="volunteer_image" class="form-label fw-bold mb-0">
+                                    ছবি আপলোড করুন <small class="text-secondary">(সর্বোচ্চ 500 KB)</small>
+                                </label>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
+                            <input type="file" class="form-control" id="volunteer_image" name="image" accept="image/*" onchange="validateVolunteerImageSize(this)">
+                            <div id="volunteerImageSizeError" class="form-text text-danger d-none fw-bold mt-1">
+                                <i class="fas fa-exclamation-triangle me-1"></i>ছবির সাইজ ৫০০ KB এর বেশি! অনুগ্রহ করে <a href="https://www.resizepixel.com" target="_blank" class="text-danger text-decoration-underline fw-bold">ResizePixel (resizepixel.com)</a> থেকে সাইজ কমিয়ে আপলোড করুন।
+                            </div>
+                        </div>
+
+                        <!-- Structured Address Section -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address)
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="apply_division" class="form-label small fw-bold">বিভাগ</label>
+                                        <select class="form-select division-select" id="apply_division" name="division" data-district-target="apply_district" data-upazila-target="apply_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="apply_district" class="form-label small fw-bold">জেলা</label>
+                                        <select class="form-select district-select" id="apply_district" name="district" data-upazila-target="apply_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="apply_upazila" class="form-label small fw-bold">উপজেলা / থানা</label>
+                                        <select class="form-select upazila-select" id="apply_upazila" name="upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label for="apply_address" class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                        <input type="text" class="form-control" id="apply_address" name="address" placeholder="গ্রাম/মহল্লা, ডাকঘর, বাড়ি নং">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Voluntary Financial Contribution Commitment -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>স্বেচ্ছাসেবী আর্থিক সহায়তার প্রতিশ্রুতি <small class="text-muted">(ঐচ্ছিক)</small>
+                                </h6>
+                                <p class="text-secondary small mb-3">আপনি চাইলে সংগঠনের মানবসেবামূলক কার্যক্রম সচল রাখতে নিয়মিত বা এককালীন সহায়তার প্রতিশ্রুতি দিতে পারেন। আপনার প্রতিশ্রুতি অনুযায়ী নির্দিষ্ট সময়ে ইমেইল ও এসএমএসে রিমাইন্ডার ও লিঙ্ক পাঠানো হবে।</p>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="contribution_frequency" class="form-label small fw-bold">সহায়তার পর্যায়কাল / ধরন</label>
+                                        <select class="form-select" id="contribution_frequency" name="contribution_frequency">
+                                            <option value="none">কোনো নির্দিষ্ট প্রতিশ্রুতি নেই / ইচ্ছানুযায়ী</option>
+                                            <option value="monthly">মাসিক (প্রতি মাসে)</option>
+                                            <option value="weekly">সাপ্তাহিক (প্রতি সপ্তাহে)</option>
+                                            <option value="yearly">বাৎসরিক (প্রতি বছরে)</option>
+                                            <option value="one_time">এককালীন</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="contribution_amount" class="form-label small fw-bold">প্রতিশ্রুত টাকার পরিমাণ (BDT)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white">৳</span>
+                                            <input type="number" class="form-control" id="contribution_amount" name="contribution_amount" placeholder="যেমন: 100, 200, 500, 1000">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Choice Checkbox -->
+                        <div class="col-md-12">
+                            <div class="form-check form-switch bg-light p-3 rounded border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="is_public_details" name="is_public_details" checked>
+                                <label class="form-check-label fw-bold text-dark" for="is_public_details">
+                                    <i class="fas fa-shield-alt text-success me-1"></i>আপনি কি আপনার মোবাইল নম্বর এবং বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?
+                                </label>
+                                <div class="form-text text-muted ps-4">টিক চিহ্ন তুলে দিলে তালিকায় শুধুমাত্র ছবি, নাম ও আইডি দেখতে পাবেন, মোবাইল নম্বর গোপন থাকবে।</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-success fw-bold px-4"><i class="fas fa-paper-plane me-1"></i> আবেদন জমা দিন</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4"><i class="fas fa-paper-plane me-1"></i> রেজিস্ট্রেশন সম্পন্ন করুন</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+let globalBdGeoHierarchy = null;
+
+async function getBangladeshGeoData() {
+    if (globalBdGeoHierarchy && Object.keys(globalBdGeoHierarchy).length > 0) {
+        return globalBdGeoHierarchy;
+    }
+    try {
+        const response = await fetch('/volunteers/api/bd-geo/');
+        if (response.ok) {
+            const json = await response.json();
+            if (json && json.hierarchy && Object.keys(json.hierarchy).length > 0) {
+                globalBdGeoHierarchy = json.hierarchy;
+                return globalBdGeoHierarchy;
+            }
+        }
+    } catch (err) {
+        console.error('Failed to fetch BD Geo dataset from API:', err);
+    }
+    return null;
+}
+
+async function initGeoDropdowns() {
+    const geoData = await getBangladeshGeoData();
+    if (!geoData) return;
+
+    // 1. Modal / Registration Form Dropdowns
+    document.querySelectorAll('.division-select').forEach(function(divSel) {
+        divSel.innerHTML = '';
+        Object.keys(geoData).forEach(function(divName) {
+            var opt = document.createElement('option');
+            opt.value = divName;
+            opt.innerText = divName;
+            if (divName === 'রাজশাহী') opt.selected = true;
+            divSel.appendChild(opt);
+        });
+
+        var distId = divSel.getAttribute('data-district-target');
+        var upzId = divSel.getAttribute('data-upazila-target');
+        var distSel = document.getElementById(distId);
+        var upzSel = document.getElementById(upzId);
+
+        function updateDistricts() {
+            var selDiv = divSel.value;
+            distSel.innerHTML = '';
+            var districts = geoData[selDiv] ? Object.keys(geoData[selDiv]) : [];
+            districts.forEach(function(dName) {
+                var dOpt = document.createElement('option');
+                dOpt.value = dName;
+                dOpt.innerText = dName;
+                if (dName === 'নওগাঁ') dOpt.selected = true;
+                distSel.appendChild(dOpt);
+            });
+            updateUpazilas();
+        }
+
+        function updateUpazilas() {
+            var selDiv = divSel.value;
+            var selDist = distSel.value;
+            upzSel.innerHTML = '<option value="">-- উপজেলা / থানা নির্বাচন করুন --</option>';
+            var upazilas = (geoData[selDiv] && geoData[selDiv][selDist]) ? geoData[selDiv][selDist] : [];
+            upazilas.forEach(function(uName) {
+                var uOpt = document.createElement('option');
+                uOpt.value = uName;
+                uOpt.innerText = uName;
+                upzSel.appendChild(uOpt);
+            });
+        }
+
+        divSel.addEventListener('change', updateDistricts);
+        distSel.addEventListener('change', updateUpazilas);
+
+        updateDistricts();
+    });
+
+    // 2. Search Filter Bar Dropdowns
+    document.querySelectorAll('.filter-division-select').forEach(function(divSel) {
+        var preselectedDiv = divSel.getAttribute('data-selected-val') || '';
+        var distId = divSel.getAttribute('data-district-target');
+        var upzId = divSel.getAttribute('data-upazila-target');
+        var distSel = document.getElementById(distId);
+        var upzSel = document.getElementById(upzId);
+        var preselectedDist = distSel ? (distSel.getAttribute('data-selected-val') || '') : '';
+        var preselectedUpz = upzSel ? (upzSel.getAttribute('data-selected-val') || '') : '';
+
+        divSel.innerHTML = '<option value="">সকল বিভাগ</option>';
+        Object.keys(geoData).forEach(function(divName) {
+            var opt = document.createElement('option');
+            opt.value = divName;
+            opt.innerText = divName;
+            if (divName === preselectedDiv) opt.selected = true;
+            divSel.appendChild(opt);
+        });
+
+        function updateFilterDistricts() {
+            var selDiv = divSel.value;
+            if (!distSel) return;
+            distSel.innerHTML = '<option value="">সকল জেলা</option>';
+            if (selDiv && geoData[selDiv]) {
+                Object.keys(geoData[selDiv]).forEach(function(dName) {
+                    var dOpt = document.createElement('option');
+                    dOpt.value = dName;
+                    dOpt.innerText = dName;
+                    if (dName === preselectedDist) dOpt.selected = true;
+                    distSel.appendChild(dOpt);
+                });
+            }
+            updateFilterUpazilas();
+        }
+
+        function updateFilterUpazilas() {
+            var selDiv = divSel.value;
+            var selDist = distSel ? distSel.value : '';
+            if (!upzSel) return;
+            upzSel.innerHTML = '<option value="">সকল থানা / উপজেলা</option>';
+            if (selDiv && selDist && geoData[selDiv] && geoData[selDiv][selDist]) {
+                geoData[selDiv][selDist].forEach(function(uName) {
+                    var uOpt = document.createElement('option');
+                    uOpt.value = uName;
+                    uOpt.innerText = uName;
+                    if (uName === preselectedUpz) uOpt.selected = true;
+                    upzSel.appendChild(uOpt);
+                });
+            }
+        }
+
+        divSel.addEventListener('change', function() {
+            preselectedDist = '';
+            preselectedUpz = '';
+            updateFilterDistricts();
+        });
+        if (distSel) {
+            distSel.addEventListener('change', function() {
+                preselectedUpz = '';
+                updateFilterUpazilas();
+            });
+        }
+
+        updateFilterDistricts();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var todayStr = new Date().toISOString().split('T')[0];
+    var pickers = document.querySelectorAll('.past-date-picker');
+    pickers.forEach(function(p) {
+        p.setAttribute('max', todayStr);
+    });
+
+    initGeoDropdowns();
+});
+
+function validateVolunteerImageSize(input) {
+    var errorDiv = document.getElementById('volunteerImageSizeError');
+    if (input.files && input.files[0]) {
+        var fileSize = input.files[0].size; // size in bytes
+        var maxBytes = 500 * 1024; // 500 KB
+        if (fileSize > maxBytes) {
+            if (errorDiv) errorDiv.classList.remove('d-none');
+            input.value = ''; // Reset file selection
+            alert('ছবির সাইজ সর্বোচ্চ 500 KB হতে পারবে। অনুগ্রহ করে রিসাইজ করে পুনরায় আপলোড করুন।');
+        } else {
+            if (errorDiv) errorDiv.classList.add('d-none');
+        }
+    }
+}
+</script>
 {% endblock %}
