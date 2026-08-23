@@ -71,14 +71,13 @@ def blood_donors_list(request):
 
 
 def register_blood_donor(request):
-    """Register directly as a Blood Donor with optional existing Member ID"""
+    """Register directly as a Blood Donor"""
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
         blood_group = request.POST.get('blood_group', '').strip()
         phone = request.POST.get('phone', '').strip()
         location = request.POST.get('location', '').strip()
         last_donated_str = request.POST.get('last_donated', '').strip()
-        member_id = request.POST.get('member_id', '').strip()
         is_public_details = request.POST.get('is_public_details') == 'on'
 
         if not full_name or not phone or not blood_group:
@@ -92,15 +91,9 @@ def register_blood_donor(request):
             except ValueError:
                 pass
 
-        # If existing member_id provided, check if volunteer exists and link
-        if member_id:
-            vol = Volunteer.objects.filter(member_id=member_id).first()
-            if vol:
-                if not vol.blood_group:
-                    vol.blood_group = blood_group
-                if last_donated_val:
-                    vol.last_donated = last_donated_val
-                vol.save()
+        # Check if a Volunteer exists with this phone number to retain member_id linkage
+        vol = Volunteer.objects.filter(phone=phone).first()
+        member_id = vol.member_id if vol else None
 
         donor, created = BloodDonor.objects.update_or_create(
             phone=phone,
@@ -109,7 +102,7 @@ def register_blood_donor(request):
                 'blood_group': blood_group,
                 'location': location or 'নওগাঁ',
                 'last_donated': last_donated_val,
-                'member_id': member_id if member_id else None,
+                'member_id': member_id,
                 'is_public_details': is_public_details,
                 'is_available': True,
             }
@@ -126,6 +119,7 @@ def register_blood_donor(request):
 
 def apply_volunteer(request):
     if request.method == 'POST':
+        next_url = request.POST.get('next', '').strip()
         full_name = request.POST.get('full_name', '').strip()
         email = request.POST.get('email', '').strip()
         phone = request.POST.get('phone', '').strip()
@@ -146,7 +140,7 @@ def apply_volunteer(request):
                     f'ছবির সাইজ সর্বোচ্চ 100 KB হতে পারবে (আপনার ছবির সাইজ: {size_kb:.1f} KB)। '
                     f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কমিয়ে আপলোড করুন।'
                 )
-                return redirect('volunteers:apply')
+                return redirect(next_url if next_url else 'volunteers:apply')
 
         last_donated_val = None
         if last_donated_str:
@@ -171,30 +165,15 @@ def apply_volunteer(request):
                 )
             except ValueError as e:
                 messages.error(request, str(e))
-                return redirect('volunteers:apply')
+                return redirect(next_url if next_url else 'volunteers:apply')
 
-            # Auto-sync to Blood Donor Database if blood group is selected
-            if blood_group:
-                BloodDonor.objects.update_or_create(
-                    phone=phone,
-                    defaults={
-                        'full_name': full_name,
-                        'blood_group': blood_group,
-                        'location': address if address else 'নওগাঁ',
-                        'last_donated': last_donated_val,
-                        'member_id': vol.member_id,
-                        'is_public_details': is_public_details,
-                        'is_available': True,
-                    }
-                )
-            
             send_member_notifications(vol)
 
             messages.success(
                 request, 
                 f'অভিনন্দন {full_name}! আপনার সদস্য নিবন্ধন সফলভাবে সম্পন্ন হয়েছে। আপনার সদস্য আইডি (Member ID): {vol.member_id}'
             )
-            return redirect('volunteers:apply')
+            return redirect(next_url if next_url else 'volunteers:apply')
         else:
             messages.error(request, 'দয়া করে আপনার নাম এবং মোবাইল নম্বর সঠিকভাবে লিখুন।')
 

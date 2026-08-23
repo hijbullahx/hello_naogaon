@@ -74,6 +74,21 @@ class Volunteer(models.Model):
             self.member_id = f"{prefix}{next_seq:02d}"
         super().save(*args, **kwargs)
 
+        # Auto sync to BloodDonor database if blood_group is provided
+        if self.blood_group:
+            BloodDonor.objects.update_or_create(
+                phone=self.phone,
+                defaults={
+                    'full_name': self.full_name,
+                    'blood_group': self.blood_group,
+                    'location': self.address if self.address else 'নওগাঁ',
+                    'last_donated': self.last_donated,
+                    'member_id': self.member_id,
+                    'is_public_details': self.is_public_details,
+                    'is_available': True,
+                }
+            )
+
 class TeamMember(models.Model):
     name = models.CharField(max_length=200)
     role = models.CharField(max_length=100)

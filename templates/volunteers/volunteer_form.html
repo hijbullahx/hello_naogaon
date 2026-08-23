@@ -316,8 +316,8 @@
                         <!-- Last Donated Date Calendar -->
                         <div class="col-md-6">
                             <label for="volunteer_last_donated" class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ <small class="text-muted">(ঐচ্ছিক - রক্তদাতা হলে)</small></label>
-                            <input type="date" class="form-control" id="volunteer_last_donated" name="last_donated">
-                            <div class="form-text text-muted">রক্তের গ্রুপ দিলে স্বয়ংক্রিয়ভাবে জরুরি রক্তদাতা ডাটাবেসে নাম যুক্ত হবে এবং ৩ মাস পর 'উপলব্ধ' হবে।</div>
+                            <input type="date" class="form-control past-date-picker" id="volunteer_last_donated" name="last_donated">
+                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1 text-danger"></i>সর্বশেষ রক্তদানের পর ৩ মাস (৯০ দিন) পূর্ণ না হলে নতুন রক্তদান করা যাবে না। ৩ মাস পার হলে 'উপলব্ধ' হবে।</div>
                         </div>
 
                         <!-- Occupation -->
@@ -370,6 +370,14 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    var todayStr = new Date().toISOString().split('T')[0];
+    var pickers = document.querySelectorAll('.past-date-picker');
+    pickers.forEach(function(p) {
+        p.setAttribute('max', todayStr);
+    });
+});
+
 function validateVolunteerImageSize(input) {
     var errorDiv = document.getElementById('volunteerImageSizeError');
     if (input.files && input.files[0]) {
