@@ -380,6 +380,63 @@
                                     <td>
                                         <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editProgramModal_{{ prog.id }}" title="এডিট করুন"><i class="fas fa-edit"></i></button>
                                         <a href="{% url 'core:delete_program' prog.id %}" onclick="return confirm('আপনি কি নিশ্চিত যে এই প্রোগ্রামটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
+
+                                        <!-- Edit Program Modal -->
+                                        <div class="modal fade" id="editProgramModal_{{ prog.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-success text-white">
+                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> কার্যক্রম এডিট করুন - {{ prog.title }}</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form action="{% url 'core:save_program' %}" method="post" enctype="multipart/form-data">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="program_id" value="{{ prog.id }}">
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">প্রোগ্রাম টাইটেল *</label>
+                                                                <input type="text" name="title" required class="form-control" value="{{ prog.title }}">
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Short Description)</label>
+                                                                <input type="text" name="short_description" class="form-control" value="{{ prog.short_description|default:'' }}" placeholder="কার্ডে দেখানোর জন্য">
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">পূর্ণ বিবরণ (Full Description)</label>
+                                                                <textarea name="description" rows="3" class="form-control">{{ prog.description|default:'' }}</textarea>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন / বাজেট (টাকা - ঐচ্ছিক)</label>
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
+                                                                    <input type="number" step="0.01" name="target_amount" class="form-control fw-bold" value="{{ prog.target_amount|default:'' }}" placeholder="যেমন: 50000 (প্রয়োজন না থাকলে খালি রাখুন)">
+                                                                </div>
+                                                                <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান গ্রহণের বাটন দৃশ্যমান হবে।</small>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                                                    <label class="form-label fw-bold mb-0">প্রোগ্রামের ছবি পরিবর্তন করুন</label>
+                                                                    <div class="d-flex align-items-center gap-1">
+                                                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                            <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                                {% if prog.image %}
+                                                                    <div class="mb-2"><img src="{{ prog.image.url }}" alt="{{ prog.title }}" style="height: 60px; object-fit: cover;" class="rounded border"></div>
+                                                                {% endif %}
+                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                                                            <button type="submit" class="btn btn-success fw-bold">আপডেট সংরক্ষণ করুন</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -1376,6 +1433,7 @@
                             </div>
                         </div>
                         <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
@@ -1385,65 +1443,6 @@
         </div>
     </div>
 </div>
-
-<!-- Edit Program Modals -->
-{% for prog in programs %}
-<div class="modal fade" id="editProgramModal_{{ prog.id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> কার্যক্রম এডিট করুন - {{ prog.title }}</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'core:save_program' %}" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="hidden" name="program_id" value="{{ prog.id }}">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">প্রোগ্রাম টাইটেল *</label>
-                        <input type="text" name="title" required class="form-control" value="{{ prog.title }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Short Description)</label>
-                        <input type="text" name="short_description" class="form-control" value="{{ prog.short_description|default:'' }}" placeholder="কার্ডে দেখানোর জন্য">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">পূর্ণ বিবরণ (Full Description)</label>
-                        <textarea name="description" rows="3" class="form-control">{{ prog.description|default:'' }}</textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন / বাজেট (টাকা - ঐচ্ছিক)</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
-                            <input type="number" step="0.01" name="target_amount" class="form-control fw-bold" value="{{ prog.target_amount|default:'' }}" placeholder="যেমন: 50000 (প্রয়োজন না থাকলে খালি রাখুন)">
-                        </div>
-                        <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান গ্রহণের বাটন দৃশ্যমান হবে।</small>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                            <label class="form-label fw-bold mb-0">প্রোগ্রামের ছবি পরিবর্তন করুন</label>
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
-                                </a>
-                            </div>
-                        </div>
-                        {% if prog.image %}
-                            <div class="mb-2"><img src="{{ prog.image.url }}" alt="{{ prog.title }}" style="height: 60px; object-fit: cover;" class="rounded border"></div>
-                        {% endif %}
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-success fw-bold">আপডেট সংরক্ষণ করুন</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endfor %}
 
 <!-- News Modal -->
 <div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true">
