@@ -250,20 +250,20 @@
             {% endfor %}
             {% endif %}
 
-            <!-- Contact & Help Box -->
+            <!-- Contact & Help Box (Synchronized from Site Settings) -->
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
                 <h6 class="fw-bold text-dark mb-3"><i class="fas fa-headset text-success me-2"></i>সাহায্য ও যোগাযোগ</h6>
                 <p class="small text-secondary mb-3">আর্থিক সহায়তা সংক্রান্ত যেকোনো তথ্য বা প্রশ্নের জন্য আমাদের প্রতিনিধিদলের সাথে সরাসরি যোগাযোগ করতে পারেন:</p>
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <i class="fas fa-phone-alt text-success"></i>
-                    <a href="tel:01748470965" class="text-decoration-none fw-bold text-dark">01748-470965</a>
+                    <a href="tel:{{ site_setting.contact_phone|default:'+8801748470965' }}" class="text-decoration-none fw-bold text-dark">{{ site_setting.contact_phone|default:'01748-470965' }}</a>
                 </div>
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <i class="fas fa-envelope text-success"></i>
-                    <a href="mailto:info@helplinehellonaogaon.com" class="text-decoration-none small text-secondary">info@helplinehellonaogaon.com</a>
+                    <a href="mailto:{{ site_setting.contact_email|default:'hello.naogaon@gmail.com' }}" class="text-decoration-none small text-secondary">{{ site_setting.contact_email|default:'hello.naogaon@gmail.com' }}</a>
                 </div>
                 <div class="small text-muted border-top pt-2">
-                    নওগাঁ সদর, নওগাঁ, বাংলাদেশ
+                    <i class="fas fa-map-marker-alt text-success me-1"></i>{{ site_setting.contact_address|default:"নওগাঁ সদর, নওগাঁ, বাংলাদেশ" }}
                 </div>
             </div>
 

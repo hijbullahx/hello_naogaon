@@ -95,13 +95,19 @@ def dashboard_home(request):
 
 @staff_member_required
 def update_hero_section(request):
-    """Update Site Title, Taglines & Hero/Logo Images"""
+    """Update Site Title, Taglines, Contact Info & Hero/Logo Images"""
     if request.method == 'POST':
         setting, _ = SiteSetting.objects.get_or_create(pk=1)
+        setting.hero_badge = request.POST.get('hero_badge', setting.hero_badge)
         setting.hero_title = request.POST.get('hero_title', setting.hero_title)
         setting.hero_subtitle = request.POST.get('hero_subtitle', setting.hero_subtitle)
         setting.title = request.POST.get('title', setting.title)
         setting.tagline = request.POST.get('tagline', setting.tagline)
+        setting.contact_phone = request.POST.get('contact_phone', setting.contact_phone)
+        setting.contact_email = request.POST.get('contact_email', setting.contact_email)
+        setting.facebook_url = request.POST.get('facebook_url', setting.facebook_url)
+        setting.youtube_url = request.POST.get('youtube_url', setting.youtube_url)
+        setting.whatsapp_number = request.POST.get('whatsapp_number', setting.whatsapp_number)
 
         if 'logo' in request.FILES:
             if not validate_image_100kb(request, request.FILES['logo'], 'লোগো ছবি'):
@@ -114,7 +120,7 @@ def update_hero_section(request):
             setting.hero_image = request.FILES['hero_image']
 
         setting.save()
-        messages.success(request, 'হিরো সেকশনের তথ্য সফলভাবে আপডেট হয়েছে!')
+        messages.success(request, 'হেডার, হিরো ও যোগাযোগের তথ্য সফলভাবে আপডেট হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required

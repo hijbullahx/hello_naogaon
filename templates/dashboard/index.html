@@ -236,11 +236,19 @@
                                 {% csrf_token %}
                                 <div class="row g-3">
                                     <div class="col-md-6">
+                                        <label class="form-label fw-bold">হটলাইন / মোবাইল নম্বর</label>
+                                        <input type="text" name="contact_phone" value="{{ site_setting.contact_phone }}" class="form-control" placeholder="+880 1730-XXXXXX">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">অফিসিয়াল ইমেইল</label>
+                                        <input type="email" name="contact_email" value="{{ site_setting.contact_email }}" class="form-control" placeholder="hello.naogaon@gmail.com">
+                                    </div>
+                                    <div class="col-md-6">
                                         <label class="form-label fw-bold">ফুটার টেক্সট (About Footer)</label>
                                         <textarea name="footer_about" rows="3" class="form-control">{{ site_setting.footer_about }}</textarea>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">ঠিকানা (Contact Address)</label>
+                                        <label class="form-label fw-bold">অফিসিয়াল ঠিকানা (Contact Address)</label>
                                         <textarea name="contact_address" rows="3" class="form-control">{{ site_setting.contact_address }}</textarea>
                                     </div>
                                     <div class="col-md-12">

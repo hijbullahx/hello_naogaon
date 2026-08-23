@@ -1,8 +1,24 @@
+from core.models import SiteSetting
 from volunteers.models import BloodDonor, Volunteer
 from programs.models import Program
 from news.models import Article
 from gallery.models import Photo
 from donations.models import Bank
+
+def site_settings_context(request):
+    """
+    Global context processor to ensure a single source of truth for organization contact info.
+    Synchronizes Phone, Email, Address, Google Map, Social links across the entire project.
+    """
+    try:
+        setting = SiteSetting.objects.first()
+        if not setting:
+            setting, _ = SiteSetting.objects.get_or_create(pk=1)
+    except Exception:
+        setting = None
+    return {
+        'site_setting': setting,
+    }
 
 def admin_dashboard_stats(request):
     """
