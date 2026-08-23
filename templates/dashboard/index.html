@@ -179,16 +179,13 @@
                     </div>
                 </div>
 
-                <!-- 3. Stat Counters Card (Native Bootstrap Pop-up Modal Edit) -->
+                <!-- 3. Stat Counters Card (Pop-up Modal Edit) -->
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-info text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="card-header bg-info text-white py-3">
                             <h5 class="card-title fw-bold mb-0">
                                 <i class="fas fa-sort-numeric-up me-2"></i>৩. হোমপেজ কাউন্টার কার্ডসমূহ এডিট (5 Stat Cards)
                             </h5>
-                            <button type="button" class="btn btn-light btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#createStatModal">
-                                <i class="fas fa-plus-circle me-1 text-info"></i> নতুন কাউন্টার যোগ করুন
-                            </button>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
@@ -247,41 +244,10 @@
                                 </div>
                                 {% empty %}
                                 <div class="col-12 text-center py-4 text-muted">
-                                    কোনো কাউন্টার কার্ড তৈরি করা হয়নি। "নতুন কাউন্টার যোগ করুন" বাটনে ক্লিক করে যোগ করুন।
+                                    কোনো কাউন্টার কার্ড খুঁজে পাওয়া যায়নি।
                                 </div>
                                 {% endfor %}
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Create New Stat Modal -->
-                <div class="modal fade" id="createStatModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content border-0 shadow">
-                            <div class="modal-header bg-info text-white">
-                                <h5 class="modal-title fw-bold">
-                                    <i class="fas fa-plus-circle me-2"></i>নতুন কাউন্টার কার্ড যোগ করুন
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form action="{% url 'core:save_stat_counter' %}" method="post">
-                                {% csrf_token %}
-                                <div class="modal-body text-start">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">কাউন্টারের নাম / বিষয় *</label>
-                                        <input type="text" name="title" required class="form-control" placeholder="যেমন: গাছ রোপণ, রক্তদান">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">সংখ্যা বা পরিমাণ (Value) *</label>
-                                        <input type="text" name="value" required class="form-control form-control-lg fw-bold text-success" placeholder="যেমন: ১,০০০+">
-                                    </div>
-                                </div>
-                                <div class="modal-footer bg-light">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                                    <button type="submit" class="btn btn-info text-white fw-bold px-4"><i class="fas fa-save me-1"></i> তৈরি করুন</button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 </div>
