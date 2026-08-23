@@ -502,11 +502,18 @@ def save_donor(request):
             except ValueError:
                 pass
 
+        division = request.POST.get('division', 'রাজশাহী').strip()
+        district = request.POST.get('district', 'নওগাঁ').strip()
+        upazila = request.POST.get('upazila', '').strip()
+
         if donor_id:
             donor = get_object_or_404(BloodDonor, pk=donor_id)
             donor.full_name = name
             donor.blood_group = group
             donor.phone = phone
+            donor.division = division or 'রাজশাহী'
+            donor.district = district or 'নওগাঁ'
+            donor.upazila = upazila
             donor.location = location
             donor.last_donated = last_donated_val
             donor.member_id = member_id if member_id else None
@@ -519,6 +526,9 @@ def save_donor(request):
                 full_name=name,
                 blood_group=group,
                 phone=phone,
+                division=division or 'রাজশাহী',
+                district=district or 'নওগাঁ',
+                upazila=upazila,
                 location=location,
                 last_donated=last_donated_val,
                 member_id=member_id if member_id else None,
@@ -547,6 +557,9 @@ def save_volunteer(request):
         phone = request.POST.get('phone')
         blood_group = request.POST.get('blood_group', '').strip()
         occupation = request.POST.get('occupation', '').strip()
+        division = request.POST.get('division', 'রাজশাহী').strip()
+        district = request.POST.get('district', 'নওগাঁ').strip()
+        upazila = request.POST.get('upazila', '').strip()
         address = request.POST.get('address', '')
         last_donated_str = request.POST.get('last_donated', '').strip()
         status = request.POST.get('status', 'approved')
@@ -566,6 +579,9 @@ def save_volunteer(request):
             vol.phone = phone
             vol.blood_group = blood_group if blood_group else None
             vol.occupation = occupation if occupation else None
+            vol.division = division or 'রাজশাহী'
+            vol.district = district or 'নওগাঁ'
+            vol.upazila = upazila
             vol.address = address
             vol.last_donated = last_donated_val
             vol.status = status
@@ -578,6 +594,9 @@ def save_volunteer(request):
                 phone=phone,
                 blood_group=blood_group if blood_group else None,
                 occupation=occupation if occupation else None,
+                division=division or 'রাজশাহী',
+                district=district or 'নওগাঁ',
+                upazila=upazila,
                 address=address,
                 last_donated=last_donated_val,
                 status=status
@@ -590,7 +609,10 @@ def save_volunteer(request):
                 defaults={
                     'full_name': full_name,
                     'blood_group': blood_group,
-                    'location': address if address else 'নওগাঁ',
+                    'division': division or 'রাজশাহী',
+                    'district': district or 'নওগাঁ',
+                    'upazila': upazila,
+                    'location': address or upazila or 'নওগাঁ',
                     'last_donated': last_donated_val,
                     'member_id': vol.member_id,
                     'is_available': True,

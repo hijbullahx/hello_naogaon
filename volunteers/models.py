@@ -21,16 +21,29 @@ class Volunteer(models.Model):
         ('AB-', 'AB-'),
     )
 
+    CONTRIBUTION_FREQUENCIES = (
+        ('none', 'কোনো নির্দিষ্ট প্রতিশ্রুতি নেই / ইচ্ছানুযায়ী'),
+        ('monthly', 'মাসিক (প্রতি মাসে)'),
+        ('weekly', 'সাপ্তাহিক (প্রতি সপ্তাহে)'),
+        ('yearly', 'বাৎসরিক (প্রতি বছরে)'),
+        ('one_time', 'এককালীন'),
+    )
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='volunteer_profile', null=True, blank=True)
     member_id = models.CharField(max_length=20, unique=True, blank=True, null=True, verbose_name="সদস্য আইডি")
     full_name = models.CharField(max_length=200, verbose_name="পূর্ণ নাম")
     email = models.EmailField(blank=True, null=True, verbose_name="ইমেইল")
     phone = models.CharField(max_length=20, verbose_name="মোবাইল নম্বর")
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUPS, blank=True, null=True, verbose_name="রক্তের গ্রুপ")
-    address = models.TextField(blank=True, null=True, verbose_name="ঠিকানা")
+    division = models.CharField(max_length=100, default="রাজশাহী", blank=True, verbose_name="বিভাগ")
+    district = models.CharField(max_length=100, default="নওগাঁ", blank=True, verbose_name="জেলা")
+    upazila = models.CharField(max_length=100, blank=True, null=True, verbose_name="উপজেলা / থানা")
+    address = models.TextField(blank=True, null=True, verbose_name="ঠিকানা / স্থানীয় ঠিকানা")
     image = models.ImageField(upload_to='volunteers/', blank=True, null=True, verbose_name="ছবি")
     occupation = models.CharField(max_length=100, blank=True, null=True, verbose_name="পেশা")
     last_donated = models.DateField(blank=True, null=True, verbose_name="সর্বশেষ রক্তদানের তারিখ")
+    contribution_frequency = models.CharField(max_length=20, choices=CONTRIBUTION_FREQUENCIES, default='none', blank=True, verbose_name="আর্থিক সহায়তার প্রতিশ্রুতি")
+    contribution_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True, verbose_name="প্রতিশ্রুত আর্থিক পরিমাণ (টাকা)")
     is_public_details = models.BooleanField(default=True, verbose_name="মোবাইল নম্বর ও বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?")
     application_date = models.DateTimeField(auto_now_add=True, verbose_name="নিবন্ধনের তারিখ")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved')
@@ -42,6 +55,13 @@ class Volunteer(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.member_id or 'No ID'})"
+
+    @property
+    def full_address(self):
+        if self.address and self.upazila and self.upazila in self.address:
+            return self.address
+        parts = [p for p in [self.address, self.upazila, self.district] if p]
+        return ", ".join(parts) if parts else (self.address or "নওগাঁ")
 
     @property
     def is_eligible_to_donate(self):
@@ -81,7 +101,10 @@ class Volunteer(models.Model):
                 defaults={
                     'full_name': self.full_name,
                     'blood_group': self.blood_group,
-                    'location': self.address if self.address else 'নওগাঁ',
+                    'division': self.division or 'রাজশাহী',
+                    'district': self.district or 'নওগাঁ',
+                    'upazila': self.upazila,
+                    'location': self.address or self.upazila or 'নওগাঁ',
                     'last_donated': self.last_donated,
                     'member_id': self.member_id,
                     'is_public_details': self.is_public_details,
@@ -117,7 +140,10 @@ class BloodDonor(models.Model):
     full_name = models.CharField(max_length=200, verbose_name="পূর্ণ নাম")
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUPS, verbose_name="রক্তের গ্রুপ")
     phone = models.CharField(max_length=20, verbose_name="মোবাইল নম্বর")
-    location = models.CharField(max_length=200, help_text="Area / Thana in Naogaon", verbose_name="এলাকা / ঠিকানা")
+    division = models.CharField(max_length=100, default="রাজশাহী", blank=True, verbose_name="বিভাগ")
+    district = models.CharField(max_length=100, default="নওগাঁ", blank=True, verbose_name="জেলা")
+    upazila = models.CharField(max_length=100, blank=True, null=True, verbose_name="উপজেলা / থানা")
+    location = models.CharField(max_length=255, help_text="Area / Address", verbose_name="ঠিকানা / এলাকা")
     last_donated = models.DateField(blank=True, null=True, verbose_name="সর্বশেষ রক্তদানের তারিখ")
     is_available = models.BooleanField(default=True, verbose_name="রক্তদানে সক্রিয়")
     is_public_details = models.BooleanField(default=True, verbose_name="তথ্য সকলের জন্য প্রদর্শন করতে চান?")
@@ -130,6 +156,13 @@ class BloodDonor(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.blood_group}) - {self.phone}"
+
+    @property
+    def full_address(self):
+        if self.location and self.upazila and self.upazila in self.location:
+            return self.location
+        parts = [p for p in [self.location, self.upazila, self.district] if p]
+        return ", ".join(parts) if parts else (self.location or "নওগাঁ")
 
     @property
     def is_eligible_to_donate(self):

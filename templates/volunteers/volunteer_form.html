@@ -20,23 +20,31 @@
     <!-- 1. Search Bar & Filter Section -->
     <div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-light">
         <form method="get" action="{% url 'volunteers:apply' %}" class="row g-2 align-items-center">
-            <div class="col-md-6 col-lg-7">
+            <div class="col-md-5 col-lg-5">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0 text-success"><i class="fas fa-search"></i></span>
-                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="সদস্য আইডি (যেমন: 26082301), নাম, মোবাইল নম্বর বা রক্তের গ্রুপ দিয়ে খুঁজুন...">
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="সদস্য আইডি (যেমন: 26082301), নাম, ঠিকানা বা মোবাইল...">
                 </div>
             </div>
             <div class="col-md-3 col-lg-3">
-                <select name="group" class="form-select">
-                    <option value="">সকল রক্তের গ্রুপ</option>
-                    {% for bg in groups %}
-                        <option value="{{ bg }}" {% if blood_group_filter == bg %}selected{% endif %}>{{ bg }} রক্তের গ্রুপ</option>
+                <select name="upazila" class="form-select">
+                    <option value="">সকল থানা / উপজেলা</option>
+                    {% for upz in upazilas %}
+                        <option value="{{ upz }}" {% if selected_upazila == upz %}selected{% endif %}>{{ upz }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3 col-lg-2 d-flex gap-1">
+            <div class="col-md-2 col-lg-2">
+                <select name="group" class="form-select">
+                    <option value="">সকল রক্তের গ্রুপ</option>
+                    {% for bg in groups %}
+                        <option value="{{ bg }}" {% if blood_group_filter == bg %}selected{% endif %}>{{ bg }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 col-lg-2 d-flex gap-1">
                 <button type="submit" class="btn btn-success fw-bold w-100"><i class="fas fa-filter me-1"></i>খুঁজুন</button>
-                {% if search_query or blood_group_filter %}
+                {% if search_query or blood_group_filter or selected_upazila %}
                     <a href="{% url 'volunteers:apply' %}" class="btn btn-outline-secondary fw-bold" title="ফিল্টার রিসেট করুন"><i class="fas fa-undo"></i></a>
                 {% endif %}
             </div>
@@ -67,6 +75,7 @@
                             <th>সদস্যের নাম</th>
                             <th>রক্তের গ্রুপ</th>
                             <th>মোবাইল নম্বর</th>
+                            <th>ঠিকানা</th>
                             <th>পেশা</th>
                             <th>বিস্তারিত</th>
                         </tr>
@@ -114,6 +123,9 @@
                                 {% else %}
                                     <span class="badge bg-secondary px-2 py-1"><i class="fas fa-user-lock me-1"></i>গোপনীয়</span>
                                 {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-secondary fw-semibold"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ vol.full_address }}</small>
                             </td>
                             <td>
                                 <small class="text-secondary fw-semibold">{{ vol.occupation|default:"-" }}</small>
@@ -169,46 +181,33 @@
                                                         <a href="mailto:{{ vol.email }}" class="fw-bold text-dark text-decoration-none">{{ vol.email }}</a>
                                                     </div>
                                                     {% endif %}
-                                                    {% if vol.address %}
                                                     <div class="col-12 mt-2">
                                                         <small class="text-muted d-block"><i class="fas fa-map-marker-alt text-danger me-1"></i>ঠিকানা:</small>
-                                                        <span class="fw-semibold text-dark">{{ vol.address }}</span>
+                                                        <span class="fw-semibold text-dark">{{ vol.full_address }}</span>
                                                     </div>
-                                                    {% endif %}
                                                     {% if vol.blood_group and vol.last_donated %}
                                                     <div class="col-12 mt-2 bg-white p-2 rounded border">
                                                         <small class="text-muted d-block"><i class="fas fa-hand-holding-droplet text-danger me-1"></i>সর্বশেষ রক্তদান:</small>
-                                                        <span class="fw-semibold text-dark">{{ vol.last_donated|date:"d F Y" }}</span>
-                                                        <div class="mt-1">
+                                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                                            <span class="fw-bold text-dark">{{ vol.last_donated|date:"d M Y" }}</span>
                                                             {% if vol.is_eligible_to_donate %}
-                                                                <span class="badge bg-success small"><i class="fas fa-check-circle me-1"></i>রক্তদানে প্রস্তুত (৩ মাস অতিবাহিত)</span>
+                                                                <span class="badge bg-success">রক্তদানে প্রস্তুত</span>
                                                             {% else %}
-                                                                <span class="badge bg-warning text-dark small"><i class="fas fa-hourglass-half me-1"></i>বিশ্রামে (৩ মাস পূর্ণ হতে আর {{ vol.days_until_eligible }} দিন বাকি)</span>
+                                                                <span class="badge bg-warning text-dark">বিশ্রামে ({{ vol.days_until_eligible }} দিন বাকি)</span>
                                                             {% endif %}
                                                         </div>
                                                     </div>
                                                     {% endif %}
-                                                    <div class="col-12 mt-2 border-top pt-2">
-                                                        <small class="text-muted d-block"><i class="fas fa-calendar-check text-secondary me-1"></i>নিবন্ধনের তারিখ:</small>
-                                                        <span class="small text-secondary">{{ vol.application_date|date:"d F Y, h:i A" }}</span>
-                                                    </div>
                                                 </div>
                                             </div>
                                         {% else %}
-                                            <div class="alert alert-secondary d-flex align-items-center mb-0 mt-3 text-start">
-                                                <i class="fas fa-user-lock fa-2x me-3 text-secondary"></i>
-                                                <div>
-                                                    <strong class="d-block text-dark">ব্যক্তিগত তথ্য গোপনীয়</strong>
-                                                    <small class="text-muted">এই সদস্য তাঁর মোবাইল নম্বর ও ব্যক্তিগত বিবরণ সর্বসাধারণের নিকট প্রদর্শন করতে ইচ্ছুক নন।</small>
-                                                </div>
+                                            <div class="alert alert-secondary py-2 small mb-0">
+                                                <i class="fas fa-user-lock me-1"></i> নিরাপত্তা ও প্রাইভেসির কারণে সদস্যের যোগাযোগের তথ্য ও ঠিকানা গোপন রাখা হয়েছে।
                                             </div>
                                         {% endif %}
                                     </div>
                                     <div class="modal-footer bg-light py-2">
                                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">বন্ধ করুন</button>
-                                        {% if vol.is_public_details and vol.phone %}
-                                            <a href="tel:{{ vol.phone }}" class="btn btn-success btn-sm fw-bold"><i class="fas fa-phone-alt me-1"></i>কল করুন</a>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -216,8 +215,8 @@
 
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
-                                <i class="fas fa-user-slash fa-2x mb-2 d-block text-secondary"></i>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fas fa-user-slash fa-3x text-secondary mb-2 d-block"></i>
                                 কোনো নিবন্ধিত সদস্য বা স্বেচ্ছাসেবক পাওয়া যায়নি।
                             </td>
                         </tr>
@@ -228,24 +227,25 @@
         </div>
     </div>
 
-    <!-- 3. Leadership / Team Members Section -->
+    <!-- 3. Advisory / Executive Board Members Section -->
     <div class="mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold text-success mb-0"><i class="fas fa-id-card me-2"></i>টিম নেতৃত্ব ও পরিচালনা পর্ষদ</h4>
-            <span class="badge bg-success rounded-pill px-3">{{ team_members.count|default:"0" }} জন পরিচালনা সদস্য</span>
-        </div>
+        <h4 class="fw-bold text-dark mb-4 text-center">
+            <i class="fas fa-user-tie text-success me-2"></i>পরিচালনা পর্ষদ ও উপদেষ্টা মণ্ডলী
+        </h4>
 
-        <div class="row g-4">
+        <div class="row g-4 justify-content-center">
             {% for member in team_members %}
-            <div class="col-md-4 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm text-center p-3 rounded-3">
-                    {% if member.image %}
-                        <img src="{{ member.image.url }}" class="rounded-circle mx-auto mb-3 border border-3 border-success p-1" style="width: 110px; height: 110px; object-fit: cover;" alt="{{ member.name }}">
-                    {% else %}
-                        <div class="bg-success text-white rounded-circle mx-auto mb-3 d-flex justify-content-center align-items-center border border-3 border-white shadow-sm" style="width: 110px; height: 110px;">
-                            <i class="fas fa-user-tie fa-3x"></i>
-                        </div>
-                    {% endif %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-3 rounded-3 team-card">
+                    <div class="team-img-wrapper mb-3 mx-auto">
+                        {% if member.image %}
+                            <img src="{{ member.image.url }}" class="rounded-circle border border-3 border-success shadow-sm" style="width: 120px; height: 120px; object-fit: cover;" alt="{{ member.name }}">
+                        {% else %}
+                            <div class="bg-success text-white rounded-circle mx-auto d-flex justify-content-center align-items-center shadow-sm" style="width: 120px; height: 120px; font-size: 45px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
                     <h5 class="fw-bold text-dark mb-1">{{ member.name }}</h5>
                     <div class="badge bg-success-subtle text-success border border-success mb-2 px-3 py-1">{{ member.role }}</div>
                     {% if member.bio %}
@@ -317,7 +317,6 @@
                         <div class="col-md-6">
                             <label for="volunteer_last_donated" class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ <small class="text-muted">(ঐচ্ছিক - রক্তদাতা হলে)</small></label>
                             <input type="date" class="form-control past-date-picker" id="volunteer_last_donated" name="last_donated">
-                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1 text-danger"></i>সর্বশেষ রক্তদানের পর ৩ মাস (৯০ দিন) পূর্ণ না হলে নতুন রক্তদান করা যাবে না। ৩ মাস পার হলে 'উপলব্ধ' হবে।</div>
                         </div>
 
                         <!-- Occupation -->
@@ -327,7 +326,7 @@
                         </div>
 
                         <!-- Profile Image with 100KB limit & free resizer link -->
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label for="volunteer_image" class="form-label fw-bold mb-0">
                                     ছবি আপলোড করুন <small class="text-danger">(সর্বোচ্চ 100 KB)</small>
@@ -342,10 +341,65 @@
                             </div>
                         </div>
 
-                        <!-- Address -->
-                        <div class="col-md-12">
-                            <label for="address" class="form-label fw-bold">ঠিকানা / এলাকা <small class="text-muted">(ঐচ্ছিক)</small></label>
-                            <textarea class="form-control" id="address" name="address" rows="2" placeholder="গ্রাম/মহল্লা, ডাকঘর, থানা, জেলা"></textarea>
+                        <!-- Structured Address Section -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address)
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="apply_division" class="form-label small fw-bold">বিভাগ</label>
+                                        <select class="form-select division-select" id="apply_division" name="division" data-district-target="apply_district" data-upazila-target="apply_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="apply_district" class="form-label small fw-bold">জেলা</label>
+                                        <select class="form-select district-select" id="apply_district" name="district" data-upazila-target="apply_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="apply_upazila" class="form-label small fw-bold">উপজেলা / থানা</label>
+                                        <select class="form-select upazila-select" id="apply_upazila" name="upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label for="apply_address" class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                        <input type="text" class="form-control" id="apply_address" name="address" placeholder="গ্রাম/মহল্লা, ডাকঘর, বাড়ি নং">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Voluntary Financial Contribution Commitment -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>স্বেচ্ছাসেবী আর্থিক সহায়তার প্রতিশ্রুতি <small class="text-muted">(ঐচ্ছিক)</small>
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="contribution_frequency" class="form-label small fw-bold">সহায়তার পর্যায়কাল / ধরন</label>
+                                        <select class="form-select" id="contribution_frequency" name="contribution_frequency">
+                                            <option value="none">কোনো নির্দিষ্ট প্রতিশ্রুতি নেই / ইচ্ছানুযায়ী</option>
+                                            <option value="monthly">মাসিক (প্রতি মাসে)</option>
+                                            <option value="weekly">সাপ্তাহিক (প্রতি সপ্তাহে)</option>
+                                            <option value="yearly">বাৎসরিক (প্রতি বছরে)</option>
+                                            <option value="one_time">এককালীন</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="contribution_amount" class="form-label small fw-bold">প্রতিশ্রুত টাকার পরিমাণ (BDT)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white">৳</span>
+                                            <input type="number" class="form-control" id="contribution_amount" name="contribution_amount" placeholder="যেমন: 100, 200, 500, 1000">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Privacy Choice Checkbox -->
@@ -355,7 +409,7 @@
                                 <label class="form-check-label fw-bold text-dark" for="is_public_details">
                                     <i class="fas fa-shield-alt text-success me-1"></i>আপনি কি আপনার মোবাইল নম্বর এবং বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?
                                 </label>
-                                <div class="form-text text-muted ps-4">টিক চিহ্ন তুলে দিলে অন্যান্য ব্যবহারকারীরা তালিকায় শুধুমাত্র আপনার ছবি, নাম ও আইডি দেখতে পাবেন, মোবাইল নম্বর গোপন থাকবে।</div>
+                                <div class="form-text text-muted ps-4">টিক চিহ্ন তুলে দিলে তালিকায় শুধুমাত্র ছবি, নাম ও আইডি দেখতে পাবেন, মোবাইল নম্বর গোপন থাকবে।</div>
                             </div>
                         </div>
                     </div>
@@ -370,12 +424,113 @@
 </div>
 
 <script>
+const bdGeoData = {
+    "রাজশাহী": {
+        "নওগাঁ": ["নওগাঁ সদর", "মহাদেবপুর", "পত্নীতলা", "ধামইরহাট", "নিয়ামতপুর", "মান্দা", "রানীনগর", "আত্রাই", "পোরশা", "সাপাহার", "বদলগাছী"],
+        "রাজশাহী": ["বোয়ালিয়া", "রাজপাড়া", "মতিহার", "শাহ মখদুম", "পবা", "বাঘা", "চারঘাট", "দুর্গাপুর", "গোদাগাড়ী", "মোহনপুর", "পুঠিয়া", "তানোর"],
+        "বগুড়া": ["বগুড়া সদর", "শাজাহানপুর", "শেরপুর", "শিবগঞ্জ", "দুপচাঁচিয়া", "গাবতলী", "কাহালু", "নন্দীগ্রাম", "সারিয়াকান্দি", "সোনাতলা", "ধুনট", "আদমদীঘি"],
+        "জয়পুরহাট": ["জয়পুরহাট সদর", "পাঁচবিবি", "কালাই", "ক্ষেতলাল", "আক্কেলপুর"],
+        "চাঁপাইনবাবগঞ্জ": ["চাঁপাইনবাবগঞ্জ সদর", "শিবগঞ্জ", "গোমস্তাপুর", "নাচোল", "ভোলাহাট"],
+        "নাটোর": ["নাটোর সদর", "সিংড়া", "বড়াইগ্রাম", "গুরুদাসপুর", "লালপুর", "বাগাতিপাড়া", "নলডাঙ্গা"],
+        "পাবনা": ["পাবনা সদর", "ঈশ্বরদী", "সাঁথিয়া", "চাটমোহর", "সুজানগর", "ফরিদপুর", "বেড়া", "ভাঙ্গুড়া", "আটঘরিয়া"],
+        "সিরাজগঞ্জ": ["সিরাজগঞ্জ সদর", "বেলকুচি", "কামারখন্দ", "কাজীপুর", "রায়গঞ্জ", "শাহজাদপুর", "তাড়াশ", "উল্লাপাড়া", "চৌহালী"]
+    },
+    "ঢাকা": {
+        "ঢাকা": ["ধানমন্ডি", "মিরপুর", "গুলশান", "উত্তরা", "মতিঝিল", "মোহাম্মদপুর", "সাভার", "ধামরাই", "কেরানীগঞ্জ", "দোহার", "নবাবগঞ্জ"],
+        "গাজীপুর": ["গাজীপুর সদর", "কালিয়াকৈর", "কালীগঞ্জ", "কাপাসিয়া", "শ্রীপুর"],
+        "নারায়ণগঞ্জ": ["নারায়ণগঞ্জ সদর", "আড়াইহাজার", "বন্দর", "রূপগঞ্জ", "সোনারগাঁও"],
+        "টাঙ্গাইল": ["টাঙ্গাইল সদর", "মির্জাপুর", "মধুপুর", "গোপালপুর", "ঘাটাইল", "কালিহাতী", "সখিপুর", "বাসাইল", "নাগরপুর"],
+        "ফরিদপুর": ["ফরিদপুর সদর", "বোয়ালমারী", "ভাঙ্গা", "মধুখালী", "নগরকান্দা", "আলফাডাঙ্গা", "সদরপুর", "চরভদ্রাসন"]
+    },
+    "রংপুর": {
+        "রংপুর": ["রংপুর সদর", "বদরগঞ্জ", "গঙ্গাচড়া", "কাউনিয়া", "মিঠাপুকুর", "পীরগাছা", "পীরগঞ্জ", "তারাগঞ্জ"],
+        "দিনাজপুর": ["দিনাজপুর সদর", "বিরামপুর", "বীরগঞ্জ", "বোচাগঞ্জ", "ফুলবাড়ী", "হাকিমপুর", "কাহারোল", "নবাবগঞ্জ", "পার্বতীপুর"],
+        "গাইবান্ধা": ["গাইবান্ধা সদর", "গোবিন্দগঞ্জ", "পলাশবাড়ী", "সাদুল্লাপুর", "সাঘাটা", "সুন্দরগঞ্জ", "ফুলছড়ি"],
+        "কুড়িগ্রাম": ["কুড়িগ্রাম সদর", "নাগেশ্বরী", "ভুরুঙ্গামারী", "উলিপুর", "চিলমারী", "রৌমারী", "রাজিবপুর"]
+    },
+    "চট্টগ্রাম": {
+        "চট্টগ্রাম": ["কোতোয়ালী", "পাঁচলাইশ", "পতেঙ্গা", "খুলশী", "হালিশহর", "সীতাকুণ্ড", "মীরসরাই", "হাটহাজারী", "রাউজান", "ফটিকছড়ি", "পটিয়া", "বোয়ালখালী", "আনোয়ারা"],
+        "কক্সবাজার": ["কক্সবাজার সদর", "চকোরিয়া", "মহেশখালী", "টেকনাফ", "উখিয়া", "রামু", "পেকুয়া", "কুতুবদিয়া"],
+        "কুমিল্লা": ["কুমিল্লা আদর্শ সদর", "লাকসাম", "চৌদ্দগ্রাম", "দেবীদ্বার", "দাউদকান্দি", "বরুড়া", "বুড়িচং", "চান্দিনা", "হোমনা"]
+    },
+    "খুলনা": {
+        "খুলনা": ["খুলনা সদর", "সোনাডাঙ্গা", "খালিশপুর", "দৌলতপুর", "বটিয়াঘাটা", "ডুমুরিয়া", "পাইকগাছা", "কয়রা", "রূপসা"],
+        "যশোর": ["যশোর সদর", "ঝিকরগাছা", "অভয়নগর", "মনিরামপুর", "কেশবপুর", "বাঘারপাড়া", "শার্শা", "চৌগাছা"],
+        "কুষ্টিয়া": ["কুষ্টিয়া সদর", "কুমারখালী", "খোকসা", "মিরপুর", "ভেড়ামারা", "দৌলতপুর"]
+    },
+    "ময়মনসিংহ": {
+        "ময়মনসিংহ": ["ময়মনসিংহ সদর", "মুক্তাগাছা", "ফুলবাড়িয়া", "ত্রিশাল", "ভালুকা", "গফরগাঁও", "ঈশ্বরগঞ্জ", "নান্দাইল", "হালুয়াঘাট"],
+        "জামালপুর": ["জামালপুর সদর", "মেলান্দহ", "মাদারগঞ্জ", "ইসলামপুর", "সরিষাবাড়ী", "দেওয়ানগঞ্জ", "বকশীগঞ্জ"]
+    },
+    "সিলেট": {
+        "সিলেট": ["সিলেট সদর", "দক্ষিণ সুরমা", "গোলাপগঞ্জ", "বিয়ানীবাজার", "বিশ্বনাথ", "ফেঞ্চুগঞ্জ", "বালাগঞ্জ", "কোম্পানীগঞ্জ", "জৈন্তাপুর"],
+        "মৌলভীবাজার": ["মৌলভীবাজার সদর", "শ্রীমঙ্গল", "কমলগঞ্জ", "কুলাউড়া", "বড়লেখা", "রাজনগর", "জুড়ী"]
+    },
+    "বরিশাল": {
+        "বরিশাল": ["বরিশাল সদর", "বাকেরগঞ্জ", "বাবুগঞ্জ", "উজিরপুর", "গৌরনদী", "আগৈলঝাড়া", "মেহেন্দীগঞ্জ", "মুলাদী", "হিজলা"],
+        "পটুয়াখালী": ["পটুয়াখালী সদর", "গলাচিপা", "বাউফল", "দশমিনা", "কলাপাড়া", "মির্জাগঞ্জ", "দুমকি", "রাঙ্গাবালী"]
+    }
+};
+
+function initGeoDropdowns() {
+    var divSelects = document.querySelectorAll('.division-select');
+    divSelects.forEach(function(divSel) {
+        divSel.innerHTML = '';
+        Object.keys(bdGeoData).forEach(function(divName) {
+            var opt = document.createElement('option');
+            opt.value = divName;
+            opt.innerText = divName;
+            if (divName === 'রাজশাহী') opt.selected = true;
+            divSel.appendChild(opt);
+        });
+
+        var distId = divSel.getAttribute('data-district-target');
+        var upzId = divSel.getAttribute('data-upazila-target');
+        var distSel = document.getElementById(distId);
+        var upzSel = document.getElementById(upzId);
+
+        function updateDistricts() {
+            var selDiv = divSel.value;
+            distSel.innerHTML = '';
+            var districts = bdGeoData[selDiv] ? Object.keys(bdGeoData[selDiv]) : [];
+            districts.forEach(function(dName) {
+                var dOpt = document.createElement('option');
+                dOpt.value = dName;
+                dOpt.innerText = dName;
+                if (dName === 'নওগাঁ') dOpt.selected = true;
+                distSel.appendChild(dOpt);
+            });
+            updateUpazilas();
+        }
+
+        function updateUpazilas() {
+            var selDiv = divSel.value;
+            var selDist = distSel.value;
+            upzSel.innerHTML = '<option value="">-- উপজেলা / থানা নির্বাচন করুন --</option>';
+            var upazilas = (bdGeoData[selDiv] && bdGeoData[selDiv][selDist]) ? bdGeoData[selDiv][selDist] : [];
+            upazilas.forEach(function(uName) {
+                var uOpt = document.createElement('option');
+                uOpt.value = uName;
+                uOpt.innerText = uName;
+                upzSel.appendChild(uOpt);
+            });
+        }
+
+        divSel.addEventListener('change', updateDistricts);
+        distSel.addEventListener('change', updateUpazilas);
+
+        updateDistricts();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var todayStr = new Date().toISOString().split('T')[0];
     var pickers = document.querySelectorAll('.past-date-picker');
     pickers.forEach(function(p) {
         p.setAttribute('max', todayStr);
     });
+
+    initGeoDropdowns();
 });
 
 function validateVolunteerImageSize(input) {

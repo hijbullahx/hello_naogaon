@@ -11,43 +11,42 @@
         <h2 class="fw-bold mb-1"><i class="fas fa-hand-holding-droplet me-2"></i>জরুরি রক্তদাতা ডাটাবেস</h2>
         <p class="mb-3 text-white-50">মুমূর্ষু রোগীর প্রয়োজনে স্বেচ্ছাসেবী রক্তদাতাদের সরাসরি তালিকা ও সার্বক্ষণিক
             সহায়তা</p>
-        <button type="button" class="btn btn-warning fw-bold px-4 py-2 shadow-sm rounded-pill" data-bs-toggle="modal"
-            data-bs-target="#bloodDonorPromptModal">
-            <i class="fas fa-plus-circle me-2"></i>রক্তদাতা হিসেবে নাম লিখান
-        </button>
-    </div>
-</div>
-
-<div class="container mb-5">
-
-    <!-- Search & Filter Card -->
+        <button type="button" class="btn btn-warning fw-bold px-4 py-2 shadow-sm rounde    <!-- Search & Filter Card -->
     <div class="card border-0 shadow-sm p-3 mb-4 bg-light rounded-3">
         <form method="get" action="{% url 'volunteers:blood_donors' %}" class="row g-2 align-items-center">
             {% if selected_group %}
                 <input type="hidden" name="group" value="{{ selected_group }}">
             {% endif %}
-            <div class="col-md-5 col-lg-5">
+            <div class="col-md-4 col-lg-4">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0 text-danger"><i class="fas fa-search"></i></span>
                     <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0"
-                        placeholder="নাম, মোবাইল, এলাকা, রক্তের গ্রুপ বা সদস্য আইডি দিয়ে খুঁজুন...">
+                        placeholder="নাম, মোবাইল, ঠিকানা বা সদস্য আইডি...">
                 </div>
             </div>
-            <div class="col-md-4 col-lg-5">
+            <div class="col-md-3 col-lg-2">
+                <select name="upazila" class="form-select">
+                    <option value="">সকল থানা / উপজেলা</option>
+                    {% for upz in upazilas %}
+                    <option value="{{ upz }}" {% if selected_upazila == upz %}selected{% endif %}>{{ upz }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-4">
                 <div class="d-flex flex-wrap gap-1 align-items-center">
-                    <a href="{% url 'volunteers:blood_donors' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+                    <a href="{% url 'volunteers:blood_donors' %}{% if search_query %}?q={{ search_query }}{% endif %}{% if selected_upazila %}&upazila={{ selected_upazila }}{% endif %}"
                         class="btn btn-sm {% if not selected_group %}btn-danger fw-bold shadow-sm{% else %}btn-outline-secondary{% endif %}">সকল</a>
                     {% for grp in groups %}
-                    <a href="?group={{ grp|urlencode }}{% if search_query %}&q={{ search_query }}{% endif %}"
+                    <a href="?group={{ grp|urlencode }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_upazila %}&upazila={{ selected_upazila }}{% endif %}"
                         class="btn btn-sm {% if selected_group == grp %}btn-danger fw-bold shadow-sm{% else %}btn-outline-danger{% endif %}">
                         {{ grp }}
                     </a>
                     {% endfor %}
                 </div>
             </div>
-            <div class="col-md-3 col-lg-2 d-flex gap-1">
+            <div class="col-md-2 col-lg-2 d-flex gap-1">
                 <button type="submit" class="btn btn-danger fw-bold w-100"><i class="fas fa-filter me-1"></i>খুঁজুন</button>
-                {% if search_query or selected_group %}
+                {% if search_query or selected_group or selected_upazila %}
                 <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-outline-secondary" title="রিসেট"><i class="fas fa-undo"></i></a>
                 {% endif %}
             </div>
@@ -67,16 +66,15 @@
                 <i class="fas fa-plus-circle me-1"></i> নতুন রক্তদাতা যুক্ত হন
             </button>
         </div>
-
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-secondary">
+                <thead class="table-light">
                     <tr>
-                        <th style="width: 50px;">#</th>
+                        <th>#</th>
                         <th>রক্তদাতার নাম ও পরিচিতি</th>
                         <th>রক্তের গ্রুপ</th>
                         <th>মোবাইল নম্বর</th>
-                        <th>এলাকা / থানা</th>
+                        <th>ঠিকানা</th>
                         <th>সর্বশেষ রক্তদান</th>
                         <th>স্ট্যাটাস (৩ মাস গণনা)</th>
                         <th>যোগাযোগ</th>
@@ -111,7 +109,7 @@
                         </td>
                         <td>
                             <span class="text-secondary fw-semibold"><i
-                                    class="fas fa-map-marker-alt text-danger me-1"></i>{{ donor.location }}</span>
+                                    class="fas fa-map-marker-alt text-danger me-1"></i>{{ donor.full_address }}</span>
                         </td>
                         <td>
                             {% if donor.last_donated %}
@@ -293,23 +291,46 @@
                             </select>
                         </div>
 
-                        <!-- Location / Area -->
-                        <div class="col-md-6">
-                            <label for="donor_location" class="form-label fw-bold">এলাকা / থানা <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="donor_location" name="location" required
-                                placeholder="যেমন: মহাদেবপুর, নওগাঁ সদর">
-                        </div>
-
                         <!-- Last Donated Date Calendar -->
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <label for="donor_last_donated" class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ <small
                                     class="text-muted">(ঐচ্ছিক)</small></label>
                             <input type="date" class="form-control past-date-picker" id="donor_last_donated"
                                 name="last_donated">
-                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1 text-danger"></i>সর্বশেষ
-                                রক্তদানের পর ৩ মাস (৯০ দিন) পূর্ণ না হলে নতুন করে রক্তদান করা যাবে না। ৩ মাস অতিবাহিত
-                                হলে রক্তদানে 'উপলব্ধ' হিসেবে সক্রিয় হবে।</div>
+                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1 text-danger"></i>৩ মাস পূর্ণ হলে রক্তদানে সক্রিয় হবে।</div>
+                        </div>
+
+                        <!-- Structured Address Section -->
+                        <div class="col-12">
+                            <div class="card border border-danger-subtle bg-danger-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-danger mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address) <span class="text-danger">*</span>
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="donor_division" class="form-label small fw-bold">বিভাগ</label>
+                                        <select class="form-select division-select" id="donor_division" name="division" data-district-target="donor_district" data-upazila-target="donor_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="donor_district" class="form-label small fw-bold">জেলা</label>
+                                        <select class="form-select district-select" id="donor_district" name="district" data-upazila-target="donor_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="donor_upazila" class="form-label small fw-bold">উপজেলা / থানা <span class="text-danger">*</span></label>
+                                        <select class="form-select upazila-select" id="donor_upazila" name="upazila" required>
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label for="donor_address" class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                        <input type="text" class="form-control" id="donor_address" name="address" placeholder="যেমন: চকদেব, হাসপাতাল রোড, ওয়ার্ড নং ৩">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Privacy Switch -->
@@ -439,12 +460,66 @@
                             </div>
                         </div>
 
-                        <!-- Address -->
-                        <div class="col-md-12">
-                            <label for="modal_address" class="form-label fw-bold">ঠিকানা / এলাকা <small
-                                    class="text-muted">(ঐচ্ছিক)</small></label>
-                            <textarea class="form-control" id="modal_address" name="address" rows="2"
-                                placeholder="গ্রাম/মহল্লা, ডাকঘর, থানা, জেলা"></textarea>
+                        <!-- Structured Address Section -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address)
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="vol_division" class="form-label small fw-bold">বিভাগ</label>
+                                        <select class="form-select division-select" id="vol_division" name="division" data-district-target="vol_district" data-upazila-target="vol_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="vol_district" class="form-label small fw-bold">জেলা</label>
+                                        <select class="form-select district-select" id="vol_district" name="district" data-upazila-target="vol_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="vol_upazila" class="form-label small fw-bold">উপজেলা / থানা</label>
+                                        <select class="form-select upazila-select" id="vol_upazila" name="upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label for="modal_address" class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                        <input type="text" class="form-control" id="modal_address" name="address" placeholder="গ্রাম/মহল্লা, ডাকঘর, বাড়ি নং">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Voluntary Financial Contribution Commitment -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>স্বেচ্ছাসেবী আর্থিক সহায়তার প্রতিশ্রুতি <small class="text-muted">(ঐচ্ছিক)</small>
+                                </h6>
+                                <p class="text-secondary small mb-3">আপনি চাইলে সংগঠনের মানবসেবামূলক কার্যক্রম সচল রাখতে নিয়মিত বা এককালীন সহায়তার প্রতিশ্রুতি দিতে পারেন। আপনার প্রতিশ্রুতি অনুযায়ী নির্দিষ্ট সময়ে ইমেইল ও এসএমএসে রিমাইন্ডার ও লিঙ্ক পাঠানো হবে।</p>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="modal_contribution_frequency" class="form-label small fw-bold">সহায়তার পর্যায়কাল / ধরন</label>
+                                        <select class="form-select" id="modal_contribution_frequency" name="contribution_frequency">
+                                            <option value="none">কোনো নির্দিষ্ট প্রতিশ্রুতি নেই / ইচ্ছানুযায়ী</option>
+                                            <option value="monthly">মাসিক (প্রতি মাসে)</option>
+                                            <option value="weekly">সাপ্তাহিক (প্রতি সপ্তাহে)</option>
+                                            <option value="yearly">বাৎসরিক (প্রতি বছরে)</option>
+                                            <option value="one_time">এককালীন</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="modal_contribution_amount" class="form-label small fw-bold">প্রতিশ্রুত টাকার পরিমাণ (BDT)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white">৳</span>
+                                            <input type="number" class="form-control" id="modal_contribution_amount" name="contribution_amount" placeholder="যেমন: 100, 200, 500, 1000">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Privacy Choice Checkbox -->
@@ -473,28 +548,128 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Set max date to today on all past-date-picker elements
-        var todayStr = new Date().toISOString().split('T')[0];
-        var pickers = document.querySelectorAll('.past-date-picker');
-        pickers.forEach(function (p) {
-            p.setAttribute('max', todayStr);
+const bdGeoData = {
+    "রাজশাহী": {
+        "নওগাঁ": ["নওগাঁ সদর", "মহাদেবপুর", "পত্নীতলা", "ধামইরহাট", "নিয়ামতপুর", "মান্দা", "রানীনগর", "আত্রাই", "পোরশা", "সাপাহার", "বদলগাছী"],
+        "রাজশাহী": ["বোয়ালিয়া", "রাজপাড়া", "মতিহার", "শাহ মখদুম", "পবা", "বাঘা", "চারঘাট", "দুর্গাপুর", "গোদাগাড়ী", "মোহনপুর", "পুঠিয়া", "তানোর"],
+        "বগুড়া": ["বগুড়া সদর", "শাজাহানপুর", "শেরপুর", "শিবগঞ্জ", "দুপচাঁচিয়া", "গাবতলী", "কাহালু", "নন্দীগ্রাম", "সারিয়াকান্দি", "সোনাতলা", "ধুনট", "আদমদীঘি"],
+        "জয়পুরহাট": ["জয়পুরহাট সদর", "পাঁচবিবি", "কালাই", "ক্ষেতলাল", "আক্কেলপুর"],
+        "চাঁপাইনবাবগঞ্জ": ["চাঁপাইনবাবগঞ্জ সদর", "শিবগঞ্জ", "গোমস্তাপুর", "নাচোল", "ভোলাহাট"],
+        "নাটোর": ["নাটোর সদর", "সিংড়া", "বড়াইগ্রাম", "গুরুদাসপুর", "লালপুর", "বাগাতিপাড়া", "নলডাঙ্গা"],
+        "পাবনা": ["পাবনা সদর", "ঈশ্বরদী", "সাঁথিয়া", "চাটমোহর", "সুজানগর", "ফরিদপুর", "বেড়া", "ভাঙ্গুড়া", "আটঘরিয়া"],
+        "সিরাজগঞ্জ": ["সিরাজগঞ্জ সদর", "বেলকুচি", "কামারখন্দ", "কাজীপুর", "রায়গঞ্জ", "শাহজাদপুর", "তাড়াশ", "উল্লাপাড়া", "চৌহালী"]
+    },
+    "ঢাকা": {
+        "ঢাকা": ["ধানমন্ডি", "মিরপুর", "গুলশান", "উত্তরা", "মতিঝিল", "মোহাম্মদপুর", "সাভার", "ধামরাই", "কেরানীগঞ্জ", "দোহার", "নবাবগঞ্জ"],
+        "গাজীপুর": ["গাজীপুর সদর", "কালিয়াকৈর", "কালীগঞ্জ", "কাপাসিয়া", "শ্রীপুর"],
+        "নারায়ণগঞ্জ": ["নারায়ণগঞ্জ সদর", "আড়াইহাজার", "বন্দর", "রূপগঞ্জ", "সোনারগাঁও"],
+        "টাঙ্গাইল": ["টাঙ্গাইল সদর", "মির্জাপুর", "মধুপুর", "গোপালপুর", "ঘাটাইল", "কালিহাতী", "সখিপুর", "বাসাইল", "নাগরপুর"],
+        "ফরিদপুর": ["ফরিদপুর সদর", "বোয়ালমারী", "ভাঙ্গা", "মধুখালী", "নগরকান্দা", "আলফাডাঙ্গা", "সদরপুর", "চরভদ্রাসন"]
+    },
+    "রংপুর": {
+        "রংপুর": ["রংপুর সদর", "বদরগঞ্জ", "গঙ্গাচড়া", "কাউনিয়া", "মিঠাপুকুর", "পীরগাছা", "পীরগঞ্জ", "তারাগঞ্জ"],
+        "দিনাজপুর": ["দিনাজপুর সদর", "বিরামপুর", "বীরগঞ্জ", "বোচাগঞ্জ", "ফুলবাড়ী", "হাকিমপুর", "কাহারোল", "নবাবগঞ্জ", "পার্বতীপুর"],
+        "গাইবান্ধা": ["গাইবান্ধা সদর", "গোবিন্দগঞ্জ", "পলাশবাড়ী", "সাদুল্লাপুর", "সাঘাটা", "সুন্দরগঞ্জ", "ফুলছড়ি"],
+        "কুড়িগ্রাম": ["কুড়িগ্রাম সদর", "নাগেশ্বরী", "ভুরুঙ্গামারী", "উলিপুর", "চিলমারী", "রৌমারী", "রাজিবপুর"]
+    },
+    "চট্টগ্রাম": {
+        "চট্টগ্রাম": ["কোতোয়ালী", "পাঁচলাইশ", "পতেঙ্গা", "খুলশী", "হালিশহর", "সীতাকুণ্ড", "মীরসরাই", "হাটহাজারী", "রাউজান", "ফটিকছড়ি", "পটিয়া", "বোয়ালখালী", "আনোয়ারা"],
+        "কক্সবাজার": ["কক্সবাজার সদর", "চকোরিয়া", "মহেশখালী", "টেকনাফ", "উখিয়া", "রামু", "পেকুয়া", "কুতুবদিয়া"],
+        "কুমিল্লা": ["কুমিল্লা আদর্শ সদর", "লাকসাম", "চৌদ্দগ্রাম", "দেবীদ্বার", "দাউদকান্দি", "বরুড়া", "বুড়িচং", "চান্দিনা", "হোমনা"]
+    },
+    "খুলনা": {
+        "খুলনা": ["খুলনা সদর", "সোনাডাঙ্গা", "খালিশপুর", "দৌলতপুর", "বটিয়াঘাটা", "ডুমুরিয়া", "পাইকগাছা", "কয়রা", "রূপসা"],
+        "যশোর": ["যশোর সদর", "ঝিকরগাছা", "অভয়নগর", "মনিরামপুর", "কেশবপুর", "বাঘারপাড়া", "শার্শা", "চৌগাছা"],
+        "কুষ্টিয়া": ["কুষ্টিয়া সদর", "কুমারখালী", "খোকসা", "মিরপুর", "ভেড়ামারা", "দৌলতপুর"]
+    },
+    "ময়মনসিংহ": {
+        "ময়মনসিংহ": ["ময়মনসিংহ সদর", "মুক্তাগাছা", "ফুলবাড়িয়া", "ত্রিশাল", "ভালুকা", "গফরগাঁও", "ঈশ্বরগঞ্জ", "নান্দাইল", "হালুয়াঘাট"],
+        "জামালপুর": ["জামালপুর সদর", "মেলান্দহ", "মাদারগঞ্জ", "ইসলামপুর", "সরিষাবাড়ী", "দেওয়ানগঞ্জ", "বকশীগঞ্জ"]
+    },
+    "সিলেট": {
+        "সিলেট": ["সিলেট সদর", "দক্ষিণ সুরমা", "গোলাপগঞ্জ", "বিয়ানীবাজার", "বিশ্বনাথ", "ফেঞ্চুগঞ্জ", "বালাগঞ্জ", "কোম্পানীগঞ্জ", "জৈন্তাপুর"],
+        "মৌলভীবাজার": ["মৌলভীবাজার সদর", "শ্রীমঙ্গল", "কমলগঞ্জ", "কুলাউড়া", "বড়লেখা", "রাজনগর", "জুড়ী"]
+    },
+    "বরিশাল": {
+        "বরিশাল": ["বরিশাল সদর", "বাকেরগঞ্জ", "বাবুগঞ্জ", "উজিরপুর", "গৌরনদী", "আগৈলঝাড়া", "মেহেন্দীগঞ্জ", "মুলাদী", "হিজলা"],
+        "পটুয়াখালী": ["পটুয়াখালী সদর", "গলাচিপা", "বাউফল", "দশমিনা", "কলাপাড়া", "মির্জাগঞ্জ", "দুমকি", "রাঙ্গাবালী"]
+    }
+};
+
+function initGeoDropdowns() {
+    var divSelects = document.querySelectorAll('.division-select');
+    divSelects.forEach(function(divSel) {
+        divSel.innerHTML = '';
+        Object.keys(bdGeoData).forEach(function(divName) {
+            var opt = document.createElement('option');
+            opt.value = divName;
+            opt.innerText = divName;
+            if (divName === 'রাজশাহী') opt.selected = true;
+            divSel.appendChild(opt);
         });
+
+        var distId = divSel.getAttribute('data-district-target');
+        var upzId = divSel.getAttribute('data-upazila-target');
+        var distSel = document.getElementById(distId);
+        var upzSel = document.getElementById(upzId);
+
+        function updateDistricts() {
+            var selDiv = divSel.value;
+            distSel.innerHTML = '';
+            var districts = bdGeoData[selDiv] ? Object.keys(bdGeoData[selDiv]) : [];
+            districts.forEach(function(dName) {
+                var dOpt = document.createElement('option');
+                dOpt.value = dName;
+                dOpt.innerText = dName;
+                if (dName === 'নওগাঁ') dOpt.selected = true;
+                distSel.appendChild(dOpt);
+            });
+            updateUpazilas();
+        }
+
+        function updateUpazilas() {
+            var selDiv = divSel.value;
+            var selDist = distSel.value;
+            upzSel.innerHTML = '<option value="">-- উপজেলা / থানা নির্বাচন করুন --</option>';
+            var upazilas = (bdGeoData[selDiv] && bdGeoData[selDiv][selDist]) ? bdGeoData[selDiv][selDist] : [];
+            upazilas.forEach(function(uName) {
+                var uOpt = document.createElement('option');
+                uOpt.value = uName;
+                uOpt.innerText = uName;
+                upzSel.appendChild(uOpt);
+            });
+        }
+
+        divSel.addEventListener('change', updateDistricts);
+        distSel.addEventListener('change', updateUpazilas);
+
+        updateDistricts();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var todayStr = new Date().toISOString().split('T')[0];
+    var pickers = document.querySelectorAll('.past-date-picker');
+    pickers.forEach(function (p) {
+        p.setAttribute('max', todayStr);
     });
 
-    function validateVolunteerImageSize(input) {
-        var errorDiv = document.getElementById('modalVolunteerImageSizeError');
-        if (input.files && input.files[0]) {
-            var fileSize = input.files[0].size;
-            var maxBytes = 100 * 1024;
-            if (fileSize > maxBytes) {
-                if (errorDiv) errorDiv.classList.remove('d-none');
-                input.value = '';
-                alert('ছবির সাইজ সর্বোচ্চ 100 KB হতে পারবে। অনুগ্রহ করে রিসাইজ করে পুনরায় আপলোড করুন।');
-            } else {
-                if (errorDiv) errorDiv.classList.add('d-none');
-            }
+    initGeoDropdowns();
+});
+
+function validateVolunteerImageSize(input) {
+    var errorDiv = document.getElementById('modalVolunteerImageSizeError');
+    if (input.files && input.files[0]) {
+        var fileSize = input.files[0].size;
+        var maxBytes = 100 * 1024;
+        if (fileSize > maxBytes) {
+            if (errorDiv) errorDiv.classList.remove('d-none');
+            input.value = '';
+            alert('ছবির সাইজ সর্বোচ্চ 100 KB হতে পারবে। অনুগ্রহ করে রিসাইজ করে পুনরায় আপলোড করুন।');
+        } else {
+            if (errorDiv) errorDiv.classList.add('d-none');
         }
     }
+}
 </script>
 {% endblock %}

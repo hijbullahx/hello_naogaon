@@ -34,13 +34,13 @@ class EmergencyAppealAdmin(admin.ModelAdmin):
 
 @admin.register(DonationMethod)
 class DonationMethodAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_active')
-    list_filter = ('is_active',)
-    search_fields = ('name',)
+    list_display = ('name', 'account_number', 'account_type', 'is_active')
+    list_filter = ('is_active', 'account_type')
+    search_fields = ('name', 'account_number')
 
 @admin.register(Bank)
 class BankAdmin(admin.ModelAdmin):
-    list_display = ('bank_name', 'account_name', 'account_number', 'is_active')
+    list_display = ('bank_name', 'account_name', 'account_number', 'branch', 'is_active')
     list_filter = ('is_active', 'bank_name')
     search_fields = ('bank_name', 'account_number')
 
@@ -65,7 +65,7 @@ from .models import ProgramDonation
 
 @admin.register(ProgramDonation)
 class ProgramDonationAdmin(admin.ModelAdmin):
-    list_display = ('donor_name', 'program', 'amount', 'payment_method', 'membership_id', 'donor_phone', 'status', 'created_at')
-    list_filter = ('status', 'payment_method', 'program', 'created_at')
+    list_display = ('donor_name', 'donation_type', 'frequency', 'amount', 'payment_method', 'membership_id', 'donor_phone', 'status', 'created_at')
+    list_filter = ('status', 'donation_type', 'frequency', 'payment_method', 'program', 'created_at')
     search_fields = ('donor_name', 'donor_phone', 'donor_email', 'membership_id', 'trx_id', 'program__title')
     ordering = ('-created_at',)
