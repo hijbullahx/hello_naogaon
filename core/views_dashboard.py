@@ -44,7 +44,6 @@ def dashboard_home(request):
     photos = Photo.objects.all().order_by('-id')
     banks = Bank.objects.all()
     qrcodes = QRCode.objects.all()
-    messages_list = ContactMessage.objects.all().order_by('-created_at')
 
     # Donation Page Models
     donation_content, _ = DonationPageContent.objects.get_or_create(pk=1)
@@ -80,7 +79,6 @@ def dashboard_home(request):
         'photos': photos,
         'banks': banks,
         'qrcodes': qrcodes,
-        'messages_list': messages_list,
         'donation_content': donation_content,
         'campaigns': campaigns,
         'emergency_appeals': emergency_appeals,
