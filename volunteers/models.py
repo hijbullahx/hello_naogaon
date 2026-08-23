@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 from django.contrib.auth import get_user_model
 from datetime import date
 
@@ -30,6 +30,7 @@ class Volunteer(models.Model):
     address = models.TextField(blank=True, null=True, verbose_name="ঠিকানা")
     image = models.ImageField(upload_to='volunteers/', blank=True, null=True, verbose_name="ছবি")
     occupation = models.CharField(max_length=100, blank=True, null=True, verbose_name="পেশা")
+    last_donated = models.DateField(blank=True, null=True, verbose_name="সর্বশেষ রক্তদানের তারিখ")
     is_public_details = models.BooleanField(default=True, verbose_name="মোবাইল নম্বর ও বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?")
     application_date = models.DateTimeField(auto_now_add=True, verbose_name="নিবন্ধনের তারিখ")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved')
@@ -42,10 +43,24 @@ class Volunteer(models.Model):
     def __str__(self):
         return f"{self.full_name} ({self.member_id or 'No ID'})"
 
+    @property
+    def is_eligible_to_donate(self):
+        if not self.last_donated:
+            return True
+        diff = (date.today() - self.last_donated).days
+        return diff >= 90
+
+    @property
+    def days_until_eligible(self):
+        if not self.last_donated:
+            return 0
+        diff = (date.today() - self.last_donated).days
+        return max(0, 90 - diff)
+
     def save(self, *args, **kwargs):
         if not self.member_id:
             today = date.today()
-            prefix = today.strftime("%d%m%y")  # e.g. 210826 for 21 Aug 2026, 220826 for 22 Aug 2026
+            prefix = today.strftime("%y%m%d")  # e.g. 260823 for 23 Aug 2026 (YYMMDD)
             todays_volunteers = Volunteer.objects.filter(member_id__startswith=prefix).values_list('member_id', flat=True)
             max_seq = 0
             for mid in todays_volunteers:
@@ -83,13 +98,15 @@ class BloodDonor(models.Model):
         ('AB+', 'AB+'),
         ('AB-', 'AB-'),
     )
-    full_name = models.CharField(max_length=200)
-    blood_group = models.CharField(max_length=5, choices=BLOOD_GROUPS)
-    phone = models.CharField(max_length=20)
-    location = models.CharField(max_length=200, help_text="Area / Thana in Naogaon")
-    last_donated = models.DateField(blank=True, null=True)
-    is_available = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    member_id = models.CharField(max_length=20, blank=True, null=True, verbose_name="সদস্য আইডি (যদি থাকে)")
+    full_name = models.CharField(max_length=200, verbose_name="পূর্ণ নাম")
+    blood_group = models.CharField(max_length=5, choices=BLOOD_GROUPS, verbose_name="রক্তের গ্রুপ")
+    phone = models.CharField(max_length=20, verbose_name="মোবাইল নম্বর")
+    location = models.CharField(max_length=200, help_text="Area / Thana in Naogaon", verbose_name="এলাকা / ঠিকানা")
+    last_donated = models.DateField(blank=True, null=True, verbose_name="সর্বশেষ রক্তদানের তারিখ")
+    is_available = models.BooleanField(default=True, verbose_name="রক্তদানে সক্রিয়")
+    is_public_details = models.BooleanField(default=True, verbose_name="তথ্য সকলের জন্য প্রদর্শন করতে চান?")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="তালিকাভুক্তির তারিখ")
 
     class Meta:
         ordering = ['blood_group', 'full_name']
@@ -98,3 +115,19 @@ class BloodDonor(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.blood_group}) - {self.phone}"
+
+    @property
+    def is_eligible_to_donate(self):
+        if not self.is_available:
+            return False
+        if not self.last_donated:
+            return True
+        diff = (date.today() - self.last_donated).days
+        return diff >= 90
+
+    @property
+    def days_until_eligible(self):
+        if not self.last_donated:
+            return 0
+        diff = (date.today() - self.last_donated).days
+        return max(0, 90 - diff)

@@ -1,4 +1,4 @@
-﻿from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Q
 from django.core.mail import send_mail
@@ -43,17 +43,85 @@ def send_member_notifications(volunteer):
         print(f"[SMS SUCCESS] Sent Member ID {volunteer.member_id} to {volunteer.phone} | Content: {sms_text}")
 
 
+from datetime import datetime, date
+
 def blood_donors_list(request):
-    blood_group = request.GET.get('group', '')
+    blood_group = request.GET.get('group', '').strip()
+    search_query = request.GET.get('q', '').strip()
+    
     donors = BloodDonor.objects.filter(is_available=True)
     if blood_group:
         donors = donors.filter(blood_group=blood_group)
+    if search_query:
+        donors = donors.filter(
+            Q(full_name__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(member_id__icontains=search_query) |
+            Q(blood_group__icontains=search_query)
+        )
+
     context = {
         'donors': donors,
         'selected_group': blood_group,
+        'search_query': search_query,
         'groups': ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
     }
     return render(request, 'volunteers/blood_donors.html', context)
+
+
+def register_blood_donor(request):
+    """Register directly as a Blood Donor with optional existing Member ID"""
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        blood_group = request.POST.get('blood_group', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        location = request.POST.get('location', '').strip()
+        last_donated_str = request.POST.get('last_donated', '').strip()
+        member_id = request.POST.get('member_id', '').strip()
+        is_public_details = request.POST.get('is_public_details') == 'on'
+
+        if not full_name or not phone or not blood_group:
+            messages.error(request, 'দয়া করে নাম, রক্তের গ্রুপ ও মোবাইল নম্বর সঠিকভাবে প্রদান করুন।')
+            return redirect('volunteers:blood_donors')
+
+        last_donated_val = None
+        if last_donated_str:
+            try:
+                last_donated_val = datetime.strptime(last_donated_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
+        # If existing member_id provided, check if volunteer exists and link
+        if member_id:
+            vol = Volunteer.objects.filter(member_id=member_id).first()
+            if vol:
+                if not vol.blood_group:
+                    vol.blood_group = blood_group
+                if last_donated_val:
+                    vol.last_donated = last_donated_val
+                vol.save()
+
+        donor, created = BloodDonor.objects.update_or_create(
+            phone=phone,
+            defaults={
+                'full_name': full_name,
+                'blood_group': blood_group,
+                'location': location or 'নওগাঁ',
+                'last_donated': last_donated_val,
+                'member_id': member_id if member_id else None,
+                'is_public_details': is_public_details,
+                'is_available': True,
+            }
+        )
+
+        messages.success(
+            request,
+            f'ধন্যবাদ {full_name}! জরুরি রক্তদাতা ডাটাবেসে আপনার তথ্য সফলভাবে তালিকাভুক্ত হয়েছে।'
+        )
+        return redirect('volunteers:blood_donors')
+
+    return redirect('volunteers:blood_donors')
 
 
 def apply_volunteer(request):
@@ -64,6 +132,7 @@ def apply_volunteer(request):
         blood_group = request.POST.get('blood_group', '').strip()
         occupation = request.POST.get('occupation', '').strip()
         address = request.POST.get('address', '').strip()
+        last_donated_str = request.POST.get('last_donated', '').strip()
         is_public_details = request.POST.get('is_public_details') == 'on'
         image = request.FILES.get('image')
 
@@ -79,6 +148,13 @@ def apply_volunteer(request):
                 )
                 return redirect('volunteers:apply')
 
+        last_donated_val = None
+        if last_donated_str:
+            try:
+                last_donated_val = datetime.strptime(last_donated_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
         if full_name and phone:
             try:
                 vol = Volunteer.objects.create(
@@ -88,6 +164,7 @@ def apply_volunteer(request):
                     blood_group=blood_group if blood_group else None,
                     occupation=occupation if occupation else None,
                     address=address if address else None,
+                    last_donated=last_donated_val,
                     is_public_details=is_public_details,
                     image=image,
                     status='approved'
@@ -95,6 +172,21 @@ def apply_volunteer(request):
             except ValueError as e:
                 messages.error(request, str(e))
                 return redirect('volunteers:apply')
+
+            # Auto-sync to Blood Donor Database if blood group is selected
+            if blood_group:
+                BloodDonor.objects.update_or_create(
+                    phone=phone,
+                    defaults={
+                        'full_name': full_name,
+                        'blood_group': blood_group,
+                        'location': address if address else 'নওগাঁ',
+                        'last_donated': last_donated_val,
+                        'member_id': vol.member_id,
+                        'is_public_details': is_public_details,
+                        'is_available': True,
+                    }
+                )
             
             send_member_notifications(vol)
 

@@ -1,4 +1,4 @@
-﻿from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from core.models import SiteSetting, StatCounter, AboutImage, ContactMessage
@@ -489,6 +489,18 @@ def save_donor(request):
         group = request.POST.get('blood_group')
         phone = request.POST.get('phone')
         location = request.POST.get('location')
+        last_donated_str = request.POST.get('last_donated', '').strip()
+        member_id = request.POST.get('member_id', '').strip()
+        is_available = request.POST.get('is_available') == 'on'
+        is_public_details = request.POST.get('is_public_details') != 'off'
+
+        last_donated_val = None
+        if last_donated_str:
+            try:
+                from datetime import datetime
+                last_donated_val = datetime.strptime(last_donated_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
 
         if donor_id:
             donor = get_object_or_404(BloodDonor, pk=donor_id)
@@ -496,6 +508,10 @@ def save_donor(request):
             donor.blood_group = group
             donor.phone = phone
             donor.location = location
+            donor.last_donated = last_donated_val
+            donor.member_id = member_id if member_id else None
+            donor.is_available = is_available
+            donor.is_public_details = is_public_details
             donor.save()
             messages.success(request, f'রক্তদাতা "{name}" তথ্য আপডেট করা হয়েছে!')
         else:
@@ -504,7 +520,10 @@ def save_donor(request):
                 blood_group=group,
                 phone=phone,
                 location=location,
-                is_available=True
+                last_donated=last_donated_val,
+                member_id=member_id if member_id else None,
+                is_available=is_available,
+                is_public_details=is_public_details
             )
             messages.success(request, f'নতুন রক্তদাতা "{name}" তালিকাভুক্ত করা হয়েছে!')
     return redirect('/dashboard/?tab=donors-section')
@@ -526,27 +545,57 @@ def save_volunteer(request):
         full_name = request.POST.get('full_name')
         email = request.POST.get('email', '')
         phone = request.POST.get('phone')
+        blood_group = request.POST.get('blood_group', '').strip()
+        occupation = request.POST.get('occupation', '').strip()
         address = request.POST.get('address', '')
+        last_donated_str = request.POST.get('last_donated', '').strip()
         status = request.POST.get('status', 'approved')
+
+        last_donated_val = None
+        if last_donated_str:
+            try:
+                from datetime import datetime
+                last_donated_val = datetime.strptime(last_donated_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
 
         if vol_id:
             vol = get_object_or_404(Volunteer, pk=vol_id)
             vol.full_name = full_name
             vol.email = email
             vol.phone = phone
+            vol.blood_group = blood_group if blood_group else None
+            vol.occupation = occupation if occupation else None
             vol.address = address
+            vol.last_donated = last_donated_val
             vol.status = status
             vol.save()
             messages.success(request, f'স্বেচ্ছাসেবক "{full_name}" তথ্য আপডেট করা হয়েছে!')
         else:
-            Volunteer.objects.create(
+            vol = Volunteer.objects.create(
                 full_name=full_name,
                 email=email,
                 phone=phone,
+                blood_group=blood_group if blood_group else None,
+                occupation=occupation if occupation else None,
                 address=address,
+                last_donated=last_donated_val,
                 status=status
             )
             messages.success(request, f'নতুন স্বেচ্ছাসেবক "{full_name}" তালিকাভুক্ত করা হয়েছে!')
+
+        if blood_group:
+            BloodDonor.objects.update_or_create(
+                phone=phone,
+                defaults={
+                    'full_name': full_name,
+                    'blood_group': blood_group,
+                    'location': address if address else 'নওগাঁ',
+                    'last_donated': last_donated_val,
+                    'member_id': vol.member_id,
+                    'is_available': True,
+                }
+            )
     return redirect('/dashboard/?tab=volunteers-section')
 
 @staff_member_required

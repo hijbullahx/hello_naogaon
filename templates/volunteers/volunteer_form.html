@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}স্বেচ্ছাসেবক ও সদস্য তালিকা - {{ site_setting.title }}{% endblock %}
@@ -23,7 +23,7 @@
             <div class="col-md-6 col-lg-7">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0 text-success"><i class="fas fa-search"></i></span>
-                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="সদস্য আইডি (যেমন: 21082602), নাম, মোবাইল নম্বর বা রক্তের গ্রুপ দিয়ে খুঁজুন...">
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="সদস্য আইডি (যেমন: 26082301), নাম, মোবাইল নম্বর বা রক্তের গ্রুপ দিয়ে খুঁজুন...">
                 </div>
             </div>
             <div class="col-md-3 col-lg-3">
@@ -175,6 +175,19 @@
                                                         <span class="fw-semibold text-dark">{{ vol.address }}</span>
                                                     </div>
                                                     {% endif %}
+                                                    {% if vol.blood_group and vol.last_donated %}
+                                                    <div class="col-12 mt-2 bg-white p-2 rounded border">
+                                                        <small class="text-muted d-block"><i class="fas fa-hand-holding-droplet text-danger me-1"></i>সর্বশেষ রক্তদান:</small>
+                                                        <span class="fw-semibold text-dark">{{ vol.last_donated|date:"d F Y" }}</span>
+                                                        <div class="mt-1">
+                                                            {% if vol.is_eligible_to_donate %}
+                                                                <span class="badge bg-success small"><i class="fas fa-check-circle me-1"></i>রক্তদানে প্রস্তুত (৩ মাস অতিবাহিত)</span>
+                                                            {% else %}
+                                                                <span class="badge bg-warning text-dark small"><i class="fas fa-hourglass-half me-1"></i>বিশ্রামে (৩ মাস পূর্ণ হতে আর {{ vol.days_until_eligible }} দিন বাকি)</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
                                                     <div class="col-12 mt-2 border-top pt-2">
                                                         <small class="text-muted d-block"><i class="fas fa-calendar-check text-secondary me-1"></i>নিবন্ধনের তারিখ:</small>
                                                         <span class="small text-secondary">{{ vol.application_date|date:"d F Y, h:i A" }}</span>
@@ -298,6 +311,13 @@
                                     <option value="{{ bg }}">{{ bg }}</option>
                                 {% endfor %}
                             </select>
+                        </div>
+
+                        <!-- Last Donated Date Calendar -->
+                        <div class="col-md-6">
+                            <label for="volunteer_last_donated" class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ <small class="text-muted">(ঐচ্ছিক - রক্তদাতা হলে)</small></label>
+                            <input type="date" class="form-control" id="volunteer_last_donated" name="last_donated">
+                            <div class="form-text text-muted">রক্তের গ্রুপ দিলে স্বয়ংক্রিয়ভাবে জরুরি রক্তদাতা ডাটাবেসে নাম যুক্ত হবে এবং ৩ মাস পর 'উপলব্ধ' হবে।</div>
                         </div>
 
                         <!-- Occupation -->

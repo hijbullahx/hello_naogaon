@@ -1,70 +1,296 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}রক্তদাতা তালিকা - {{ site_setting.title }}{% endblock %}
+{% block title %}জরুরি রক্তদাতা ডাটাবেস - {{ site_setting.title }}{% endblock %}
 
 {% block content %}
-<div class="bg-success text-white py-4 mb-4">
+<!-- Page Header Banner -->
+<div class="bg-success text-white py-4 mb-4" style="background: linear-gradient(135deg, #8a0303 0%, #c0392b 100%) !important;">
     <div class="container text-center">
-        <h2 class="fw-bold mb-1"><i class="fas fa-droplet me-2"></i>জরুরি রক্তদাতা ডাটাবেস</h2>
-        <p class="mb-0 text-white-50">নওগাঁর নিবন্ধিত স্বেচ্ছাসেবী রক্তদাতাদের তালিকা</p>
+        <h2 class="fw-bold mb-1"><i class="fas fa-hand-holding-droplet me-2"></i>জরুরি রক্তদাতা ডাটাবেস</h2>
+        <p class="mb-3 text-white-50">মুমূর্ষু রোগীর প্রয়োজনে স্বেচ্ছাসেবী রক্তদাতাদের সরাসরি তালিকা ও সার্বক্ষণিক সহায়তা</p>
+        <button type="button" class="btn btn-warning fw-bold px-4 py-2 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#bloodDonorPromptModal">
+            <i class="fas fa-plus-circle me-2"></i>রক্তদাতা হিসেবে নাম লিখান
+        </button>
     </div>
 </div>
 
 <div class="container mb-5">
-    <!-- Filter Bar -->
-    <div class="card border-0 shadow-sm p-3 mb-4 bg-white rounded-3">
-        <form method="get" class="row g-2 align-items-center">
-            <div class="col-md-3">
-                <label class="form-label fw-bold text-secondary mb-1">রক্তের গ্রুপ বাছাই করুন:</label>
+
+    <!-- Search & Filter Card -->
+    <div class="card border-0 shadow-sm p-3 mb-4 bg-light rounded-3">
+        <form method="get" action="{% url 'volunteers:blood_donors' %}" class="row g-2 align-items-center">
+            <div class="col-md-5 col-lg-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-danger"><i class="fas fa-search"></i></span>
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="নাম, মোবাইল, এলাকা বা সদস্য আইডি দিয়ে খুঁজুন...">
+                </div>
             </div>
-            <div class="col-md-6">
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-sm {% if not selected_group %}btn-danger{% else %}btn-outline-secondary{% endif %}">সকল</a>
+            <div class="col-md-4 col-lg-5">
+                <div class="d-flex flex-wrap gap-1 align-items-center">
+                    <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-sm {% if not selected_group %}btn-danger fw-bold{% else %}btn-outline-secondary{% endif %}">সকল</a>
                     {% for grp in groups %}
-                    <a href="?group={{ grp }}" class="btn btn-sm {% if selected_group == grp %}btn-danger{% else %}btn-outline-danger{% endif %}">{{ grp }}</a>
+                        <a href="?group={{ grp }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-sm {% if selected_group == grp %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %}">
+                            {{ grp }}
+                        </a>
                     {% endfor %}
                 </div>
             </div>
-            <div class="col-md-3 text-md-end">
-                <a href="{% url 'core:contact' %}" class="btn btn-sm btn-success"><i class="fas fa-plus-circle me-1"></i> রক্তদাতা হিসেবে নাম নাম লিখান</a>
+            <div class="col-md-3 col-lg-2 d-flex gap-1">
+                <button type="submit" class="btn btn-danger fw-bold w-100"><i class="fas fa-filter me-1"></i>খুঁজুন</button>
+                {% if search_query or selected_group %}
+                    <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-outline-secondary" title="রিসেট"><i class="fas fa-undo"></i></a>
+                {% endif %}
             </div>
         </form>
     </div>
 
-    <!-- Donors Table -->
-    <div class="card border-0 shadow-sm overflow-hidden">
+    <!-- Blood Donors Count & Table -->
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-tint text-danger me-2"></i>রক্তদাতাদের তালিকা 
+                <span class="badge bg-danger rounded-pill fs-6 ms-2">{{ donors.count }} জন</span>
+            </h5>
+            <button type="button" class="btn btn-danger btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#bloodDonorPromptModal">
+                <i class="fas fa-plus-circle me-1"></i> নতুন রক্তদাতা যুক্ত হন
+            </button>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
+                <thead class="table-secondary">
                     <tr>
-                        <th>#</th>
-                        <th>নাম</th>
+                        <th style="width: 50px;">#</th>
+                        <th>রক্তদাতার নাম ও পরিচিতি</th>
                         <th>রক্তের গ্রুপ</th>
-                        <th>ফোন নম্বর</th>
-                        <th>এলাকা / ঠিকানা</th>
+                        <th>মোবাইল নম্বর</th>
+                        <th>এলাকা / থানা</th>
                         <th>সর্বশেষ রক্তদান</th>
-                        <th>স্ট্যাটাস</th>
+                        <th>স্ট্যাটাস (৩ মাস গণনা)</th>
+                        <th>যোগাযোগ</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for donor in donors %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td class="fw-bold text-dark">{{ donor.full_name }}</td>
-                        <td><span class="badge bg-danger fs-6">{{ donor.blood_group }}</span></td>
-                        <td><a href="tel:{{ donor.phone }}" class="text-decoration-none fw-semibold text-success"><i class="fas fa-phone me-1"></i> {{ donor.phone }}</a></td>
-                        <td>{{ donor.location }}</td>
-                        <td>{{ donor.last_donated|date:"d M Y"|default:"তথ্য নেই" }}</td>
-                        <td><span class="badge bg-success">উপলব্ধ</span></td>
+                        <td>
+                            <div class="fw-bold text-dark fs-6">{{ donor.full_name }}</div>
+                            {% if donor.member_id %}
+                                <span class="badge bg-success-subtle text-success border border-success small py-1 px-2 mt-1">
+                                    <i class="fas fa-id-badge me-1"></i>সদস্য আইডি: {{ donor.member_id }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-danger fs-6 px-3 py-2 shadow-sm">
+                                <i class="fas fa-tint me-1"></i>{{ donor.blood_group }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if donor.is_public_details %}
+                                <a href="tel:{{ donor.phone }}" class="text-decoration-none fw-bold text-success">
+                                    <i class="fas fa-phone me-1"></i>{{ donor.phone }}
+                                </a>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-lock me-1"></i>গোপনীয়</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-secondary fw-semibold"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ donor.location }}</span>
+                        </td>
+                        <td>
+                            {% if donor.last_donated %}
+                                <span class="fw-semibold text-dark">{{ donor.last_donated|date:"d M Y" }}</span>
+                            {% else %}
+                                <span class="text-muted small">তথ্য নেই</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if donor.is_eligible_to_donate %}
+                                <span class="badge bg-success fs-6 py-2 px-3">
+                                    <i class="fas fa-check-circle me-1"></i>উপলব্ধ (প্রস্তুত)
+                                </span>
+                            {% elif donor.last_donated %}
+                                <span class="badge bg-warning text-dark fs-6 py-2 px-3" title="সর্বশেষ রক্তদানের পর ৩ মাস পূর্ণ হতে আর {{ donor.days_until_eligible }} দিন বাকি">
+                                    <i class="fas fa-hourglass-half me-1"></i>বিশ্রামে ({{ donor.days_until_eligible }} দিন বাকি)
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6 py-2 px-3">
+                                    <i class="fas fa-times-circle me-1"></i>অনুপলব্ধ
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if donor.is_public_details and donor.phone %}
+                                <a href="tel:{{ donor.phone }}" class="btn btn-sm btn-outline-success fw-bold">
+                                    <i class="fas fa-phone-alt me-1"></i>কল করুন
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">কোনো রক্তদাতার তথ্য পাওয়া যায়নি।</td>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fas fa-tint-slash fa-3x text-secondary mb-2 d-block"></i>
+                            কোনো রক্তদাতার তথ্য পাওয়া যায়নি।
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- 1. Decision Modal: "আপনি কি সদস্য হতে চান?" -->
+<div class="modal fade" id="bloodDonorPromptModal" tabindex="-1" aria-labelledby="bloodDonorPromptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-danger text-white py-3">
+                <h5 class="modal-title fw-bold" id="bloodDonorPromptModalLabel">
+                    <i class="fas fa-question-circle me-2"></i>রক্তদাতা নিবন্ধন - আপনি কি সদস্য হতে চান?
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <h4 class="fw-bold text-dark mb-2">আপনি কি আমাদের সংগঠনের সাথে যুক্ত হতে চান?</h4>
+                <p class="text-muted mb-4">আমাদের সদস্য হিসেবে যুক্ত হয়ে নিয়মিত মানবসেবামূলক কার্যক্রমে অংশ নিতে পারেন অথবা শুধুমাত্র জরুরি প্রয়োজনে রক্তদাতা হিসেবে নাম অন্তর্ভুক্ত করতে পারেন।</p>
+
+                <div class="row g-4 justify-content-center">
+                    <!-- Option A: Full Volunteer / Member -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-2 border-success shadow-sm p-4 rounded-3 text-center d-flex flex-column justify-content-between" style="background-color: #f6fff9;">
+                            <div>
+                                <div class="bg-success text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 70px; height: 70px;">
+                                    <i class="fas fa-id-card fa-2x"></i>
+                                </div>
+                                <h5 class="fw-bold text-success mb-2">হ্যাঁ, সদস্য হতে চাই</h5>
+                                <ul class="list-unstyled text-start small text-secondary mb-4">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>ইউনিক মেম্বার আইডি (যেমন: 26082301) পাবেন</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>স্বেচ্ছাসেবক ডিরেক্টরিতে ছবিসহ পূর্ণ পরিচিতি</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>রক্তদাতা ডাটাবেসে স্বয়ংক্রিয়ভাবে নাম ও ৩ মাসের স্ট্যাটাস যুক্ত হবে</li>
+                                </ul>
+                            </div>
+                            <a href="{% url 'volunteers:apply' %}" class="btn btn-success fw-bold py-2 shadow-sm">
+                                <i class="fas fa-user-plus me-1"></i>সদস্য হিসেবে রেজিস্ট্রেশন করুন
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Option B: Blood Donor Only -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-2 border-danger shadow-sm p-4 rounded-3 text-center d-flex flex-column justify-content-between" style="background-color: #fff9f9;">
+                            <div>
+                                <div class="bg-danger text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 70px; height: 70px;">
+                                    <i class="fas fa-hand-holding-droplet fa-2x"></i>
+                                </div>
+                                <h5 class="fw-bold text-danger mb-2">না, শুধুমাত্র রক্তদাতা হব</h5>
+                                <ul class="list-unstyled text-start small text-secondary mb-4">
+                                    <li class="mb-2"><i class="fas fa-check text-danger me-2"></i>দ্রুত ও সংক্ষিপ্ত তথ্য প্রদান</li>
+                                    <li class="mb-2"><i class="fas fa-check text-danger me-2"></i>জরুরি রক্তদান ডিরেক্টরিতে তাৎক্ষণিক তালিকাভুক্তি</li>
+                                    <li class="mb-2"><i class="fas fa-check text-danger me-2"></i>পূর্ববর্তী সদস্য আইডি থাকলে লিংক করার সুবিধা</li>
+                                </ul>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger fw-bold py-2 shadow-sm" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#bloodDonorRegisterModal">
+                                <i class="fas fa-tint me-1"></i>রক্তদাতা ফর্ম পূরণ করুন
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">বন্ধ করুন</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Blood Donor Direct Registration Modal -->
+<div class="modal fade" id="bloodDonorRegisterModal" tabindex="-1" aria-labelledby="bloodDonorRegisterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-danger text-white py-3">
+                <h5 class="modal-title fw-bold" id="bloodDonorRegisterModalLabel">
+                    <i class="fas fa-hand-holding-heart me-2"></i>জরুরি রক্তদাতা হিসেবে নিবন্ধন করুন
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'volunteers:register_blood_donor' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="alert alert-danger d-flex align-items-center mb-4">
+                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                        <div>
+                            <strong>রক্তদান জীবন বাঁচায়:</strong> আপনার দেওয়া তথ্য নওগাঁর স্থানীয় মুমূর্ষু রোগীর প্রয়োজনে স্বেচ্ছায় রক্তদানে ব্যবহৃত হবে।
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Full Name -->
+                        <div class="col-md-6">
+                            <label for="donor_full_name" class="form-label fw-bold">আপনার পূর্ণ নাম <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="donor_full_name" name="full_name" required placeholder="যেমন: মো: আবদুর রহিম">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6">
+                            <label for="donor_phone" class="form-label fw-bold">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="donor_phone" name="phone" required placeholder="017XXXXXXXX">
+                        </div>
+
+                        <!-- Blood Group -->
+                        <div class="col-md-6">
+                            <label for="donor_blood_group" class="form-label fw-bold">রক্তের গ্রুপ <span class="text-danger">*</span></label>
+                            <select class="form-select" id="donor_blood_group" name="blood_group" required>
+                                <option value="">-- রক্তের গ্রুপ নির্বাচন করুন --</option>
+                                {% for bg in groups %}
+                                    <option value="{{ bg }}">{{ bg }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Location / Area -->
+                        <div class="col-md-6">
+                            <label for="donor_location" class="form-label fw-bold">এলাকা / থানা <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="donor_location" name="location" required placeholder="যেমন: মহাদেবপুর, নওগাঁ সদর">
+                        </div>
+
+                        <!-- Last Donated Date Calendar -->
+                        <div class="col-md-6">
+                            <label for="donor_last_donated" class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <input type="date" class="form-control" id="donor_last_donated" name="last_donated">
+                            <div class="form-text text-muted">সর্বশেষ রক্তদানের পর ৩ মাস অতিবাহিত হলে স্বয়ংক্রিয়ভাবে আপনাকে রক্তদানে 'উপলব্ধ' দেখানো হবে।</div>
+                        </div>
+
+                        <!-- Existing Member ID (Optional) -->
+                        <div class="col-md-6">
+                            <label for="donor_member_id" class="form-label fw-bold">সদস্য আইডি <small class="text-muted">(যদি ইতিমধ্যে সদস্য হন - ঐচ্ছিক)</small></label>
+                            <input type="text" class="form-control" id="donor_member_id" name="member_id" placeholder="যেমন: 26082301">
+                            <div class="form-text text-muted">আপনি যদি সংগঠনের নিবন্ধিত সদস্য হন, তবে আপনার ৮ ডিজিটের আইডি এখানে লিখুন।</div>
+                        </div>
+
+                        <!-- Privacy Switch -->
+                        <div class="col-12">
+                            <div class="form-check form-switch bg-light p-3 rounded border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="donor_is_public_details" name="is_public_details" checked>
+                                <label class="form-check-label fw-bold text-dark" for="donor_is_public_details">
+                                    <i class="fas fa-phone-alt text-danger me-1"></i>জরুরি প্রয়োজনে রক্তের জন্য আপনার মোবাইল নম্বর সর্বসাধারণের জন্য উন্মুক্ত রাখতে চান?
+                                </label>
+                                <div class="form-text text-muted ps-4">টিক চিহ্ন দেওয়া থাকলে রক্তের প্রয়োজনে রোগীর স্বজনরা সরাসরি আপনাকে ফোন দিতে পারবেন।</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="submit" class="btn btn-danger fw-bold px-4"><i class="fas fa-heart me-1"></i> রক্তদাতা হিসেবে সংরক্ষণ করুন</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
