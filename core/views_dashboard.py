@@ -301,11 +301,17 @@ def save_program(request):
 
 @staff_member_required
 def delete_program(request, pk):
-    """Delete a Program"""
+    """Delete a Program safely"""
     prog = get_object_or_404(Program, pk=pk)
     title = prog.title
-    prog.delete()
-    messages.success(request, f'কার্যক্রম "{title}" মুছে ফেলা হয়েছে!')
+    try:
+        # Safely detach any foreign key references before deleting
+        ProgramDonation.objects.filter(program=prog).update(program=None)
+        FinancialTransaction.objects.filter(program=prog).update(program=None)
+        prog.delete()
+        messages.success(request, f'কার্যক্রম "{title}" সফলভাবে মুছে ফেলা হয়েছে!')
+    except Exception as e:
+        messages.error(request, f'কার্যক্রম মুছে ফেলতে সমস্যা হয়েছে: {e}')
     return redirect('/dashboard/?tab=programs-section')
 
 @staff_member_required

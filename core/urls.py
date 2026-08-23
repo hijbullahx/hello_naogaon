@@ -12,6 +12,7 @@ urlpatterns = [
     path('dashboard/', views_dashboard.dashboard_home, name='dashboard'),
     path('dashboard/update-hero/', views_dashboard.update_hero_section, name='update_hero'),
     path('dashboard/update-about/', views_dashboard.update_about_section, name='update_about'),
+    path('dashboard/delete-about-image/<int:pk>/', views_dashboard.delete_about_image, name='delete_about_image'),
     path('dashboard/update-stats/', views_dashboard.update_stat_counters, name='update_stats'),
     path('dashboard/save-stat-counter/', views_dashboard.save_stat_counter, name='save_stat_counter'),
     path('dashboard/delete-stat-counter/<int:pk>/', views_dashboard.delete_stat_counter, name='delete_stat_counter'),
