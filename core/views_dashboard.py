@@ -157,21 +157,52 @@ def delete_about_image(request, pk):
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required
-def update_stat_counters(request):
-    """Update 4 Stat Counters"""
+def save_stat_counter(request):
+    """Create or update a single StatCounter via Pop-up Modal"""
     if request.method == 'POST':
-        for i in range(1, 5):
-            title = request.POST.get(f'stat_title_{i}')
-            value = request.POST.get(f'stat_value_{i}')
-            icon = request.POST.get(f'stat_icon_{i}')
-            if title and value:
-                counter, _ = StatCounter.objects.get_or_create(order=i)
-                counter.title = title
-                counter.value = value
-                counter.icon = icon or counter.icon
-                counter.save()
-        messages.success(request, 'পরিসংখ্যান কাউন্টার আপডেট হয়েছে!')
+        stat_id = request.POST.get('stat_id')
+        title = request.POST.get('title', '').strip()
+        value = request.POST.get('value', '').strip()
+        icon_class = request.POST.get('icon_class', 'fas fa-heart').strip()
+        badge_color = request.POST.get('badge_color', 'success').strip()
+        order = request.POST.get('order', '1').strip()
+        is_active = 'is_active' in request.POST
+
+        if stat_id:
+            stat = get_object_or_404(StatCounter, pk=stat_id)
+            stat.title = title
+            stat.value = value
+            stat.icon_class = icon_class
+            stat.badge_color = badge_color
+            stat.order = int(order) if order.isdigit() else 1
+            stat.is_active = is_active
+            stat.save()
+            messages.success(request, f'"{stat.title}" কাউন্টার কার্ড সফলভাবে আপডেট করা হয়েছে!')
+        else:
+            StatCounter.objects.create(
+                title=title,
+                value=value,
+                icon_class=icon_class,
+                badge_color=badge_color,
+                order=int(order) if order.isdigit() else 1,
+                is_active=is_active
+            )
+            messages.success(request, f'নতুন কাউন্টার কার্ড "{title}" সফলভাবে তৈরি হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
+
+@staff_member_required
+def delete_stat_counter(request, pk):
+    """Delete a StatCounter"""
+    stat = get_object_or_404(StatCounter, pk=pk)
+    title = stat.title
+    stat.delete()
+    messages.success(request, f'"{title}" কাউন্টার কার্ড সফলভাবে মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=home-section')
+
+@staff_member_required
+def update_stat_counters(request):
+    """Legacy wrapper redirecting to save_stat_counter"""
+    return save_stat_counter(request)
 
 @staff_member_required
 def save_program(request):

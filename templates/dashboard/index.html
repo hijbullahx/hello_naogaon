@@ -179,48 +179,49 @@
                     </div>
                 </div>
 
-                <!-- 3. Stat Counters Card -->
+                <!-- 3. Stat Counters Card (Pop-up Modal Edit) -->
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-info text-white py-3">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-sort-numeric-up me-2"></i>৩. হোমপেজ কাউন্টার কার্ডসমূহ এডিট (5 Stat Cards)</h5>
+                        <div class="card-header bg-info text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <h5 class="card-title fw-bold mb-0">
+                                <i class="fas fa-sort-numeric-up me-2"></i>৩. হোমপেজ কাউন্টার কার্ডসমূহ এডিট (5 Stat Cards)
+                            </h5>
+                            <button type="button" class="btn btn-light btn-sm fw-bold shadow-sm" onclick="openCreateStatModal()">
+                                <i class="fas fa-plus-circle me-1 text-info"></i> নতুন কাউন্টার যোগ করুন
+                            </button>
                         </div>
                         <div class="card-body">
-                            <form action="{% url 'core:update_stats' %}" method="post">
-                                {% csrf_token %}
-                                <div class="row g-3">
-                                    {% for stat in stat_counters %}
-                                    <input type="hidden" name="stat_id" value="{{ stat.id }}">
-                                    <div class="col-md-4 col-lg-2-4">
-                                        <div class="p-3 border rounded bg-light">
-                                            <div class="mb-2">
-                                                <label class="form-label small fw-bold">টাইটেল</label>
-                                                <input type="text" name="title_{{ stat.id }}" value="{{ stat.title }}" class="form-control form-control-sm">
+                            <div class="row g-3">
+                                {% for stat in stat_counters %}
+                                <div class="col-6 col-md-4 col-lg-2-4">
+                                    <div class="p-3 border rounded-3 bg-white shadow-sm h-100 d-flex flex-column justify-content-between text-center position-relative">
+                                        <span class="badge bg-secondary position-absolute top-0 start-0 m-2 small">#{{ stat.order }}</span>
+                                        <div class="py-2">
+                                            <div class="d-inline-flex align-items-center justify-content-center bg-{{ stat.badge_color|default:'success' }} bg-opacity-10 text-{{ stat.badge_color|default:'success' }} rounded-circle p-3 mb-2" style="width: 54px; height: 54px;">
+                                                <i class="{{ stat.icon_class|default:'fas fa-heart' }} fa-lg"></i>
                                             </div>
-                                            <div class="mb-2">
-                                                <label class="form-label small fw-bold">সংখ্যা (Value)</label>
-                                                <input type="text" name="value_{{ stat.id }}" value="{{ stat.value }}" class="form-control form-control-sm fw-bold">
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label small fw-bold">FontAwesome Icon</label>
-                                                <input type="text" name="icon_{{ stat.id }}" value="{{ stat.icon_class }}" class="form-control form-control-sm">
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label small fw-bold">ব্যাজ কালার</label>
-                                                <select name="color_{{ stat.id }}" class="form-select form-select-sm">
-                                                    <option value="danger" {% if stat.badge_color == 'danger' %}selected{% endif %}>Danger (Red)</option>
-                                                    <option value="success" {% if stat.badge_color == 'success' %}selected{% endif %}>Success (Green)</option>
-                                                    <option value="warning" {% if stat.badge_color == 'warning' %}selected{% endif %}>Warning (Yellow)</option>
-                                                    <option value="primary" {% if stat.badge_color == 'primary' %}selected{% endif %}>Primary (Blue)</option>
-                                                    <option value="info" {% if stat.badge_color == 'info' %}selected{% endif %}>Info (Teal)</option>
-                                                </select>
-                                            </div>
+                                            <h4 class="fw-bold text-dark mb-1">{{ stat.value }}</h4>
+                                            <div class="fw-semibold text-secondary small mb-2">{{ stat.title }}</div>
+                                            <span class="badge bg-{{ stat.badge_color|default:'success' }}-subtle text-{{ stat.badge_color|default:'success' }} border border-{{ stat.badge_color|default:'success' }} px-2 py-1 small">
+                                                {{ stat.badge_color|title }}
+                                            </span>
+                                        </div>
+                                        <div class="d-flex flex-column gap-1 mt-2 pt-2 border-top">
+                                            <button type="button" class="btn btn-sm btn-outline-info fw-bold py-1" onclick="openEditStatModal('{{ stat.id }}', '{{ stat.title|escapejs }}', '{{ stat.value|escapejs }}', '{{ stat.icon_class|escapejs }}', '{{ stat.badge_color|escapejs }}', '{{ stat.order }}', {{ stat.is_active|yesno:'true,false' }})">
+                                                <i class="fas fa-edit me-1"></i> এডিট করুন (Pop-up)
+                                            </button>
+                                            <a href="{% url 'core:delete_stat_counter' stat.id %}" class="btn btn-sm btn-outline-danger py-1" onclick="return confirm('আপনি কি নিশ্চিতভাবে এই কাউন্টার কার্ডটি মুছে ফেলতে চান?')">
+                                                <i class="fas fa-trash-alt me-1"></i> মুছুন
+                                            </a>
                                         </div>
                                     </div>
-                                    {% endfor %}
                                 </div>
-                                <button type="submit" class="btn btn-info text-white fw-bold mt-3"><i class="fas fa-save me-1"></i> কাউন্টারসমূহ আপডেট করুন</button>
-                            </form>
+                                {% empty %}
+                                <div class="col-12 text-center py-4 text-muted">
+                                    কোনো কাউন্টার কার্ড তৈরি করা হয়নি। "নতুন কাউন্টার যোগ করুন" বাটনে ক্লিক করে যোগ করুন।
+                                </div>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1674,7 +1675,97 @@
 </div>
 
 
+<!-- Stat Counter Edit / Create Pop-up Modal -->
+<div class="modal fade" id="statCounterModal" tabindex="-1" aria-labelledby="statCounterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title fw-bold" id="statCounterModalLabel">
+                    <i class="fas fa-sort-numeric-up me-2"></i>কাউন্টার কার্ড এডিট করুন
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_stat_counter' %}" method="post" id="statCounterForm">
+                {% csrf_token %}
+                <input type="hidden" name="stat_id" id="stat_id_input" value="">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">কাউন্টারের টাইটেল / নাম *</label>
+                        <input type="text" name="title" id="stat_title_input" required class="form-control" placeholder="যেমন: রক্তদান, পরিবারকে সহায়তা, শিক্ষার্থী সহায়তা">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">সংখ্যা বা মান (Value) *</label>
+                        <input type="text" name="value" id="stat_value_input" required class="form-control form-control-lg fw-bold text-success" placeholder="যেমন: ৫০০+, ২,০০০+, ৫০+">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">FontAwesome আইকন ক্লাস</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i id="icon_preview_badge" class="fas fa-heart"></i></span>
+                            <input type="text" name="icon_class" id="stat_icon_input" class="form-control font-monospace" placeholder="fas fa-tint" onkeyup="document.getElementById('icon_preview_badge').className = this.value || 'fas fa-heart'">
+                        </div>
+                        <div class="form-text small text-muted">উদাহরণ: <code>fas fa-tint</code> (রক্ত), <code>fas fa-users</code> (পরিবার), <code>fas fa-graduation-cap</code> (শিক্ষা), <code>fas fa-hands-helping</code> (স্বেচ্ছাসেবক), <code>fas fa-seedling</code> (গাছ)</div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ব্যাজ কালার (রং)</label>
+                            <select name="badge_color" id="stat_color_input" class="form-select">
+                                <option value="danger">Danger (লাল)</option>
+                                <option value="success">Success (সবুজ)</option>
+                                <option value="warning">Warning (হলুদ)</option>
+                                <option value="primary">Primary (নীল)</option>
+                                <option value="info">Info (টিয়াল/আকাশি)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ক্রমিক নম্বর (Order)</label>
+                            <input type="number" name="order" id="stat_order_input" class="form-control" value="1" min="1" max="20">
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="stat_active_input" checked>
+                        <label class="form-check-label fw-bold" for="stat_active_input">হোমপেজে এই কাউন্টারটি সক্রিয় রাখুন</label>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-info text-white fw-bold px-4"><i class="fas fa-save me-1"></i> সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+function openCreateStatModal() {
+    document.getElementById('statCounterModalLabel').innerHTML = '<i class="fas fa-plus-circle me-2"></i>নতুন কাউন্টার কার্ড যোগ করুন';
+    document.getElementById('stat_id_input').value = '';
+    document.getElementById('stat_title_input').value = '';
+    document.getElementById('stat_value_input').value = '';
+    document.getElementById('stat_icon_input').value = 'fas fa-heart';
+    document.getElementById('icon_preview_badge').className = 'fas fa-heart';
+    document.getElementById('stat_color_input').value = 'success';
+    document.getElementById('stat_order_input').value = '1';
+    document.getElementById('stat_active_input').checked = true;
+
+    const modal = new bootstrap.Modal(document.getElementById('statCounterModal'));
+    modal.show();
+}
+
+function openEditStatModal(id, title, value, icon, color, order, isActive) {
+    document.getElementById('statCounterModalLabel').innerHTML = '<i class="fas fa-edit me-2"></i>কাউন্টার কার্ড এডিট করুন: ' + title;
+    document.getElementById('stat_id_input').value = id;
+    document.getElementById('stat_title_input').value = title;
+    document.getElementById('stat_value_input').value = value;
+    document.getElementById('stat_icon_input').value = icon || 'fas fa-heart';
+    document.getElementById('icon_preview_badge').className = icon || 'fas fa-heart';
+    document.getElementById('stat_color_input').value = color || 'success';
+    document.getElementById('stat_order_input').value = order || '1';
+    document.getElementById('stat_active_input').checked = isActive !== false;
+
+    const modal = new bootstrap.Modal(document.getElementById('statCounterModal'));
+    modal.show();
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     // 1. Check URL search param e.g. ?tab=volunteers-section
     const urlParams = new URLSearchParams(window.location.search);
