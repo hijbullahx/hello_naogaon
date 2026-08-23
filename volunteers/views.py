@@ -77,12 +77,18 @@ def normalize_blood_group(val):
 def blood_donors_list(request):
     raw_group = request.GET.get('group', '').strip()
     blood_group = normalize_blood_group(raw_group) if raw_group else ''
+    selected_division = request.GET.get('division', '').strip()
+    selected_district = request.GET.get('district', '').strip()
     selected_upazila = request.GET.get('upazila', '').strip()
     search_query = request.GET.get('q', '').strip()
     
     donors = BloodDonor.objects.filter(is_available=True)
     if blood_group:
         donors = donors.filter(blood_group=blood_group)
+    if selected_division:
+        donors = donors.filter(division__icontains=selected_division)
+    if selected_district:
+        donors = donors.filter(district__icontains=selected_district)
     if selected_upazila:
         donors = donors.filter(Q(upazila__icontains=selected_upazila) | Q(location__icontains=selected_upazila))
     if search_query:
@@ -101,19 +107,14 @@ def blood_donors_list(request):
             q_filter |= Q(blood_group=norm_bg)
         donors = donors.filter(q_filter)
 
-    naogaon_upazilas = [
-        'নওগাঁ সদর', 'মহাদেবপুর', 'পত্নীতলা', 'ধামইরহাট', 
-        'নিয়ামতপুর', 'মান্দা', 'রানীনগর', 'আত্রাই', 
-        'পোরশা', 'সাপাহার', 'বদলগাছী'
-    ]
-
     context = {
         'donors': donors,
         'selected_group': blood_group,
+        'selected_division': selected_division,
+        'selected_district': selected_district,
         'selected_upazila': selected_upazila,
         'search_query': search_query,
         'groups': ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
-        'upazilas': naogaon_upazilas,
     }
     return render(request, 'volunteers/blood_donors.html', context)
 
@@ -254,6 +255,8 @@ def apply_volunteer(request):
     search_query = request.GET.get('q', '').strip()
     raw_group = request.GET.get('group', '').strip()
     blood_group_filter = normalize_blood_group(raw_group) if raw_group else ''
+    selected_division = request.GET.get('division', '').strip()
+    selected_district = request.GET.get('district', '').strip()
     selected_upazila = request.GET.get('upazila', '').strip()
 
     volunteers_list = Volunteer.objects.all().order_by('-id')
@@ -277,24 +280,45 @@ def apply_volunteer(request):
     if blood_group_filter:
         volunteers_list = volunteers_list.filter(blood_group=blood_group_filter)
 
+    if selected_division:
+        volunteers_list = volunteers_list.filter(division__icontains=selected_division)
+
+    if selected_district:
+        volunteers_list = volunteers_list.filter(district__icontains=selected_district)
+
     if selected_upazila:
         volunteers_list = volunteers_list.filter(Q(upazila__icontains=selected_upazila) | Q(address__icontains=selected_upazila))
 
     team_members = TeamMember.objects.all()
-
-    naogaon_upazilas = [
-        'নওগাঁ সদর', 'মহাদেবপুর', 'পত্নীতলা', 'ধামইরহাট', 
-        'নিয়ামতপুর', 'মান্দা', 'রানীনগর', 'আত্রাই', 
-        'পোরশা', 'সাপাহার', 'বদলগাছী'
-    ]
 
     context = {
         'team_members': team_members,
         'volunteers_list': volunteers_list,
         'search_query': search_query,
         'blood_group_filter': blood_group_filter,
+        'selected_division': selected_division,
+        'selected_district': selected_district,
         'selected_upazila': selected_upazila,
         'groups': ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
-        'upazilas': naogaon_upazilas,
     }
     return render(request, 'volunteers/volunteer_form.html', context)
+
+
+import os
+import json
+from django.http import JsonResponse
+from django.conf import settings
+
+_BD_GEO_CACHE = None
+
+def get_bd_geo_json(request):
+    """API endpoint to fetch complete 8 divisions, 64 districts and 494 upazilas of Bangladesh"""
+    global _BD_GEO_CACHE
+    if _BD_GEO_CACHE is None:
+        file_path = os.path.join(settings.BASE_DIR, 'static', 'data', 'bangladesh_geo.json')
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                _BD_GEO_CACHE = json.load(f)
+        else:
+            _BD_GEO_CACHE = {}
+    return JsonResponse(_BD_GEO_CACHE)

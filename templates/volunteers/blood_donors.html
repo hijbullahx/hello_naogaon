@@ -11,42 +11,74 @@
         <h2 class="fw-bold mb-1"><i class="fas fa-hand-holding-droplet me-2"></i>জরুরি রক্তদাতা ডাটাবেস</h2>
         <p class="mb-3 text-white-50">মুমূর্ষু রোগীর প্রয়োজনে স্বেচ্ছাসেবী রক্তদাতাদের সরাসরি তালিকা ও সার্বক্ষণিক
             সহায়তা</p>
-        <button type="button" class="btn btn-warning fw-bold px-4 py-2 shadow-sm rounde    <!-- Search & Filter Card -->
-    <div class="card border-0 shadow-sm p-3 mb-4 bg-light rounded-3">
-        <form method="get" action="{% url 'volunteers:blood_donors' %}" class="row g-2 align-items-center">
-            {% if selected_group %}
-                <input type="hidden" name="group" value="{{ selected_group }}">
-            {% endif %}
-            <div class="col-md-4 col-lg-4">
+        <button type="button" class="btn btn-warning fw-bold px-4 py-2 shadow-sm rounded-pill" data-bs-toggle="modal"
+            data-bs-target="#bloodDonorPromptModal">
+            <i class="fas fa-plus-circle me-2"></i>রক্তদাতা হিসেবে নাম লিখান
+        </button>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Search & Filter Card -->
+    <div class="card border-0 shadow-sm p-3 mb-4 bg-white rounded-3 border-top border-4 border-danger">
+        <form method="get" action="{% url 'volunteers:blood_donors' %}" id="bloodDonorFilterForm" class="row g-3">
+            <input type="hidden" name="group" value="{{ selected_group }}" id="filter_selected_group">
+            
+            <!-- Row 1: Search Query + Blood Groups -->
+            <div class="col-lg-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-search me-1 text-danger"></i>অনুসন্ধান</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 text-danger"><i class="fas fa-search"></i></span>
-                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0"
-                        placeholder="নাম, মোবাইল, ঠিকানা বা সদস্য আইডি...">
+                    <span class="input-group-text bg-light text-danger"><i class="fas fa-search"></i></span>
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control"
+                        placeholder="নাম, মোবাইল নম্বর, গ্রাম/মহল্লা বা আইডি...">
                 </div>
             </div>
-            <div class="col-md-3 col-lg-2">
-                <select name="upazila" class="form-select">
-                    <option value="">সকল থানা / উপজেলা</option>
-                    {% for upz in upazilas %}
-                    <option value="{{ upz }}" {% if selected_upazila == upz %}selected{% endif %}>{{ upz }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3 col-lg-4">
+
+            <div class="col-lg-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-tint me-1 text-danger"></i>রক্তের গ্রুপ</label>
                 <div class="d-flex flex-wrap gap-1 align-items-center">
-                    <a href="{% url 'volunteers:blood_donors' %}{% if search_query %}?q={{ search_query }}{% endif %}{% if selected_upazila %}&upazila={{ selected_upazila }}{% endif %}"
-                        class="btn btn-sm {% if not selected_group %}btn-danger fw-bold shadow-sm{% else %}btn-outline-secondary{% endif %}">সকল</a>
+                    <button type="button" onclick="submitWithGroup('')"
+                        class="btn btn-sm {% if not selected_group %}btn-danger fw-bold shadow-sm{% else %}btn-outline-secondary{% endif %}">সকল</button>
                     {% for grp in groups %}
-                    <a href="?group={{ grp|urlencode }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_upazila %}&upazila={{ selected_upazila }}{% endif %}"
+                    <button type="button" onclick="submitWithGroup('{{ grp }}')"
                         class="btn btn-sm {% if selected_group == grp %}btn-danger fw-bold shadow-sm{% else %}btn-outline-danger{% endif %}">
                         {{ grp }}
-                    </a>
+                    </button>
                     {% endfor %}
                 </div>
             </div>
-            <div class="col-md-2 col-lg-2 d-flex gap-1">
-                <button type="submit" class="btn btn-danger fw-bold w-100"><i class="fas fa-filter me-1"></i>খুঁজুন</button>
-                {% if search_query or selected_group or selected_upazila %}
+
+            <!-- Row 2: Cascading Address Filters (Division, District, Thana/Upazila) -->
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-map-marker-alt me-1 text-danger"></i>বিভাগ ফিল্টার</label>
+                <select name="division" class="form-select filter-division-select" 
+                    data-district-target="filter_donor_district" 
+                    data-upazila-target="filter_donor_upazila"
+                    data-selected-val="{{ selected_division }}">
+                    <option value="">সকল বিভাগ</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-city me-1 text-danger"></i>জেলা ফিল্টার</label>
+                <select name="district" id="filter_donor_district" class="form-select filter-district-select"
+                    data-upazila-target="filter_donor_upazila"
+                    data-selected-val="{{ selected_district }}">
+                    <option value="">সকল জেলা</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-building me-1 text-danger"></i>থানা / উপজেলা ফিল্টার</label>
+                <select name="upazila" id="filter_donor_upazila" class="form-select filter-upazila-select"
+                    data-selected-val="{{ selected_upazila }}">
+                    <option value="">সকল থানা / উপজেলা</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end gap-1">
+                <button type="submit" class="btn btn-danger fw-bold w-100"><i class="fas fa-filter me-1"></i>ফিল্টার</button>
+                {% if search_query or selected_group or selected_division or selected_district or selected_upazila %}
                 <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-outline-secondary" title="রিসেট"><i class="fas fa-undo"></i></a>
                 {% endif %}
             </div>
@@ -548,59 +580,42 @@
 </div>
 
 <script>
-const bdGeoData = {
-    "রাজশাহী": {
-        "নওগাঁ": ["নওগাঁ সদর", "মহাদেবপুর", "পত্নীতলা", "ধামইরহাট", "নিয়ামতপুর", "মান্দা", "রানীনগর", "আত্রাই", "পোরশা", "সাপাহার", "বদলগাছী"],
-        "রাজশাহী": ["বোয়ালিয়া", "রাজপাড়া", "মতিহার", "শাহ মখদুম", "পবা", "বাঘা", "চারঘাট", "দুর্গাপুর", "গোদাগাড়ী", "মোহনপুর", "পুঠিয়া", "তানোর"],
-        "বগুড়া": ["বগুড়া সদর", "শাজাহানপুর", "শেরপুর", "শিবগঞ্জ", "দুপচাঁচিয়া", "গাবতলী", "কাহালু", "নন্দীগ্রাম", "সারিয়াকান্দি", "সোনাতলা", "ধুনট", "আদমদীঘি"],
-        "জয়পুরহাট": ["জয়পুরহাট সদর", "পাঁচবিবি", "কালাই", "ক্ষেতলাল", "আক্কেলপুর"],
-        "চাঁপাইনবাবগঞ্জ": ["চাঁপাইনবাবগঞ্জ সদর", "শিবগঞ্জ", "গোমস্তাপুর", "নাচোল", "ভোলাহাট"],
-        "নাটোর": ["নাটোর সদর", "সিংড়া", "বড়াইগ্রাম", "গুরুদাসপুর", "লালপুর", "বাগাতিপাড়া", "নলডাঙ্গা"],
-        "পাবনা": ["পাবনা সদর", "ঈশ্বরদী", "সাঁথিয়া", "চাটমোহর", "সুজানগর", "ফরিদপুর", "বেড়া", "ভাঙ্গুড়া", "আটঘরিয়া"],
-        "সিরাজগঞ্জ": ["সিরাজগঞ্জ সদর", "বেলকুচি", "কামারখন্দ", "কাজীপুর", "রায়গঞ্জ", "শাহজাদপুর", "তাড়াশ", "উল্লাপাড়া", "চৌহালী"]
-    },
-    "ঢাকা": {
-        "ঢাকা": ["ধানমন্ডি", "মিরপুর", "গুলশান", "উত্তরা", "মতিঝিল", "মোহাম্মদপুর", "সাভার", "ধামরাই", "কেরানীগঞ্জ", "দোহার", "নবাবগঞ্জ"],
-        "গাজীপুর": ["গাজীপুর সদর", "কালিয়াকৈর", "কালীগঞ্জ", "কাপাসিয়া", "শ্রীপুর"],
-        "নারায়ণগঞ্জ": ["নারায়ণগঞ্জ সদর", "আড়াইহাজার", "বন্দর", "রূপগঞ্জ", "সোনারগাঁও"],
-        "টাঙ্গাইল": ["টাঙ্গাইল সদর", "মির্জাপুর", "মধুপুর", "গোপালপুর", "ঘাটাইল", "কালিহাতী", "সখিপুর", "বাসাইল", "নাগরপুর"],
-        "ফরিদপুর": ["ফরিদপুর সদর", "বোয়ালমারী", "ভাঙ্গা", "মধুখালী", "নগরকান্দা", "আলফাডাঙ্গা", "সদরপুর", "চরভদ্রাসন"]
-    },
-    "রংপুর": {
-        "রংপুর": ["রংপুর সদর", "বদরগঞ্জ", "গঙ্গাচড়া", "কাউনিয়া", "মিঠাপুকুর", "পীরগাছা", "পীরগঞ্জ", "তারাগঞ্জ"],
-        "দিনাজপুর": ["দিনাজপুর সদর", "বিরামপুর", "বীরগঞ্জ", "বোচাগঞ্জ", "ফুলবাড়ী", "হাকিমপুর", "কাহারোল", "নবাবগঞ্জ", "পার্বতীপুর"],
-        "গাইবান্ধা": ["গাইবান্ধা সদর", "গোবিন্দগঞ্জ", "পলাশবাড়ী", "সাদুল্লাপুর", "সাঘাটা", "সুন্দরগঞ্জ", "ফুলছড়ি"],
-        "কুড়িগ্রাম": ["কুড়িগ্রাম সদর", "নাগেশ্বরী", "ভুরুঙ্গামারী", "উলিপুর", "চিলমারী", "রৌমারী", "রাজিবপুর"]
-    },
-    "চট্টগ্রাম": {
-        "চট্টগ্রাম": ["কোতোয়ালী", "পাঁচলাইশ", "পতেঙ্গা", "খুলশী", "হালিশহর", "সীতাকুণ্ড", "মীরসরাই", "হাটহাজারী", "রাউজান", "ফটিকছড়ি", "পটিয়া", "বোয়ালখালী", "আনোয়ারা"],
-        "কক্সবাজার": ["কক্সবাজার সদর", "চকোরিয়া", "মহেশখালী", "টেকনাফ", "উখিয়া", "রামু", "পেকুয়া", "কুতুবদিয়া"],
-        "কুমিল্লা": ["কুমিল্লা আদর্শ সদর", "লাকসাম", "চৌদ্দগ্রাম", "দেবীদ্বার", "দাউদকান্দি", "বরুড়া", "বুড়িচং", "চান্দিনা", "হোমনা"]
-    },
-    "খুলনা": {
-        "খুলনা": ["খুলনা সদর", "সোনাডাঙ্গা", "খালিশপুর", "দৌলতপুর", "বটিয়াঘাটা", "ডুমুরিয়া", "পাইকগাছা", "কয়রা", "রূপসা"],
-        "যশোর": ["যশোর সদর", "ঝিকরগাছা", "অভয়নগর", "মনিরামপুর", "কেশবপুর", "বাঘারপাড়া", "শার্শা", "চৌগাছা"],
-        "কুষ্টিয়া": ["কুষ্টিয়া সদর", "কুমারখালী", "খোকসা", "মিরপুর", "ভেড়ামারা", "দৌলতপুর"]
-    },
-    "ময়মনসিংহ": {
-        "ময়মনসিংহ": ["ময়মনসিংহ সদর", "মুক্তাগাছা", "ফুলবাড়িয়া", "ত্রিশাল", "ভালুকা", "গফরগাঁও", "ঈশ্বরগঞ্জ", "নান্দাইল", "হালুয়াঘাট"],
-        "জামালপুর": ["জামালপুর সদর", "মেলান্দহ", "মাদারগঞ্জ", "ইসলামপুর", "সরিষাবাড়ী", "দেওয়ানগঞ্জ", "বকশীগঞ্জ"]
-    },
-    "সিলেট": {
-        "সিলেট": ["সিলেট সদর", "দক্ষিণ সুরমা", "গোলাপগঞ্জ", "বিয়ানীবাজার", "বিশ্বনাথ", "ফেঞ্চুগঞ্জ", "বালাগঞ্জ", "কোম্পানীগঞ্জ", "জৈন্তাপুর"],
-        "মৌলভীবাজার": ["মৌলভীবাজার সদর", "শ্রীমঙ্গল", "কমলগঞ্জ", "কুলাউড়া", "বড়লেখা", "রাজনগর", "জুড়ী"]
-    },
-    "বরিশাল": {
-        "বরিশাল": ["বরিশাল সদর", "বাকেরগঞ্জ", "বাবুগঞ্জ", "উজিরপুর", "গৌরনদী", "আগৈলঝাড়া", "মেহেন্দীগঞ্জ", "মুলাদী", "হিজলা"],
-        "পটুয়াখালী": ["পটুয়াখালী সদর", "গলাচিপা", "বাউফল", "দশমিনা", "কলাপাড়া", "মির্জাগঞ্জ", "দুমকি", "রাঙ্গাবালী"]
-    }
-};
+let globalBdGeoHierarchy = null;
 
-function initGeoDropdowns() {
-    var divSelects = document.querySelectorAll('.division-select');
-    divSelects.forEach(function(divSel) {
+async function getBangladeshGeoData() {
+    if (globalBdGeoHierarchy && Object.keys(globalBdGeoHierarchy).length > 0) {
+        return globalBdGeoHierarchy;
+    }
+    try {
+        const response = await fetch('/volunteers/api/bd-geo/');
+        if (response.ok) {
+            const json = await response.json();
+            if (json && json.hierarchy && Object.keys(json.hierarchy).length > 0) {
+                globalBdGeoHierarchy = json.hierarchy;
+                return globalBdGeoHierarchy;
+            }
+        }
+    } catch (err) {
+        console.error('Failed to fetch BD Geo dataset from API:', err);
+    }
+    return null;
+}
+
+function submitWithGroup(grp) {
+    const input = document.getElementById('filter_selected_group');
+    if (input) input.value = grp;
+    const form = document.getElementById('bloodDonorFilterForm');
+    if (form) form.submit();
+}
+
+async function initGeoDropdowns() {
+    const geoData = await getBangladeshGeoData();
+    if (!geoData) return;
+
+    // 1. Modal / Register Form Dropdowns
+    document.querySelectorAll('.division-select').forEach(function(divSel) {
         divSel.innerHTML = '';
-        Object.keys(bdGeoData).forEach(function(divName) {
+        Object.keys(geoData).forEach(function(divName) {
             var opt = document.createElement('option');
             opt.value = divName;
             opt.innerText = divName;
@@ -616,7 +631,7 @@ function initGeoDropdowns() {
         function updateDistricts() {
             var selDiv = divSel.value;
             distSel.innerHTML = '';
-            var districts = bdGeoData[selDiv] ? Object.keys(bdGeoData[selDiv]) : [];
+            var districts = geoData[selDiv] ? Object.keys(geoData[selDiv]) : [];
             districts.forEach(function(dName) {
                 var dOpt = document.createElement('option');
                 dOpt.value = dName;
@@ -631,7 +646,7 @@ function initGeoDropdowns() {
             var selDiv = divSel.value;
             var selDist = distSel.value;
             upzSel.innerHTML = '<option value="">-- উপজেলা / থানা নির্বাচন করুন --</option>';
-            var upazilas = (bdGeoData[selDiv] && bdGeoData[selDiv][selDist]) ? bdGeoData[selDiv][selDist] : [];
+            var upazilas = (geoData[selDiv] && geoData[selDiv][selDist]) ? geoData[selDiv][selDist] : [];
             upazilas.forEach(function(uName) {
                 var uOpt = document.createElement('option');
                 uOpt.value = uName;
@@ -644,6 +659,72 @@ function initGeoDropdowns() {
         distSel.addEventListener('change', updateUpazilas);
 
         updateDistricts();
+    });
+
+    // 2. Search Filter Bar Dropdowns
+    document.querySelectorAll('.filter-division-select').forEach(function(divSel) {
+        var preselectedDiv = divSel.getAttribute('data-selected-val') || '';
+        var distId = divSel.getAttribute('data-district-target');
+        var upzId = divSel.getAttribute('data-upazila-target');
+        var distSel = document.getElementById(distId);
+        var upzSel = document.getElementById(upzId);
+        var preselectedDist = distSel ? (distSel.getAttribute('data-selected-val') || '') : '';
+        var preselectedUpz = upzSel ? (upzSel.getAttribute('data-selected-val') || '') : '';
+
+        divSel.innerHTML = '<option value="">সকল বিভাগ</option>';
+        Object.keys(geoData).forEach(function(divName) {
+            var opt = document.createElement('option');
+            opt.value = divName;
+            opt.innerText = divName;
+            if (divName === preselectedDiv) opt.selected = true;
+            divSel.appendChild(opt);
+        });
+
+        function updateFilterDistricts() {
+            var selDiv = divSel.value;
+            if (!distSel) return;
+            distSel.innerHTML = '<option value="">সকল জেলা</option>';
+            if (selDiv && geoData[selDiv]) {
+                Object.keys(geoData[selDiv]).forEach(function(dName) {
+                    var dOpt = document.createElement('option');
+                    dOpt.value = dName;
+                    dOpt.innerText = dName;
+                    if (dName === preselectedDist) dOpt.selected = true;
+                    distSel.appendChild(dOpt);
+                });
+            }
+            updateFilterUpazilas();
+        }
+
+        function updateFilterUpazilas() {
+            var selDiv = divSel.value;
+            var selDist = distSel ? distSel.value : '';
+            if (!upzSel) return;
+            upzSel.innerHTML = '<option value="">সকল থানা / উপজেলা</option>';
+            if (selDiv && selDist && geoData[selDiv] && geoData[selDiv][selDist]) {
+                geoData[selDiv][selDist].forEach(function(uName) {
+                    var uOpt = document.createElement('option');
+                    uOpt.value = uName;
+                    uOpt.innerText = uName;
+                    if (uName === preselectedUpz) uOpt.selected = true;
+                    upzSel.appendChild(uOpt);
+                });
+            }
+        }
+
+        divSel.addEventListener('change', function() {
+            preselectedDist = '';
+            preselectedUpz = '';
+            updateFilterDistricts();
+        });
+        if (distSel) {
+            distSel.addEventListener('change', function() {
+                preselectedUpz = '';
+                updateFilterUpazilas();
+            });
+        }
+
+        updateFilterDistricts();
     });
 }
 
