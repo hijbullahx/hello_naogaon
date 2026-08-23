@@ -4,7 +4,8 @@
 {% block title %}অ্যাডমিন কন্ট্রোল প্যানেল - {{ site_setting.title }}{% endblock %}
 
 {% block content %}
-<div class="bg-success text-white py-4 mb-4 shadow-sm" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%) !important;">
+<div class="bg-success text-white py-4 mb-4 shadow-sm"
+    style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%) !important;">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
@@ -19,28 +20,38 @@
     <!-- Navigation Tabs -->
     <ul class="nav nav-pills nav-fill bg-white p-2 rounded shadow-sm mb-4 border" id="dashboardTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-section" type="button" role="tab"><i class="fas fa-home me-1"></i> হোম পেজ সেকশন</button>
+            <button class="nav-link active fw-bold" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-section"
+                type="button" role="tab"><i class="fas fa-home me-1"></i> হোম পেজ সেকশন</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="programs-tab" data-bs-toggle="tab" data-bs-target="#programs-section" type="button" role="tab"><i class="fas fa-tasks me-1"></i> কার্যক্রম ({{ programs.count }})</button>
+            <button class="nav-link fw-bold" id="programs-tab" data-bs-toggle="tab" data-bs-target="#programs-section"
+                type="button" role="tab"><i class="fas fa-tasks me-1"></i> কার্যক্রম ({{ programs.count }})</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="donors-tab" data-bs-toggle="tab" data-bs-target="#donors-section" type="button" role="tab"><i class="fas fa-tint me-1 text-danger"></i> রক্তদাতা ({{ donors.count }})</button>
+            <button class="nav-link fw-bold" id="donors-tab" data-bs-toggle="tab" data-bs-target="#donors-section"
+                type="button" role="tab"><i class="fas fa-tint me-1 text-danger"></i> রক্তদাতা ({{ donors.count }})</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="volunteers-tab" data-bs-toggle="tab" data-bs-target="#volunteers-section" type="button" role="tab"><i class="fas fa-hands-helping me-1"></i> স্বেচ্ছাসেবক ({{ volunteers.count }})</button>
+            <button class="nav-link fw-bold" id="volunteers-tab" data-bs-toggle="tab"
+                data-bs-target="#volunteers-section" type="button" role="tab"><i class="fas fa-hands-helping me-1"></i>
+                স্বেচ্ছাসেবক ({{ volunteers.count }})</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="news-tab" data-bs-toggle="tab" data-bs-target="#news-section" type="button" role="tab"><i class="fas fa-newspaper me-1"></i> সংবাদ ({{ articles.count }})</button>
+            <button class="nav-link fw-bold" id="news-tab" data-bs-toggle="tab" data-bs-target="#news-section"
+                type="button" role="tab"><i class="fas fa-newspaper me-1"></i> সংবাদ ({{ articles.count }})</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold text-success" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance-section" type="button" role="tab"><i class="fas fa-wallet me-1"></i> অর্থায়ন ও আয়-ব্যয়</button>
+            <button class="nav-link fw-bold text-success" id="finance-tab" data-bs-toggle="tab"
+                data-bs-target="#finance-section" type="button" role="tab"><i class="fas fa-wallet me-1"></i> অর্থায়ন ও
+                আয়-ব্যয়</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="bank-tab" data-bs-toggle="tab" data-bs-target="#bank-section" type="button" role="tab"><i class="fas fa-university me-1"></i> অনুদান ও ব্যাংক</button>
+            <button class="nav-link fw-bold" id="bank-tab" data-bs-toggle="tab" data-bs-target="#bank-section"
+                type="button" role="tab"><i class="fas fa-university me-1"></i> অনুদান ও ব্যাংক</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery-section" type="button" role="tab"><i class="fas fa-images me-1"></i> গ্যালারি ({{ photos.count }})</button>
+            <button class="nav-link fw-bold" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery-section"
+                type="button" role="tab"><i class="fas fa-images me-1"></i> গ্যালারি ({{ photos.count }})</button>
         </li>
     </ul>
 
@@ -55,7 +66,8 @@
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-3 h-100">
                         <div class="card-header bg-success text-white py-3">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-desktop me-2"></i>১. হেডার ও হিরো সেকশন এডিট</h5>
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-desktop me-2"></i>১. হেডার ও হিরো সেকশন
+                                এডিট</h5>
                         </div>
                         <div class="card-body">
                             <form action="{% url 'core:update_hero' %}" method="post" enctype="multipart/form-data">
@@ -64,76 +76,99 @@
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                         <label class="form-label fw-bold mb-0">লোগো ছবি (Logo Image)</label>
                                         <div class="d-flex align-items-center gap-1">
-                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300 KB</span>
-                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300
+                                                KB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                                 <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                             </a>
                                         </div>
                                     </div>
                                     {% if site_setting.logo %}
-                                        {% if site_setting.logo %}<div class="mb-2"><img src="{{ site_setting.logo.url }}" alt="Logo" style="height: 40px;"></div>{% endif %}
+                                    {% if site_setting.logo %}<div class="mb-2"><img src="{{ site_setting.logo.url }}"
+                                            alt="Logo" style="height: 40px;"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 300, 'লোগো ছবি')">
+                                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*"
+                                        onchange="validateDashboardImage(this, 300, 'লোগো ছবি')">
                                 </div>
 
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                        <label class="form-label fw-bold mb-0">হিরো সাইড/ব্যাকগ্রাউন্ড ছবি (Hero Image)</label>
+                                        <label class="form-label fw-bold mb-0">হিরো সাইড/ব্যাকগ্রাউন্ড ছবি (Hero
+                                            Image)</label>
                                         <div class="d-flex align-items-center gap-1">
-                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
-                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1
+                                                MB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                                 <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                             </a>
                                         </div>
                                     </div>
                                     {% if site_setting.hero_image %}
-                                        {% if site_setting.hero_image %}<div class="mb-2"><img src="{{ site_setting.hero_image.url }}" alt="Hero" style="height: 60px; object-fit: cover;" class="rounded border"></div>{% endif %}
+                                    {% if site_setting.hero_image %}<div class="mb-2"><img
+                                            src="{{ site_setting.hero_image.url }}" alt="Hero"
+                                            style="height: 60px; object-fit: cover;" class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="hero_image" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 1024, 'হিরো ব্যানার ছবি')">
+                                    <input type="file" name="hero_image" class="form-control form-control-sm"
+                                        accept="image/*"
+                                        onchange="validateDashboardImage(this, 1024, 'হিরো ব্যানার ছবি')">
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">হিরো ট্যাগলাইন ব্যাজ</label>
-                                    <input type="text" name="hero_badge" value="{{ site_setting.hero_badge }}" class="form-control">
+                                    <input type="text" name="hero_badge" value="{{ site_setting.hero_badge }}"
+                                        class="form-control">
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">হিরো মেইন টাইটেল</label>
-                                    <input type="text" name="hero_title" value="{{ site_setting.hero_title }}" class="form-control">
+                                    <input type="text" name="hero_title" value="{{ site_setting.hero_title }}"
+                                        class="form-control">
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">হিরো সাবটাইটেল বিবরণ</label>
-                                    <textarea name="hero_subtitle" rows="3" class="form-control">{{ site_setting.hero_subtitle }}</textarea>
+                                    <textarea name="hero_subtitle" rows="3"
+                                        class="form-control">{{ site_setting.hero_subtitle }}</textarea>
                                 </div>
 
                                 <div class="row g-2 mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">ফোন নম্বর</label>
-                                        <input type="text" name="contact_phone" value="{{ site_setting.contact_phone }}" class="form-control">
+                                        <input type="text" name="contact_phone" value="{{ site_setting.contact_phone }}"
+                                            class="form-control">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">ইমেইল এড্রেস</label>
-                                        <input type="email" name="contact_email" value="{{ site_setting.contact_email }}" class="form-control">
+                                        <input type="email" name="contact_email"
+                                            value="{{ site_setting.contact_email }}" class="form-control">
                                     </div>
                                 </div>
 
                                 <div class="row g-2 mb-3">
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold">ফেসবুক লিংক</label>
-                                        <input type="url" name="facebook_url" value="{{ site_setting.facebook_url }}" class="form-control form-control-sm">
+                                        <input type="url" name="facebook_url" value="{{ site_setting.facebook_url }}"
+                                            class="form-control form-control-sm">
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold">ইউটিউব লিংক</label>
-                                        <input type="url" name="youtube_url" value="{{ site_setting.youtube_url }}" class="form-control form-control-sm">
+                                        <input type="url" name="youtube_url" value="{{ site_setting.youtube_url }}"
+                                            class="form-control form-control-sm">
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold">হোয়াটসঅ্যাপ নম্বর</label>
-                                        <input type="text" name="whatsapp_number" value="{{ site_setting.whatsapp_number }}" class="form-control form-control-sm">
+                                        <input type="text" name="whatsapp_number"
+                                            value="{{ site_setting.whatsapp_number }}"
+                                            class="form-control form-control-sm">
                                     </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-success fw-bold w-100"><i class="fas fa-save me-1"></i> হিরো সেকশন আপডেট করুন</button>
+                                <button type="submit" class="btn btn-success fw-bold w-100"><i
+                                        class="fas fa-save me-1"></i> হিরো সেকশন আপডেট করুন</button>
                             </form>
                         </div>
                     </div>
@@ -143,66 +178,89 @@
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-3 h-100">
                         <div class="card-header bg-primary text-white py-3">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-info-circle me-2"></i>২. 'আমাদের সম্পর্কে' সেকশন এডিট</h5>
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-info-circle me-2"></i>২. 'আমাদের
+                                সম্পর্কে' সেকশন এডিট</h5>
                         </div>
                         <div class="card-body">
                             <form action="{% url 'core:update_about' %}" method="post" enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">সেকশন হেডিং</label>
-                                    <input type="text" name="about_heading" value="{{ site_setting.about_heading }}" class="form-control">
+                                    <input type="text" name="about_heading" value="{{ site_setting.about_heading }}"
+                                        class="form-control">
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">মেইন প্যারাগ্রাফ/বিবরণ</label>
-                                    <textarea name="about_text" rows="5" class="form-control">{{ site_setting.about_text }}</textarea>
+                                    <textarea name="about_text" rows="5"
+                                        class="form-control">{{ site_setting.about_text }}</textarea>
                                 </div>
 
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                        <label class="form-label fw-bold mb-0">মেইন বড় ফিচারড ফটো (Featured Main Photo)</label>
+                                        <label class="form-label fw-bold mb-0">মেইন বড় ফিচারড ফটো (Featured Main
+                                            Photo)</label>
                                         <div class="d-flex align-items-center gap-1">
-                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
-                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1
+                                                MB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                                 <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                             </a>
                                         </div>
                                     </div>
                                     {% if about_featured_image %}
-                                        {% if about_featured_image and about_featured_image.image %}<div class="mb-2"><img src="{{ about_featured_image.image.url }}" style="height: 70px; object-fit: cover;" class="rounded border"></div>{% endif %}
+                                    {% if about_featured_image and about_featured_image.image %}<div class="mb-2"><img
+                                            src="{{ about_featured_image.image.url }}"
+                                            style="height: 70px; object-fit: cover;" class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="featured_image" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 1024, 'ফিচারড ছবি')">
+                                    <input type="file" name="featured_image" class="form-control form-control-sm"
+                                        accept="image/*" onchange="validateDashboardImage(this, 1024, 'ফিচারড ছবি')">
                                 </div>
 
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                         <label class="form-label fw-bold mb-0">সাব ফটো গ্রিডে নতুন ছবি যোগ করুন</label>
                                         <div class="d-flex align-items-center gap-1">
-                                            <span class="badge bg-light text-secondary border small">প্রতিটি সর্বোচ্চ 600 KB</span>
-                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                            <span class="badge bg-light text-secondary border small">প্রতিটি সর্বোচ্চ
+                                                600 KB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                                 <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                             </a>
                                         </div>
                                     </div>
-                                    <input type="file" name="sub_images" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 600, 'গ্রিড ছবি')" multiple>
-                                    <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i> Ctrl / Shift চেপে একসাথে একাধিক ফটো নির্বাচন করতে পারেন</small>
+                                    <input type="file" name="sub_images" class="form-control form-control-sm"
+                                        accept="image/*" onchange="validateDashboardImage(this, 600, 'গ্রিড ছবি')"
+                                        multiple>
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i> Ctrl
+                                        / Shift চেপে একসাথে একাধিক ফটো নির্বাচন করতে পারেন</small>
                                 </div>
 
                                 {% if about_grid_images %}
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-secondary">বর্তমান সাব গ্রিড ফটোগুলো (মুছে ফেলতে ট্যাপ করুন):</label>
+                                    <label class="form-label small fw-bold text-secondary">বর্তমান সাব গ্রিড ফটোগুলো
+                                        (মুছে ফেলতে ট্যাপ করুন):</label>
                                     <div class="d-flex flex-wrap gap-2">
                                         {% for gimg in about_grid_images %}
                                         <div class="position-relative border rounded p-1 bg-light text-center">
-                                            {% if gimg.image %}<img src="{{ gimg.image.url }}" style="width: 60px; height: 50px; object-fit: cover;" class="rounded">{% endif %}
-                                            <a href="{% url 'core:delete_about_image' gimg.id %}" onclick="return confirm('ছবিটি মুছে ফেলতে চান?');" class="position-absolute top-0 end-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center text-decoration-none" style="width: 20px; height: 20px; font-size: 10px; transform: translate(30%, -30%);"><i class="fas fa-times"></i></a>
+                                            {% if gimg.image %}<img src="{{ gimg.image.url }}"
+                                                style="width: 60px; height: 50px; object-fit: cover;" class="rounded">{% endif %}
+                                            <a href="{% url 'core:delete_about_image' gimg.id %}"
+                                                onclick="return confirm('ছবিটি মুছে ফেলতে চান?');"
+                                                class="position-absolute top-0 end-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center text-decoration-none"
+                                                style="width: 20px; height: 20px; font-size: 10px; transform: translate(30%, -30%);"><i
+                                                    class="fas fa-times"></i></a>
                                         </div>
                                         {% endfor %}
                                     </div>
                                 </div>
                                 {% endif %}
 
-                                <button type="submit" class="btn btn-primary fw-bold w-100 mt-2"><i class="fas fa-save me-1"></i> আমাদের সম্পর্কে আপডেট করুন</button>
+                                <button type="submit" class="btn btn-primary fw-bold w-100 mt-2"><i
+                                        class="fas fa-save me-1"></i> আমাদের সম্পর্কে আপডেট করুন</button>
                             </form>
                         </div>
                     </div>
@@ -213,23 +271,28 @@
                     <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-header bg-info text-white py-3">
                             <h5 class="card-title fw-bold mb-0">
-                                <i class="fas fa-sort-numeric-up me-2"></i>৩. হোমপেজ কাউন্টার কার্ডসমূহ এডিট (5 Stat Cards)
+                                <i class="fas fa-sort-numeric-up me-2"></i>৩. হোমপেজ কাউন্টার কার্ডসমূহ এডিট (5 Stat
+                                Cards)
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
                                 {% for stat in stat_counters %}
                                 <div class="col-6 col-md-4 col-lg-2-4">
-                                    <div class="p-3 border rounded-3 bg-white shadow-sm h-100 d-flex flex-column justify-content-between text-center position-relative">
+                                    <div
+                                        class="p-3 border rounded-3 bg-white shadow-sm h-100 d-flex flex-column justify-content-between text-center position-relative">
                                         <div class="py-2">
-                                            <div class="d-inline-flex align-items-center justify-content-center bg-{{ stat.badge_color|default:'success' }} bg-opacity-10 text-{{ stat.badge_color|default:'success' }} rounded-circle p-3 mb-2" style="width: 56px; height: 56px;">
+                                            <div class="d-inline-flex align-items-center justify-content-center bg-{{ stat.badge_color|default:'success' }} bg-opacity-10 text-{{ stat.badge_color|default:'success' }} rounded-circle p-3 mb-2"
+                                                style="width: 56px; height: 56px;">
                                                 <i class="{{ stat.icon_class|default:'fas fa-heart' }} fa-lg"></i>
                                             </div>
                                             <h3 class="fw-bold text-dark mb-1">{{ stat.value }}</h3>
                                             <div class="fw-semibold text-secondary small">{{ stat.title }}</div>
                                         </div>
                                         <div class="mt-2 pt-2 border-top">
-                                            <button type="button" class="btn btn-sm btn-info text-white fw-bold w-100 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#editStatModal_{{ stat.id }}">
+                                            <button type="button"
+                                                class="btn btn-sm btn-info text-white fw-bold w-100 py-2 shadow-sm"
+                                                data-bs-toggle="modal" data-bs-target="#editStatModal_{{ stat.id }}">
                                                 <i class="fas fa-edit me-1"></i> মান পরিবর্তন করুন
                                             </button>
                                         </div>
@@ -237,35 +300,48 @@
                                 </div>
 
                                 <!-- Edit Stat Modal for this card -->
-                                <div class="modal fade" id="editStatModal_{{ stat.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal fade" id="editStatModal_{{ stat.id }}" tabindex="-1"
+                                    aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content border-0 shadow">
                                             <div class="modal-header bg-info text-white">
                                                 <h5 class="modal-title fw-bold">
                                                     <i class="fas fa-edit me-2"></i>{{ stat.title }} - মান পরিবর্তন করুন
                                                 </h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <button type="button" class="btn-close btn-close-white"
+                                                    data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <form action="{% url 'core:save_stat_counter' %}" method="post">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="stat_id" value="{{ stat.id }}">
                                                 <div class="modal-body text-start">
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-bold">কাউন্টারের নাম / বিষয় *</label>
-                                                        <input type="text" name="title" value="{{ stat.title }}" required class="form-control">
+                                                        <label class="form-label fw-bold">কাউন্টারের নাম / বিষয়
+                                                            *</label>
+                                                        <input type="text" name="title" value="{{ stat.title }}"
+                                                            required class="form-control">
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-bold">সংখ্যা বা পরিমাণ (Value) *</label>
-                                                        <input type="text" name="value" value="{{ stat.value }}" required class="form-control form-control-lg fw-bold text-success" placeholder="যেমন: ৫০০+">
-                                                        <div class="form-text small text-muted mt-1">হোমপেজে প্রদর্শিত মোট সংখ্যা বা পরিমাণ এখানে লিখুন।</div>
+                                                        <label class="form-label fw-bold">সংখ্যা বা পরিমাণ (Value)
+                                                            *</label>
+                                                        <input type="text" name="value" value="{{ stat.value }}"
+                                                            required
+                                                            class="form-control form-control-lg fw-bold text-success"
+                                                            placeholder="যেমন: ৫০০+">
+                                                        <div class="form-text small text-muted mt-1">হোমপেজে প্রদর্শিত
+                                                            মোট সংখ্যা বা পরিমাণ এখানে লিখুন।</div>
                                                     </div>
                                                     <div class="p-3 bg-light rounded-3 small text-muted border">
-                                                        <i class="fas fa-check-circle text-success me-1"></i>আইকন ও কালার সিস্টেমের সাথে স্বয়ংক্রিয়ভাবে ফিক্সড রয়েছে।
+                                                        <i class="fas fa-check-circle text-success me-1"></i>আইকন ও
+                                                        কালার সিস্টেমের সাথে স্বয়ংক্রিয়ভাবে ফিক্সড রয়েছে।
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer bg-light">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                                                    <button type="submit" class="btn btn-info text-white fw-bold px-4"><i class="fas fa-save me-1"></i> সংরক্ষণ করুন</button>
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">বাতিল</button>
+                                                    <button type="submit"
+                                                        class="btn btn-info text-white fw-bold px-4"><i
+                                                            class="fas fa-save me-1"></i> সংরক্ষণ করুন</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -285,7 +361,8 @@
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-header bg-dark text-white py-3">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt me-2"></i>৪. ফুটার ও গুগল ম্যাপ ইমবেড এডিট</h5>
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker-alt me-2"></i>৪. ফুটার ও
+                                গুগল ম্যাপ ইমবেড এডিট</h5>
                         </div>
                         <div class="card-body">
                             <form action="{% url 'core:update_footer' %}" method="post">
@@ -293,39 +370,53 @@
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">হটলাইন / মোবাইল নম্বর</label>
-                                        <input type="text" name="contact_phone" value="{{ site_setting.contact_phone }}" class="form-control" placeholder="+880 1730-XXXXXX">
+                                        <input type="text" name="contact_phone" value="{{ site_setting.contact_phone }}"
+                                            class="form-control" placeholder="+880 1730-XXXXXX">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">অফিসিয়াল ইমেইল</label>
-                                        <input type="email" name="contact_email" value="{{ site_setting.contact_email }}" class="form-control" placeholder="hello.naogaon@gmail.com">
+                                        <input type="email" name="contact_email"
+                                            value="{{ site_setting.contact_email }}" class="form-control"
+                                            placeholder="hello.naogaon@gmail.com">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">ফুটার টেক্সট (About Footer)</label>
-                                        <textarea name="footer_about" rows="3" class="form-control">{{ site_setting.footer_about }}</textarea>
+                                        <textarea name="footer_about" rows="3"
+                                            class="form-control">{{ site_setting.footer_about }}</textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">অফিসিয়াল ঠিকানা (Contact Address)</label>
-                                        <textarea name="contact_address" rows="3" class="form-control">{{ site_setting.contact_address }}</textarea>
+                                        <textarea name="contact_address" rows="3"
+                                            class="form-control">{{ site_setting.contact_address }}</textarea>
                                     </div>
                                     <div class="col-md-12">
                                         <label class="form-label fw-bold">
-                                            <i class="fas fa-map-marked-alt text-success me-1"></i>গুগল ম্যাপ ইমবেড আইফ্রেম / লিংক (Google Map Embed Code or Link)
+                                            <i class="fas fa-map-marked-alt text-success me-1"></i>গুগল ম্যাপ ইমবেড
+                                            আইফ্রেম / লিংক (Google Map Embed Code or Link)
                                         </label>
-                                        <textarea name="google_map_embed_url" rows="3" class="form-control font-monospace small" placeholder="<iframe src='https://www.google.com/maps/embed?...' ...></iframe> অথবা সরাসরি লিংক">{{ site_setting.google_map_embed_url }}</textarea>
+                                        <textarea name="google_map_embed_url" rows="3"
+                                            class="form-control font-monospace small"
+                                            placeholder="<iframe src='https://www.google.com/maps/embed?...' ...></iframe> অথবা সরাসরি লিংক">{{ site_setting.google_map_embed_url }}</textarea>
                                         <div class="form-text small text-muted mt-1">
-                                            <i class="fas fa-info-circle text-primary me-1"></i>Google Maps-এর 'Share' অপশন থেকে 'Embed a map'-এর HTML কোড (iframe) অথবা সরাসরি লিংক পেস্ট করুন। এটি ওয়েবসাইটের ফুটারের মানচিত্রে প্রদর্শিত হবে।
+                                            <i class="fas fa-info-circle text-primary me-1"></i>Google Maps-এর 'Share'
+                                            অপশন থেকে 'Embed a map'-এর HTML কোড (iframe) অথবা সরাসরি লিংক পেস্ট করুন।
+                                            এটি ওয়েবসাইটের ফুটারের মানচিত্রে প্রদর্শিত হবে।
                                         </div>
 
                                         <!-- Live Map Preview -->
                                         <div class="mt-3 p-3 bg-light border rounded-3">
-                                            <div class="small fw-bold text-secondary mb-2"><i class="fas fa-eye text-success me-1"></i>বর্তমান ম্যাপ প্রিভিউ:</div>
-                                            <div class="rounded overflow-hidden shadow-sm" style="height: 180px; width: 100%;">
+                                            <div class="small fw-bold text-secondary mb-2"><i
+                                                    class="fas fa-eye text-success me-1"></i>বর্তমান ম্যাপ প্রিভিউ:
+                                            </div>
+                                            <div class="rounded overflow-hidden shadow-sm"
+                                                style="height: 180px; width: 100%;">
                                                 {{ site_setting.google_map_embed_html|safe }}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-dark fw-bold mt-3"><i class="fas fa-save me-1"></i> ফুটার ও ম্যাপ আপডেট করুন</button>
+                                <button type="submit" class="btn btn-dark fw-bold mt-3"><i class="fas fa-save me-1"></i>
+                                    ফুটার ও ম্যাপ আপডেট করুন</button>
                             </form>
                         </div>
                     </div>
@@ -338,8 +429,11 @@
         <div class="tab-pane fade" id="programs-section" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-tasks me-2"></i>আমাদের কার্যক্রমসমূহ (Programs Management)</h5>
-                    <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#programModal"><i class="fas fa-plus-circle me-1"></i> নতুন প্রোগ্রাম যোগ করুন</button>
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-tasks me-2"></i>আমাদের কার্যক্রমসমূহ (Programs
+                        Management)</h5>
+                    <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal"
+                        data-bs-target="#programModal"><i class="fas fa-plus-circle me-1"></i> নতুন প্রোগ্রাম যোগ
+                        করুন</button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -359,79 +453,124 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-{{ prog.badge_color }} p-2"><i class="{{ prog.icon_class }}"></i></span>
-                                            {% if prog.image %}<img src="{{ prog.image.url }}" style="width: 50px; height: 35px; object-fit: cover;" class="rounded">{% endif %}
+                                            <span class="badge bg-{{ prog.badge_color }} p-2"><i
+                                                    class="{{ prog.icon_class }}"></i></span>
+                                            {% if prog.image %}<img src="{{ prog.image.url }}"
+                                                style="width: 50px; height: 35px; object-fit: cover;" class="rounded">{% endif %}
                                         </div>
                                     </td>
                                     <td class="fw-bold">{{ prog.title }}</td>
                                     <td><small class="text-secondary">{{ prog.short_description|truncatewords:10 }}</small></td>
                                     <td>
                                         {% if prog.target_amount %}
-                                            <div class="small fw-bold text-success">৳{{ prog.raised_amount|floatformat:0 }} / ৳{{ prog.target_amount|floatformat:0 }}</div>
-                                            <div class="progress my-1" style="height: 6px; width: 110px;">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ prog.progress_percent }}%;"></div>
-                                            </div>
-                                            <small class="text-muted">{{ prog.progress_percent }}% সংগৃহীত</small>
+                                        <div class="small fw-bold text-success">৳{{ prog.raised_amount|floatformat:0 }}
+                                            / ৳{{ prog.target_amount|floatformat:0 }}</div>
+                                        <div class="progress my-1" style="height: 6px; width: 110px;">
+                                            <div class="progress-bar bg-success" role="progressbar"
+                                                style="width: {{ prog.progress_percent }}%;"></div>
+                                        </div>
+                                        <small class="text-muted">{{ prog.progress_percent }}% সংগৃহীত</small>
                                         {% else %}
-                                            <span class="badge bg-light text-secondary border">প্রয়োজন নেই</span>
+                                        <span class="badge bg-light text-secondary border">প্রয়োজন নেই</span>
                                         {% endif %}
                                     </td>
                                     <td><span class="badge bg-success">{{ prog.status }}</span></td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editProgramModal_{{ prog.id }}" title="এডিট করুন"><i class="fas fa-edit"></i></button>
-                                        <a href="{% url 'core:delete_program' prog.id %}" onclick="return confirm('আপনি কি নিশ্চিত যে এই প্রোগ্রামটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                            data-bs-toggle="modal" data-bs-target="#editProgramModal_{{ prog.id }}"
+                                            title="এডিট করুন"><i class="fas fa-edit"></i></button>
+                                        <a href="{% url 'core:delete_program' prog.id %}"
+                                            onclick="return confirm('আপনি কি নিশ্চিত যে এই প্রোগ্রামটি মুছে ফেলতে চান?');"
+                                            class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i
+                                                class="fas fa-trash"></i></a>
 
                                         <!-- Edit Program Modal -->
-                                        <div class="modal fade" id="editProgramModal_{{ prog.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal fade" id="editProgramModal_{{ prog.id }}" tabindex="-1"
+                                            aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header bg-success text-white">
-                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> কার্যক্রম এডিট করুন - {{ prog.title }}</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i>
+                                                            কার্যক্রম এডিট করুন - {{ prog.title }}</h5>
+                                                        <button type="button" class="btn-close btn-close-white"
+                                                            data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
-                                                    <form action="{% url 'core:save_program' %}" method="post" enctype="multipart/form-data">
+                                                    <form action="{% url 'core:save_program' %}" method="post"
+                                                        enctype="multipart/form-data">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="program_id" value="{{ prog.id }}">
                                                         <div class="modal-body">
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">প্রোগ্রাম টাইটেল *</label>
-                                                                <input type="text" name="title" required class="form-control" value="{{ prog.title }}">
+                                                                <label class="form-label fw-bold">প্রোগ্রাম টাইটেল
+                                                                    *</label>
+                                                                <input type="text" name="title" required
+                                                                    class="form-control" value="{{ prog.title }}">
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Short Description)</label>
-                                                                <input type="text" name="short_description" class="form-control" value="{{ prog.short_description|default:'' }}" placeholder="কার্ডে দেখানোর জন্য">
+                                                                <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Short
+                                                                    Description)</label>
+                                                                <input type="text" name="short_description"
+                                                                    class="form-control"
+                                                                    value="{{ prog.short_description|default:'' }}"
+                                                                    placeholder="কার্ডে দেখানোর জন্য">
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">পূর্ণ বিবরণ (Full Description)</label>
-                                                                <textarea name="description" rows="3" class="form-control">{{ prog.description|default:'' }}</textarea>
+                                                                <label class="form-label fw-bold">পূর্ণ বিবরণ (Full
+                                                                    Description)</label>
+                                                                <textarea name="description" rows="3"
+                                                                    class="form-control">{{ prog.description|default:'' }}</textarea>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন / বাজেট (টাকা - ঐচ্ছিক)</label>
+                                                                <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন
+                                                                    / বাজেট (টাকা - ঐচ্ছিক)</label>
                                                                 <div class="input-group">
-                                                                    <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
-                                                                    <input type="number" step="0.01" name="target_amount" class="form-control fw-bold" value="{{ prog.target_amount|default:'' }}" placeholder="যেমন: 50000 (প্রয়োজন না থাকলে খালি রাখুন)">
+                                                                    <span
+                                                                        class="input-group-text bg-light fw-bold text-success">৳
+                                                                        BDT</span>
+                                                                    <input type="number" step="0.01"
+                                                                        name="target_amount"
+                                                                        class="form-control fw-bold"
+                                                                        value="{{ prog.target_amount|default:'' }}"
+                                                                        placeholder="যেমন: 50000 (প্রয়োজন না থাকলে খালি রাখুন)">
                                                                 </div>
-                                                                <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান গ্রহণের বাটন দৃশ্যমান হবে।</small>
+                                                                <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই
+                                                                    প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান গ্রহণের বাটন
+                                                                    দৃশ্যমান হবে।</small>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                                                    <label class="form-label fw-bold mb-0">প্রোগ্রামের ছবি পরিবর্তন করুন</label>
+                                                                <div
+                                                                    class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                                                    <label class="form-label fw-bold mb-0">প্রোগ্রামের
+                                                                        ছবি পরিবর্তন করুন</label>
                                                                     <div class="d-flex align-items-center gap-1">
-                                                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                                            <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                        <span
+                                                                            class="badge bg-light text-secondary border small">সর্বোচ্চ
+                                                                            800 KB</span>
+                                                                        <a href="https://www.resizepixel.com"
+                                                                            target="_blank" rel="noopener noreferrer"
+                                                                            class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                            <i
+                                                                                class="fas fa-external-link-alt me-1"></i>ছবি
+                                                                            রিসাইজ করুন (Free)
                                                                         </a>
                                                                     </div>
                                                                 </div>
                                                                 {% if prog.image %}
-                                                                    <div class="mb-2"><img src="{{ prog.image.url }}" alt="{{ prog.title }}" style="height: 60px; object-fit: cover;" class="rounded border"></div>
+                                                                <div class="mb-2"><img src="{{ prog.image.url }}"
+                                                                        alt="{{ prog.title }}"
+                                                                        style="height: 60px; object-fit: cover;"
+                                                                        class="rounded border"></div>
                                                                 {% endif %}
-                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
+                                                                <input type="file" name="image" class="form-control"
+                                                                    accept="image/*"
+                                                                    onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                                                            <button type="submit" class="btn btn-success fw-bold">আপডেট সংরক্ষণ করুন</button>
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">বাতিল</button>
+                                                            <button type="submit" class="btn btn-success fw-bold">আপডেট
+                                                                সংরক্ষণ করুন</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -440,7 +579,10 @@
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="6" class="text-center py-4 text-muted">কোনো প্রোগ্রাম যোগ করা হয়নি।</td></tr>
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">কোনো প্রোগ্রাম যোগ করা হয়নি।
+                                    </td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -453,7 +595,8 @@
         <div class="tab-pane fade" id="donors-section" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-danger text-white py-3">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-tint me-2"></i>রক্তদাতা ডাটাবেস (Blood Donors Database)</h5>
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-tint me-2"></i>রক্তদাতা ডাটাবেস (Blood Donors
+                        Database)</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -474,14 +617,20 @@
                                     <td>{{ forloop.counter }}</td>
                                     <td class="fw-bold">{{ d.full_name }}</td>
                                     <td><span class="badge bg-danger fs-6">{{ d.blood_group }}</span></td>
-                                    <td><a href="tel:{{ d.phone }}" class="text-success fw-semibold">{{ d.phone }}</a></td>
+                                    <td><a href="tel:{{ d.phone }}" class="text-success fw-semibold">{{ d.phone }}</a>
+                                    </td>
                                     <td>{{ d.location }}</td>
                                     <td>
-                                        <a href="{% url 'core:delete_donor' d.id %}" onclick="return confirm('মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                        <a href="{% url 'core:delete_donor' d.id %}"
+                                            onclick="return confirm('মুছে ফেলতে চান?');"
+                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="6" class="text-center py-4 text-muted">কোনো রক্তদাতার তথ্য পাওয়া যায়নি।</td></tr>
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">কোনো রক্তদাতার তথ্য পাওয়া যায়নি।
+                                    </td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -496,9 +645,13 @@
                 <!-- 1. Team Members Management Card -->
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও পরিচালনা পর্ষদ (Team Members)</h5>
-                            <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#teamMemberModal"><i class="fas fa-plus-circle me-1"></i> নতুন টিম মেম্বার যোগ করুন</button>
+                        <div
+                            class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও
+                                পরিচালনা পর্ষদ (Team Members)</h5>
+                            <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal"
+                                data-bs-target="#teamMemberModal"><i class="fas fa-plus-circle me-1"></i> নতুন টিম
+                                মেম্বার যোগ করুন</button>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -516,66 +669,103 @@
                                         {% for tm in team_members %}
                                         <tr>
                                             <td>
-                                                {% if tm.image %}<img src="{{ tm.image.url }}" style="width: 45px; height: 45px; object-fit: cover;" class="rounded-circle border">
-                                                {% else %}<div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 45px; height: 45px;"><i class="fas fa-user-tie"></i></div>{% endif %}
+                                                {% if tm.image %}<img src="{{ tm.image.url }}"
+                                                    style="width: 45px; height: 45px; object-fit: cover;"
+                                                    class="rounded-circle border">
+                                                {% else %}<div
+                                                    class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                    style="width: 45px; height: 45px;"><i class="fas fa-user-tie"></i>
+                                                </div>{% endif %}
                                             </td>
                                             <td class="fw-bold">{{ tm.name }}</td>
                                             <td><span class="badge bg-success">{{ tm.role }}</span></td>
                                             <td><small class="text-secondary">{{ tm.bio|truncatewords:10|default:"-" }}</small></td>
                                             <td>
-                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTeamMemberModal_{{ tm.id }}"><i class="fas fa-edit"></i> এডিট</button>
-                                                <a href="{% url 'core:delete_team_member' tm.id %}" onclick="return confirm('মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editTeamMemberModal_{{ tm.id }}"><i
+                                                        class="fas fa-edit"></i> এডিট</button>
+                                                <a href="{% url 'core:delete_team_member' tm.id %}"
+                                                    onclick="return confirm('মুছে ফেলতে চান?');"
+                                                    class="btn btn-sm btn-outline-danger"><i
+                                                        class="fas fa-trash"></i></a>
                                             </td>
                                         </tr>
 
                                         <!-- Edit Team Member Modal -->
-                                        <div class="modal fade" id="editTeamMemberModal_{{ tm.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal fade" id="editTeamMemberModal_{{ tm.id }}" tabindex="-1"
+                                            aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header bg-primary text-white">
-                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> টিম মেম্বার এডিট করুন</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i>
+                                                            টিম মেম্বার এডিট করুন</h5>
+                                                        <button type="button" class="btn-close btn-close-white"
+                                                            data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
-                                                    <form action="{% url 'core:save_team_member' %}" method="post" enctype="multipart/form-data">
+                                                    <form action="{% url 'core:save_team_member' %}" method="post"
+                                                        enctype="multipart/form-data">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="member_id" value="{{ tm.id }}">
                                                         <div class="modal-body">
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">সদস্যের নাম *</label>
-                                                                <input type="text" name="name" value="{{ tm.name }}" required class="form-control">
+                                                                <input type="text" name="name" value="{{ tm.name }}"
+                                                                    required class="form-control">
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">পদবী / ভূমিকা (Role) *</label>
-                                                                <input type="text" name="role" value="{{ tm.role }}" required class="form-control">
+                                                                <label class="form-label fw-bold">পদবী / ভূমিকা (Role)
+                                                                    *</label>
+                                                                <input type="text" name="role" value="{{ tm.role }}"
+                                                                    required class="form-control">
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
-                                                                <textarea name="bio" rows="3" class="form-control">{{ tm.bio }}</textarea>
+                                                                <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ
+                                                                    (Bio)</label>
+                                                                <textarea name="bio" rows="3"
+                                                                    class="form-control">{{ tm.bio }}</textarea>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                                                    <label class="form-label fw-bold mb-0">ছবি পরিবর্তন করুন</label>
+                                                                <div
+                                                                    class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                                                    <label class="form-label fw-bold mb-0">ছবি পরিবর্তন
+                                                                        করুন</label>
                                                                     <div class="d-flex align-items-center gap-1">
-                                                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
-                                                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                                            <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                        <span
+                                                                            class="badge bg-light text-secondary border small">সর্বোচ্চ
+                                                                            500 KB</span>
+                                                                        <a href="https://www.resizepixel.com"
+                                                                            target="_blank" rel="noopener noreferrer"
+                                                                            class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                            <i
+                                                                                class="fas fa-external-link-alt me-1"></i>ছবি
+                                                                            রিসাইজ করুন (Free)
                                                                         </a>
                                                                     </div>
                                                                 </div>
-                                                                {% if tm.image %}<div class="mb-2"><img src="{{ tm.image.url }}" style="height: 50px;" class="rounded border"></div>{% endif %}
-                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
+                                                                {% if tm.image %}<div class="mb-2"><img
+                                                                        src="{{ tm.image.url }}" style="height: 50px;"
+                                                                        class="rounded border"></div>{% endif %}
+                                                                <input type="file" name="image" class="form-control"
+                                                                    accept="image/*"
+                                                                    onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                                                            <button type="submit" class="btn btn-primary fw-bold">আপডেট করুন</button>
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">বাতিল</button>
+                                                            <button type="submit" class="btn btn-primary fw-bold">আপডেট
+                                                                করুন</button>
                                                         </div>
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>
                                         {% empty %}
-                                        <tr><td colspan="5" class="text-center py-4 text-muted">কোনো টিম মেম্বার তথ্য যোগ করা হয়নি।</td></tr>
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4 text-muted">কোনো টিম মেম্বার তথ্য
+                                                যোগ করা হয়নি।</td>
+                                        </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -588,7 +778,8 @@
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-header bg-dark text-white py-3">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-user-check me-2"></i>স্বেচ্ছাসেবক ডাটাবেস ও আবেদনপত্রসমূহ</h5>
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-user-check me-2"></i>স্বেচ্ছাসেবক
+                                ডাটাবেস </h5>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -614,11 +805,17 @@
                                             <td>{{ v.address|default:"-" }}</td>
                                             <td><small class="text-secondary">{{ v.application_date|date:"d M Y" }}</small></td>
                                             <td>
-                                                <a href="{% url 'core:delete_volunteer' v.id %}" onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
+                                                <a href="{% url 'core:delete_volunteer' v.id %}"
+                                                    onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');"
+                                                    class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i
+                                                        class="fas fa-trash"></i></a>
                                             </td>
                                         </tr>
                                         {% empty %}
-                                        <tr><td colspan="7" class="text-center py-4 text-muted">কোনো স্বেচ্ছাসেবক তথ্য পাওয়া যায়নি।</td></tr>
+                                        <tr>
+                                            <td colspan="7" class="text-center py-4 text-muted">কোনো স্বেচ্ছাসেবক তথ্য
+                                                পাওয়া যায়নি।</td>
+                                        </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -633,8 +830,10 @@
         <div class="tab-pane fade" id="news-section" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-newspaper me-2"></i>সংবাদ ও প্রেস রিলিজ প্রকাশনা</h5>
-                    <button class="btn btn-dark btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#newsModal"><i class="fas fa-pen me-1"></i> নতুন খবর প্রকাশ করুন</button>
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-newspaper me-2"></i>সংবাদ ও প্রেস রিলিজ
+                        প্রকাশনা</h5>
+                    <button class="btn btn-dark btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#newsModal"><i
+                            class="fas fa-pen me-1"></i> নতুন খবর প্রকাশ করুন</button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -650,15 +849,20 @@
                             <tbody>
                                 {% for art in articles %}
                                 <tr>
-                                    <td>{% if art.image %}<img src="{{ art.image.url }}" style="width: 60px; height: 40px; object-fit: cover;" class="rounded">{% endif %}</td>
+                                    <td>{% if art.image %}<img src="{{ art.image.url }}"
+                                            style="width: 60px; height: 40px; object-fit: cover;" class="rounded">{% endif %}</td>
                                     <td class="fw-bold">{{ art.title }}</td>
                                     <td><small class="text-secondary">{{ art.publish_date|date:"d M Y" }}</small></td>
                                     <td>
-                                        <a href="{% url 'core:delete_news' art.id %}" onclick="return confirm('খবরটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                        <a href="{% url 'core:delete_news' art.id %}"
+                                            onclick="return confirm('খবরটি মুছে ফেলতে চান?');"
+                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="4" class="text-center py-4 text-muted">কোনো খবর প্রকাশিত হয়নি।</td></tr>
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">কোনো খবর প্রকাশিত হয়নি।</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -720,18 +924,28 @@
                     <form method="get" id="dateFilterForm" class="row g-2 align-items-end">
                         <input type="hidden" name="tab" value="finance-section">
                         <div class="col-md-3">
-                            <label class="form-label small fw-bold text-dark mb-1"><i class="fas fa-calendar-alt me-1 text-success"></i>শুরুর তারিখ (Start Date)</label>
-                            <input type="date" id="filter_start_date" name="start_date" value="{{ request.GET.start_date }}" class="form-control form-control-sm">
+                            <label class="form-label small fw-bold text-dark mb-1"><i
+                                    class="fas fa-calendar-alt me-1 text-success"></i>শুরুর তারিখ (Start Date)</label>
+                            <input type="date" id="filter_start_date" name="start_date"
+                                value="{{ request.GET.start_date }}" class="form-control form-control-sm">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-bold text-dark mb-1"><i class="fas fa-calendar-alt me-1 text-danger"></i>শেষ তারিখ (End Date)</label>
-                            <input type="date" id="filter_end_date" name="end_date" value="{{ request.GET.end_date }}" class="form-control form-control-sm">
+                            <label class="form-label small fw-bold text-dark mb-1"><i
+                                    class="fas fa-calendar-alt me-1 text-danger"></i>শেষ তারিখ (End Date)</label>
+                            <input type="date" id="filter_end_date" name="end_date" value="{{ request.GET.end_date }}"
+                                class="form-control form-control-sm">
                         </div>
                         <div class="col-md-6 d-flex gap-2 flex-wrap justify-content-md-end">
-                            <button type="submit" class="btn btn-dark btn-sm fw-bold"><i class="fas fa-filter me-1"></i> ফিল্টার করুন</button>
-                            <a href="{% url 'core:dashboard' %}?tab=finance-section" class="btn btn-outline-secondary btn-sm fw-bold">রিসেট</a>
-                            <button type="button" onclick="triggerPrintReport()" class="btn btn-outline-success btn-sm fw-bold"><i class="fas fa-print me-1"></i> প্রিন্ট রিপোর্ট (Print)</button>
-                            <button type="button" onclick="triggerExcelExport()" class="btn btn-success btn-sm fw-bold"><i class="fas fa-file-excel me-1"></i> এক্সেল ডাউনলোড (Excel)</button>
+                            <button type="submit" class="btn btn-dark btn-sm fw-bold"><i class="fas fa-filter me-1"></i>
+                                ফিল্টার করুন</button>
+                            <a href="{% url 'core:dashboard' %}?tab=finance-section"
+                                class="btn btn-outline-secondary btn-sm fw-bold">রিসেট</a>
+                            <button type="button" onclick="triggerPrintReport()"
+                                class="btn btn-outline-success btn-sm fw-bold"><i class="fas fa-print me-1"></i> প্রিন্ট
+                                রিপোর্ট (Print)</button>
+                            <button type="button" onclick="triggerExcelExport()"
+                                class="btn btn-success btn-sm fw-bold"><i class="fas fa-file-excel me-1"></i> এক্সেল
+                                ডাউনলোড (Excel)</button>
                         </div>
                     </form>
                 </div>
@@ -752,11 +966,13 @@
                 }
             </script>
 
-                        <!-- Program Financial Contributions Section -->
+            <!-- Program Financial Contributions Section -->
             <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div
+                    class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="card-title fw-bold mb-0">
-                        <i class="fas fa-hand-holding-heart me-2"></i>কার্যক্রম ভিত্তিক প্রাপ্ত আর্থিক সহায়তা (Program Donations)
+                        <i class="fas fa-hand-holding-heart me-2"></i>কার্যক্রম ভিত্তিক প্রাপ্ত আর্থিক সহায়তা (Program
+                        Donations)
                     </h5>
                     <span class="badge bg-white text-success fs-6 fw-bold">মোট: ৳ {{ total_program_donations|floatformat:2 }}</span>
                 </div>
@@ -788,14 +1004,15 @@
                                     </td>
                                     <td>
                                         {% if pd.membership_id %}
-                                            <span class="badge bg-primary text-white"><i class="fas fa-id-card me-1"></i>{{ pd.membership_id }}</span>
+                                        <span class="badge bg-primary text-white"><i class="fas fa-id-card me-1"></i>{{ pd.membership_id }}</span>
                                         {% else %}
-                                            <span class="text-muted small">N/A</span>
+                                        <span class="text-muted small">N/A</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         <div class="small fw-semibold"><i class="fas fa-phone me-1 text-info"></i>{{ pd.donor_phone }}</div>
-                                        {% if pd.donor_email %}<small class="text-muted"><i class="fas fa-envelope me-1"></i>{{ pd.donor_email }}</small>{% endif %}
+                                        {% if pd.donor_email %}<small class="text-muted"><i
+                                                class="fas fa-envelope me-1"></i>{{ pd.donor_email }}</small>{% endif %}
                                     </td>
                                     <td>
                                         <span class="badge bg-info text-dark">{{ pd.payment_method }}</span>
@@ -804,21 +1021,30 @@
                                     <td><span class="fw-bold text-success fs-6">+ ৳ {{ pd.amount }}</span></td>
                                     <td>
                                         {% if pd.status == 'approved' %}
-                                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>অনুমোদিত</span>
+                                        <span class="badge bg-success"><i
+                                                class="fas fa-check-circle me-1"></i>অনুমোদিত</span>
                                         {% else %}
-                                            <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>যাচাই বাকি</span>
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>যাচাই
+                                            বাকি</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if pd.status != 'approved' %}
-                                            <a href="{% url 'core:approve_donation' pd.id %}" onclick="return confirm('এই অনুদানটি অনুমোদন করতে চান? এটি ফাইন্যান্স লেজারে যুক্ত হবে।');" class="btn btn-sm btn-success fw-bold me-1" title="অনুমোদন করুন"><i class="fas fa-check me-1"></i>অনুমোদন</a>
+                                        <a href="{% url 'core:approve_donation' pd.id %}"
+                                            onclick="return confirm('এই অনুদানটি অনুমোদন করতে চান? এটি ফাইন্যান্স লেজারে যুক্ত হবে।');"
+                                            class="btn btn-sm btn-success fw-bold me-1" title="অনুমোদন করুন"><i
+                                                class="fas fa-check me-1"></i>অনুমোদন</a>
                                         {% endif %}
-                                        <a href="{% url 'core:delete_donation' pd.id %}" onclick="return confirm('এই এন্ট্রিটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
+                                        <a href="{% url 'core:delete_donation' pd.id %}"
+                                            onclick="return confirm('এই এন্ট্রিটি মুছে ফেলতে চান?');"
+                                            class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i
+                                                class="fas fa-trash"></i></a>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="9" class="text-center py-4 text-muted">এখনো কোনো কার্যক্রম ভিত্তিক আর্থিক সহায়তা জমা হয়নি।</td>
+                                    <td colspan="9" class="text-center py-4 text-muted">এখনো কোনো কার্যক্রম ভিত্তিক
+                                        আর্থিক সহায়তা জমা হয়নি।</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -829,11 +1055,17 @@
 
             <!-- Finance Ledger Card -->
             <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>তহবিল ও আয়-ব্যয়ের হিসাব খাতা (Financial Ledger)</h5>
+                <div
+                    class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>তহবিল ও আয়-ব্যয়ের
+                        হিসাব খাতা (Financial Ledger)</h5>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#incomeModal"><i class="fas fa-plus-circle me-1"></i> নতুন আয়/অনুদান লিখুন</button>
-                        <button class="btn btn-danger btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#expenseModal"><i class="fas fa-minus-circle me-1"></i> নতুন ব্যয়/খরচ লিখুন</button>
+                        <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal"
+                            data-bs-target="#incomeModal"><i class="fas fa-plus-circle me-1"></i> নতুন আয়/অনুদান
+                            লিখুন</button>
+                        <button class="btn btn-danger btn-sm fw-bold" data-bs-toggle="modal"
+                            data-bs-target="#expenseModal"><i class="fas fa-minus-circle me-1"></i> নতুন ব্যয়/খরচ
+                            লিখুন</button>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -858,16 +1090,17 @@
                                     <td><small class="fw-bold text-secondary">{{ trx.date|date:"d M Y" }}</small></td>
                                     <td>
                                         {% if trx.transaction_type == 'income' %}
-                                            <span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>আয়</span>
+                                        <span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>আয়</span>
                                         {% else %}
-                                            <span class="badge bg-danger"><i class="fas fa-arrow-up me-1"></i>ব্যয়</span>
+                                        <span class="badge bg-danger"><i class="fas fa-arrow-up me-1"></i>ব্যয়</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if trx.program %}
-                                            <span class="badge bg-success text-white fw-bold"><i class="fas fa-tasks me-1"></i>{{ trx.program.title }}</span>
+                                        <span class="badge bg-success text-white fw-bold"><i
+                                                class="fas fa-tasks me-1"></i>{{ trx.program.title }}</span>
                                         {% else %}
-                                            <span class="text-muted small">-</span>
+                                        <span class="text-muted small">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -882,14 +1115,18 @@
                                     </td>
                                     <td>
                                         {% if trx.transaction_type == 'income' %}
-                                            <span class="fw-bold text-success fs-6">+ ৳ {{ trx.amount }}</span>
+                                        <span class="fw-bold text-success fs-6">+ ৳ {{ trx.amount }}</span>
                                         {% else %}
-                                            <span class="fw-bold text-danger fs-6">- ৳ {{ trx.amount }}</span>
+                                        <span class="fw-bold text-danger fs-6">- ৳ {{ trx.amount }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}"><i class="fas fa-edit"></i></button>
-                                        <a href="{% url 'core:delete_transaction' trx.id %}" onclick="return confirm('অর্থায়াক হিসাবটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                            data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}"><i
+                                                class="fas fa-edit"></i></button>
+                                        <a href="{% url 'core:delete_transaction' trx.id %}"
+                                            onclick="return confirm('অর্থায়াক হিসাবটি মুছে ফেলতে চান?');"
+                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                     </td>
                                 </tr>
 
@@ -897,11 +1134,15 @@
                                 <div class="modal fade" id="editTrxModal_{{ trx.id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
-                                            <div class="modal-header {% if trx.transaction_type == 'income' %}bg-success{% else %}bg-danger{% endif %} text-white">
-                                                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> হিসাব এডিট করুন</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <div
+                                                class="modal-header {% if trx.transaction_type == 'income' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                                                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> হিসাব
+                                                    এডিট করুন</h5>
+                                                <button type="button" class="btn-close btn-close-white"
+                                                    data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
-                                            <form action="{% url 'core:save_transaction' %}" method="post" enctype="multipart/form-data">
+                                            <form action="{% url 'core:save_transaction' %}" method="post"
+                                                enctype="multipart/form-data">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="transaction_id" value="{{ trx.id }}">
                                                 <div class="modal-body">
@@ -909,30 +1150,37 @@
                                                         <label class="form-label fw-bold">টাইপ *</label>
                                                         <select name="transaction_type" class="form-select" required>
                                                             <option value="income" {% if trx.transaction_type == 'income' %}selected{% endif %}>আয় / অনুদান (Income)</option>
-                                                            <option value="expense" {% if trx.transaction_type == 'expense' %}selected{% endif %}>ব্যয় / খরচ (Expense)</option>
+                                                            <option value="expense" {% if trx.transaction_type == 'expense' %}selected{% endif %}>
+                                                                ব্যয় / খরচ (Expense)</option>
                                                         </select>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-bold">কার্যক্রম (Program - ঐচ্ছিক)</label>
+                                                        <label class="form-label fw-bold">কার্যক্রম (Program -
+                                                            ঐচ্ছিক)</label>
                                                         <select name="program_id" class="form-select">
-                                                            <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --</option>
+                                                            <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --
+                                                            </option>
                                                             {% for p in programs %}
-                                                                <option value="{{ p.id }}" {% if trx.program_id == p.id %}selected{% endif %}>{{ p.title }}</option>
+                                                            <option value="{{ p.id }}" {% if trx.program_id == p.id %}selected{% endif %}>{{ p.title }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label fw-bold">খাতের নাম / বিবরণ *</label>
-                                                        <input type="text" name="title" value="{{ trx.title }}" required class="form-control">
+                                                        <input type="text" name="title" value="{{ trx.title }}" required
+                                                            class="form-control">
                                                     </div>
                                                     <div class="row g-2 mb-3">
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
-                                                            <input type="number" step="0.01" name="amount" value="{{ trx.amount }}" required class="form-control fw-bold">
+                                                            <input type="number" step="0.01" name="amount"
+                                                                value="{{ trx.amount }}" required
+                                                                class="form-control fw-bold">
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-bold">ক্যাটাগরি</label>
-                                                            <input type="text" name="category" value="{{ trx.category }}" class="form-control">
+                                                            <input type="text" name="category"
+                                                                value="{{ trx.category }}" class="form-control">
                                                         </div>
                                                     </div>
                                                     <div class="row g-2 mb-3">
@@ -947,47 +1195,71 @@
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-bold">Trx ID / মেমো নং</label>
-                                                            <input type="text" name="trx_id" value="{{ trx.trx_id }}" class="form-control">
+                                                            <input type="text" name="trx_id" value="{{ trx.trx_id }}"
+                                                                class="form-control">
                                                         </div>
                                                     </div>
                                                     <div class="row g-2 mb-3">
                                                         <div class="col-md-6">
-                                                            <label class="form-label fw-bold">দাতা / গ্রহীতার নাম</label>
-                                                            <input type="text" name="donor_name" value="{{ trx.donor_name }}" class="form-control">
+                                                            <label class="form-label fw-bold">দাতা / গ্রহীতার
+                                                                নাম</label>
+                                                            <input type="text" name="donor_name"
+                                                                value="{{ trx.donor_name }}" class="form-control">
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-bold">তারিখ *</label>
-                                                            <input type="date" name="date" value="{{ trx.date|date:'Y-m-d' }}" required class="form-control">
+                                                            <input type="date" name="date"
+                                                                value="{{ trx.date|date:'Y-m-d' }}" required
+                                                                class="form-control">
                                                         </div>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label fw-bold">অতিরিক্ত নোট</label>
-                                                        <textarea name="note" rows="2" class="form-control">{{ trx.note }}</textarea>
+                                                        <textarea name="note" rows="2"
+                                                            class="form-control">{{ trx.note }}</textarea>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                                            <label class="form-label fw-bold mb-0">ভাউচার / রশিদ ছবি</label>
+                                                        <div
+                                                            class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                                            <label class="form-label fw-bold mb-0">ভাউচার / রশিদ
+                                                                ছবি</label>
                                                             <div class="d-flex align-items-center gap-1">
-                                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                <span
+                                                                    class="badge bg-light text-secondary border small">সর্বোচ্চ
+                                                                    800 KB</span>
+                                                                <a href="https://www.resizepixel.com" target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                    <i class="fas fa-external-link-alt me-1"></i>ছবি
+                                                                    রিসাইজ করুন (Free)
                                                                 </a>
                                                             </div>
                                                         </div>
-                                                        {% if trx.receipt %}<div class="mb-2"><a href="{{ trx.receipt.url }}" target="_blank" class="small text-primary fw-bold"><i class="fas fa-file-image me-1"></i>বর্তমান রশিদ দেখুন</a></div>{% endif %}
-                                                        <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
+                                                        {% if trx.receipt %}<div class="mb-2"><a
+                                                                href="{{ trx.receipt.url }}" target="_blank"
+                                                                class="small text-primary fw-bold"><i
+                                                                    class="fas fa-file-image me-1"></i>বর্তমান রশিদ
+                                                                দেখুন</a></div>{% endif %}
+                                                        <input type="file" name="receipt" class="form-control"
+                                                            accept="image/*"
+                                                            onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                                                    <button type="submit" class="btn btn-primary fw-bold">আপডেট করুন</button>
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">বাতিল</button>
+                                                    <button type="submit" class="btn btn-primary fw-bold">আপডেট
+                                                        করুন</button>
                                                 </div>
                                             </form>
                                         </div>
                                     </div>
                                 </div>
                                 {% empty %}
-                                <tr><td colspan="8" class="text-center py-4 text-muted">কোনো আয়-ব্যয়ের হিসাব পাওয়া যায়নি।</td></tr>
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">কোনো আয়-ব্যয়ের হিসাব পাওয়া
+                                        যায়নি।</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -999,50 +1271,65 @@
         <!-- ================= TAB 6: BANK & DONATIONS ================= -->
         <div class="tab-pane fade" id="bank-section" role="tabpanel">
             <div class="row g-4">
-                
+
                 <!-- 1. Donation Page Hero & Text Content Card -->
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-3 h-100">
                         <div class="card-header bg-success text-white py-3">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-hand-holding-heart me-2"></i>১. অনুদান পেজ হিরো ব্যানার ও বিবরণ টেক্সট</h5>
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-hand-holding-heart me-2"></i>১. অনুদান
+                                পেজ হিরো ব্যানার ও বিবরণ টেক্সট</h5>
                         </div>
                         <div class="card-body">
-                            <form action="{% url 'core:update_donation_content' %}" method="post" enctype="multipart/form-data">
+                            <form action="{% url 'core:update_donation_content' %}" method="post"
+                                enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">হিরো টাইটেল (Hero Title) *</label>
-                                    <input type="text" name="hero_title" value="{{ donation_content.hero_title }}" required class="form-control">
+                                    <input type="text" name="hero_title" value="{{ donation_content.hero_title }}"
+                                        required class="form-control">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">হিরো সাব-টাইটেল (Subtitle)</label>
-                                    <textarea name="hero_subtitle" rows="2" class="form-control">{{ donation_content.hero_subtitle }}</textarea>
+                                    <textarea name="hero_subtitle" rows="2"
+                                        class="form-control">{{ donation_content.hero_subtitle }}</textarea>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                         <label class="form-label fw-bold mb-0">হিরো ব্যাকগ্রাউন্ড ছবি</label>
                                         <div class="d-flex align-items-center gap-1">
-                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
-                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1
+                                                MB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                                 <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                             </a>
                                         </div>
                                     </div>
                                     {% if donation_content.hero_image %}
-                                        {% if donation_content.hero_image %}<div class="mb-2"><img src="{{ donation_content.hero_image.url }}" style="height: 70px;" class="rounded border"></div>{% endif %}
+                                    {% if donation_content.hero_image %}<div class="mb-2"><img
+                                            src="{{ donation_content.hero_image.url }}" style="height: 70px;"
+                                            class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="hero_image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 1024, 'দানের পেজ ব্যানার ছবি')">
+                                    <input type="file" name="hero_image" class="form-control" accept="image/*"
+                                        onchange="validateDashboardImage(this, 1024, 'দানের পেজ ব্যানার ছবি')">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">কেন দান করবেন? (Why Donate Title)</label>
-                                    <input type="text" name="why_donate_title" value="{{ donation_content.why_donate_title }}" class="form-control mb-2">
-                                    <textarea name="why_donate_text" rows="3" class="form-control">{{ donation_content.why_donate_text }}</textarea>
+                                    <input type="text" name="why_donate_title"
+                                        value="{{ donation_content.why_donate_title }}" class="form-control mb-2">
+                                    <textarea name="why_donate_text" rows="3"
+                                        class="form-control">{{ donation_content.why_donate_text }}</textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">স্বচ্ছতা ও জবাবদিহিতা (Transparency Text)</label>
-                                    <input type="text" name="transparency_title" value="{{ donation_content.transparency_title }}" class="form-control mb-2">
-                                    <textarea name="transparency_text" rows="3" class="form-control">{{ donation_content.transparency_text }}</textarea>
+                                    <input type="text" name="transparency_title"
+                                        value="{{ donation_content.transparency_title }}" class="form-control mb-2">
+                                    <textarea name="transparency_text" rows="3"
+                                        class="form-control">{{ donation_content.transparency_text }}</textarea>
                                 </div>
-                                <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-save me-1"></i> পেজ কন্টেন্ট আপডেট করুন</button>
+                                <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-save me-1"></i>
+                                    পেজ কন্টেন্ট আপডেট করুন</button>
                             </form>
                         </div>
                     </div>
@@ -1052,7 +1339,8 @@
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-3 h-100">
                         <div class="card-header bg-teal text-white py-3" style="background-color: #20c997 !important;">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-university me-2"></i>২. ব্যাংক একাউন্ট ও bKash/Nagad QR কোড</h5>
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-university me-2"></i>২. ব্যাংক একাউন্ট
+                                ও bKash/Nagad QR কোড</h5>
                         </div>
                         <div class="card-body">
                             <form action="{% url 'core:update_bank' %}" method="post" enctype="multipart/form-data">
@@ -1061,37 +1349,53 @@
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">ব্যাংকের নাম</label>
-                                        <input type="text" name="bank_name" value="{{ bank.bank_name|default:'Dutch-Bangla Bank' }}" class="form-control">
+                                        <input type="text" name="bank_name"
+                                            value="{{ bank.bank_name|default:'Dutch-Bangla Bank' }}"
+                                            class="form-control">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">একাউন্ট নাম (Account Name)</label>
-                                        <input type="text" name="account_name" value="{{ bank.account_name|default:'Helpline Hello Naogaon' }}" class="form-control">
+                                        <input type="text" name="account_name"
+                                            value="{{ bank.account_name|default:'Helpline Hello Naogaon' }}"
+                                            class="form-control">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">একাউন্ট নম্বর (Account Number)</label>
-                                        <input type="text" name="account_number" value="{{ bank.account_number|default:'1234567890' }}" class="form-control fw-bold">
+                                        <input type="text" name="account_number"
+                                            value="{{ bank.account_number|default:'1234567890' }}"
+                                            class="form-control fw-bold">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">রাউটিং নম্বর (Routing Number)</label>
-                                        <input type="text" name="swift_code" value="{{ bank.swift_code|default:'0902600925' }}" class="form-control">
+                                        <input type="text" name="swift_code"
+                                            value="{{ bank.swift_code|default:'0902600925' }}" class="form-control">
                                     </div>
                                     <div class="col-md-12">
-                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                            <label class="form-label fw-bold mb-0">bKash/Nagad QR কোড ছবি আপলোড করুন</label>
+                                        <div
+                                            class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                            <label class="form-label fw-bold mb-0">bKash/Nagad QR কোড ছবি আপলোড
+                                                করুন</label>
                                             <div class="d-flex align-items-center gap-1">
-                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300 KB</span>
-                                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300
+                                                    KB</span>
+                                                <a href="https://www.resizepixel.com" target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                                     <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                                 </a>
                                             </div>
                                         </div>
                                         {% if qrcodes.first and qrcodes.first.image %}
-                                            {% if qrcodes.first and qrcodes.first.image %}<div class="mb-2"><img src="{{ qrcodes.first.image.url }}" style="height: 100px;" class="rounded border p-1"></div>{% endif %}
+                                        {% if qrcodes.first and qrcodes.first.image %}<div class="mb-2"><img
+                                                src="{{ qrcodes.first.image.url }}" style="height: 100px;"
+                                                class="rounded border p-1"></div>{% endif %}
                                         {% endif %}
-                                        <input type="file" name="qr_image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 300, 'QR কোড ছবি')">
+                                        <input type="file" name="qr_image" class="form-control" accept="image/*"
+                                            onchange="validateDashboardImage(this, 300, 'QR কোড ছবি')">
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-success fw-bold mt-4"><i class="fas fa-save me-1"></i> ব্যাংক ও QR কোড আপডেট করুন</button>
+                                <button type="submit" class="btn btn-success fw-bold mt-4"><i
+                                        class="fas fa-save me-1"></i> ব্যাংক ও QR কোড আপডেট করুন</button>
                                 {% endwith %}
                             </form>
                         </div>
@@ -1101,9 +1405,13 @@
                 <!-- 3. Active Donation Campaigns Card -->
                 <div class="col-12">
                     <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-bullhorn me-2"></i>৩. বিশেষ অনুদান ক্যাম্পেইন (Donation Campaigns)</h5>
-                            <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#campaignModal"><i class="fas fa-plus me-1"></i> নতুন ক্যাম্পেইন তৈরি করুন</button>
+                        <div
+                            class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-bullhorn me-2"></i>৩. বিশেষ অনুদান
+                                ক্যাম্পেইন (Donation Campaigns)</h5>
+                            <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal"
+                                data-bs-target="#campaignModal"><i class="fas fa-plus me-1"></i> নতুন ক্যাম্পেইন তৈরি
+                                করুন</button>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -1123,90 +1431,133 @@
                                         <tr>
                                             <td>
                                                 {% if c.image %}
-                                                    {% if c.image %}<img src="{{ c.image.url }}" style="height: 45px; width: 60px; object-fit: cover;" class="rounded">{% endif %}
+                                                {% if c.image %}<img src="{{ c.image.url }}"
+                                                    style="height: 45px; width: 60px; object-fit: cover;"
+                                                    class="rounded">{% endif %}
                                                 {% else %}
-                                                    <span class="badge bg-secondary">ছবি নেই</span>
+                                                <span class="badge bg-secondary">ছবি নেই</span>
                                                 {% endif %}
                                             </td>
                                             <td>
                                                 <div class="fw-bold text-dark">{{ c.title }}</div>
-                                                <small class="text-muted d-block text-truncate" style="max-width: 300px;">{{ c.description }}</small>
+                                                <small class="text-muted d-block text-truncate"
+                                                    style="max-width: 300px;">{{ c.description }}</small>
                                             </td>
                                             <td><span class="fw-bold text-primary">৳ {{ c.goal_amount }}</span></td>
                                             <td><span class="fw-bold text-success">৳ {{ c.raised_amount }}</span></td>
                                             <td><small class="text-secondary">{{ c.start_date|date:"d M" }} - {{ c.end_date|date:"d M Y"|default:"চলমান" }}</small></td>
                                             <td>
-                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editCampModal_{{ c.id }}"><i class="fas fa-edit"></i></button>
-                                                <a href="{% url 'core:delete_campaign' c.id %}" onclick="return confirm('ক্যাম্পেইনটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                    data-bs-toggle="modal" data-bs-target="#editCampModal_{{ c.id }}"><i
+                                                        class="fas fa-edit"></i></button>
+                                                <a href="{% url 'core:delete_campaign' c.id %}"
+                                                    onclick="return confirm('ক্যাম্পেইনটি মুছে ফেলতে চান?');"
+                                                    class="btn btn-sm btn-outline-danger"><i
+                                                        class="fas fa-trash"></i></a>
                                             </td>
                                         </tr>
 
                                         <!-- Edit Campaign Modal -->
-                                        <div class="modal fade" id="editCampModal_{{ c.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal fade" id="editCampModal_{{ c.id }}" tabindex="-1"
+                                            aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header bg-primary text-white">
-                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> ক্যাম্পেইন এডিট করুন</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i>
+                                                            ক্যাম্পেইন এডিট করুন</h5>
+                                                        <button type="button" class="btn-close btn-close-white"
+                                                            data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
-                                                    <form action="{% url 'core:save_campaign' %}" method="post" enctype="multipart/form-data">
+                                                    <form action="{% url 'core:save_campaign' %}" method="post"
+                                                        enctype="multipart/form-data">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="campaign_id" value="{{ c.id }}">
                                                         <div class="modal-body">
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">ক্যাম্পেইনের নাম *</label>
-                                                                <input type="text" name="title" value="{{ c.title }}" required class="form-control">
+                                                                <label class="form-label fw-bold">ক্যাম্পেইনের নাম
+                                                                    *</label>
+                                                                <input type="text" name="title" value="{{ c.title }}"
+                                                                    required class="form-control">
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">বিবরণ</label>
-                                                                <textarea name="description" rows="3" class="form-control">{{ c.description }}</textarea>
+                                                                <textarea name="description" rows="3"
+                                                                    class="form-control">{{ c.description }}</textarea>
                                                             </div>
                                                             <div class="row g-2 mb-3">
                                                                 <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">টার্গেট অনুদান (৳) *</label>
-                                                                    <input type="number" name="goal_amount" value="{{ c.goal_amount }}" required class="form-control fw-bold">
+                                                                    <label class="form-label fw-bold">টার্গেট অনুদান (৳)
+                                                                        *</label>
+                                                                    <input type="number" name="goal_amount"
+                                                                        value="{{ c.goal_amount }}" required
+                                                                        class="form-control fw-bold">
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">সংগৃহীত অনুদান (৳)</label>
-                                                                    <input type="number" name="raised_amount" value="{{ c.raised_amount }}" class="form-control">
+                                                                    <label class="form-label fw-bold">সংগৃহীত অনুদান
+                                                                        (৳)</label>
+                                                                    <input type="number" name="raised_amount"
+                                                                        value="{{ c.raised_amount }}"
+                                                                        class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="row g-2 mb-3">
                                                                 <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">শুরুর তারিখ</label>
-                                                                    <input type="date" name="start_date" value="{{ c.start_date|date:'Y-m-d' }}" class="form-control">
+                                                                    <label class="form-label fw-bold">শুরুর
+                                                                        তারিখ</label>
+                                                                    <input type="date" name="start_date"
+                                                                        value="{{ c.start_date|date:'Y-m-d' }}"
+                                                                        class="form-control">
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <label class="form-label fw-bold">শেষ তারিখ</label>
-                                                                    <input type="date" name="end_date" value="{{ c.end_date|date:'Y-m-d' }}" class="form-control">
+                                                                    <input type="date" name="end_date"
+                                                                        value="{{ c.end_date|date:'Y-m-d' }}"
+                                                                        class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                                                    <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
+                                                                <div
+                                                                    class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                                                    <label class="form-label fw-bold mb-0">ছবি আপলোড
+                                                                        করুন</label>
                                                                     <div class="d-flex align-items-center gap-1">
-                                                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                                            <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                        <span
+                                                                            class="badge bg-light text-secondary border small">সর্বোচ্চ
+                                                                            800 KB</span>
+                                                                        <a href="https://www.resizepixel.com"
+                                                                            target="_blank" rel="noopener noreferrer"
+                                                                            class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                            <i
+                                                                                class="fas fa-external-link-alt me-1"></i>ছবি
+                                                                            রিসাইজ করুন (Free)
                                                                         </a>
                                                                     </div>
                                                                 </div>
                                                                 {% if c.image %}
-                                                                    {% if c.image %}<div class="mb-2"><img src="{{ c.image.url }}" style="height: 60px;" class="rounded"></div>{% endif %}
+                                                                {% if c.image %}<div class="mb-2"><img
+                                                                        src="{{ c.image.url }}" style="height: 60px;"
+                                                                        class="rounded"></div>{% endif %}
                                                                 {% endif %}
-                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'ক্যাম্পেইন কভার ছবি')">
+                                                                <input type="file" name="image" class="form-control"
+                                                                    accept="image/*"
+                                                                    onchange="validateDashboardImage(this, 800, 'ক্যাম্পেইন কভার ছবি')">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                                                            <button type="submit" class="btn btn-primary fw-bold">আপডেট করুন</button>
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">বাতিল</button>
+                                                            <button type="submit" class="btn btn-primary fw-bold">আপডেট
+                                                                করুন</button>
                                                         </div>
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>
                                         {% empty %}
-                                        <tr><td colspan="6" class="text-center py-4 text-muted">কোনো অনুদান ক্যাম্পেইন পাওয়া যায়নি।</td></tr>
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">কোনো অনুদান ক্যাম্পেইন
+                                                পাওয়া যায়নি।</td>
+                                        </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -1218,9 +1569,12 @@
                 <!-- 4. Emergency Appeals Card -->
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-exclamation-triangle me-2"></i>৪. জরুরি আবেদন (Emergency Appeals)</h5>
-                            <button class="btn btn-light btn-sm fw-bold text-danger" data-bs-toggle="modal" data-bs-target="#appealModal"><i class="fas fa-plus me-1"></i> নতুন আবেদন</button>
+                        <div
+                            class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-exclamation-triangle me-2"></i>৪. জরুরি
+                                আবেদন (Emergency Appeals)</h5>
+                            <button class="btn btn-light btn-sm fw-bold text-danger" data-bs-toggle="modal"
+                                data-bs-target="#appealModal"><i class="fas fa-plus me-1"></i> নতুন আবেদন</button>
                         </div>
                         <div class="card-body p-0">
                             <div class="list-group list-group-flush">
@@ -1228,7 +1582,9 @@
                                 <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                                     <div class="d-flex align-items-center">
                                         {% if a.image %}
-                                            {% if a.image %}<img src="{{ a.image.url }}" style="height: 45px; width: 45px; object-fit: cover;" class="rounded me-3">{% endif %}
+                                        {% if a.image %}<img src="{{ a.image.url }}"
+                                            style="height: 45px; width: 45px; object-fit: cover;"
+                                            class="rounded me-3">{% endif %}
                                         {% endif %}
                                         <div>
                                             <h6 class="fw-bold mb-0 text-dark">{{ a.title }}</h6>
@@ -1236,7 +1592,9 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <a href="{% url 'core:delete_emergency_appeal' a.id %}" onclick="return confirm('আবেদনটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                        <a href="{% url 'core:delete_emergency_appeal' a.id %}"
+                                            onclick="return confirm('আবেদনটি মুছে ফেলতে চান?');"
+                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                     </div>
                                 </div>
                                 {% empty %}
@@ -1250,37 +1608,48 @@
                 <!-- 5. Donation Impact & FAQs Card -->
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-secondary text-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-question-circle me-2"></i>৫. অনুদান সংক্রান্ত FAQ & প্রভাব</h5>
+                        <div
+                            class="card-header bg-secondary text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-question-circle me-2"></i>৫. অনুদান
+                                সংক্রান্ত FAQ & প্রভাব</h5>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#impactModal"><i class="fas fa-plus me-1"></i> প্রভাব যোগ</button>
-                                <button class="btn btn-dark btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#faqModal"><i class="fas fa-plus me-1"></i> FAQ যোগ</button>
+                                <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal"
+                                    data-bs-target="#impactModal"><i class="fas fa-plus me-1"></i> প্রভাব যোগ</button>
+                                <button class="btn btn-dark btn-sm fw-bold" data-bs-toggle="modal"
+                                    data-bs-target="#faqModal"><i class="fas fa-plus me-1"></i> FAQ যোগ</button>
                             </div>
                         </div>
                         <div class="card-body">
-                            <h6 class="fw-bold text-success mb-2"><i class="fas fa-chart-line me-1"></i> দান প্রভাব সূচকসমূহ (Impacts)</h6>
+                            <h6 class="fw-bold text-success mb-2"><i class="fas fa-chart-line me-1"></i> দান প্রভাব
+                                সূচকসমূহ (Impacts)</h6>
                             <div class="mb-4">
                                 {% for imp in impacts %}
-                                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                                        <div><span class="badge bg-success me-2">৳ {{ imp.amount }}</span><small class="fw-semibold text-dark">{{ imp.description }}</small></div>
-                                        <a href="{% url 'core:delete_impact' imp.id %}" onclick="return confirm('আইটেমটি মুছবেন?');" class="text-danger small"><i class="fas fa-trash"></i></a>
-                                    </div>
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <div><span class="badge bg-success me-2">৳ {{ imp.amount }}</span><small
+                                            class="fw-semibold text-dark">{{ imp.description }}</small></div>
+                                    <a href="{% url 'core:delete_impact' imp.id %}"
+                                        onclick="return confirm('আইটেমটি মুছবেন?');" class="text-danger small"><i
+                                            class="fas fa-trash"></i></a>
+                                </div>
                                 {% empty %}
                                 {% endfor %}
                             </div>
 
-                            <h6 class="fw-bold text-primary mb-2"><i class="fas fa-comments me-1"></i> সাধারণ প্রশ্নোত্তর (FAQs)</h6>
+                            <h6 class="fw-bold text-primary mb-2"><i class="fas fa-comments me-1"></i> সাধারণ
+                                প্রশ্নোত্তর (FAQs)</h6>
                             <div>
                                 {% for faq in faqs %}
-                                    <div class="d-flex justify-content-between align-items-start border-bottom py-2">
-                                        <div>
-                                            <div class="fw-bold small text-dark">Q: {{ faq.question }}</div>
-                                            <small class="text-secondary">A: {{ faq.answer }}</small>
-                                        </div>
-                                        <a href="{% url 'core:delete_faq' faq.id %}" onclick="return confirm('FAQ টি মুছবেন?');" class="text-danger small ms-2"><i class="fas fa-trash"></i></a>
+                                <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                                    <div>
+                                        <div class="fw-bold small text-dark">Q: {{ faq.question }}</div>
+                                        <small class="text-secondary">A: {{ faq.answer }}</small>
                                     </div>
+                                    <a href="{% url 'core:delete_faq' faq.id %}"
+                                        onclick="return confirm('FAQ টি মুছবেন?');" class="text-danger small ms-2"><i
+                                            class="fas fa-trash"></i></a>
+                                </div>
                                 {% empty %}
-                                    <small class="text-muted">কোনো FAQ নেই।</small>
+                                <small class="text-muted">কোনো FAQ নেই।</small>
                                 {% endfor %}
                             </div>
                         </div>
@@ -1297,7 +1666,8 @@
                     <h5 class="card-title fw-bold mb-0"><i class="fas fa-images me-2"></i>ফটো গ্যালারি আপলোড</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{% url 'core:save_gallery' %}" method="post" enctype="multipart/form-data" class="mb-4 p-3 border rounded bg-light">
+                    <form action="{% url 'core:save_gallery' %}" method="post" enctype="multipart/form-data"
+                        class="mb-4 p-3 border rounded bg-light">
                         {% csrf_token %}
                         <div class="row g-2 align-items-center">
                             <div class="col-md-5">
@@ -1305,19 +1675,22 @@
                                     <label class="form-label small fw-bold mb-0">ছবি নির্বাচন করুন</label>
                                     <div class="d-flex align-items-center gap-1">
                                         <span class="badge bg-white text-secondary border small">সর্বোচ্চ 1 MB</span>
-                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                            class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                             <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                         </a>
                                     </div>
                                 </div>
-                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 1024, 'গ্যালারির ছবি')" required>
+                                <input type="file" name="image" class="form-control" accept="image/*"
+                                    onchange="validateDashboardImage(this, 1024, 'গ্যালারির ছবি')" required>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold">ক্যাপশন (Caption)</label>
                                 <input type="text" name="caption" placeholder="ছবির ক্যাপশন লিখুন" class="form-control">
                             </div>
                             <div class="col-md-2 mt-auto">
-                                <button type="submit" class="btn btn-dark w-100 fw-bold"><i class="fas fa-upload me-1"></i> আপলোড</button>
+                                <button type="submit" class="btn btn-dark w-100 fw-bold"><i
+                                        class="fas fa-upload me-1"></i> আপলোড</button>
                             </div>
                         </div>
                     </form>
@@ -1327,7 +1700,8 @@
                         {% for photo in photos %}
                         <div class="col-6 col-md-3 col-lg-2">
                             <div class="card h-100 border-0 shadow-sm overflow-hidden">
-                                {% if photo.image %}<img src="{{ photo.image.url }}" style="height: 120px; object-fit: cover;" class="img-fluid">{% endif %}
+                                {% if photo.image %}<img src="{{ photo.image.url }}"
+                                    style="height: 120px; object-fit: cover;" class="img-fluid">{% endif %}
                                 <div class="p-2 text-center small text-muted">{{ photo.caption|default:"Photo" }}</div>
                             </div>
                         </div>
@@ -1348,7 +1722,8 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন প্রোগ্রাম তৈরি করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_program' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -1359,7 +1734,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Short Description)</label>
-                        <input type="text" name="short_description" class="form-control" placeholder="কার্ডে দেখানোর জন্য">
+                        <input type="text" name="short_description" class="form-control"
+                            placeholder="কার্ডে দেখানোর জন্য">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">পূর্ণ বিবরণ (Full Description)</label>
@@ -1369,21 +1745,25 @@
                         <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন / বাজেট (টাকা - ঐচ্ছিক)</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
-                            <input type="number" step="0.01" name="target_amount" class="form-control fw-bold" placeholder="যেমন: 50000 (প্রয়োজন না থাকলে খালি রাখুন)">
+                            <input type="number" step="0.01" name="target_amount" class="form-control fw-bold"
+                                placeholder="যেমন: 50000 (প্রয়োজন না থাকলে খালি রাখুন)">
                         </div>
-                        <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান গ্রহণের বাটন দৃশ্যমান হবে।</small>
+                        <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান
+                            গ্রহণের বাটন দৃশ্যমান হবে।</small>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">প্রোগ্রামের ছবি আপলোড করুন</label>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                     <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                 </a>
                             </div>
                         </div>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
+                        <input type="file" name="image" class="form-control" accept="image/*"
+                            onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1419,12 +1799,14 @@
                             <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                     <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                 </a>
                             </div>
                         </div>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 1024, 'সংবাদের ছবি')">
+                        <input type="file" name="image" class="form-control" accept="image/*"
+                            onchange="validateDashboardImage(this, 1024, 'সংবাদের ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1442,7 +1824,8 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-1"></i> নতুন টিম মেম্বার যোগ করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_team_member' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -1453,7 +1836,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">পদবী / ভূমিকা (Role) *</label>
-                        <input type="text" name="role" required class="form-control" placeholder="যেমন: সভাপতি / সাধারণ সম্পাদক">
+                        <input type="text" name="role" required class="form-control"
+                            placeholder="যেমন: সভাপতি / সাধারণ সম্পাদক">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
@@ -1464,12 +1848,14 @@
                             <label class="form-label fw-bold mb-0">প্রোফাইল ছবি আপলোড করুন</label>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                     <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                 </a>
                             </div>
                         </div>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
+                        <input type="file" name="image" class="form-control" accept="image/*"
+                            onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1486,84 +1872,90 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন আয় / অনুদান এন্ট্রি করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন আয় / অনুদান এন্ট্রি করুন
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_transaction' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="transaction_type" value="income">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">কার্যক্রম (Program - ঐচ্ছিক)</label>
-                        <select name="program_id" class="form-select">
-                            <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --</option>
-                            {% for p in programs %}
-                                <option value="{{ p.id }}">{{ p.title }}</option>
-                            {% endfor %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">কার্যক্রম (Program - ঐচ্ছিক)</label>
+                    <select name="program_id" class="form-select">
+                        <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --</option>
+                        {% for p in programs %}
+                        <option value="{{ p.id }}">{{ p.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">খাতের নাম / টাইটেল *</label>
+                    <input type="text" name="title" required class="form-control"
+                        placeholder="যেমন: প্রবাসী সমিতি অনুদান / সাধারণ অনুদান">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
+                        <input type="number" step="0.01" name="amount" required class="form-control fw-bold"
+                            placeholder="5000">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ক্যাটাগরি</label>
+                        <input type="text" name="category" value="সাধারণ অনুদান" class="form-control">
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">পেমেন্ট মাধ্যম</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="bKash">bKash</option>
+                            <option value="Nagad">Nagad</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cash">Cash</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">খাতের নাম / টাইটেল *</label>
-                        <input type="text" name="title" required class="form-control" placeholder="যেমন: প্রবাসী সমিতি অনুদান / সাধারণ অনুদান">
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
-                            <input type="number" step="0.01" name="amount" required class="form-control fw-bold" placeholder="5000">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">ক্যাটাগরি</label>
-                            <input type="text" name="category" value="সাধারণ অনুদান" class="form-control">
-                        </div>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">পেমেন্ট মাধ্যম</label>
-                            <select name="payment_method" class="form-select">
-                                <option value="bKash">bKash</option>
-                                <option value="Nagad">Nagad</option>
-                                <option value="Bank Transfer">Bank Transfer</option>
-                                <option value="Cash">Cash</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Trx ID / মেমো নম্বর</label>
-                            <input type="text" name="trx_id" class="form-control" placeholder="BK9873421">
-                        </div>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">দাতার নাম</label>
-                            <input type="text" name="donor_name" class="form-control" placeholder="দাতার নাম (ঐচ্ছিক)">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">তারিখ *</label>
-                            <input type="date" name="date" required class="form-control">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">অতিরিক্ত নোট</label>
-                        <textarea name="note" rows="2" class="form-control" placeholder="নোট বা বিবরণ..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                            <label class="form-label fw-bold mb-0">ভাউচার / রশিদ ছবি</label>
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
-                                </a>
-                            </div>
-                        </div>
-                        <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Trx ID / মেমো নম্বর</label>
+                        <input type="text" name="trx_id" class="form-control" placeholder="BK9873421">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-success fw-bold">সংরক্ষণ করুন</button>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">দাতার নাম</label>
+                        <input type="text" name="donor_name" class="form-control" placeholder="দাতার নাম (ঐচ্ছিক)">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">তারিখ *</label>
+                        <input type="date" name="date" required class="form-control">
+                    </div>
                 </div>
-            </form>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">অতিরিক্ত নোট</label>
+                    <textarea name="note" rows="2" class="form-control" placeholder="নোট বা বিবরণ..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                        <label class="form-label fw-bold mb-0">ভাউচার / রশিদ ছবি</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                            </a>
+                        </div>
+                    </div>
+                    <input type="file" name="receipt" class="form-control" accept="image/*"
+                        onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
+                </div>
         </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+            <button type="submit" class="btn btn-success fw-bold">সংরক্ষণ করুন</button>
+        </div>
+        </form>
     </div>
+</div>
 </div>
 
 <!-- Expense Modal -->
@@ -1571,8 +1963,10 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-minus-circle me-1"></i> নতুন ব্যয় / খরচ এন্ট্রি করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold"><i class="fas fa-minus-circle me-1"></i> নতুন ব্যয় / খরচ এন্ট্রি করুন
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_transaction' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -1583,18 +1977,20 @@
                         <select name="program_id" class="form-select">
                             <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --</option>
                             {% for p in programs %}
-                                <option value="{{ p.id }}">{{ p.title }}</option>
+                            <option value="{{ p.id }}">{{ p.title }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">খরচের খাতের নাম *</label>
-                        <input type="text" name="title" required class="form-control" placeholder="যেমন: খাতা-কলম বিতরণ / ব্যানার প্রিন্টিং">
+                        <input type="text" name="title" required class="form-control"
+                            placeholder="যেমন: খাতা-কলম বিতরণ / ব্যানার প্রিন্টিং">
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
-                            <input type="number" step="0.01" name="amount" required class="form-control fw-bold" placeholder="2000">
+                            <input type="number" step="0.01" name="amount" required class="form-control fw-bold"
+                                placeholder="2000">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">ক্যাটাগরি</label>
@@ -1619,7 +2015,8 @@
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">গ্রহীতা / দোকানের নাম</label>
-                            <input type="text" name="donor_name" class="form-control" placeholder="দোকান বা সংস্থার নাম">
+                            <input type="text" name="donor_name" class="form-control"
+                                placeholder="দোকান বা সংস্থার নাম">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">তারিখ *</label>
@@ -1635,12 +2032,14 @@
                             <label class="form-label fw-bold mb-0">ভাউচার / মেমো ছবি</label>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                     <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                 </a>
                             </div>
                         </div>
-                        <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
+                        <input type="file" name="receipt" class="form-control" accept="image/*"
+                            onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1657,24 +2056,29 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-bullhorn me-1"></i> নতুন অনুদান ক্যাম্পেইন যোগ করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold"><i class="fas fa-bullhorn me-1"></i> নতুন অনুদান ক্যাম্পেইন যোগ করুন
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_campaign' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold">ক্যাম্পেইনের নাম *</label>
-                        <input type="text" name="title" required class="form-control" placeholder="যেমন: শীতবস্ত্র বিতরণ তহবিল ২০২৪">
+                        <input type="text" name="title" required class="form-control"
+                            placeholder="যেমন: শীতবস্ত্র বিতরণ তহবিল ২০২৪">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">বিবরণ</label>
-                        <textarea name="description" rows="3" class="form-control" placeholder="ক্যাম্পেইনের বিস্তারিত বিবরণ..."></textarea>
+                        <textarea name="description" rows="3" class="form-control"
+                            placeholder="ক্যাম্পেইনের বিস্তারিত বিবরণ..."></textarea>
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">টার্গেট অনুদান গোল (৳) *</label>
-                            <input type="number" name="goal_amount" required class="form-control fw-bold" placeholder="50000">
+                            <input type="number" name="goal_amount" required class="form-control fw-bold"
+                                placeholder="50000">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">বর্তমান সংগৃহীত (৳)</label>
@@ -1696,12 +2100,14 @@
                             <label class="form-label fw-bold mb-0">কভার ছবি আপলোড করুন</label>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                     <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                 </a>
                             </div>
                         </div>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'ক্যাম্পেইন কভার ছবি')">
+                        <input type="file" name="image" class="form-control" accept="image/*"
+                            onchange="validateDashboardImage(this, 800, 'ক্যাম্পেইন কভার ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1718,31 +2124,37 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle me-1"></i> নতুন জরুরি আবেদন যোগ করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle me-1"></i> নতুন জরুরি আবেদন যোগ
+                    করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_emergency_appeal' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold">জরুরি আবেদনের শিরোনাম *</label>
-                        <input type="text" name="title" required class="form-control" placeholder="যেমন: বন্যা দুর্গতদের জন্য জরুরি সহায়তা">
+                        <input type="text" name="title" required class="form-control"
+                            placeholder="যেমন: বন্যা দুর্গতদের জন্য জরুরি সহায়তা">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">বিবরণ</label>
-                        <textarea name="description" rows="3" class="form-control" placeholder="আবেদনের বিবরণ..."></textarea>
+                        <textarea name="description" rows="3" class="form-control"
+                            placeholder="আবেদনের বিবরণ..."></textarea>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                     <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
                                 </a>
                             </div>
                         </div>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'জরুরি আপিল ছবি')">
+                        <input type="file" name="image" class="form-control" accept="image/*"
+                            onchange="validateDashboardImage(this, 800, 'জরুরি আপিল ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1760,7 +2172,8 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title fw-bold"><i class="fas fa-chart-line me-1"></i> নতুন দান প্রভাব যোগ করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_impact' %}" method="post">
                 {% csrf_token %}
@@ -1771,7 +2184,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">প্রভাবের বিবরণ (Impact Description) *</label>
-                        <input type="text" name="description" required class="form-control" placeholder="যেমন: ১ জন এতিম শিক্ষার্থীর ১ মাসের বই-খাতায় অর্থায়ন">
+                        <input type="text" name="description" required class="form-control"
+                            placeholder="যেমন: ১ জন এতিম শিক্ষার্থীর ১ মাসের বই-খাতায় অর্থায়ন">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1788,19 +2202,23 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-question-circle me-1"></i> নতুন FAQ (প্রশ্নোত্তর) যোগ করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold"><i class="fas fa-question-circle me-1"></i> নতুন FAQ (প্রশ্নোত্তর) যোগ
+                    করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_faq' %}" method="post">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold">প্রশ্ন (Question) *</label>
-                        <input type="text" name="question" required class="form-control" placeholder="যেমন: আপনাদের সংস্থায় কীভাবে অনলাইন দান করব?">
+                        <input type="text" name="question" required class="form-control"
+                            placeholder="যেমন: আপনাদের সংস্থায় কীভাবে অনলাইন দান করব?">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">উত্তর (Answer) *</label>
-                        <textarea name="answer" rows="3" required class="form-control" placeholder="উত্তর লিখুন..."></textarea>
+                        <textarea name="answer" rows="3" required class="form-control"
+                            placeholder="উত্তর লিখুন..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1815,53 +2233,53 @@
 
 
 <script>
-function validateDashboardImage(input, maxKb, fieldName) {
-    if (!input.files || input.files.length === 0) return true;
-    const maxBytes = (maxKb || 1024) * 1024;
-    for (let i = 0; i < input.files.length; i++) {
-        const file = input.files[i];
-        if (file.size > maxBytes) {
-            const sizeKb = file.size / 1024;
-            const limitStr = maxKb >= 1024 ? `${(maxKb / 1024).toFixed(0)} MB` : `${maxKb} KB`;
-            const currentStr = sizeKb >= 1024 ? `${(sizeKb / 1024).toFixed(2)} MB` : `${sizeKb.toFixed(1)} KB`;
-            alert(`দুঃখিত! ${fieldName || 'ছবি'}-র সাইজ সর্বোচ্চ ${limitStr} হতে পারবে।\n\nআপনার নির্বাচিত ফাইল "${file.name}"-এর সাইজ: ${currentStr}\nঅনুগ্রহ করে resizepixel.com থেকে সাইজ কিছুটা কমিয়ে পুনরায় আপলোড করুন।`);
-            input.value = '';
-            return false;
+    function validateDashboardImage(input, maxKb, fieldName) {
+        if (!input.files || input.files.length === 0) return true;
+        const maxBytes = (maxKb || 1024) * 1024;
+        for (let i = 0; i < input.files.length; i++) {
+            const file = input.files[i];
+            if (file.size > maxBytes) {
+                const sizeKb = file.size / 1024;
+                const limitStr = maxKb >= 1024 ? `${(maxKb / 1024).toFixed(0)} MB` : `${maxKb} KB`;
+                const currentStr = sizeKb >= 1024 ? `${(sizeKb / 1024).toFixed(2)} MB` : `${sizeKb.toFixed(1)} KB`;
+                alert(`দুঃখিত! ${fieldName || 'ছবি'}-র সাইজ সর্বোচ্চ ${limitStr} হতে পারবে।\n\nআপনার নির্বাচিত ফাইল "${file.name}"-এর সাইজ: ${currentStr}\nঅনুগ্রহ করে resizepixel.com থেকে সাইজ কিছুটা কমিয়ে পুনরায় আপলোড করুন।`);
+                input.value = '';
+                return false;
+            }
         }
-    }
-    return true;
-}
-
-function validateDashboardImage100kb(input) {
-    return validateDashboardImage(input, 1024, 'ছবি');
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-    // 1. Check URL search param e.g. ?tab=volunteers-section
-    const urlParams = new URLSearchParams(window.location.search);
-    let activeTabId = urlParams.get('tab');
-
-    // 2. Fallback to localStorage if no URL param
-    if (!activeTabId) {
-        activeTabId = localStorage.getItem('activeDashboardTab');
+        return true;
     }
 
-    if (activeTabId) {
-        const tabTriggerEl = document.querySelector(`button[data-bs-target="#${activeTabId}"]`);
-        if (tabTriggerEl) {
-            const tab = new bootstrap.Tab(tabTriggerEl);
-            tab.show();
+    function validateDashboardImage100kb(input) {
+        return validateDashboardImage(input, 1024, 'ছবি');
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // 1. Check URL search param e.g. ?tab=volunteers-section
+        const urlParams = new URLSearchParams(window.location.search);
+        let activeTabId = urlParams.get('tab');
+
+        // 2. Fallback to localStorage if no URL param
+        if (!activeTabId) {
+            activeTabId = localStorage.getItem('activeDashboardTab');
         }
-    }
 
-    // Store current active tab on user click
-    const tabButtons = document.querySelectorAll('#dashboardTabs button[data-bs-toggle="tab"]');
-    tabButtons.forEach(button => {
-        button.addEventListener('shown.bs.tab', function(event) {
-            const targetId = event.target.getAttribute('data-bs-target').replace('#', '');
-            localStorage.setItem('activeDashboardTab', targetId);
+        if (activeTabId) {
+            const tabTriggerEl = document.querySelector(`button[data-bs-target="#${activeTabId}"]`);
+            if (tabTriggerEl) {
+                const tab = new bootstrap.Tab(tabTriggerEl);
+                tab.show();
+            }
+        }
+
+        // Store current active tab on user click
+        const tabButtons = document.querySelectorAll('#dashboardTabs button[data-bs-toggle="tab"]');
+        tabButtons.forEach(button => {
+            button.addEventListener('shown.bs.tab', function (event) {
+                const targetId = event.target.getAttribute('data-bs-target').replace('#', '');
+                localStorage.setItem('activeDashboardTab', targetId);
+            });
         });
     });
-});
 </script>
 {% endblock %}
