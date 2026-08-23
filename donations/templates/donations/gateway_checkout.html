@@ -35,6 +35,12 @@
                         <div>
                             <strong>সহায়তাকারী:</strong> <span class="text-dark fw-bold">{{ donation.donor_name }}</span> {% if donation.membership_id %}(সদস্য আইডি: <span class="text-success fw-bold font-monospace">{{ donation.membership_id }}</span>){% else %}({{ donation.donor_phone }}){% endif %}
                         </div>
+                        {% if donation.program %}
+                        <div class="w-100 mt-2 pt-2 border-top d-flex align-items-center gap-2">
+                            <strong>কার্যক্রম (Program):</strong>
+                            <span class="badge bg-success fs-6"><i class="fas fa-tasks me-1"></i>{{ donation.program.title }}</span>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Payment Methods Tab -->
@@ -112,50 +118,56 @@
                             </div>
                         </div>
 
-                        <!-- Channel Simulation Container -->
-                        <div class="p-4 rounded-4 mb-4 border" id="pgwContainer" style="background-color: #fdf2f7; border-color: #f8c1db !important;">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge px-3 py-2 fs-6 text-white" id="pgwBadge" style="background-color: #e2136e;">bKash Checkout</span>
+                        <!-- Payment Submission Form -->
+                        <form action="{% url 'donations:confirm_checkout_payment' donation.tran_id %}" method="post" id="checkoutConfirmForm">
+                            {% csrf_token %}
+                            <input type="hidden" name="payment_channel" id="selectedPaymentChannel" value="bKash Direct PGW">
+
+                            <!-- Channel Simulation Container -->
+                            <div class="p-4 rounded-4 mb-4 border" id="pgwContainer" style="background-color: #fdf2f7; border-color: #f8c1db !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge px-3 py-2 fs-6 text-white" id="pgwBadge" style="background-color: #e2136e;">bKash Checkout</span>
+                                    </div>
+                                    <div class="fw-bold text-dark fs-5">
+                                        BDT ৳{{ donation.amount|floatformat:2 }}
+                                    </div>
                                 </div>
-                                <div class="fw-bold text-dark fs-5">
-                                    BDT ৳{{ donation.amount|floatformat:2 }}
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">আপনার একাউন্ট নম্বর:</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white text-muted"><i class="fas fa-phone"></i></span>
+                                        <input type="text" class="form-control fw-bold" id="pgwAccountNumber" value="{{ donation.donor_phone|default:'017XXXXXXXX' }}" placeholder="01XXXXXXXXX">
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold text-secondary">ওটিপি (OTP):</label>
+                                        <input type="text" class="form-control text-center letter-spacing-2 fw-bold" value="8 4 9 2 0 1" readonly>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold text-secondary">গোপন পিন (PIN):</label>
+                                        <input type="password" class="form-control text-center fw-bold" value="•••••" placeholder="PIN লিখুন">
+                                    </div>
+                                </div>
+
+                                <div class="small text-muted mb-0">
+                                    <i class="fas fa-shield-alt me-1 text-success"></i>নিরাপদ SSL এনক্রিপশন দ্বারা সুরক্ষিত হেল্পলাইন হ্যালো নওগাঁ অফিসিয়াল পেমেন্ট গেটওয়ে।
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-secondary">আপনার একাউন্ট নম্বর:</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white text-muted"><i class="fas fa-phone"></i></span>
-                                    <input type="text" class="form-control fw-bold" id="pgwAccountNumber" value="{{ donation.donor_phone|default:'017XXXXXXXX' }}" placeholder="01XXXXXXXXX">
-                                </div>
+                            <!-- Action Buttons -->
+                            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                                <a href="{% url 'donations:donate' %}" class="btn btn-outline-danger px-4 rounded-pill">
+                                    <i class="fas fa-times me-1"></i>বাতিল করুন
+                                </a>
+                                <button type="submit" class="btn btn-success btn-lg fw-bold px-5 rounded-pill shadow" id="confirmPayBtn">
+                                    <i class="fas fa-lock me-2"></i>৳{{ donation.amount|floatformat:0 }} পেমেন্ট নিশ্চিত করুন &rarr;
+                                </button>
                             </div>
-
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-secondary">ওটিপি (OTP):</label>
-                                    <input type="text" class="form-control text-center letter-spacing-2 fw-bold" value="8 4 9 2 0 1" readonly>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-secondary">গোপন পিন (PIN):</label>
-                                    <input type="password" class="form-control text-center fw-bold" value="•••••" placeholder="PIN লিখুন">
-                                </div>
-                            </div>
-
-                            <div class="small text-muted mb-0">
-                                <i class="fas fa-info-circle me-1 text-primary"></i>এই অনলাইন পেমেন্ট গেটওয়েতে সরাসরি বিকাশ, নগদ ও কার্ডের মাধ্যমে নিরাপদে পরিশোধ করা যাবে।
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                            <a href="{% url 'donations:donate' %}" class="btn btn-outline-danger px-4 rounded-pill">
-                                <i class="fas fa-times me-1"></i>বাতিল করুন
-                            </a>
-                            <button type="button" class="btn btn-success btn-lg fw-bold px-5 rounded-pill shadow" id="confirmPayBtn" onclick="triggerComingSoonModal()">
-                                <i class="fas fa-lock me-2"></i>৳{{ donation.amount|floatformat:0 }} পেমেন্ট নিশ্চিত করুন &rarr;
-                            </button>
-                        </div>
+                        </form>
                     </div>
 
                     <!-- Gateway Footer -->
@@ -164,41 +176,6 @@
                     </div>
                 </div>
 
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- COMING SOON POP-UP MODAL (পপ-আপ)            -->
-<!-- ========================================== -->
-<div class="modal fade" id="comingSoonModal" tabindex="-1" aria-labelledby="comingSoonModalLabel" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden text-center p-4">
-            <div class="modal-body py-4">
-                <!-- Icon -->
-                <div class="bg-warning bg-opacity-25 text-warning rounded-circle p-4 d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 88px; height: 88px;">
-                    <i class="fas fa-tools fa-3x text-warning"></i>
-                </div>
-
-                <!-- Title & Message -->
-                <h4 class="fw-bold text-dark mb-2">অনলাইন পেমেন্ট গেটওয়ে শীঘ্রই আসছে!</h4>
-                <p class="badge bg-warning-subtle text-dark border px-3 py-2 fs-6 mb-3">
-                    Payment Gateway Integration Coming Soon
-                </p>
-
-                <p class="text-secondary mb-4 px-2">
-                    সম্মানিত <strong class="text-dark">{{ donation.donor_name }}</strong>{% if donation.membership_id %} (সদস্য আইডি: <strong class="text-success font-monospace">{{ donation.membership_id }}</strong>){% endif %},<br>
-                    হেল্পলাইন হ্যালো নওগাঁর অনলাইন পেমেন্ট গেটওয়ে ইন্টিগ্রেশনের কাজ দ্রুত চলমান রয়েছে। খুব শীঘ্রই আপনি সরাসরি বিকাশ, নগদ, রকেট এবং কার্ডের মাধ্যমে রিয়েল-টাইম অনলাইন পেমেন্ট করতে পারবেন।<br>
-                    <span class="text-success fw-bold d-block mt-2">আপনার সহায়তার তথ্যটি সিস্টেমে সংরক্ষিত রয়েছে।</span>
-                </p>
-
-                <!-- Actions -->
-                <div class="d-grid gap-2">
-                    <a href="{% url 'donations:donate' %}" class="btn btn-success btn-lg fw-bold rounded-pill shadow-sm">
-                        <i class="fas fa-check-circle me-2"></i>ঠিক আছে (মূল পেজে ফিরে যান)
-                    </a>
-                </div>
             </div>
         </div>
     </div>
@@ -230,6 +207,8 @@ function selectChannel(name, color) {
     badge.innerText = name + ' Checkout';
     badge.style.backgroundColor = color;
 
+    document.getElementById('selectedPaymentChannel').value = name + ' Direct PGW';
+
     var container = document.getElementById('pgwContainer');
     if (name === 'bKash') {
         container.style.backgroundColor = '#fdf2f7';
@@ -244,23 +223,6 @@ function selectChannel(name, color) {
         container.style.backgroundColor = '#f0fdf4';
         container.style.borderColor = '#bbf7d0';
     }
-}
-
-function triggerComingSoonModal() {
-    var btn = document.getElementById('confirmPayBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>যাচাই হচ্ছে...';
-
-    setTimeout(function() {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-lock me-2"></i>৳{{ donation.amount|floatformat:0 }} পেমেন্ট নিশ্চিত করুন &rarr;';
-        
-        var modalEl = document.getElementById('comingSoonModal');
-        if (modalEl && typeof bootstrap !== 'undefined') {
-            var csModal = new bootstrap.Modal(modalEl);
-            csModal.show();
-        }
-    }, 600);
 }
 </script>
 {% endblock %}

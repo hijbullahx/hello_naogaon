@@ -102,6 +102,11 @@ def initiate_payment(request):
     donor_phone = request.POST.get('donor_phone', '').strip()
     amount = request.POST.get('amount')
     note = request.POST.get('note', '').strip()
+    program_id = request.POST.get('program_id')
+
+    prog = None
+    if program_id:
+        prog = Program.objects.filter(pk=program_id).first()
 
     # Determine donation type & fetch member info if applicable
     if donor_identity_type == 'member' or membership_id:
@@ -117,6 +122,10 @@ def initiate_payment(request):
         else:
             messages.error(request, "সঠিক সদস্য আইডি পাওয়া যায়নি। অনুগ্রহ করে যাচাই করে পুনরায় চেষ্টা করুন।")
             return redirect('donations:donate')
+    elif prog:
+        donation_type = 'program'
+        membership_id = None
+        frequency = 'one_time'
     else:
         donation_type = 'general'
         membership_id = None
@@ -141,7 +150,7 @@ def initiate_payment(request):
     donation = ProgramDonation.objects.create(
         donation_type=donation_type,
         frequency=frequency,
-        program=None,
+        program=prog,
         donor_name=donor_name,
         donor_email=donor_email,
         donor_phone=donor_phone,
@@ -158,12 +167,71 @@ def initiate_payment(request):
 
 def gateway_checkout_view(request, tran_id):
     """
-    Renders the official gateway checkout page with channels and coming soon popup on final action.
+    Renders the official gateway checkout page with channels.
     """
     donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
     return render(request, 'donations/gateway_checkout.html', {
         'donation': donation
     })
+
+
+@require_POST
+def confirm_checkout_payment(request, tran_id):
+    """
+    Directly completes online payment checkout,
+    marks donation approved, adds FinancialTransaction under appropriate program category,
+    updates Program.raised_amount, and redirects to official money receipt.
+    """
+    donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
+    payment_channel = request.POST.get('payment_channel') or 'bKash Direct PGW'
+    trx_id = request.POST.get('trx_id') or f"HNTRX{random.randint(10000000, 99999999)}"
+
+    if donation.status != 'approved':
+        donation.status = 'approved'
+        donation.payment_method = payment_channel
+        donation.card_type = payment_channel
+        donation.bank_tran_id = trx_id
+        donation.trx_id = trx_id
+        donation.save()
+
+        # If linked to a program, update the program raised_amount
+        if donation.program:
+            prog = donation.program
+            prog.raised_amount = (prog.raised_amount or 0) + donation.amount
+            prog.save()
+            category_name = f"কার্যক্রম: {prog.title}"
+            title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
+        elif donation.donation_type == 'volunteer':
+            category_name = "স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা"
+            title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
+        else:
+            category_name = "সাধারণ আর্থিক সহায়তা"
+            title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
+
+        trx_note = f"পেমেন্ট চ্যানেল: {payment_channel} | ট্রানজেকশন আইডি: {trx_id} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | মোবাইল: {donation.donor_phone}"
+        if donation.program:
+            trx_note += f" | কার্যক্রম: {donation.program.title}"
+        if donation.note:
+            trx_note += f" | নোট: {donation.note}"
+
+        FinancialTransaction.objects.create(
+            transaction_type='income',
+            title=title_name,
+            category=category_name,
+            amount=donation.amount,
+            payment_method=payment_channel,
+            trx_id=trx_id,
+            donor_name=donation.donor_name,
+            date=date.today(),
+            note=trx_note
+        )
+
+    member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
+    messages.success(
+        request, 
+        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
+    )
+    return redirect('donations:receipt', donation_id=donation.id)
 
 
 @csrf_exempt
@@ -205,14 +273,28 @@ def payment_success(request):
 
         # Record income in Financial Transactions ONLY if real payment was verified
         if is_real_payment_verified:
-            category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা' if donation.donation_type == 'volunteer' else 'সাধারণ আর্থিক সহায়তা'
+            if donation.program:
+                prog = donation.program
+                prog.raised_amount = (prog.raised_amount or 0) + donation.amount
+                prog.save()
+                category_name = f"কার্যক্রম: {prog.title}"
+                title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
+            elif donation.donation_type == 'volunteer':
+                category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা'
+                title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
+            else:
+                category_name = 'সাধারণ আর্থিক সহায়তা'
+                title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
+
             trx_note = f"পেমেন্ট চ্যানেল: {card_type} | ট্রানজেকশন আইডি: {bank_tran_id} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | মোবাইল: {donation.donor_phone}"
+            if donation.program:
+                trx_note += f" | কার্যক্রম: {donation.program.title}"
             if donation.note:
                 trx_note += f" | নোট: {donation.note}"
 
             FinancialTransaction.objects.create(
                 transaction_type='income',
-                title=f"{category_name} ({donation.donor_name})",
+                title=title_name,
                 category=category_name,
                 amount=donation.amount,
                 payment_method=card_type,

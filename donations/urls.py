@@ -8,6 +8,7 @@ urlpatterns = [
     path('donate/', views.donation_page_view, name='donate'),
     path('initiate-payment/', views.initiate_payment, name='initiate_payment'),
     path('checkout/<str:tran_id>/', views.gateway_checkout_view, name='gateway_checkout'),
+    path('checkout/<str:tran_id>/confirm/', views.confirm_checkout_payment, name='confirm_checkout_payment'),
     path('payment-success/', views.payment_success, name='payment_success'),
     path('payment-fail/', views.payment_fail, name='payment_fail'),
     path('payment-cancel/', views.payment_cancel, name='payment_cancel'),

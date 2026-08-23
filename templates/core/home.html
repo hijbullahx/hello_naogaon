@@ -170,7 +170,7 @@
             {% if ongoing_programs %}
                 {% for prog in ongoing_programs %}
                 <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
-                    <div class="program-card">
+                    <div class="program-card h-100 d-flex flex-column">
                         <div class="program-card-badge bg-{{ prog.badge_color|default:'success' }} text-white">
                             <i class="{{ prog.icon_class|default:'fas fa-heart' }}"></i>
                         </div>
@@ -179,19 +179,141 @@
                         {% else %}
                             <img src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=500&q=80" alt="{{ prog.title }}" class="program-img">
                         {% endif %}
-                        <div class="program-card-body">
+                        <div class="program-card-body d-flex flex-column justify-content-between flex-grow-1">
                             <div>
                                 <h3 class="program-card-title">{{ prog.title }}</h3>
                                 <p class="program-card-text">
                                     {{ prog.short_description|default:prog.description|truncatewords:10 }}
                                 </p>
+                                {% if prog.target_amount %}
+                                <div class="mt-2 mb-2 p-2 bg-light rounded-3 border">
+                                    <div class="d-flex justify-content-between align-items-center small mb-1">
+                                        <span class="text-secondary fw-semibold" style="font-size: 0.78rem;">আর্থিক প্রয়োজন:</span>
+                                        <span class="fw-bold text-success" style="font-size: 0.8rem;">৳{{ prog.raised_amount|floatformat:0 }} / ৳{{ prog.target_amount|floatformat:0 }}</span>
+                                    </div>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ prog.progress_percent }}%;"></div>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
-                            <div>
-                                <a href="{% url 'programs:program_detail' prog.pk %}" class="btn-detail-sm">বিস্তারিত</a>
+                            <div class="d-flex gap-1 align-items-center justify-content-between mt-2 pt-2 border-top">
+                                <a href="{% url 'programs:program_detail' prog.pk %}" class="btn-detail-sm flex-grow-1 text-center">বিস্তারিত</a>
+                                {% if prog.target_amount %}
+                                <button type="button" class="btn btn-sm btn-danger fw-bold rounded-pill px-2 py-1 shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#programDonateModal_{{ prog.id }}" title="এই কার্যক্রমে অনুদান দিন">
+                                    <i class="fas fa-hand-holding-heart me-1"></i>সহায়তা দিন
+                                </button>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
+
+                {% if prog.target_amount %}
+                <!-- Program Donation Modal -->
+                <div class="modal fade text-start" id="programDonateModal_{{ prog.id }}" tabindex="-1" aria-labelledby="programDonateModalLabel_{{ prog.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                            <div class="modal-header bg-success text-white py-3 px-4">
+                                <div>
+                                    <h5 class="modal-title fw-bold text-white mb-0" id="programDonateModalLabel_{{ prog.id }}">
+                                        <i class="fas fa-hand-holding-heart me-2"></i>আর্থিক সহায়তা প্রদান
+                                    </h5>
+                                    <small class="text-white-50">{{ prog.title }}</small>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="{% url 'donations:initiate_payment' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="program_id" value="{{ prog.id }}">
+                                <div class="modal-body p-4">
+                                    <!-- Progress Info -->
+                                    <div class="alert alert-success-subtle border border-success p-3 rounded-3 mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-secondary fw-semibold">লক্ষ্যমাত্রা: <strong>৳{{ prog.target_amount|floatformat:0 }}</strong></span>
+                                            <span class="small fw-bold text-success">সংগৃহীত: ৳{{ prog.raised_amount|floatformat:0 }} ({{ prog.progress_percent }}%)</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-success" style="width: {{ prog.progress_percent }}%;"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Donor Identity Type Selection -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-secondary">আপনি কীভাবে সহায়তা প্রদান করবেন? <span class="text-danger">*</span></label>
+                                        <div class="d-flex gap-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="donor_identity_type" id="identity_gen_{{ prog.id }}" value="general" checked onchange="toggleProgDonorType('{{ prog.id }}', 'general')">
+                                                <label class="form-check-label fw-bold text-dark" for="identity_gen_{{ prog.id }}">
+                                                    সাধারণ শুভাকাঙ্ক্ষী
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="donor_identity_type" id="identity_mem_{{ prog.id }}" value="member" onchange="toggleProgDonorType('{{ prog.id }}', 'member')">
+                                                <label class="form-check-label fw-bold text-success" for="identity_mem_{{ prog.id }}">
+                                                    সংস্থার সদস্য (Member)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Member ID Field (Hidden by default) -->
+                                    <div id="progMemberField_{{ prog.id }}" class="mb-3 d-none">
+                                        <label class="form-label fw-bold text-dark small">সদস্য আইডি (Member ID) <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-success fw-bold"><i class="fas fa-id-badge"></i></span>
+                                            <input type="text" class="form-control fw-bold" name="membership_id" id="progMemberId_{{ prog.id }}" placeholder="যেমন: 26082301" oninput="lookupProgramMember('{{ prog.id }}', this.value)">
+                                            <button class="btn btn-success fw-bold" type="button" onclick="lookupProgramMember('{{ prog.id }}', document.getElementById('progMemberId_{{ prog.id }}').value)">যাচাই</button>
+                                        </div>
+                                        <div id="progMemberFeedback_{{ prog.id }}" class="form-text small mt-1 text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</div>
+                                    </div>
+
+                                    <!-- General Donor Fields -->
+                                    <div id="progGeneralFields_{{ prog.id }}" class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label fw-bold small">আপনার নাম <span class="text-danger">*</span></label>
+                                            <input type="text" name="donor_name" id="progDonorName_{{ prog.id }}" class="form-control" placeholder="নাম লিখুন" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label fw-bold small">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                                            <input type="tel" name="donor_phone" id="progDonorPhone_{{ prog.id }}" class="form-control" placeholder="01XXXXXXXXX" required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Amount Selection -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-dark small mb-1">সহায়তার পরিমাণ (টাকা) <span class="text-danger">*</span></label>
+                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 100)">৳১০০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 250)">৳২৫০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill active" onclick="setProgModalAmount('{{ prog.id }}', 500)">৳৫০০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 1000)">৳১,০০০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 2000)">৳২,০০০</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 5000)">৳৫,০০০</button>
+                                        </div>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
+                                            <input type="number" name="amount" id="progAmount_{{ prog.id }}" value="500" min="10" required class="form-control fw-bold fs-5 text-success">
+                                        </div>
+                                    </div>
+
+                                    <!-- Note -->
+                                    <div class="mb-2">
+                                        <label class="form-label small text-secondary">মন্তব্য / দোয়া (ঐচ্ছিক)</label>
+                                        <input type="text" name="note" class="form-control form-control-sm" placeholder="প্রোগ্রামের জন্য আপনার কোনো বিশেষ বার্তা">
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                                        <i class="fas fa-lock me-1"></i>পেমেন্টে এগিয়ে যান &rarr;
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 {% endfor %}
             {% else %}
                 <!-- Fallback matching exact reference image -->

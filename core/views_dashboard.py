@@ -258,6 +258,16 @@ def save_program(request):
         badge_color = request.POST.get('badge_color') or auto_badge
         icon_class = request.POST.get('icon_class') or auto_icon
 
+        target_amount_str = request.POST.get('target_amount', '').strip()
+        target_amount = None
+        if target_amount_str:
+            try:
+                target_amount = float(target_amount_str)
+                if target_amount <= 0:
+                    target_amount = None
+            except (ValueError, TypeError):
+                target_amount = None
+
         image_file = request.FILES.get('image')
         if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='কার্যক্রমের ছবি'):
             return redirect('/dashboard/?tab=programs-section')
@@ -270,6 +280,7 @@ def save_program(request):
             prog.status = status
             prog.icon_class = icon_class
             prog.badge_color = badge_color
+            prog.target_amount = target_amount
             if image_file:
                 prog.image = image_file
             prog.save()
@@ -282,6 +293,7 @@ def save_program(request):
                 status=status,
                 icon_class=icon_class,
                 badge_color=badge_color,
+                target_amount=target_amount,
                 image=image_file
             )
             messages.success(request, f'নতুন কার্যক্রম "{title}" যোগ করা হয়েছে!')

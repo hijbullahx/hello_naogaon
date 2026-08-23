@@ -1,94 +1,102 @@
 <!-- Program Financial Contribution Modal -->
 <div class="modal fade" id="programDonationModal" tabindex="-1" aria-labelledby="programDonationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title fw-bold" id="programDonationModalLabel">
-                    <i class="fas fa-hand-holding-heart me-2"></i>আর্থিক সাহায্য করুন
-                </h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white py-3 px-4">
+                <div>
+                    <h5 class="modal-title fw-bold text-white mb-0" id="programDonationModalLabel">
+                        <i class="fas fa-hand-holding-heart me-2"></i>আর্থিক সহায়তা প্রদান
+                    </h5>
+                    <small class="text-white-50" id="modal_program_title_display">কার্যক্রমের নাম</small>
+                </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{% url 'donations:program_donation' %}" method="POST">
+            <form action="{% url 'donations:initiate_payment' %}" method="POST" id="programGlobalDonateForm">
                 {% csrf_token %}
                 <input type="hidden" name="program_id" id="modal_program_id" value="">
                 
                 <div class="modal-body p-4">
-                    <div class="alert alert-success d-flex align-items-center mb-4">
-                        <i class="fas fa-info-circle fa-2x me-3"></i>
-                        <div>
-                            <strong>কার্যক্রম:</strong> <span id="modal_program_title_display" class="fw-bold fs-6">সাধারণ কার্যক্রম</span>
-                            <br><small class="text-muted">আপনার আর্থিক সহায়তা হেল্পলাইন হ্যালো নওগাঁর মানবসেবামূলক কার্যক্রম বাস্তবায়নে ব্যবহৃত হবে।</small>
+                    <!-- Progress Info (Shown if target amount is present) -->
+                    <div id="modal_program_progress_box" class="alert alert-success-subtle border border-success p-3 rounded-3 mb-3 d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-secondary fw-semibold">লক্ষ্যমাত্রা: <strong id="modal_target_amount_display">৳০</strong></span>
+                            <span class="small fw-bold text-success" id="modal_raised_amount_display">সংগৃহীত: ৳০</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" id="modal_progress_bar" style="width: 0%;"></div>
                         </div>
                     </div>
 
-                    <div class="row g-3">
-                        <!-- Amount -->
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-coins text-warning me-1"></i> সহায়তার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text fw-bold">৳</span>
-                                <input type="number" name="amount" id="modal_donation_amount" class="form-control form-control-lg" placeholder="যেমন: ৫০০, ১০০০, ৫০০০" min="1" step="any" required>
+                    <!-- Donor Identity Type Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">আপনি কীভাবে অনুদান দিতে চান? <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="donor_identity_type" id="global_identity_gen" value="general" checked onchange="toggleProgGlobalDonorType('general')">
+                                <label class="form-check-label fw-bold text-dark" for="global_identity_gen">
+                                    সাধারণ শুভাকাঙ্ক্ষী
+                                </label>
                             </div>
-                            <div class="d-flex gap-2 mt-2">
-                                <button type="button" class="btn btn-outline-success btn-sm quick-amount-btn" onclick="setDonationAmount(100)">৳ ১০০</button>
-                                <button type="button" class="btn btn-outline-success btn-sm quick-amount-btn" onclick="setDonationAmount(500)">৳ ৫০০</button>
-                                <button type="button" class="btn btn-outline-success btn-sm quick-amount-btn" onclick="setDonationAmount(1000)">৳ ১,০০০</button>
-                                <button type="button" class="btn btn-outline-success btn-sm quick-amount-btn" onclick="setDonationAmount(5000)">৳ ৫,০০০</button>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="donor_identity_type" id="global_identity_mem" value="member" onchange="toggleProgGlobalDonorType('member')">
+                                <label class="form-check-label fw-bold text-success" for="global_identity_mem">
+                                    সংস্থার সদস্য (Member)
+                                </label>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Membership ID (optional) -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-id-card text-primary me-1"></i> মেম্বারশিপ আইডি <small class="text-muted">(যদি থাকে)</small></label>
-                            <input type="text" name="membership_id" class="form-control" placeholder="যেমন: 26082301">
+                    <!-- Member ID Field (Hidden by default) -->
+                    <div id="progGlobalMemberField" class="mb-3 d-none">
+                        <label class="form-label fw-bold text-dark small">সদস্য আইডি (Member ID) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-success fw-bold"><i class="fas fa-id-badge"></i></span>
+                            <input type="text" class="form-control fw-bold" name="membership_id" id="progGlobalMemberId" placeholder="যেমন: 26082301" oninput="lookupProgGlobalMember(this.value)">
+                            <button class="btn btn-success fw-bold" type="button" onclick="lookupProgGlobalMember(document.getElementById('progGlobalMemberId').value)">যাচাই</button>
                         </div>
+                        <div id="progGlobalMemberFeedback" class="form-text small mt-1 text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</div>
+                    </div>
 
-                        <!-- Donor Name -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-user text-success me-1"></i> আপনার নাম <span class="text-danger">*</span></label>
-                            <input type="text" name="donor_name" class="form-control" placeholder="আপনার পূর্ণ নাম" required>
+                    <!-- Donor Name & Phone Fields -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">আপনার নাম <span class="text-danger">*</span></label>
+                            <input type="text" name="donor_name" id="progGlobalDonorName" class="form-control" placeholder="আপনার পূর্ণ নাম" required>
                         </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                            <input type="tel" name="donor_phone" id="progGlobalDonorPhone" class="form-control" placeholder="০১XXXXXXXXX" required>
+                        </div>
+                    </div>
 
-                        <!-- Donor Phone -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-phone text-info me-1"></i> মোবাইল নম্বর <span class="text-danger">*</span></label>
-                            <input type="tel" name="donor_phone" class="form-control" placeholder="০১XXXXXXXXX" required>
+                    <!-- Amount Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small mb-1">আর্থিক সহায়তার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill modal-global-pill" onclick="setProgGlobalAmount(100)">৳১০০</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill modal-global-pill" onclick="setProgGlobalAmount(250)">৳২৫০</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill modal-global-pill active" onclick="setProgGlobalAmount(500)">৳৫০০</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill modal-global-pill" onclick="setProgGlobalAmount(1000)">৳১,০০০</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill modal-global-pill" onclick="setProgGlobalAmount(2000)">৳২,০০০</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill modal-global-pill" onclick="setProgGlobalAmount(5000)">৳৫,০০০</button>
                         </div>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
+                            <input type="number" name="amount" id="progGlobalAmount" value="500" min="10" step="any" required class="form-control fw-bold fs-4 text-success" placeholder="টাকার পরিমাণ লিখুন">
+                        </div>
+                    </div>
 
-                        <!-- Donor Email -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-envelope text-secondary me-1"></i> ইমেইল ঠিকানা <small class="text-muted">(ঐচ্ছিক)</small></label>
-                            <input type="email" name="donor_email" class="form-control" placeholder="example@email.com">
-                        </div>
-
-                        <!-- Payment Method -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-wallet text-danger me-1"></i> পেমেন্ট মেথড</label>
-                            <select name="payment_method" class="form-select">
-                                <option value="bKash" selected>bKash (বিকাশ)</option>
-                                <option value="Nagad">Nagad (নগদ)</option>
-                                <option value="Rocket">Rocket (রকেট)</option>
-                                <option value="Bank Transfer">Bank Transfer (ব্যাংক ট্রান্সফার)</option>
-                                <option value="Cash / Hand">Cash (নগদ জমা)</option>
-                            </select>
-                        </div>
-
-                        <!-- Trx ID -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-receipt text-warning me-1"></i> ট্রানজেকশন আইডি / Trx ID <small class="text-muted">(যদি থাকে)</small></label>
-                            <input type="text" name="trx_id" class="form-control" placeholder="যেমন: 8N7A6D5E">
-                        </div>
-
-                        <!-- Notes -->
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-comment-alt text-secondary me-1"></i> মন্তব্য বা পরামর্শ <small class="text-muted">(ঐচ্ছিক)</small></label>
-                            <textarea name="note" class="form-control" rows="2" placeholder="আপনার কোনো বার্তা থাকলে লিখুন..."></textarea>
-                        </div>
+                    <!-- Notes -->
+                    <div class="mb-2">
+                        <label class="form-label small text-secondary">মন্তব্য বা শুভকামনা (ঐচ্ছিক)</label>
+                        <input type="text" name="note" class="form-control form-control-sm" placeholder="প্রোগ্রামের জন্য আপনার কোনো বিশেষ বার্তা থাকলে লিখুন">
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বন্ধ করুন</button>
-                    <button type="submit" class="btn btn-success fw-bold px-4"><i class="fas fa-paper-plane me-2"></i>আর্থিক সহায়তা জমা দিন</button>
+                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                        <i class="fas fa-lock me-1"></i>পেমেন্টে এগিয়ে যান &rarr;
+                    </button>
                 </div>
             </form>
         </div>
@@ -96,9 +104,55 @@
 </div>
 
 <script>
-function setDonationAmount(val) {
-    var elem = document.getElementById('modal_donation_amount');
+function toggleProgGlobalDonorType(type) {
+    var memField = document.getElementById('progGlobalMemberField');
+    var memInput = document.getElementById('progGlobalMemberId');
+    if (type === 'member') {
+        if (memField) memField.classList.remove('d-none');
+        if (memInput) memInput.setAttribute('required', 'required');
+    } else {
+        if (memField) memField.classList.add('d-none');
+        if (memInput) {
+            memInput.removeAttribute('required');
+            memInput.value = '';
+        }
+        var feedback = document.getElementById('progGlobalMemberFeedback');
+        if (feedback) feedback.innerHTML = 'আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।';
+    }
+}
+
+function lookupProgGlobalMember(val) {
+    val = (val || '').trim();
+    var feedback = document.getElementById('progGlobalMemberFeedback');
+    if (!val) {
+        if (feedback) feedback.innerHTML = 'আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।';
+        return;
+    }
+    fetch('/donations/api/member-pledge/?member_id=' + encodeURIComponent(val))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.found) {
+                if (feedback) feedback.innerHTML = '<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>' + data.full_name + ' (' + data.phone + ')</span>';
+                var nameInput = document.getElementById('progGlobalDonorName');
+                var phoneInput = document.getElementById('progGlobalDonorPhone');
+                if (nameInput) nameInput.value = data.full_name;
+                if (phoneInput) phoneInput.value = data.phone;
+            } else {
+                if (feedback) feedback.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>সদস্য আইডি পাওয়া যায়নি</span>';
+            }
+        })
+        .catch(function(e) { console.error(e); });
+}
+
+function setProgGlobalAmount(val) {
+    var elem = document.getElementById('progGlobalAmount');
     if (elem) elem.value = val;
+    document.querySelectorAll('.modal-global-pill').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (btn.innerText.includes(val.toString())) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -109,12 +163,25 @@ document.addEventListener('DOMContentLoaded', function() {
             if (button) {
                 var pId = button.getAttribute('data-program-id') || '';
                 var pTitle = button.getAttribute('data-program-title') || 'সাধারণ কার্যক্রম';
+                var targetAmt = parseFloat(button.getAttribute('data-target-amount')) || 0;
+                var raisedAmt = parseFloat(button.getAttribute('data-raised-amount')) || 0;
+                var progressPct = parseInt(button.getAttribute('data-progress-percent')) || 0;
                 
                 var inputId = document.getElementById('modal_program_id');
                 var inputTitle = document.getElementById('modal_program_title_display');
+                var progressBox = document.getElementById('modal_program_progress_box');
                 
                 if (inputId) inputId.value = pId;
                 if (inputTitle) inputTitle.textContent = pTitle;
+
+                if (targetAmt > 0 && progressBox) {
+                    progressBox.classList.remove('d-none');
+                    document.getElementById('modal_target_amount_display').innerText = '৳' + targetAmt.toLocaleString('en-US');
+                    document.getElementById('modal_raised_amount_display').innerText = 'সংগৃহীত: ৳' + raisedAmt.toLocaleString('en-US') + ' (' + progressPct + '%)';
+                    document.getElementById('modal_progress_bar').style.width = progressPct + '%';
+                } else if (progressBox) {
+                    progressBox.classList.add('d-none');
+                }
             }
         });
     }
