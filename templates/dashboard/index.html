@@ -614,48 +614,9 @@
                                             <td>{{ v.address|default:"-" }}</td>
                                             <td><small class="text-secondary">{{ v.application_date|date:"d M Y" }}</small></td>
                                             <td>
-                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editVolunteerModal_{{ v.id }}"><i class="fas fa-edit"></i> এডিট</button>
-                                                <a href="{% url 'core:delete_volunteer' v.id %}" onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                                <a href="{% url 'core:delete_volunteer' v.id %}" onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
                                             </td>
                                         </tr>
-
-                                        <!-- Edit Volunteer Modal -->
-                                        <div class="modal fade" id="editVolunteerModal_{{ v.id }}" tabindex="-1" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-success text-white">
-                                                        <h5 class="modal-title fw-bold"><i class="fas fa-user-edit me-1"></i> স্বেচ্ছাসেবক এডিট করুন</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <form action="{% url 'core:save_volunteer' %}" method="post">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="volunteer_id" value="{{ v.id }}">
-                                                        <div class="modal-body">
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">পূর্ণ নাম *</label>
-                                                                <input type="text" name="full_name" value="{{ v.full_name }}" required class="form-control">
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">ইমেইল এড্রেস</label>
-                                                                <input type="email" name="email" value="{{ v.email }}" class="form-control">
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">ফোন নম্বর *</label>
-                                                                <input type="text" name="phone" value="{{ v.phone }}" required class="form-control">
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">ঠিকানা / এলাকা</label>
-                                                                <textarea name="address" rows="2" class="form-control">{{ v.address }}</textarea>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                                                            <button type="submit" class="btn btn-success fw-bold">আপডেট করুন</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
                                         {% empty %}
                                         <tr><td colspan="7" class="text-center py-4 text-muted">কোনো স্বেচ্ছাসেবক তথ্য পাওয়া যায়নি।</td></tr>
                                         {% endfor %}
