@@ -8,12 +8,12 @@
 <div class="bg-success text-white py-4 mb-4"
     style="background: linear-gradient(135deg, #8a0303 0%, #c0392b 100%) !important;">
     <div class="container text-center">
-        <h2 class="fw-bold mb-1"><i class="fas fa-hand-holding-droplet me-2"></i>জরুরি রক্তদাতা ডাটাবেস</h2>
-        <p class="mb-3 text-white-50">মুমূর্ষু রোগীর প্রয়োজনে স্বেচ্ছাসেবী রক্তদাতাদের সরাসরি তালিকা ও সার্বক্ষণিক
+        <h2 class="fw-bold mb-1"><i class="fas fa-hand-holding-droplet me-2"></i><span data-i18n="blood.title">জরুরি রক্তদাতা ডাটাবেস</span></h2>
+        <p class="mb-3 text-white-50" data-i18n="blood.subtitle">মুমূর্ষু রোগীর প্রয়োজনে স্বেচ্ছাসেবী রক্তদাতাদের সরাসরি তালিকা ও সার্বক্ষণিক
             সহায়তা</p>
         <button type="button" class="btn btn-warning fw-bold px-4 py-2 shadow-sm rounded-pill" data-bs-toggle="modal"
             data-bs-target="#bloodDonorPromptModal">
-            <i class="fas fa-plus-circle me-2"></i>রক্তদাতা হিসেবে নাম লিখান
+            <i class="fas fa-plus-circle me-2"></i><span data-i18n="blood.register_btn">রক্তদাতা হিসেবে নাম লিখান</span>
         </button>
     </div>
 </div>
@@ -26,7 +26,7 @@
             
             <!-- Row 1: Search Query + Blood Groups -->
             <div class="col-lg-6">
-                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-search me-1 text-danger"></i>অনুসন্ধান</label>
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-search me-1 text-danger"></i><span data-i18n="blood.search_label">অনুসন্ধান</span></label>
                 <div class="input-group">
                     <span class="input-group-text bg-light text-danger"><i class="fas fa-search"></i></span>
                     <input type="text" name="q" value="{{ search_query }}" class="form-control"
@@ -35,10 +35,10 @@
             </div>
 
             <div class="col-lg-6">
-                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-tint me-1 text-danger"></i>রক্তের গ্রুপ</label>
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-tint me-1 text-danger"></i><span data-i18n="blood.group_label">রক্তের গ্রুপ</span></label>
                 <div class="d-flex flex-wrap gap-1 align-items-center">
                     <button type="button" onclick="submitWithGroup('')"
-                        class="btn btn-sm {% if not selected_group %}btn-danger fw-bold shadow-sm{% else %}btn-outline-secondary{% endif %}">সকল</button>
+                        class="btn btn-sm {% if not selected_group %}btn-danger fw-bold shadow-sm{% else %}btn-outline-secondary{% endif %}" data-i18n="blood.all">সকল</button>
                     {% for grp in groups %}
                     <button type="button" onclick="submitWithGroup('{{ grp }}')"
                         class="btn btn-sm {% if selected_group == grp %}btn-danger fw-bold shadow-sm{% else %}btn-outline-danger{% endif %}">
