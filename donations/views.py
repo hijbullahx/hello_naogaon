@@ -153,15 +153,11 @@ def initiate_payment(request):
         status='pending'
     )
 
-    # Initiate official payment gateway session
-    gw_res = initiate_payment_gateway_session(request, donation)
-    if gw_res.get('success') and gw_res.get('gateway_url'):
-        return redirect(gw_res['gateway_url'])
-
-    # Handle gateway connection error
-    err_msg = gw_res.get('error', 'পেমেন্ট গেটওয়েতে সংযোগ করতে সমস্যা হয়েছে।')
-    logger.error(f"Payment gateway session failed: {err_msg}")
-    messages.error(request, f"পেমেন্ট গেটওয়ে এর সাথে সংযোগ স্থাপন করা সম্ভব হয়নি: {err_msg}")
+    member_txt = f" (সদস্য আইডি: {membership_id})" if membership_id else ""
+    messages.info(
+        request, 
+        f'ধন্যবাদ {donor_name}{member_txt}! অনলাইন পেমেন্ট গেটওয়ে ইন্টিগ্রেশন খুব শীঘ্রই আসছে। আপনার ৳{amount_val:,.0f} আর্থিক সহায়তার তথ্যটি সংরক্ষিত হয়েছে।'
+    )
     return redirect('donations:donate')
 
 
