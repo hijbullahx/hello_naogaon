@@ -29,7 +29,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-development-key-change-m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', 'testserver'])
 
 # To handle CSRF issues with cloud IDEs and other proxies
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
@@ -341,3 +341,8 @@ LOGGING = {
 # Email Settings
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='info@helplinehellonaogaon.com')
 SERVER_EMAIL = env('SERVER_EMAIL', default='info@helplinehellonaogaon.com')
+
+AUTHENTICATION_BACKENDS = [
+    'core.backends.MultiIdentifierAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

@@ -113,17 +113,48 @@ class Volunteer(models.Model):
             )
 
 class TeamMember(models.Model):
-    name = models.CharField(max_length=200)
-    role = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='team/', blank=True, null=True)
-    bio = models.TextField(blank=True)
-    order = models.IntegerField(default=0, help_text='Order to display on the team page')
+    ROLE_CHOICES = (
+        ('সভাপতি', 'সভাপতি (President)'),
+        ('সাধারণ সম্পাদক', 'সাধারণ সম্পাদক (General Secretary)'),
+        ('কোষাধ্যক্ষ', 'কোষাধ্যক্ষ (Treasurer)'),
+        ('সাধারণ পরিষদ সদস্য', 'সাধারণ পরিষদ সদস্য (General Council Member)'),
+        ('অন্যান্য', 'অন্যান্য (Other)'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, related_name='team_profile', null=True, blank=True, verbose_name="ইউজার অ্যাকাউন্ট")
+    member_id = models.CharField(max_length=20, unique=True, blank=True, null=True, verbose_name="সদস্য আইডি")
+    name = models.CharField(max_length=200, verbose_name="পূর্ণ নাম")
+    role = models.CharField(max_length=100, verbose_name="পদবী / ভূমিকা")
+    custom_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="কাস্টম পদবী (যদি অন্যান্য হয়)")
+    email = models.EmailField(blank=True, null=True, verbose_name="ইমেইল এড্রেস")
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="ফোন নম্বর")
+    address = models.TextField(blank=True, null=True, verbose_name="ঠিকানা")
+    image = models.ImageField(upload_to='team/', blank=True, null=True, verbose_name="ছবি")
+    bio = models.TextField(blank=True, verbose_name="সংক্ষিপ্ত বিবরণ")
+    order = models.IntegerField(default=0, help_text='Order to display on the team page', verbose_name="প্রদর্শনের ক্রম")
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True, verbose_name="যোগদানের তারিখ")
 
     class Meta:
         ordering = ['order', 'name']
+        verbose_name = "Team Member"
+        verbose_name_plural = "Team Members"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.effective_role}) - {self.member_id or 'No ID'}"
+
+    @property
+    def effective_role(self):
+        if self.role == 'অন্যান্য' and self.custom_role:
+            return self.custom_role
+        return self.role or ''
+
+    def save(self, *args, **kwargs):
+        if not self.member_id:
+            today = date.today()
+            prefix = f"HN-TM-{today.strftime('%y%m%d')}"
+            count = TeamMember.objects.filter(member_id__startswith=prefix).count()
+            self.member_id = f"{prefix}{count + 1:02d}"
+        super().save(*args, **kwargs)
 
 class BloodDonor(models.Model):
     BLOOD_GROUPS = (

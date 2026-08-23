@@ -10,7 +10,28 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
                 <h2 class="fw-bold mb-1"><i class="fas fa-sliders-h me-2"></i>অ্যাডমিন কন্ট্রোল প্যানেল</h2>
-                <p class="mb-0 text-white-50">ওয়েবসাইটের প্রতি পেজের প্রতিটি সেকশন সহজেই এডিট ও আপডেট করুন</p>
+                <div class="d-flex align-items-center flex-wrap gap-2 mt-2">
+                    <span class="badge bg-white text-dark px-3 py-2 shadow-sm rounded-pill">
+                        <i class="fas fa-user-shield text-success me-1"></i>
+                        লগইন করেছেন: <strong>{{ user_role_name }}</strong>
+                    </span>
+                    {% if not can_edit_all and can_edit_finance %}
+                    <span class="badge bg-warning text-dark px-3 py-2 shadow-sm rounded-pill">
+                        <i class="fas fa-wallet me-1 text-dark"></i>অর্থায়ন নিয়ন্ত্রণ মোড (Treasurer Access)
+                    </span>
+                    {% elif not can_edit_all %}
+                    <span class="badge bg-info text-dark px-3 py-2 shadow-sm rounded-pill">
+                        <i class="fas fa-eye me-1"></i>ভিউ অনলি মোড (View Only)
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'core:home' %}" target="_blank" class="btn btn-light fw-bold shadow-sm"><i class="fas fa-external-link-alt me-1"></i> ওয়েবসাইট ভিজিট</a>
+                {% if can_edit_all %}
+                <a href="/django-admin/" class="btn btn-outline-light fw-bold"><i class="fas fa-cogs me-1"></i> ব্যাকএন্ড</a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="btn btn-danger fw-bold shadow-sm"><i class="fas fa-sign-out-alt me-1"></i> লগআউট</a>
             </div>
         </div>
     </div>
@@ -431,9 +452,13 @@
                 <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold mb-0"><i class="fas fa-tasks me-2"></i>আমাদের কার্যক্রমসমূহ (Programs
                         Management)</h5>
+                    {% if can_edit_all %}
+                    {% if can_edit_all %}
                     <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal"
                         data-bs-target="#programModal"><i class="fas fa-plus-circle me-1"></i> নতুন প্রোগ্রাম যোগ
                         করুন</button>
+                    {% endif %}
+                    {% endif %}
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -608,7 +633,7 @@
                                     <th>গ্রুপ</th>
                                     <th>ফোন</th>
                                     <th>এলাকা</th>
-                                    <th>অ্যাকশন</th>
+                                    {% if can_edit_all %}<th>অ্যাকশন</th>{% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -620,11 +645,13 @@
                                     <td><a href="tel:{{ d.phone }}" class="text-success fw-semibold">{{ d.phone }}</a>
                                     </td>
                                     <td>{{ d.location }}</td>
+                                    {% if can_edit_all %}
                                     <td>
                                         <a href="{% url 'core:delete_donor' d.id %}"
                                             onclick="return confirm('মুছে ফেলতে চান?');"
                                             class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                     </td>
+                                    {% endif %}
                                 </tr>
                                 {% empty %}
                                 <tr>
@@ -645,13 +672,13 @@
                 <!-- 1. Team Members Management Card -->
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
-                        <div
-                            class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও
-                                পরিচালনা পর্ষদ (Team Members)</h5>
-                            <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal"
-                                data-bs-target="#teamMemberModal"><i class="fas fa-plus-circle me-1"></i> নতুন টিম
-                                মেম্বার যোগ করুন</button>
+                        <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও পরিচালনা পর্ষদ (Team Members)</h5>
+                            {% if can_edit_all %}
+                            <button class="btn btn-light btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#teamMemberModal">
+                                <i class="fas fa-plus-circle me-1 text-success"></i> নতুন টিম মেম্বার যোগ করুন
+                            </button>
+                            {% endif %}
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -659,112 +686,145 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>ছবি</th>
-                                            <th>নাম</th>
+                                            <th>সদস্যের নাম ও আইডি</th>
                                             <th>পদবী / ভূমিকা (Role)</th>
-                                            <th>বিবরণ (Bio)</th>
-                                            <th>অ্যাকশন</th>
+                                            <th>যোগাযোগ (ফোন ও ইমেইল)</th>
+                                            <th>ঠিকানা</th>
+                                            <th>লগইন ইউজার</th>
+                                            {% if can_edit_all %}<th>অ্যাকশন</th>{% endif %}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for tm in team_members %}
                                         <tr>
                                             <td>
-                                                {% if tm.image %}<img src="{{ tm.image.url }}"
-                                                    style="width: 45px; height: 45px; object-fit: cover;"
-                                                    class="rounded-circle border">
-                                                {% else %}<div
-                                                    class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
-                                                    style="width: 45px; height: 45px;"><i class="fas fa-user-tie"></i>
-                                                </div>{% endif %}
+                                                {% if tm.image %}
+                                                <img src="{{ tm.image.url }}" style="width: 45px; height: 45px; object-fit: cover;" class="rounded-circle border">
+                                                {% else %}
+                                                <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 45px; height: 45px;"><i class="fas fa-user-tie"></i></div>
+                                                {% endif %}
                                             </td>
-                                            <td class="fw-bold">{{ tm.name }}</td>
-                                            <td><span class="badge bg-success">{{ tm.role }}</span></td>
-                                            <td><small class="text-secondary">{{ tm.bio|truncatewords:10|default:"-" }}</small></td>
                                             <td>
-                                                <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editTeamMemberModal_{{ tm.id }}"><i
-                                                        class="fas fa-edit"></i> এডিট</button>
-                                                <a href="{% url 'core:delete_team_member' tm.id %}"
-                                                    onclick="return confirm('মুছে ফেলতে চান?');"
-                                                    class="btn btn-sm btn-outline-danger"><i
-                                                        class="fas fa-trash"></i></a>
+                                                <div class="fw-bold text-dark">{{ tm.name }}</div>
+                                                <small class="badge bg-light text-secondary border font-monospace">{{ tm.member_id|default:"-" }}</small>
                                             </td>
-                                        </tr>
+                                            <td>
+                                                <span class="badge bg-success fs-6">{{ tm.effective_role }}</span>
+                                            </td>
+                                            <td>
+                                                {% if tm.phone %}<div><a href="tel:{{ tm.phone }}" class="text-success fw-bold text-decoration-none"><i class="fas fa-phone me-1"></i>{{ tm.phone }}</a></div>{% endif %}
+                                                {% if tm.email %}<small class="text-muted"><i class="fas fa-envelope me-1"></i>{{ tm.email }}</small>{% endif %}
+                                            </td>
+                                            <td><small class="text-secondary">{{ tm.address|default:"-" }}</small></td>
+                                            <td>
+                                                {% if tm.user %}
+                                                <span class="badge bg-primary text-white"><i class="fas fa-user-check me-1"></i>{{ tm.user.username }}</span>
+                                                {% else %}
+                                                <span class="text-muted small">একাউন্ট নেই</span>
+                                                {% endif %}
+                                            </td>
+                                            {% if can_edit_all %}
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTeamMemberModal_{{ tm.id }}"><i class="fas fa-edit"></i> এডিট</button>
+                                                <a href="{% url 'core:delete_team_member' tm.id %}" onclick="return confirm('আপনি কি নিশ্চিত যে এই টিম সদস্যকে মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
 
-                                        <!-- Edit Team Member Modal -->
-                                        <div class="modal fade" id="editTeamMemberModal_{{ tm.id }}" tabindex="-1"
-                                            aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-primary text-white">
-                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i>
-                                                            টিম মেম্বার এডিট করুন</h5>
-                                                        <button type="button" class="btn-close btn-close-white"
-                                                            data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <form action="{% url 'core:save_team_member' %}" method="post"
-                                                        enctype="multipart/form-data">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="member_id" value="{{ tm.id }}">
-                                                        <div class="modal-body">
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">সদস্যের নাম *</label>
-                                                                <input type="text" name="name" value="{{ tm.name }}"
-                                                                    required class="form-control">
+                                                <!-- Edit Team Member Modal -->
+                                                <div class="modal fade" id="editTeamMemberModal_{{ tm.id }}" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-lg">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-primary text-white">
+                                                                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> টিম মেম্বার এডিট - {{ tm.name }}</h5>
+                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                             </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">পদবী / ভূমিকা (Role)
-                                                                    *</label>
-                                                                <input type="text" name="role" value="{{ tm.role }}"
-                                                                    required class="form-control">
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ
-                                                                    (Bio)</label>
-                                                                <textarea name="bio" rows="3"
-                                                                    class="form-control">{{ tm.bio }}</textarea>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <div
-                                                                    class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                                                    <label class="form-label fw-bold mb-0">ছবি পরিবর্তন
-                                                                        করুন</label>
-                                                                    <div class="d-flex align-items-center gap-1">
-                                                                        <span
-                                                                            class="badge bg-light text-secondary border small">সর্বোচ্চ
-                                                                            500 KB</span>
-                                                                        <a href="https://www.resizepixel.com"
-                                                                            target="_blank" rel="noopener noreferrer"
-                                                                            class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                                            <i
-                                                                                class="fas fa-external-link-alt me-1"></i>ছবি
-                                                                            রিসাইজ করুন (Free)
-                                                                        </a>
+                                                            <form action="{% url 'core:save_team_member' %}" method="post" enctype="multipart/form-data">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="member_pk" value="{{ tm.id }}">
+                                                                <div class="modal-body text-start">
+                                                                    <div class="row g-3">
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">সদস্যের পূর্ণ নাম *</label>
+                                                                            <input type="text" name="name" value="{{ tm.name }}" required class="form-control">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">পদবী / ভূমিকা (Role) *</label>
+                                                                            <select name="role" class="form-select edit-role-select" data-target="edit_custom_role_wrap_{{ tm.id }}" required>
+                                                                                <option value="সভাপতি" {% if tm.role == 'সভাপতি' %}selected{% endif %}>সভাপতি (President - একক পদ)</option>
+                                                                                <option value="সাধারণ সম্পাদক" {% if tm.role == 'সাধারণ সম্পাদক' %}selected{% endif %}>সাধারণ সম্পাদক (General Secretary - একক পদ)</option>
+                                                                                <option value="কোষাধ্যক্ষ" {% if tm.role == 'কোষাধ্যক্ষ' %}selected{% endif %}>কোষাধ্যক্ষ (Treasurer - একক পদ)</option>
+                                                                                <option value="সাধারণ পরিষদ সদস্য" {% if tm.role == 'সাধারণ পরিষদ সদস্য' %}selected{% endif %}>সাধারণ পরিষদ সদস্য (General Council Member)</option>
+                                                                                <option value="অন্যান্য" {% if tm.role == 'অন্যান্য' %}selected{% endif %}>অন্যান্য (Other)</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-md-12 {% if tm.role != 'অন্যান্য' %}d-none{% endif %}" id="edit_custom_role_wrap_{{ tm.id }}">
+                                                                            <label class="form-label fw-bold text-primary">অন্যান্য পদবীর নাম *</label>
+                                                                            <input type="text" name="custom_role" value="{{ tm.custom_role|default:'' }}" class="form-control" placeholder="যেমন: যুগ্ম সাধারণ সম্পাদক / সাংগঠনিক সম্পাদক">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">ইমেইল এড্রেস *</label>
+                                                                            <input type="email" name="email" value="{{ tm.email|default:'' }}" required class="form-control" placeholder="member@example.com">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">ফোন নম্বর *</label>
+                                                                            <input type="text" name="phone" value="{{ tm.phone|default:'' }}" required class="form-control" placeholder="017XXXXXXXX">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">সদস্য আইডি (Member ID)</label>
+                                                                            <input type="text" name="custom_member_id" value="{{ tm.member_id|default:'' }}" class="form-control font-monospace" placeholder="HN-TM-XXXX">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">প্রদর্শনের ক্রম (Order)</label>
+                                                                            <input type="number" name="order" value="{{ tm.order }}" class="form-control">
+                                                                        </div>
+                                                                        <div class="col-md-12">
+                                                                            <label class="form-label fw-bold">ঠিকানা (Address)</label>
+                                                                            <textarea name="address" rows="2" class="form-control" placeholder="উপজেলা, জেলা...">{{ tm.address|default:'' }}</textarea>
+                                                                        </div>
+                                                                        <div class="col-md-12">
+                                                                            <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
+                                                                            <textarea name="bio" rows="2" class="form-control">{{ tm.bio|default:'' }}</textarea>
+                                                                        </div>
+                                                                        <div class="col-md-12">
+                                                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                                                                <label class="form-label fw-bold mb-0">ছবি পরিবর্তন করুন</label>
+                                                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                                                            </div>
+                                                                            {% if tm.image %}<div class="mb-2"><img src="{{ tm.image.url }}" style="height: 50px;" class="rounded border"></div>{% endif %}
+                                                                            <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
+                                                                        </div>
+
+                                                                        <!-- Login Account Section -->
+                                                                        <div class="col-md-12">
+                                                                            <div class="p-3 bg-light rounded-3 border">
+                                                                                <h6 class="fw-bold text-dark mb-2"><i class="fas fa-key text-warning me-1"></i>এডমিন ড্যাশবোর্ড লগইন একাউন্ট</h6>
+                                                                                <div class="row g-2">
+                                                                                    <div class="col-md-6">
+                                                                                        <label class="form-label small fw-bold">ইউজারনেম</label>
+                                                                                        <input type="text" name="username" value="{{ tm.user.username|default:'' }}" class="form-control form-control-sm" placeholder="যেমন: president_hn">
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <label class="form-label small fw-bold">নতুন পাসওয়ার্ড (পরিবর্তন করতে চাইলে)</label>
+                                                                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="নতুন পাসওয়ার্ড লিখুন">
+                                                                                    </div>
+                                                                                </div>
+                                                                                <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>লগইন করার সময় ইউজারনেম, ইমেইল অথবা মেম্বার আইডি ব্যবহার করা যাবে।</small>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                                {% if tm.image %}<div class="mb-2"><img
-                                                                        src="{{ tm.image.url }}" style="height: 50px;"
-                                                                        class="rounded border"></div>{% endif %}
-                                                                <input type="file" name="image" class="form-control"
-                                                                    accept="image/*"
-                                                                    onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
-                                                            </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                                                                    <button type="submit" class="btn btn-primary fw-bold">আপডেট সংরক্ষণ করুন</button>
+                                                                </div>
+                                                            </form>
                                                         </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">বাতিল</button>
-                                                            <button type="submit" class="btn btn-primary fw-bold">আপডেট
-                                                                করুন</button>
-                                                        </div>
-                                                    </form>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
+                                            </td>
+                                            {% endif %}
+                                        </tr>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">কোনো টিম মেম্বার তথ্য
-                                                যোগ করা হয়নি।</td>
+                                            <td colspan="{% if can_edit_all %}7{% else %}6{% endif %}" class="text-center py-4 text-muted">কোনো টিম মেম্বার তথ্য যোগ করা হয়নি।</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -792,7 +852,7 @@
                                             <th>ফোন নম্বর</th>
                                             <th>ঠিকানা</th>
                                             <th>আবেদনের তারিখ</th>
-                                            <th>অ্যাকশন</th>
+                                            {% if can_edit_all %}<th>অ্যাকশন</th>{% endif %}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -804,12 +864,14 @@
                                             <td><a href="tel:{{ v.phone }}" class="text-success fw-bold">{{ v.phone }}</a></td>
                                             <td>{{ v.address|default:"-" }}</td>
                                             <td><small class="text-secondary">{{ v.application_date|date:"d M Y" }}</small></td>
+                                            {% if can_edit_all %}
                                             <td>
                                                 <a href="{% url 'core:delete_volunteer' v.id %}"
                                                     onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');"
                                                     class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i
                                                         class="fas fa-trash"></i></a>
                                             </td>
+                                            {% endif %}
                                         </tr>
                                         {% empty %}
                                         <tr>
@@ -832,8 +894,12 @@
                 <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold mb-0"><i class="fas fa-newspaper me-2"></i>সংবাদ ও প্রেস রিলিজ
                         প্রকাশনা</h5>
+                    {% if can_edit_all %}
+                    {% if can_edit_all %}
                     <button class="btn btn-dark btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#newsModal"><i
                             class="fas fa-pen me-1"></i> নতুন খবর প্রকাশ করুন</button>
+                    {% endif %}
+                    {% endif %}
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -843,7 +909,7 @@
                                     <th>ছবি</th>
                                     <th>শিরোনাম</th>
                                     <th>প্রকাশের তারিখ</th>
-                                    <th>অ্যাকশন</th>
+                                    {% if can_edit_all %}<th>অ্যাকশন</th>{% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -853,11 +919,13 @@
                                             style="width: 60px; height: 40px; object-fit: cover;" class="rounded">{% endif %}</td>
                                     <td class="fw-bold">{{ art.title }}</td>
                                     <td><small class="text-secondary">{{ art.publish_date|date:"d M Y" }}</small></td>
+                                    {% if can_edit_all %}
                                     <td>
                                         <a href="{% url 'core:delete_news' art.id %}"
                                             onclick="return confirm('খবরটি মুছে ফেলতে চান?');"
                                             class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                     </td>
+                                    {% endif %}
                                 </tr>
                                 {% empty %}
                                 <tr>
@@ -1820,47 +1888,95 @@
 
 <!-- Team Member Modal -->
 <div class="modal fade" id="teamMemberModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-1"></i> নতুন টিম মেম্বার যোগ করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-1"></i> নতুন টিম মেম্বার রেজিস্ট্রেশন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{% url 'core:save_team_member' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">সদস্যের নাম *</label>
-                        <input type="text" name="name" required class="form-control" placeholder="মো: আরিফুল ইসলাম">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">পদবী / ভূমিকা (Role) *</label>
-                        <input type="text" name="role" required class="form-control"
-                            placeholder="যেমন: সভাপতি / সাধারণ সম্পাদক">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
-                        <textarea name="bio" rows="2" class="form-control" placeholder="সংক্ষিপ্ত পরিচয়..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                            <label class="form-label fw-bold mb-0">প্রোফাইল ছবি আপলোড করুন</label>
-                            <div class="d-flex align-items-center gap-1">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">সদস্যের পূর্ণ নাম *</label>
+                            <input type="text" name="name" required class="form-control" placeholder="যেমন: মো: আরিফুল ইসলাম">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">পদবী / ভূমিকা (Role) *</label>
+                            <select name="role" id="create_team_role" class="form-select" required onchange="handleTeamRoleChange(this)">
+                                <option value="">-- পদবী নির্বাচন করুন --</option>
+                                <option value="সভাপতি">সভাপতি (President - একক পদ)</option>
+                                <option value="সাধারণ সম্পাদক">সাধারণ সম্পাদক (General Secretary - একক পদ)</option>
+                                <option value="কোষাধ্যক্ষ">কোষাধ্যক্ষ (Treasurer - একক পদ)</option>
+                                <option value="সাধারণ পরিষদ সদস্য">সাধারণ পরিষদ সদস্য (General Council Member)</option>
+                                <option value="অন্যান্য">অন্যান্য (Other)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 d-none" id="create_custom_role_wrap">
+                            <label class="form-label fw-bold text-primary">অন্যান্য পদবীর নাম *</label>
+                            <input type="text" name="custom_role" id="create_custom_role_input" class="form-control" placeholder="যেমন: যুগ্ম সাধারণ সম্পাদক / সাংগঠনিক সম্পাদক">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ইমেইল এড্রেস *</label>
+                            <input type="email" name="email" required class="form-control" placeholder="member@example.com">
+                            <div class="form-text small text-muted">এই ইমেইলে সদস্যের আইডি ও লগইন তথ্য স্বয়ংক্রিয়ভাবে পাঠানো হবে।</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ফোন নম্বর *</label>
+                            <input type="text" name="phone" required class="form-control" placeholder="017XXXXXXXX">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">সদস্য আইডি (Member ID - ঐচ্ছিক)</label>
+                            <input type="text" name="custom_member_id" class="form-control font-monospace" placeholder="খালি রাখলে সিস্টেম স্বয়ংক্রিয়ভাবে তৈরি করবে">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">প্রদর্শনের ক্রম (Order)</label>
+                            <input type="number" name="order" value="0" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">ঠিকানা (Address)</label>
+                            <textarea name="address" rows="2" class="form-control" placeholder="গ্রাম/মহল্লা, ডাকঘর, উপজেলা, জেলা..."></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
+                            <textarea name="bio" rows="2" class="form-control" placeholder="সংক্ষিপ্ত পরিচয় ও ভূমিকা..."></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                <label class="form-label fw-bold mb-0">প্রোফাইল ছবি আপলোড করুন</label>
                                 <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
-                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
-                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
-                                </a>
+                            </div>
+                            <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
+                        </div>
+
+                        <!-- Login Account Credentials Section -->
+                        <div class="col-md-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-user-shield text-success me-1"></i>ড্যাশবোর্ড লগইন একাউন্ট</h6>
+                                    <small class="text-muted">(সভাপতি, সা: সম্পাদক, কোষাধ্যক্ষ বা সদস্য)</small>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">ইউজারনেম (Username)</label>
+                                        <input type="text" name="username" class="form-control form-control-sm" placeholder="যেমন: president_hn">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">লগইন পাসওয়ার্ড (Password)</label>
+                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="গোপন পাসওয়ার্ড লিখুন">
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1 text-primary"></i>লগইন করার সময় ইউজারনেম, ইমেইল অথবা মেম্বার আইডি যেকোনো একটি ব্যবহার করা যাবে।
+                                </small>
                             </div>
                         </div>
-                        <input type="file" name="image" class="form-control" accept="image/*"
-                            onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-primary fw-bold">সংরক্ষণ করুন</button>
+                    <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-save me-1"></i> সদস্য যুক্ত করুন</button>
                 </div>
             </form>
         </div>
@@ -2253,6 +2369,36 @@
     function validateDashboardImage100kb(input) {
         return validateDashboardImage(input, 1024, 'ছবি');
     }
+
+    function handleTeamRoleChange(selectEl) {
+        const wrap = document.getElementById('create_custom_role_wrap');
+        const input = document.getElementById('create_custom_role_input');
+        if (!wrap || !input) return;
+        if (selectEl.value === 'অন্যান্য') {
+            wrap.classList.remove('d-none');
+            input.required = true;
+        } else {
+            wrap.classList.add('d-none');
+            input.required = false;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Dynamic Role changes for Edit modals
+        document.querySelectorAll('.edit-role-select').forEach(function(selectEl) {
+            selectEl.addEventListener('change', function() {
+                const targetId = this.getAttribute('data-target');
+                const wrap = document.getElementById(targetId);
+                if (wrap) {
+                    if (this.value === 'অন্যান্য') {
+                        wrap.classList.remove('d-none');
+                    } else {
+                        wrap.classList.add('d-none');
+                    }
+                }
+            });
+        });
+    });
 
     document.addEventListener("DOMContentLoaded", function () {
         // 1. Check URL search param e.g. ?tab=volunteers-section
