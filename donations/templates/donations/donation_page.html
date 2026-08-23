@@ -50,6 +50,17 @@
                     <form action="{% url 'donations:submit' %}" method="post" id="financialContributionForm">
                         {% csrf_token %}
 
+                        <!-- Member Registration Invitation Banner -->
+                        <div class="alert alert-success-subtle bg-success bg-opacity-10 border border-success-subtle d-flex align-items-center justify-content-between p-3 rounded-3 mb-4 flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-users-cog text-success fa-lg"></i>
+                                <span class="text-dark small">আপনি কি হেল্পলাইন হ্যালো নওগাঁর নিয়মিত সেবামূলক কাজে অংশ নিতে চান?</span>
+                            </div>
+                            <a href="{% url 'volunteers:apply' %}" class="btn btn-sm btn-success fw-bold px-3 rounded-pill shadow-sm text-nowrap">
+                                <i class="fas fa-user-plus me-1"></i>সদস্য হিসেবে রেজিস্ট্রেশন করুন &rarr;
+                            </a>
+                        </div>
+
                         <!-- Step 1: Donor Identity Toggle -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-dark mb-2">
@@ -72,7 +83,7 @@
                                         <i class="fas fa-heart fa-2x"></i>
                                         <div>
                                             <div class="fw-bold">সাধারণ শুভানুধ্যায়ী / নাগরিক</div>
-                                            <small class="text-muted">সরাসরি অনুদান প্রদান করতে চান</small>
+                                            <small class="text-muted">সরাসরি সাধারণ অনুদান প্রদান করতে চান</small>
                                         </div>
                                     </label>
                                 </div>
@@ -87,85 +98,48 @@
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white text-success"><i class="fas fa-hashtag"></i></span>
-                                    <input type="text" class="form-control" id="donation_membership_id" name="membership_id" value="{{ member_id_param }}" placeholder="যেমন: 26082301">
+                                    <input type="text" class="form-control" id="donation_membership_id" name="membership_id" value="{{ member_id_param }}" placeholder="যেমন: 26082301" oninput="lookupMemberPledge(this.value)">
+                                    <button class="btn btn-outline-success fw-bold" type="button" onclick="lookupMemberPledge(document.getElementById('donation_membership_id').value)">
+                                        <i class="fas fa-search me-1"></i>যাচাই করুন
+                                    </button>
                                 </div>
-                                <div class="form-text text-muted">
-                                    সদস্য আইডি দিলে আপনার মাসিক চাঁদা বা অনুদান স্বয়ংক্রিয়ভাবে আপনার সদস্য প্রোফাইলে হিসাবভুক্ত হবে।
+                                <div id="memberIdFeedback" class="form-text text-muted small mt-1">
+                                    সদস্য আইডি দিলে আপনার প্রোফাইল ও প্রতিশ্রুত চাঁদার পরিমাণ স্বয়ংক্রিয়ভাবে লোড হবে।
+                                </div>
+
+                                <!-- Dynamic Member Pledge Alert -->
+                                <div id="memberPledgeAlert" class="alert alert-success d-flex align-items-center mb-0 mt-3 py-2 px-3 rounded-3 {% if not prefill_volunteer or not prefill_volunteer.contribution_amount %}d-none{% endif %}">
+                                    <i class="fas fa-check-circle text-success me-2 fs-5"></i>
+                                    <div>
+                                        <strong>স্বাগতম <span id="pledgeMemberName">{{ prefill_volunteer.full_name }}</span>!</strong> 
+                                        আপনার নিবন্ধিত সহায়তার ধরন: <span id="pledgeFrequencyBadge" class="badge bg-success">{{ prefill_volunteer.get_contribution_frequency_display }}</span> 
+                                        <strong>৳<span id="pledgeAmountVal">{{ prefill_volunteer.contribution_amount|floatformat:0 }}</span></strong>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Step 3: Donation Type Selection -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">
-                                <i class="fas fa-layer-group text-success me-1"></i>সহায়তার খাত বা উদ্দেশ্য নির্বাচন করুন <span class="text-danger">*</span>
-                            </label>
-                            <div class="row g-2">
-                                <div class="col-md-6 col-lg-3">
-                                    <input type="radio" class="btn-check" name="donation_type" id="type_volunteer" value="volunteer" {% if member_id_param or prefill_volunteer %}checked{% endif %} autocomplete="off" onchange="handleDonationTypeChange()">
-                                    <label class="btn btn-outline-secondary w-100 py-2 px-3 text-center rounded-3 h-100 d-flex flex-column align-items-center justify-content-center" for="type_volunteer">
-                                        <i class="fas fa-user-friends text-success mb-1"></i>
-                                        <span class="fw-bold small">স্বেচ্ছাসেবক চাঁদা</span>
-                                    </label>
-                                </div>
-                                <div class="col-md-6 col-lg-3">
-                                    <input type="radio" class="btn-check" name="donation_type" id="type_general" value="general" {% if not member_id_param and not prefill_volunteer %}checked{% endif %} autocomplete="off" onchange="handleDonationTypeChange()">
-                                    <label class="btn btn-outline-secondary w-100 py-2 px-3 text-center rounded-3 h-100 d-flex flex-column align-items-center justify-content-center" for="type_general">
-                                        <i class="fas fa-hands-helping text-primary mb-1"></i>
-                                        <span class="fw-bold small">সাধারণ তহবিল</span>
-                                    </label>
-                                </div>
-                                <div class="col-md-6 col-lg-3">
-                                    <input type="radio" class="btn-check" name="donation_type" id="type_emergency" value="emergency" autocomplete="off" onchange="handleDonationTypeChange()">
-                                    <label class="btn btn-outline-secondary w-100 py-2 px-3 text-center rounded-3 h-100 d-flex flex-column align-items-center justify-content-center" for="type_emergency">
-                                        <i class="fas fa-ambulance text-danger mb-1"></i>
-                                        <span class="fw-bold small">জরুরি ত্রাণ ও চিকিৎসা</span>
-                                    </label>
-                                </div>
-                                <div class="col-md-6 col-lg-3">
-                                    <input type="radio" class="btn-check" name="donation_type" id="type_program" value="program" autocomplete="off" onchange="handleDonationTypeChange()">
-                                    <label class="btn btn-outline-secondary w-100 py-2 px-3 text-center rounded-3 h-100 d-flex flex-column align-items-center justify-content-center" for="type_program">
-                                        <i class="fas fa-project-diagram text-warning mb-1"></i>
-                                        <span class="fw-bold small">কার্যক্রম ভিত্তিক</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Specific Program Selector (Shown if Program selected) -->
-                        <div id="programSelectSection" class="mb-4 d-none">
-                            <label for="program_id" class="form-label fw-bold text-dark">
-                                <i class="fas fa-bullhorn text-warning me-1"></i>কোন কার্যক্রমে সহায়তা করতে চান?
-                            </label>
-                            <select class="form-select" id="program_id" name="program_id">
-                                <option value="">-- কার্যক্রম নির্বাচন করুন --</option>
-                                {% for prog in programs %}
-                                    <option value="{{ prog.id }}">{{ prog.title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Step 4: Frequency Selector -->
-                        <div class="mb-4">
+                        <!-- Step 3: Frequency Selector (Shown ONLY for Registered Member) -->
+                        <div id="frequencySection" class="mb-4 {% if not member_id_param and not prefill_volunteer %}d-none{% endif %}">
                             <label class="form-label fw-bold text-dark mb-2">
                                 <i class="fas fa-calendar-alt text-success me-1"></i>সহায়তার পর্যায়কাল / ফ্রিকোয়েন্সি
                             </label>
                             <div class="btn-group w-100 shadow-sm" role="group">
-                                <input type="radio" class="btn-check" name="frequency" id="freq_onetime" value="one_time" checked autocomplete="off">
-                                <label class="btn btn-outline-success fw-bold py-2" for="freq_onetime">এককালীন</label>
-
-                                <input type="radio" class="btn-check" name="frequency" id="freq_monthly" value="monthly" autocomplete="off">
+                                <input type="radio" class="btn-check" name="frequency" id="freq_monthly" value="monthly" {% if prefill_volunteer.contribution_frequency == 'monthly' or not prefill_volunteer %}checked{% endif %} autocomplete="off">
                                 <label class="btn btn-outline-success fw-bold py-2" for="freq_monthly">মাসিক</label>
 
-                                <input type="radio" class="btn-check" name="frequency" id="freq_weekly" value="weekly" autocomplete="off">
+                                <input type="radio" class="btn-check" name="frequency" id="freq_weekly" value="weekly" {% if prefill_volunteer.contribution_frequency == 'weekly' %}checked{% endif %} autocomplete="off">
                                 <label class="btn btn-outline-success fw-bold py-2" for="freq_weekly">সাপ্তাহিক</label>
 
-                                <input type="radio" class="btn-check" name="frequency" id="freq_yearly" value="yearly" autocomplete="off">
+                                <input type="radio" class="btn-check" name="frequency" id="freq_yearly" value="yearly" {% if prefill_volunteer.contribution_frequency == 'yearly' %}checked{% endif %} autocomplete="off">
                                 <label class="btn btn-outline-success fw-bold py-2" for="freq_yearly">বাৎসরিক</label>
+
+                                <input type="radio" class="btn-check" name="frequency" id="freq_onetime" value="one_time" {% if prefill_volunteer.contribution_frequency == 'one_time' %}checked{% endif %} autocomplete="off">
+                                <label class="btn btn-outline-success fw-bold py-2" for="freq_onetime">এককালীন</label>
                             </div>
                         </div>
 
-                        <!-- Step 5: Amount Selection -->
+                        <!-- Step 4: Amount Selection -->
                         <div class="mb-4">
                             <label for="donation_amount" class="form-label fw-bold text-dark mb-2">
                                 <i class="fas fa-money-bill-wave text-success me-1"></i>আর্থিক সহায়তার পরিমাণ <span class="text-danger">*</span>
@@ -174,20 +148,20 @@
                             <div class="d-flex flex-wrap gap-2 mb-2">
                                 <button type="button" class="btn btn-outline-secondary amount-pill px-3 py-1 rounded-pill" onclick="setAmount(100)">৳১০০</button>
                                 <button type="button" class="btn btn-outline-secondary amount-pill px-3 py-1 rounded-pill" onclick="setAmount(250)">৳২৫০</button>
-                                <button type="button" class="btn btn-outline-secondary amount-pill px-3 py-1 rounded-pill active" onclick="setAmount(500)">৳৫০০</button>
+                                <button type="button" class="btn btn-outline-secondary amount-pill px-3 py-1 rounded-pill {% if not prefill_volunteer.contribution_amount or prefill_volunteer.contribution_amount == 500 %}active{% endif %}" onclick="setAmount(500)">৳৫০০</button>
                                 <button type="button" class="btn btn-outline-secondary amount-pill px-3 py-1 rounded-pill" onclick="setAmount(1000)">৳১,০০০</button>
                                 <button type="button" class="btn btn-outline-secondary amount-pill px-3 py-1 rounded-pill" onclick="setAmount(2000)">৳২,০০০</button>
                                 <button type="button" class="btn btn-outline-secondary amount-pill px-3 py-1 rounded-pill" onclick="setAmount(5000)">৳৫,০০০</button>
                             </div>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
-                                <input type="number" class="form-control fw-bold fs-4 text-success" id="donation_amount" name="amount" value="500" min="10" required placeholder="টাকার পরিমাণ লিখুন">
+                                <input type="number" class="form-control fw-bold fs-4 text-success" id="donation_amount" name="amount" value="{{ prefill_volunteer.contribution_amount|default:500 }}" min="10" required placeholder="টাকার পরিমাণ লিখুন">
                             </div>
                         </div>
 
                         <hr class="my-4">
 
-                        <!-- Step 6: Payment Method & Dynamic QR Code Box -->
+                        <!-- Step 5: Payment Method & Dynamic QR Code Box -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-dark mb-2">
                                 <i class="fas fa-wallet text-success me-1"></i>পেমেন্ট মাধ্যম নির্বাচন করুন <span class="text-danger">*</span>
@@ -438,32 +412,86 @@
 </div>
 
 <script>
+let memberLookupTimeout = null;
+
 function toggleDonorIdentity() {
     var isMember = document.getElementById('identity_member').checked;
     var memberIdSection = document.getElementById('memberIdSection');
+    var frequencySection = document.getElementById('frequencySection');
     var memberIdInput = document.getElementById('donation_membership_id');
-    var typeVolunteerRadio = document.getElementById('type_volunteer');
+    var pledgeAlert = document.getElementById('memberPledgeAlert');
 
     if (isMember) {
         memberIdSection.classList.remove('d-none');
+        frequencySection.classList.remove('d-none');
         memberIdInput.setAttribute('required', 'required');
-        if (typeVolunteerRadio) typeVolunteerRadio.checked = true;
+        if (memberIdInput.value.trim().length >= 6) {
+            lookupMemberPledge(memberIdInput.value.trim());
+        }
     } else {
         memberIdSection.classList.add('d-none');
+        frequencySection.classList.add('d-none');
         memberIdInput.removeAttribute('required');
-        var typeGeneralRadio = document.getElementById('type_general');
-        if (typeGeneralRadio) typeGeneralRadio.checked = true;
+        if (pledgeAlert) pledgeAlert.classList.add('d-none');
     }
 }
 
-function handleDonationTypeChange() {
-    var isProgram = document.getElementById('type_program').checked;
-    var programSection = document.getElementById('programSelectSection');
-    if (isProgram) {
-        programSection.classList.remove('d-none');
-    } else {
-        programSection.classList.add('d-none');
+function lookupMemberPledge(memberId) {
+    if (memberLookupTimeout) clearTimeout(memberLookupTimeout);
+    
+    var trimmedId = (memberId || '').trim();
+    var feedbackDiv = document.getElementById('memberIdFeedback');
+    var pledgeAlert = document.getElementById('memberPledgeAlert');
+
+    if (!trimmedId || trimmedId.length < 6) {
+        if (pledgeAlert) pledgeAlert.classList.add('d-none');
+        if (feedbackDiv) feedbackDiv.innerHTML = '<span class="text-muted">সদস্য আইডি দিলে আপনার প্রোফাইল ও প্রতিশ্রুত চাঁদার পরিমাণ স্বয়ংক্রিয়ভাবে লোড হবে।</span>';
+        return;
     }
+
+    memberLookupTimeout = setTimeout(async function() {
+        try {
+            const response = await fetch('/donations/api/member-pledge/?member_id=' + encodeURIComponent(trimmedId));
+            if (response.ok) {
+                const data = await response.json();
+                if (data.found) {
+                    if (feedbackDiv) feedbackDiv.innerHTML = '<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>সদস্য পাওয়া গেছে: ' + data.full_name + '</span>';
+                    
+                    // Auto fill donor details
+                    var nameInput = document.getElementById('donor_name');
+                    var phoneInput = document.getElementById('donor_phone');
+                    var emailInput = document.getElementById('donor_email');
+                    if (nameInput && (!nameInput.value || nameInput.value.trim() === '')) nameInput.value = data.full_name;
+                    if (phoneInput && (!phoneInput.value || phoneInput.value.trim() === '')) phoneInput.value = data.phone;
+                    if (emailInput && (!emailInput.value || emailInput.value.trim() === '') && data.email) emailInput.value = data.email;
+
+                    // If has pledge
+                    if (data.has_pledge && data.amount > 0) {
+                        if (pledgeAlert) {
+                            document.getElementById('pledgeMemberName').innerText = data.full_name;
+                            document.getElementById('pledgeFrequencyBadge').innerText = data.frequency_display;
+                            document.getElementById('pledgeAmountVal').innerText = Number(data.amount).toLocaleString('bn-BD');
+                            pledgeAlert.classList.remove('d-none');
+                        }
+
+                        // Auto set frequency radio
+                        var freqRadio = document.getElementById('freq_' + data.frequency);
+                        if (freqRadio) freqRadio.checked = true;
+
+                        // Auto set amount
+                        setAmount(data.amount);
+                    } else {
+                        if (pledgeAlert) pledgeAlert.classList.add('d-none');
+                    }
+                } else {
+                    if (pledgeAlert) pledgeAlert.classList.add('d-none');
+                    if (feedbackDiv) feedbackDiv.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>সদস্য আইডি পাওয়া যায়নি। অনুগ্রহ করে সঠিক আইডি লিখুন।</span>';
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching member pledge:', err);
+        }
+    }, 300);
 }
 
 function setAmount(val) {
@@ -471,7 +499,7 @@ function setAmount(val) {
     var pills = document.querySelectorAll('.amount-pill');
     pills.forEach(function(pill) {
         pill.classList.remove('active');
-        if (pill.innerText.includes(val.toLocaleString('bn-BD')) || pill.innerText.includes(val)) {
+        if (pill.innerText.includes(Number(val).toLocaleString('bn-BD')) || pill.innerText.includes(val)) {
             pill.classList.add('active');
         }
     });
@@ -524,14 +552,12 @@ function copyAccountNumber() {
     }
 }
 
-function selectEmergencyAppeal() {
-    var emergencyRadio = document.getElementById('type_emergency');
-    if (emergencyRadio) {
-        emergencyRadio.checked = true;
-        handleDonationTypeChange();
+document.addEventListener('DOMContentLoaded', function() {
+    var memInput = document.getElementById('donation_membership_id');
+    if (memInput && memInput.value.trim()) {
+        lookupMemberPledge(memInput.value.trim());
     }
-    document.getElementById('financialContributionForm').scrollIntoView({ behavior: 'smooth' });
-}
+});
 </script>
 
 <style>

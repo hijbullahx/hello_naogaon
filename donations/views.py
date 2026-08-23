@@ -46,25 +46,57 @@ def donation_page_view(request):
     }
     return render(request, 'donations/donation_page.html', context)
 
+from django.http import JsonResponse
+
+def member_pledge_lookup(request):
+    """API endpoint to look up registered member info and financial pledge by member_id"""
+    member_id = request.GET.get('member_id', '').strip()
+    if not member_id:
+        return JsonResponse({'found': False})
+    
+    vol = Volunteer.objects.filter(member_id=member_id).first()
+    if not vol:
+        return JsonResponse({'found': False})
+    
+    freq_dict = {
+        'monthly': 'মাসিক (প্রতি মাসে)',
+        'weekly': 'সাপ্তাহিক (প্রতি সপ্তাহে)',
+        'yearly': 'বাৎসরিক (প্রতি বছরে)',
+        'one_time': 'এককালীন',
+        'none': 'কোনো নির্দিষ্ট প্রতিশ্রুতি নেই'
+    }
+    has_pledge = bool(vol.contribution_frequency and vol.contribution_frequency != 'none' and vol.contribution_amount)
+    return JsonResponse({
+        'found': True,
+        'member_id': vol.member_id,
+        'full_name': vol.full_name,
+        'phone': vol.phone,
+        'email': vol.email or '',
+        'has_pledge': has_pledge,
+        'frequency': vol.contribution_frequency if vol.contribution_frequency else 'one_time',
+        'frequency_display': freq_dict.get(vol.contribution_frequency, vol.contribution_frequency or 'এককালীন'),
+        'amount': float(vol.contribution_amount) if vol.contribution_amount else 0,
+    })
+
 @require_POST
 def submit_donation(request):
     """
-    Handles general, volunteer fee, emergency relief, and program financial contributions.
+    Handles member financial contributions and general public support.
     """
-    donation_type = request.POST.get('donation_type', 'general').strip()
+    donor_identity_type = request.POST.get('donor_identity_type', 'general').strip()
+    membership_id = request.POST.get('membership_id', '').strip()
     frequency = request.POST.get('frequency', 'one_time').strip()
-    program_id = request.POST.get('program_id')
     donor_name = request.POST.get('donor_name', '').strip()
     donor_email = request.POST.get('donor_email', '').strip()
     donor_phone = request.POST.get('donor_phone', '').strip()
-    membership_id = request.POST.get('membership_id', '').strip()
     amount = request.POST.get('amount')
     payment_method = request.POST.get('payment_method', 'bKash').strip()
     trx_id = request.POST.get('trx_id', '').strip()
     note = request.POST.get('note', '').strip()
 
-    # If membership_id is provided, check if volunteer exists to supplement name/phone if blank
-    if membership_id:
+    # Determine donation type & frequency based on donor identity
+    if donor_identity_type == 'member' or membership_id:
+        donation_type = 'volunteer'
         vol = Volunteer.objects.filter(member_id=membership_id).first()
         if vol:
             if not donor_name:
@@ -73,6 +105,12 @@ def submit_donation(request):
                 donor_phone = vol.phone
             if not donor_email and vol.email:
                 donor_email = vol.email
+            if not frequency and vol.contribution_frequency:
+                frequency = vol.contribution_frequency
+    else:
+        donation_type = 'general'
+        membership_id = None
+        frequency = 'one_time'
 
     if not donor_name or not donor_phone or not amount:
         messages.error(request, "দয়া করে নাম, মোবাইল নম্বর এবং আর্থিক সহায়তার পরিমাণ সঠিকভাবে লিখুন।")
@@ -86,14 +124,10 @@ def submit_donation(request):
         messages.error(request, "দয়া করে সঠিক আর্থিক পরিমাণ লিখুন।")
         return redirect('donations:donate')
 
-    program = None
-    if program_id and str(program_id).isdigit():
-        program = Program.objects.filter(pk=program_id).first()
-
     donation = ProgramDonation.objects.create(
         donation_type=donation_type,
         frequency=frequency,
-        program=program,
+        program=None,
         donor_name=donor_name,
         donor_email=donor_email,
         donor_phone=donor_phone,
@@ -106,14 +140,8 @@ def submit_donation(request):
     )
 
     # Automatically record in Financial Transactions (Income)
-    type_labels = {
-        'volunteer': 'স্বেচ্ছাসেবক অনুদান / মাসিক চাঁদা',
-        'general': 'সাধারণ আর্থিক সহায়তা',
-        'program': f"কার্যক্রম সহায়তা - {program.title if program else 'সাধারণ'}",
-        'emergency': 'জরুরি ত্রাণ ও চিকিৎসা তহবিল',
-    }
-    category_name = type_labels.get(donation_type, 'আর্থিক সহায়তা')
-    trx_note = f"সহায়তার ধরন: {category_name} | ফ্রিকোয়েন্সি: {frequency} | মেম্বার আইডি: {membership_id or 'N/A'} | মোবাইল: {donor_phone}"
+    category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা' if donation_type == 'volunteer' else 'সাধারণ আর্থিক সহায়তা'
+    trx_note = f"সহায়তার ধরন: {category_name} | মেম্বার আইডি: {membership_id or 'N/A'} | মোবাইল: {donor_phone}"
     if note:
         trx_note += f" | নোট: {note}"
 
@@ -132,7 +160,7 @@ def submit_donation(request):
     member_txt = f" (সদস্য আইডি: {membership_id})" if membership_id else ""
     messages.success(
         request, 
-        f'ধন্যবাদ {donor_name}{member_txt}! {category_name}-এ আপনার ৳{amount_val:,.2f} আর্থিক সহায়তা সফলভাবে গৃহীত হয়েছে। আপনার অনুদান মানুষের কল্যাণে ভূমিকা রাখবে।'
+        f'ধন্যবাদ {donor_name}{member_txt}! আপনার ৳{amount_val:,.2f} আর্থিক সহায়তা সফলভাবে গৃহীত হয়েছে।'
     )
     return redirect('donations:donate')
 
