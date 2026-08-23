@@ -217,16 +217,46 @@ def update_stat_counters(request):
     """Legacy wrapper redirecting to save_stat_counter"""
     return save_stat_counter(request)
 
+def get_auto_program_theme(title):
+    t = (title or "").lower()
+    if any(k in t for k in ["রক্ত", "চিকিৎসা", "মেডিকেল", "স্বাস্থ্য", "ব্লাড", "blood", "medical", "hospital", "রোগী", "অসুস্থ"]):
+        return "fas fa-tint", "danger"
+    elif any(k in t for k in ["শিক্ষা", "স্কুল", "বই", "খাতা", "মেধাবী", "student", "education", "school", "কলম", "বৃত্তি", "পাঠাগার"]):
+        return "fas fa-graduation-cap", "warning"
+    elif any(k in t for k in ["গাছ", "বৃক্ষ", "পরিবেশ", "সবুজ", "plant", "tree", "environment", "রোপণ", "বন"]):
+        return "fas fa-seedling", "info"
+    elif any(k in t for k in ["খাদ্য", "ত্রাণ", "বন্যা", "শীতবস্ত্র", "সাহায্য", "পুনর্বাসন", "ঈদ", "উপহার", "food", "relief", "কম্বল", "বস্ত্র"]):
+        return "fas fa-hands-helping", "success"
+    elif any(k in t for k in ["স্বেচ্ছাসেবক", "যুব", "কমিউনিটি", "টিম", "volunteer", "youth", "সংগঠন"]):
+        return "fas fa-users", "primary"
+    return "fas fa-hands-helping", "success"
+
+def get_auto_impact_icon(description):
+    d = (description or "").lower()
+    if any(k in d for k in ["রক্ত", "চিকিৎসা", "মেডিকেল", "ঔষধ", "স্বাস্থ্য", "ব্লাড"]):
+        return "fas fa-heartbeat"
+    elif any(k in d for k in ["শিক্ষা", "বই", "খাতা", "শিক্ষার্থী", "স্কুল", "টিউশন", "কলম"]):
+        return "fas fa-book-open"
+    elif any(k in d for k in ["খাদ্য", "খাবার", "প্যাকেট", "মিল", "ত্রাণ", "রেশন"]):
+        return "fas fa-utensils"
+    elif any(k in d for k in ["গাছ", "বৃক্ষ", "চারা", "পরিবেশ"]):
+        return "fas fa-seedling"
+    elif any(k in d for k in ["পরিবার", "ঘর", "পুনর্বাসন", "বাসস্থান"]):
+        return "fas fa-home"
+    return "fas fa-heart"
+
 @staff_member_required
 def save_program(request):
-    """Create or update a Program"""
+    """Create or update a Program with automatic icon and badge color"""
     if request.method == 'POST':
         prog_id = request.POST.get('program_id')
         title = request.POST.get('title')
         short_description = request.POST.get('short_description', '')
         description = request.POST.get('description', '')
         status = request.POST.get('status', 'ongoing')
-        badge_color = request.POST.get('badge_color', 'bg-success')
+        auto_icon, auto_badge = get_auto_program_theme(title)
+        badge_color = request.POST.get('badge_color') or auto_badge
+        icon_class = request.POST.get('icon_class') or auto_icon
 
         image_file = request.FILES.get('image')
         if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='কার্যক্রমের ছবি'):
@@ -238,6 +268,7 @@ def save_program(request):
             prog.short_description = short_description
             prog.description = description
             prog.status = status
+            prog.icon_class = icon_class
             prog.badge_color = badge_color
             if image_file:
                 prog.image = image_file
@@ -249,6 +280,7 @@ def save_program(request):
                 short_description=short_description,
                 description=description,
                 status=status,
+                icon_class=icon_class,
                 badge_color=badge_color,
                 image=image_file
             )
@@ -466,12 +498,13 @@ def delete_emergency_appeal(request, pk):
 
 @staff_member_required
 def save_donation_impact(request):
-    """Create or update a Donation Impact item"""
+    """Create or update a Donation Impact item with automatic icon selection"""
     if request.method == 'POST':
         imp_id = request.POST.get('impact_id')
         amount = request.POST.get('amount')
         description = request.POST.get('description')
-        icon_class = request.POST.get('icon_class', 'fas fa-heart')
+        auto_icon = get_auto_impact_icon(description)
+        icon_class = request.POST.get('icon_class') or auto_icon
 
         if imp_id:
             imp = get_object_or_404(DonationImpact, pk=imp_id)
