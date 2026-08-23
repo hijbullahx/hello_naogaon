@@ -186,38 +186,41 @@ def payment_success(request):
         messages.error(request, "অনুরোধকৃত লেনদেনটি খুঁজে পাওয়া যায়নি।")
         return redirect('donations:donate')
 
-    # Optional server-side validation if val_id is provided
+    is_real_payment_verified = False
+    # Server-side validation if val_id is provided from live payment gateway
     if val_id:
         validation_res = validate_gateway_payment(val_id)
         if validation_res.get('status') in ['VALID', 'VALIDATED']:
             card_type = validation_res.get('card_type', card_type)
             bank_tran_id = validation_res.get('bank_tran_id', bank_tran_id)
+            is_real_payment_verified = True
 
     if donation.status != 'approved':
-        donation.status = 'approved'
+        donation.status = 'approved' if is_real_payment_verified else 'pending'
         donation.payment_method = card_type
         donation.card_type = card_type
         donation.bank_tran_id = bank_tran_id
         donation.trx_id = bank_tran_id
         donation.save()
 
-        # Record income in Financial Transactions
-        category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা' if donation.donation_type == 'volunteer' else 'সাধারণ আর্থিক সহায়তা'
-        trx_note = f"পেমেন্ট চ্যানেল: {card_type} | ট্রানজেকশন আইডি: {bank_tran_id} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | মোবাইল: {donation.donor_phone}"
-        if donation.note:
-            trx_note += f" | নোট: {donation.note}"
+        # Record income in Financial Transactions ONLY if real payment was verified
+        if is_real_payment_verified:
+            category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা' if donation.donation_type == 'volunteer' else 'সাধারণ আর্থিক সহায়তা'
+            trx_note = f"পেমেন্ট চ্যানেল: {card_type} | ট্রানজেকশন আইডি: {bank_tran_id} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | মোবাইল: {donation.donor_phone}"
+            if donation.note:
+                trx_note += f" | নোট: {donation.note}"
 
-        FinancialTransaction.objects.create(
-            transaction_type='income',
-            title=f"{category_name} ({donation.donor_name})",
-            category=category_name,
-            amount=donation.amount,
-            payment_method=card_type,
-            trx_id=bank_tran_id,
-            donor_name=donation.donor_name,
-            date=date.today(),
-            note=trx_note
-        )
+            FinancialTransaction.objects.create(
+                transaction_type='income',
+                title=f"{category_name} ({donation.donor_name})",
+                category=category_name,
+                amount=donation.amount,
+                payment_method=card_type,
+                trx_id=bank_tran_id,
+                donor_name=donation.donor_name,
+                date=date.today(),
+                note=trx_note
+            )
 
     member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
     messages.success(
