@@ -23,32 +23,32 @@
     <!-- Search & Filter Card -->
     <div class="card border-0 shadow-sm p-3 mb-4 bg-light rounded-3">
         <form method="get" action="{% url 'volunteers:blood_donors' %}" class="row g-2 align-items-center">
+            {% if selected_group %}
+                <input type="hidden" name="group" value="{{ selected_group }}">
+            {% endif %}
             <div class="col-md-5 col-lg-5">
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 text-danger"><i
-                            class="fas fa-search"></i></span>
+                    <span class="input-group-text bg-white border-end-0 text-danger"><i class="fas fa-search"></i></span>
                     <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0"
-                        placeholder="নাম, মোবাইল, এলাকা বা সদস্য আইডি দিয়ে খুঁজুন...">
+                        placeholder="নাম, মোবাইল, এলাকা, রক্তের গ্রুপ বা সদস্য আইডি দিয়ে খুঁজুন...">
                 </div>
             </div>
             <div class="col-md-4 col-lg-5">
                 <div class="d-flex flex-wrap gap-1 align-items-center">
-                    <a href="{% url 'volunteers:blood_donors' %}"
-                        class="btn btn-sm {% if not selected_group %}btn-danger fw-bold{% else %}btn-outline-secondary{% endif %}">সকল</a>
+                    <a href="{% url 'volunteers:blood_donors' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+                        class="btn btn-sm {% if not selected_group %}btn-danger fw-bold shadow-sm{% else %}btn-outline-secondary{% endif %}">সকল</a>
                     {% for grp in groups %}
-                    <a href="?group={{ grp }}{% if search_query %}&q={{ search_query }}{% endif %}"
-                        class="btn btn-sm {% if selected_group == grp %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %}">
+                    <a href="?group={{ grp|urlencode }}{% if search_query %}&q={{ search_query }}{% endif %}"
+                        class="btn btn-sm {% if selected_group == grp %}btn-danger fw-bold shadow-sm{% else %}btn-outline-danger{% endif %}">
                         {{ grp }}
                     </a>
                     {% endfor %}
                 </div>
             </div>
             <div class="col-md-3 col-lg-2 d-flex gap-1">
-                <button type="submit" class="btn btn-danger fw-bold w-100"><i
-                        class="fas fa-filter me-1"></i>খুঁজুন</button>
+                <button type="submit" class="btn btn-danger fw-bold w-100"><i class="fas fa-filter me-1"></i>খুঁজুন</button>
                 {% if search_query or selected_group %}
-                <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-outline-secondary" title="রিসেট"><i
-                        class="fas fa-undo"></i></a>
+                <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-outline-secondary" title="রিসেট"><i class="fas fa-undo"></i></a>
                 {% endif %}
             </div>
         </form>

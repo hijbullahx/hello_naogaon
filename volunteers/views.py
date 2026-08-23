@@ -45,21 +45,35 @@ def send_member_notifications(volunteer):
 
 from datetime import datetime, date
 
+def normalize_blood_group(val):
+    """Safely normalizes blood group string handling URL decoding issues (e.g. '+' decoded as space)"""
+    if not val:
+        return ''
+    val = val.strip().upper().replace(' ', '+')
+    if val in ['A', 'B', 'O', 'AB']:
+        val = f"{val}+"
+    return val
+
 def blood_donors_list(request):
-    blood_group = request.GET.get('group', '').strip()
+    raw_group = request.GET.get('group', '').strip()
+    blood_group = normalize_blood_group(raw_group) if raw_group else ''
     search_query = request.GET.get('q', '').strip()
     
     donors = BloodDonor.objects.filter(is_available=True)
     if blood_group:
         donors = donors.filter(blood_group=blood_group)
     if search_query:
-        donors = donors.filter(
+        norm_bg = normalize_blood_group(search_query)
+        q_filter = (
             Q(full_name__icontains=search_query) |
             Q(phone__icontains=search_query) |
             Q(location__icontains=search_query) |
             Q(member_id__icontains=search_query) |
-            Q(blood_group__icontains=search_query)
+            Q(blood_group__iexact=search_query)
         )
+        if norm_bg in ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']:
+            q_filter |= Q(blood_group=norm_bg)
+        donors = donors.filter(q_filter)
 
     context = {
         'donors': donors,
@@ -178,17 +192,22 @@ def apply_volunteer(request):
             messages.error(request, 'দয়া করে আপনার নাম এবং মোবাইল নম্বর সঠিকভাবে লিখুন।')
 
     search_query = request.GET.get('q', '').strip()
-    blood_group_filter = request.GET.get('group', '').strip()
+    raw_group = request.GET.get('group', '').strip()
+    blood_group_filter = normalize_blood_group(raw_group) if raw_group else ''
 
     volunteers_list = Volunteer.objects.all().order_by('-id')
 
     if search_query:
-        volunteers_list = volunteers_list.filter(
+        norm_bg = normalize_blood_group(search_query)
+        q_filter = (
             Q(member_id__icontains=search_query) |
             Q(full_name__icontains=search_query) |
             Q(phone__icontains=search_query) |
-            Q(blood_group__icontains=search_query)
+            Q(blood_group__iexact=search_query)
         )
+        if norm_bg in ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']:
+            q_filter |= Q(blood_group=norm_bg)
+        volunteers_list = volunteers_list.filter(q_filter)
 
     if blood_group_filter:
         volunteers_list = volunteers_list.filter(blood_group=blood_group_filter)
