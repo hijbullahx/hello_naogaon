@@ -155,10 +155,13 @@ def update_about_section(request):
 
 @staff_member_required
 def delete_about_image(request, pk):
-    """Delete an About section grid image"""
-    img = get_object_or_404(AboutImage, pk=pk)
-    img.delete()
-    messages.success(request, 'ছবিটি সফলভাবে মুছে ফেলা হয়েছে!')
+    """Delete an About section grid image safely"""
+    img = AboutImage.objects.filter(pk=pk).first()
+    if img:
+        img.delete()
+        messages.success(request, 'ছবিটি সফলভাবে মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'ছবিটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required
@@ -179,15 +182,17 @@ def save_stat_counter(request):
         }
 
         if stat_id:
-            stat = get_object_or_404(StatCounter, pk=stat_id)
-            stat.title = title
-            stat.value = value
-            # Ensure icon and color match system design
-            default_icon, default_color = SYSTEM_SLOTS.get(stat.order, ('fas fa-heart', 'success'))
-            stat.icon_class = stat.icon_class or default_icon
-            stat.badge_color = stat.badge_color or default_color
-            stat.save()
-            messages.success(request, f'"{stat.title}" কাউন্টার কার্ডের মান ({stat.value}) সফলভাবে আপডেট করা হয়েছে!')
+            stat = StatCounter.objects.filter(pk=stat_id).first()
+            if stat:
+                stat.title = title
+                stat.value = value
+                default_icon, default_color = SYSTEM_SLOTS.get(stat.order, ('fas fa-heart', 'success'))
+                stat.icon_class = stat.icon_class or default_icon
+                stat.badge_color = stat.badge_color or default_color
+                stat.save()
+                messages.success(request, f'"{stat.title}" কাউন্টার কার্ডের মান ({stat.value}) সফলভাবে আপডেট করা হয়েছে!')
+            else:
+                messages.warning(request, 'কাউন্টার কার্ডটি খুঁজে পাওয়া যায়নি।')
         else:
             current_count = StatCounter.objects.count()
             order = current_count + 1
@@ -205,11 +210,14 @@ def save_stat_counter(request):
 
 @staff_member_required
 def delete_stat_counter(request, pk):
-    """Delete a StatCounter"""
-    stat = get_object_or_404(StatCounter, pk=pk)
-    title = stat.title
-    stat.delete()
-    messages.success(request, f'"{title}" কাউন্টার কার্ড সফলভাবে মুছে ফেলা হয়েছে!')
+    """Delete a StatCounter safely"""
+    stat = StatCounter.objects.filter(pk=pk).first()
+    if stat:
+        title = stat.title
+        stat.delete()
+        messages.success(request, f'"{title}" কাউন্টার কার্ড সফলভাবে মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'কাউন্টার কার্ডটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required
@@ -273,18 +281,21 @@ def save_program(request):
             return redirect('/dashboard/?tab=programs-section')
 
         if prog_id:
-            prog = get_object_or_404(Program, pk=prog_id)
-            prog.title = title
-            prog.short_description = short_description
-            prog.description = description
-            prog.status = status
-            prog.icon_class = icon_class
-            prog.badge_color = badge_color
-            prog.target_amount = target_amount
-            if image_file:
-                prog.image = image_file
-            prog.save()
-            messages.success(request, f'কার্যক্রম "{title}" আপডেট হয়েছে!')
+            prog = Program.objects.filter(pk=prog_id).first()
+            if prog:
+                prog.title = title
+                prog.short_description = short_description
+                prog.description = description
+                prog.status = status
+                prog.icon_class = icon_class
+                prog.badge_color = badge_color
+                prog.target_amount = target_amount
+                if image_file:
+                    prog.image = image_file
+                prog.save()
+                messages.success(request, f'কার্যক্রম "{title}" আপডেট হয়েছে!')
+            else:
+                messages.warning(request, 'কার্যক্রমটি খুঁজে পাওয়া যায়নি।')
         else:
             prog = Program.objects.create(
                 title=title,
@@ -301,8 +312,12 @@ def save_program(request):
 
 @staff_member_required
 def delete_program(request, pk):
-    """Delete a Program safely"""
-    prog = get_object_or_404(Program, pk=pk)
+    """Delete a Program safely without 404"""
+    prog = Program.objects.filter(pk=pk).first()
+    if not prog:
+        messages.warning(request, 'কার্যক্রমটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
+        return redirect('/dashboard/?tab=programs-section')
+
     title = prog.title
     try:
         # Safely detach any foreign key references before deleting
@@ -316,7 +331,7 @@ def delete_program(request, pk):
 
 @staff_member_required
 def save_news(request):
-    """Create or update a News Article"""
+    """Create or update a News Article safely"""
     if request.method == 'POST':
         art_id = request.POST.get('article_id')
         title = request.POST.get('title')
@@ -330,14 +345,17 @@ def save_news(request):
         category, _ = Category.objects.get_or_create(name=category_name)
 
         if art_id:
-            art = get_object_or_404(Article, pk=art_id)
-            art.title = title
-            art.content = content
-            art.category = category
-            if image_file:
-                art.image = image_file
-            art.save()
-            messages.success(request, f'সংবাদ "{title}" আপডেট হয়েছে!')
+            art = Article.objects.filter(pk=art_id).first()
+            if art:
+                art.title = title
+                art.content = content
+                art.category = category
+                if image_file:
+                    art.image = image_file
+                art.save()
+                messages.success(request, f'সংবাদ "{title}" আপডেট হয়েছে!')
+            else:
+                messages.warning(request, 'সংবাদটি খুঁজে পাওয়া যায়নি।')
         else:
             Article.objects.create(
                 title=title,
@@ -351,11 +369,14 @@ def save_news(request):
 
 @staff_member_required
 def delete_news(request, pk):
-    """Delete a News Article"""
-    art = get_object_or_404(Article, pk=pk)
-    title = art.title
-    art.delete()
-    messages.success(request, f'সংবাদ "{title}" মুছে ফেলা হয়েছে!')
+    """Delete a News Article safely"""
+    art = Article.objects.filter(pk=pk).first()
+    if art:
+        title = art.title
+        art.delete()
+        messages.success(request, f'সংবাদ "{title}" মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'সংবাদটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=news-section')
 
 @staff_member_required
@@ -371,13 +392,14 @@ def update_bank_and_donation(request):
 
         if bank_name and account_number:
             if b_id:
-                bank = get_object_or_404(Bank, pk=b_id)
-                bank.bank_name = bank_name
-                bank.account_name = account_name
-                bank.account_number = account_number
-                bank.branch = branch
-                bank.swift_code = swift_code
-                bank.save()
+                bank = Bank.objects.filter(pk=b_id).first()
+                if bank:
+                    bank.bank_name = bank_name
+                    bank.account_name = account_name
+                    bank.account_number = account_number
+                    bank.branch = branch
+                    bank.swift_code = swift_code
+                    bank.save()
             else:
                 Bank.objects.create(
                     bank_name=bank_name,
@@ -441,19 +463,22 @@ def save_campaign(request):
             return redirect('/dashboard/?tab=bank-section')
 
         if c_id:
-            camp = get_object_or_404(Campaign, pk=c_id)
-            camp.title = title
-            camp.description = description
-            camp.goal_amount = goal_amount
-            camp.raised_amount = raised_amount
-            if start_date:
-                camp.start_date = start_date
-            if end_date:
-                camp.end_date = end_date
-            if image_file:
-                camp.image = image_file
-            camp.save()
-            messages.success(request, f'ক্যাম্পেইন "{title}" আপডেট করা হয়েছে!')
+            camp = Campaign.objects.filter(pk=c_id).first()
+            if camp:
+                camp.title = title
+                camp.description = description
+                camp.goal_amount = goal_amount
+                camp.raised_amount = raised_amount
+                if start_date:
+                    camp.start_date = start_date
+                if end_date:
+                    camp.end_date = end_date
+                if image_file:
+                    camp.image = image_file
+                camp.save()
+                messages.success(request, f'ক্যাম্পেইন "{title}" আপডেট করা হয়েছে!')
+            else:
+                messages.warning(request, 'ক্যাম্পেইনটি খুঁজে পাওয়া যায়নি।')
         else:
             camp = Campaign.objects.create(
                 title=title,
@@ -469,16 +494,19 @@ def save_campaign(request):
 
 @staff_member_required
 def delete_campaign(request, pk):
-    """Delete a Campaign"""
-    camp = get_object_or_404(Campaign, pk=pk)
-    title = camp.title
-    camp.delete()
-    messages.success(request, f'ক্যাম্পেইন "{title}" মুছে ফেলা হয়েছে!')
+    """Delete a Campaign safely"""
+    camp = Campaign.objects.filter(pk=pk).first()
+    if camp:
+        title = camp.title
+        camp.delete()
+        messages.success(request, f'ক্যাম্পেইন "{title}" মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'ক্যাম্পেইনটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
 def save_emergency_appeal(request):
-    """Create or update an Emergency Appeal"""
+    """Create or update an Emergency Appeal safely"""
     if request.method == 'POST':
         appeal_id = request.POST.get('appeal_id')
         title = request.POST.get('title')
@@ -489,13 +517,16 @@ def save_emergency_appeal(request):
             return redirect('/dashboard/?tab=bank-section')
 
         if appeal_id:
-            app = get_object_or_404(EmergencyAppeal, pk=appeal_id)
-            app.title = title
-            app.description = description
-            if image_file:
-                app.image = image_file
-            app.save()
-            messages.success(request, f'জরুরি আবেদন "{title}" আপডেট করা হয়েছে!')
+            app = EmergencyAppeal.objects.filter(pk=appeal_id).first()
+            if app:
+                app.title = title
+                app.description = description
+                if image_file:
+                    app.image = image_file
+                app.save()
+                messages.success(request, f'জরুরি আবেদন "{title}" আপডেট করা হয়েছে!')
+            else:
+                messages.warning(request, 'আবেদনটি খুঁজে পাওয়া যায়নি।')
         else:
             EmergencyAppeal.objects.create(
                 title=title,
@@ -507,16 +538,19 @@ def save_emergency_appeal(request):
 
 @staff_member_required
 def delete_emergency_appeal(request, pk):
-    """Delete an Emergency Appeal"""
-    app = get_object_or_404(EmergencyAppeal, pk=pk)
-    title = app.title
-    app.delete()
-    messages.success(request, f'জরুরি আবেদন "{title}" মুছে ফেলা হয়েছে!')
+    """Delete an Emergency Appeal safely"""
+    app = EmergencyAppeal.objects.filter(pk=pk).first()
+    if app:
+        title = app.title
+        app.delete()
+        messages.success(request, f'জরুরি আবেদন "{title}" মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'আবেদনটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
 def save_donation_impact(request):
-    """Create or update a Donation Impact item with automatic icon selection"""
+    """Create or update a Donation Impact item with automatic icon selection safely"""
     if request.method == 'POST':
         imp_id = request.POST.get('impact_id')
         amount = request.POST.get('amount')
@@ -525,12 +559,15 @@ def save_donation_impact(request):
         icon_class = request.POST.get('icon_class') or auto_icon
 
         if imp_id:
-            imp = get_object_or_404(DonationImpact, pk=imp_id)
-            imp.amount = amount
-            imp.description = description
-            imp.icon_class = icon_class
-            imp.save()
-            messages.success(request, f'দান প্রভাব (৳{amount}) আপডেট করা হয়েছে!')
+            imp = DonationImpact.objects.filter(pk=imp_id).first()
+            if imp:
+                imp.amount = amount
+                imp.description = description
+                imp.icon_class = icon_class
+                imp.save()
+                messages.success(request, f'দান প্রভাব (৳{amount}) আপডেট করা হয়েছে!')
+            else:
+                messages.warning(request, 'আইটেমটি খুঁজে পাওয়া যায়নি।')
         else:
             DonationImpact.objects.create(
                 amount=amount,
@@ -542,26 +579,32 @@ def save_donation_impact(request):
 
 @staff_member_required
 def delete_donation_impact(request, pk):
-    """Delete a Donation Impact item"""
-    imp = get_object_or_404(DonationImpact, pk=pk)
-    imp.delete()
-    messages.success(request, 'দান প্রভাব উপাদান মুছে ফেলা হয়েছে!')
+    """Delete a Donation Impact item safely"""
+    imp = DonationImpact.objects.filter(pk=pk).first()
+    if imp:
+        imp.delete()
+        messages.success(request, 'দান প্রভাব উপাদান মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'আইটেমটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
 def save_faq(request):
-    """Create or update a Donation FAQ"""
+    """Create or update a Donation FAQ safely"""
     if request.method == 'POST':
         faq_id = request.POST.get('faq_id')
         question = request.POST.get('question')
         answer = request.POST.get('answer')
 
         if faq_id:
-            faq = get_object_or_404(FAQ, pk=faq_id)
-            faq.question = question
-            faq.answer = answer
-            faq.save()
-            messages.success(request, 'জিজ্ঞাসাবাদ (FAQ) আপডেট করা হয়েছে!')
+            faq = FAQ.objects.filter(pk=faq_id).first()
+            if faq:
+                faq.question = question
+                faq.answer = answer
+                faq.save()
+                messages.success(request, 'জিজ্ঞাসাবাদ (FAQ) আপডেট করা হয়েছে!')
+            else:
+                messages.warning(request, 'FAQ টি খুঁজে পাওয়া যায়নি।')
         else:
             FAQ.objects.create(
                 question=question,
@@ -572,16 +615,19 @@ def save_faq(request):
 
 @staff_member_required
 def delete_faq(request, pk):
-    """Delete a Donation FAQ"""
-    faq = get_object_or_404(FAQ, pk=pk)
-    faq.delete()
-    messages.success(request, 'জিজ্ঞাসাবাদ (FAQ) মুছে ফেলা হয়েছে!')
+    """Delete a Donation FAQ safely"""
+    faq = FAQ.objects.filter(pk=pk).first()
+    if faq:
+        faq.delete()
+        messages.success(request, 'জিজ্ঞাসাবাদ (FAQ) মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'FAQ টি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=bank-section')
 
 
 @staff_member_required
 def save_donor(request):
-    """Create or update a Blood Donor"""
+    """Create or update a Blood Donor safely"""
     if request.method == 'POST':
         donor_id = request.POST.get('donor_id')
         name = request.POST.get('full_name')
@@ -606,20 +652,23 @@ def save_donor(request):
         upazila = request.POST.get('upazila', '').strip()
 
         if donor_id:
-            donor = get_object_or_404(BloodDonor, pk=donor_id)
-            donor.full_name = name
-            donor.blood_group = group
-            donor.phone = phone
-            donor.division = division or 'রাজশাহী'
-            donor.district = district or 'নওগাঁ'
-            donor.upazila = upazila
-            donor.location = location
-            donor.last_donated = last_donated_val
-            donor.member_id = member_id if member_id else None
-            donor.is_available = is_available
-            donor.is_public_details = is_public_details
-            donor.save()
-            messages.success(request, f'রক্তদাতা "{name}" তথ্য আপডেট করা হয়েছে!')
+            donor = BloodDonor.objects.filter(pk=donor_id).first()
+            if donor:
+                donor.full_name = name
+                donor.blood_group = group
+                donor.phone = phone
+                donor.division = division or 'রাজশাহী'
+                donor.district = district or 'নওগাঁ'
+                donor.upazila = upazila
+                donor.location = location
+                donor.last_donated = last_donated_val
+                donor.member_id = member_id if member_id else None
+                donor.is_available = is_available
+                donor.is_public_details = is_public_details
+                donor.save()
+                messages.success(request, f'রক্তদাতা "{name}" তথ্য আপডেট করা হয়েছে!')
+            else:
+                messages.warning(request, 'রক্তদাতার তথ্য খুঁজে পাওয়া যায়নি।')
         else:
             BloodDonor.objects.create(
                 full_name=name,
@@ -639,16 +688,19 @@ def save_donor(request):
 
 @staff_member_required
 def delete_donor(request, pk):
-    """Delete a Blood Donor"""
-    donor = get_object_or_404(BloodDonor, pk=pk)
-    name = donor.full_name
-    donor.delete()
-    messages.success(request, f'রক্তদাতা "{name}" মুছে ফেলা হয়েছে!')
+    """Delete a Blood Donor safely"""
+    donor = BloodDonor.objects.filter(pk=pk).first()
+    if donor:
+        name = donor.full_name
+        donor.delete()
+        messages.success(request, f'রক্তদাতা "{name}" মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'রক্তদাতার তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=donors-section')
 
 @staff_member_required
 def save_volunteer(request):
-    """Create or update a Volunteer"""
+    """Create or update a Volunteer safely"""
     if request.method == 'POST':
         vol_id = request.POST.get('volunteer_id')
         full_name = request.POST.get('full_name')
@@ -672,20 +724,23 @@ def save_volunteer(request):
                 pass
 
         if vol_id:
-            vol = get_object_or_404(Volunteer, pk=vol_id)
-            vol.full_name = full_name
-            vol.email = email
-            vol.phone = phone
-            vol.blood_group = blood_group if blood_group else None
-            vol.occupation = occupation if occupation else None
-            vol.division = division or 'রাজশাহী'
-            vol.district = district or 'নওগাঁ'
-            vol.upazila = upazila
-            vol.address = address
-            vol.last_donated = last_donated_val
-            vol.status = status
-            vol.save()
-            messages.success(request, f'স্বেচ্ছাসেবক "{full_name}" তথ্য আপডেট করা হয়েছে!')
+            vol = Volunteer.objects.filter(pk=vol_id).first()
+            if vol:
+                vol.full_name = full_name
+                vol.email = email
+                vol.phone = phone
+                vol.blood_group = blood_group if blood_group else None
+                vol.occupation = occupation if occupation else None
+                vol.division = division or 'রাজশাহী'
+                vol.district = district or 'নওগাঁ'
+                vol.upazila = upazila
+                vol.address = address
+                vol.last_donated = last_donated_val
+                vol.status = status
+                vol.save()
+                messages.success(request, f'স্বেচ্ছাসেবক "{full_name}" তথ্য আপডেট করা হয়েছে!')
+            else:
+                messages.warning(request, 'স্বেচ্ছাসেবকের তথ্য খুঁজে পাওয়া যায়নি।')
         else:
             vol = Volunteer.objects.create(
                 full_name=full_name,
@@ -702,7 +757,7 @@ def save_volunteer(request):
             )
             messages.success(request, f'নতুন স্বেচ্ছাসেবক "{full_name}" তালিকাভুক্ত করা হয়েছে!')
 
-        if blood_group:
+        if blood_group and vol:
             BloodDonor.objects.update_or_create(
                 phone=phone,
                 defaults={
@@ -721,16 +776,19 @@ def save_volunteer(request):
 
 @staff_member_required
 def delete_volunteer(request, pk):
-    """Delete a Volunteer"""
-    vol = get_object_or_404(Volunteer, pk=pk)
-    name = vol.full_name
-    vol.delete()
-    messages.success(request, f'স্বেচ্ছাসেবক "{name}" মুছে ফেলা হয়েছে!')
+    """Delete a Volunteer safely"""
+    vol = Volunteer.objects.filter(pk=pk).first()
+    if vol:
+        name = vol.full_name
+        vol.delete()
+        messages.success(request, f'স্বেচ্ছাসেবক "{name}" মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'স্বেচ্ছাসেবকের তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=volunteers-section')
 
 @staff_member_required
 def save_team_member(request):
-    """Create or update a Leadership Team Member"""
+    """Create or update a Leadership Team Member safely"""
     if request.method == 'POST':
         tm_id = request.POST.get('member_id')
         name = request.POST.get('name')
@@ -743,15 +801,18 @@ def save_team_member(request):
             return redirect('/dashboard/?tab=volunteers-section')
 
         if tm_id:
-            tm = get_object_or_404(TeamMember, pk=tm_id)
-            tm.name = name
-            tm.role = role
-            tm.bio = bio
-            tm.order = order
-            if image_file:
-                tm.image = image_file
-            tm.save()
-            messages.success(request, f'টিম সদস্য "{name}" তথ্য আপডেট হয়েছে!')
+            tm = TeamMember.objects.filter(pk=tm_id).first()
+            if tm:
+                tm.name = name
+                tm.role = role
+                tm.bio = bio
+                tm.order = order
+                if image_file:
+                    tm.image = image_file
+                tm.save()
+                messages.success(request, f'টিম সদস্য "{name}" তথ্য আপডেট হয়েছে!')
+            else:
+                messages.warning(request, 'টিম সদস্যের তথ্য খুঁজে পাওয়া যায়নি।')
         else:
             TeamMember.objects.create(
                 name=name,
@@ -765,16 +826,19 @@ def save_team_member(request):
 
 @staff_member_required
 def delete_team_member(request, pk):
-    """Delete a Team Member"""
-    tm = get_object_or_404(TeamMember, pk=pk)
-    name = tm.name
-    tm.delete()
-    messages.success(request, f'টিম সদস্য "{name}" মুছে ফেলা হয়েছে!')
+    """Delete a Team Member safely"""
+    tm = TeamMember.objects.filter(pk=pk).first()
+    if tm:
+        name = tm.name
+        tm.delete()
+        messages.success(request, f'টিম সদস্য "{name}" মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'টিম সদস্যের তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=volunteers-section')
 
 @staff_member_required
 def save_financial_transaction(request):
-    """Create or update a Financial Transaction"""
+    """Create or update a Financial Transaction safely"""
     if request.method == 'POST':
         trx_id_db = request.POST.get('transaction_id')
         t_type = request.POST.get('transaction_type', 'income')
@@ -795,21 +859,24 @@ def save_financial_transaction(request):
             return redirect('/dashboard/?tab=finance-section')
 
         if trx_id_db:
-            trx = get_object_or_404(FinancialTransaction, pk=trx_id_db)
-            trx.transaction_type = t_type
-            trx.program = prog
-            trx.title = title
-            trx.category = category
-            trx.amount = amount
-            trx.payment_method = payment_method
-            trx.trx_id = trx_id
-            trx.donor_name = donor_name
-            trx.date = date_val
-            trx.note = note
-            if receipt_file:
-                trx.receipt = receipt_file
-            trx.save()
-            messages.success(request, 'আর্থিক লেনদেন আপডেট করা হয়েছে!')
+            trx = FinancialTransaction.objects.filter(pk=trx_id_db).first()
+            if trx:
+                trx.transaction_type = t_type
+                trx.program = prog
+                trx.title = title
+                trx.category = category
+                trx.amount = amount
+                trx.payment_method = payment_method
+                trx.trx_id = trx_id
+                trx.donor_name = donor_name
+                trx.date = date_val
+                trx.note = note
+                if receipt_file:
+                    trx.receipt = receipt_file
+                trx.save()
+                messages.success(request, 'আর্থিক লেনদেন আপডেট করা হয়েছে!')
+            else:
+                messages.warning(request, 'লেনদেনটি খুঁজে পাওয়া যায়নি।')
         else:
             FinancialTransaction.objects.create(
                 transaction_type=t_type,
@@ -829,10 +896,13 @@ def save_financial_transaction(request):
 
 @staff_member_required
 def delete_financial_transaction(request, pk):
-    """Delete a Financial Transaction"""
-    trx = get_object_or_404(FinancialTransaction, pk=pk)
-    trx.delete()
-    messages.success(request, 'আর্থিক লেনদেন মুছে ফেলা হয়েছে!')
+    """Delete a Financial Transaction safely"""
+    trx = FinancialTransaction.objects.filter(pk=pk).first()
+    if trx:
+        trx.delete()
+        messages.success(request, 'আর্থিক লেনদেন মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'লেনদেনটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=finance-section')
 
 @staff_member_required
@@ -942,8 +1012,12 @@ def print_financial_statement(request):
 
 @staff_member_required
 def approve_program_donation(request, pk):
-    """Approve a pending program/general donation, update raised amount and record in FinancialTransaction"""
-    donation = get_object_or_404(ProgramDonation, pk=pk)
+    """Approve a pending program/general donation, update raised amount and record in FinancialTransaction safely"""
+    donation = ProgramDonation.objects.filter(pk=pk).first()
+    if not donation:
+        messages.warning(request, 'অনুদানের তথ্যটি ইতিমধ্যে অনুমোদিত বা মুছে ফেলা হয়েছে।')
+        return redirect('/dashboard/?tab=finance-section')
+
     if donation.status != 'approved':
         donation.status = 'approved'
         donation.save()
@@ -985,8 +1059,11 @@ def approve_program_donation(request, pk):
 
 @staff_member_required
 def delete_program_donation(request, pk):
-    """Delete a donation entry"""
-    donation = get_object_or_404(ProgramDonation, pk=pk)
-    donation.delete()
-    messages.success(request, 'অনুদানের তথ্য মুছে ফেলা হয়েছে!')
+    """Delete a donation entry safely"""
+    donation = ProgramDonation.objects.filter(pk=pk).first()
+    if donation:
+        donation.delete()
+        messages.success(request, 'অনুদানের তথ্য মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'অনুদানের তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=finance-section')
