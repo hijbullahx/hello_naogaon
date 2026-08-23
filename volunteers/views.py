@@ -193,14 +193,14 @@ def apply_volunteer(request):
         is_public_details = request.POST.get('is_public_details') == 'on'
         image = request.FILES.get('image')
 
-        # 100 KB Max Image Limit Validation
+        # 500 KB Max Image Limit Validation
         if image:
-            max_size_bytes = 100 * 1024  # 100 KB
+            max_size_bytes = 500 * 1024  # 500 KB
             if image.size > max_size_bytes:
                 size_kb = image.size / 1024
                 messages.error(
                     request,
-                    f'ছবির সাইজ সর্বোচ্চ 100 KB হতে পারবে (আপনার ছবির সাইজ: {size_kb:.1f} KB)। '
+                    f'ছবির সাইজ সর্বোচ্চ 500 KB হতে পারবে (আপনার ছবির সাইজ: {size_kb:.1f} KB)। '
                     f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কমিয়ে আপলোড করুন।'
                 )
                 return redirect(next_url if next_url else 'volunteers:apply')

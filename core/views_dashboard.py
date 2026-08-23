@@ -13,14 +13,19 @@ from donations.models import (
 from django.db.models import Sum
 from datetime import date
 
-def validate_image_100kb(request, image_file, field_name="ছবি"):
-    """Validates that uploaded image/file is <= 100 KB"""
-    if image_file and image_file.size > 100 * 1024:
+def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"):
+    """
+    Validates uploaded image file size dynamically within 100KB to 1MB range.
+    max_kb: Maximum allowed size in KB (e.g. 300 for Logo/QR, 500 for avatars, 800 for cards, 1024 for 1MB banners/gallery)
+    """
+    if image_file and image_file.size > max_kb * 1024:
         size_kb = image_file.size / 1024
+        limit_str = f"{max_kb / 1024:.0f} MB" if max_kb >= 1024 else f"{max_kb} KB"
+        size_str = f"{size_kb / 1024:.2f} MB" if size_kb >= 1024 else f"{size_kb:.1f} KB"
         messages.error(
             request,
-            f'{field_name}-র সাইজ সর্বোচ্চ 100 KB হতে পারবে (আপনার ফাইলের সাইজ: {size_kb:.1f} KB)। '
-            f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কমিয়ে পুনরায় আপলোড করুন।'
+            f'{field_name}-র সাইজ সর্বোচ্চ {limit_str} হতে পারবে (আপনার ফাইলের সাইজ: {size_str})। '
+            f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কিছুটা কমিয়ে পুনরায় আপলোড করুন।'
         )
         return False
     return True
@@ -110,12 +115,12 @@ def update_hero_section(request):
         setting.whatsapp_number = request.POST.get('whatsapp_number', setting.whatsapp_number)
 
         if 'logo' in request.FILES:
-            if not validate_image_100kb(request, request.FILES['logo'], 'লোগো ছবি'):
+            if not validate_image_size(request, request.FILES['logo'], max_kb=300, field_name='লোগো ছবি'):
                 return redirect('/dashboard/?tab=home-section')
             setting.logo = request.FILES['logo']
 
         if 'hero_image' in request.FILES:
-            if not validate_image_100kb(request, request.FILES['hero_image'], 'হিরো ছবি'):
+            if not validate_image_size(request, request.FILES['hero_image'], max_kb=1024, field_name='হিরো ব্যানার ছবি'):
                 return redirect('/dashboard/?tab=home-section')
             setting.hero_image = request.FILES['hero_image']
 
@@ -132,16 +137,16 @@ def update_about_section(request):
         setting.about_video_url = request.POST.get('about_video_url', setting.about_video_url)
         setting.save()
 
-        # Handle Featured Main Image
+        # Handle Featured Main Image (1MB max)
         if 'featured_image' in request.FILES:
-            if not validate_image_100kb(request, request.FILES['featured_image'], 'ফিচারড ছবি'):
+            if not validate_image_size(request, request.FILES['featured_image'], max_kb=1024, field_name='ফিচারড ছবি'):
                 return redirect('/dashboard/?tab=home-section')
             AboutImage.objects.filter(is_featured=True).delete()
             AboutImage.objects.create(image=request.FILES['featured_image'], is_featured=True)
 
-        # Handle Grid Image Upload
+        # Handle Grid Image Upload (600KB max)
         if 'grid_image' in request.FILES:
-            if not validate_image_100kb(request, request.FILES['grid_image'], 'গ্রিড ছবি'):
+            if not validate_image_size(request, request.FILES['grid_image'], max_kb=600, field_name='গ্রিড ছবি'):
                 return redirect('/dashboard/?tab=home-section')
             AboutImage.objects.create(image=request.FILES['grid_image'], is_featured=False)
 
@@ -224,7 +229,7 @@ def save_program(request):
         badge_color = request.POST.get('badge_color', 'bg-success')
 
         image_file = request.FILES.get('image')
-        if image_file and not validate_image_100kb(request, image_file, 'কার্যক্রমের ছবি'):
+        if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='কার্যক্রমের ছবি'):
             return redirect('/dashboard/?tab=programs-section')
 
         if prog_id:
@@ -269,7 +274,7 @@ def save_news(request):
         category_name = request.POST.get('category', 'সাধারণ')
 
         image_file = request.FILES.get('image')
-        if image_file and not validate_image_100kb(request, image_file, 'সংবাদের ছবি'):
+        if image_file and not validate_image_size(request, image_file, max_kb=1024, field_name='সংবাদের কভার ছবি'):
             return redirect('/dashboard/?tab=news-section')
 
         category, _ = Category.objects.get_or_create(name=category_name)
@@ -334,7 +339,7 @@ def update_bank_and_donation(request):
 
         if 'qr_image' in request.FILES:
             qr_file = request.FILES['qr_image']
-            if not validate_image_100kb(request, qr_file, 'QR কোড ছবি'):
+            if not validate_image_size(request, qr_file, max_kb=300, field_name='QR কোড ছবি'):
                 return redirect('/dashboard/?tab=bank-section')
 
             bkash_method, _ = DonationMethod.objects.get_or_create(name='bKash')
@@ -361,7 +366,7 @@ def update_donation_page_content(request):
         content.transparency_text = request.POST.get('transparency_text', content.transparency_text)
 
         if 'hero_image' in request.FILES:
-            if not validate_image_100kb(request, request.FILES['hero_image'], 'দানের পেজ হিরো ছবি'):
+            if not validate_image_size(request, request.FILES['hero_image'], max_kb=1024, field_name='দানের পেজ ব্যানার ছবি'):
                 return redirect('/dashboard/?tab=bank-section')
             content.hero_image = request.FILES['hero_image']
 
@@ -382,7 +387,7 @@ def save_campaign(request):
         end_date = request.POST.get('end_date')
 
         image_file = request.FILES.get('image')
-        if image_file and not validate_image_100kb(request, image_file, 'ক্যাম্পেইন ছবি'):
+        if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='ক্যাম্পেইন কভার ছবি'):
             return redirect('/dashboard/?tab=bank-section')
 
         if c_id:
@@ -430,7 +435,7 @@ def save_emergency_appeal(request):
         description = request.POST.get('description', '')
 
         image_file = request.FILES.get('image')
-        if image_file and not validate_image_100kb(request, image_file, 'জরুরি আপিল ছবি'):
+        if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='জরুরি আপিল ছবি'):
             return redirect('/dashboard/?tab=bank-section')
 
         if appeal_id:
@@ -683,7 +688,7 @@ def save_team_member(request):
         order = request.POST.get('order', 0)
 
         image_file = request.FILES.get('image')
-        if image_file and not validate_image_100kb(request, image_file, 'টিম সদস্যের ছবি'):
+        if image_file and not validate_image_size(request, image_file, max_kb=500, field_name='টিম সদস্যের ছবি'):
             return redirect('/dashboard/?tab=volunteers-section')
 
         if tm_id:
@@ -732,7 +737,7 @@ def save_financial_transaction(request):
         note = request.POST.get('note', '')
 
         receipt_file = request.FILES.get('receipt')
-        if receipt_file and not validate_image_100kb(request, receipt_file, 'রশিদ/ভাউচার ফাইল'):
+        if receipt_file and not validate_image_size(request, receipt_file, max_kb=800, field_name='রশিদ/ভাউচার ফাইল'):
             return redirect('/dashboard/?tab=finance-section')
 
         if trx_id_db:
@@ -781,7 +786,7 @@ def save_gallery_photo(request):
         caption = request.POST.get('caption', '')
         if 'image' in request.FILES:
             image_file = request.FILES['image']
-            if not validate_image_100kb(request, image_file, 'গ্যালারির ছবি'):
+            if not validate_image_size(request, image_file, max_kb=1024, field_name='গ্যালারির ছবি'):
                 return redirect('/dashboard/?tab=gallery-section')
 
             album, _ = Album.objects.get_or_create(title='Main Gallery')

@@ -349,11 +349,11 @@
                             <input type="text" class="form-control" id="occupation" name="occupation" placeholder="যেমন: ছাত্র, শিক্ষক, ব্যবসায়ী">
                         </div>
 
-                        <!-- Profile Image with 100KB limit & free resizer link -->
+                        <!-- Profile Image with 500KB limit & free resizer link -->
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label for="volunteer_image" class="form-label fw-bold mb-0">
-                                    ছবি আপলোড করুন <small class="text-danger">(সর্বোচ্চ 100 KB)</small>
+                                    ছবি আপলোড করুন <small class="text-secondary">(সর্বোচ্চ 500 KB)</small>
                                 </label>
                                 <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
                                     <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
@@ -361,7 +361,7 @@
                             </div>
                             <input type="file" class="form-control" id="volunteer_image" name="image" accept="image/*" onchange="validateVolunteerImageSize(this)">
                             <div id="volunteerImageSizeError" class="form-text text-danger d-none fw-bold mt-1">
-                                <i class="fas fa-exclamation-triangle me-1"></i>ছবির সাইজ ১০০ KB এর বেশি! অনুগ্রহ করে <a href="https://www.resizepixel.com" target="_blank" class="text-danger text-decoration-underline fw-bold">ResizePixel (resizepixel.com)</a> থেকে সাইজ কমিয়ে আপলোড করুন।
+                                <i class="fas fa-exclamation-triangle me-1"></i>ছবির সাইজ ৫০০ KB এর বেশি! অনুগ্রহ করে <a href="https://www.resizepixel.com" target="_blank" class="text-danger text-decoration-underline fw-bold">ResizePixel (resizepixel.com)</a> থেকে সাইজ কমিয়ে আপলোড করুন।
                             </div>
                         </div>
 
@@ -604,11 +604,11 @@ function validateVolunteerImageSize(input) {
     var errorDiv = document.getElementById('volunteerImageSizeError');
     if (input.files && input.files[0]) {
         var fileSize = input.files[0].size; // size in bytes
-        var maxBytes = 100 * 1024; // 100 KB
+        var maxBytes = 500 * 1024; // 500 KB
         if (fileSize > maxBytes) {
             if (errorDiv) errorDiv.classList.remove('d-none');
             input.value = ''; // Reset file selection
-            alert('ছবির সাইজ সর্বোচ্চ 100 KB হতে পারবে। অনুগ্রহ করে রিসাইজ করে পুনরায় আপলোড করুন।');
+            alert('ছবির সাইজ সর্বোচ্চ 500 KB হতে পারবে। অনুগ্রহ করে রিসাইজ করে পুনরায় আপলোড করুন।');
         } else {
             if (errorDiv) errorDiv.classList.add('d-none');
         }

@@ -64,19 +64,25 @@
                             <form action="{% url 'core:update_hero' %}" method="post" enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">লোগো ছবি (Logo Image)</label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-bold mb-0">লোগো ছবি (Logo Image)</label>
+                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300 KB</span>
+                                    </div>
                                     {% if site_setting.logo %}
                                         {% if site_setting.logo %}<div class="mb-2"><img src="{{ site_setting.logo.url }}" alt="Logo" style="height: 40px;"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 300, 'লোগো ছবি')">
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">হিরো সাইড/ব্যাকগ্রাউন্ড ছবি (Hero Image)</label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-bold mb-0">হিরো সাইড/ব্যাকগ্রাউন্ড ছবি (Hero Image)</label>
+                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                    </div>
                                     {% if site_setting.hero_image %}
                                         {% if site_setting.hero_image %}<div class="mb-2"><img src="{{ site_setting.hero_image.url }}" alt="Hero" style="height: 60px; object-fit: cover;" class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="hero_image" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                                    <input type="file" name="hero_image" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 1024, 'হিরো ব্যানার ছবি')">
                                 </div>
 
                                 <div class="mb-3">
@@ -146,17 +152,23 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">মেইন বড় ফিচারড ফটো (Featured Main Photo)</label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-bold mb-0">মেইন বড় ফিচারড ফটো (Featured Main Photo)</label>
+                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                    </div>
                                     {% if about_featured_image %}
                                         {% if about_featured_image and about_featured_image.image %}<div class="mb-2"><img src="{{ about_featured_image.image.url }}" style="height: 70px; object-fit: cover;" class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="featured_image" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                                    <input type="file" name="featured_image" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 1024, 'ফিচারড ছবি')">
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">সাব ফটো গ্রিডে নতুন ছবি যোগ করুন (একসাথে একাধিক ছবি সিলেক্ট করতে পারবেন)</label>
-                                    <input type="file" name="sub_images" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage100kb(this)" multiple>
-                                    <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i> Ctrl / Shift চেপে একসাথে একাধিক ফটো নির্বাচন করুন</small>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-bold mb-0">সাব ফটো গ্রিডে নতুন ছবি যোগ করুন</label>
+                                        <span class="badge bg-light text-secondary border small">প্রতিটি সর্বোচ্চ 600 KB</span>
+                                    </div>
+                                    <input type="file" name="sub_images" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 600, 'গ্রিড ছবি')" multiple>
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i> Ctrl / Shift চেপে একসাথে একাধিক ফটো নির্বাচন করতে পারেন</small>
                                 </div>
 
                                 {% if about_grid_images %}
@@ -455,9 +467,12 @@
                                                                 <textarea name="bio" rows="3" class="form-control">{{ tm.bio }}</textarea>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">ছবি পরিবর্তন করুন</label>
+                                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                    <label class="form-label fw-bold mb-0">ছবি পরিবর্তন করুন</label>
+                                                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                                                </div>
                                                                 {% if tm.image %}<div class="mb-2"><img src="{{ tm.image.url }}" style="height: 50px;" class="rounded border"></div>{% endif %}
-                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
@@ -877,6 +892,14 @@
                                                         <label class="form-label fw-bold">অতিরিক্ত নোট</label>
                                                         <textarea name="note" rows="2" class="form-control">{{ trx.note }}</textarea>
                                                     </div>
+                                                    <div class="mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                            <label class="form-label fw-bold mb-0">ভাউচার / রশিদ ছবি</label>
+                                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                                        </div>
+                                                        {% if trx.receipt %}<div class="mb-2"><a href="{{ trx.receipt.url }}" target="_blank" class="small text-primary fw-bold"><i class="fas fa-file-image me-1"></i>বর্তমান রশিদ দেখুন</a></div>{% endif %}
+                                                        <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
+                                                    </div>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
@@ -918,11 +941,14 @@
                                     <textarea name="hero_subtitle" rows="2" class="form-control">{{ donation_content.hero_subtitle }}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">হিরো ব্যাকগ্রাউন্ড ছবি</label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-bold mb-0">হিরো ব্যাকগ্রাউন্ড ছবি</label>
+                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                    </div>
                                     {% if donation_content.hero_image %}
                                         {% if donation_content.hero_image %}<div class="mb-2"><img src="{{ donation_content.hero_image.url }}" style="height: 70px;" class="rounded border"></div>{% endif %}
                                     {% endif %}
-                                    <input type="file" name="hero_image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                                    <input type="file" name="hero_image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 1024, 'দানের পেজ ব্যানার ছবি')">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">কেন দান করবেন? (Why Donate Title)</label>
@@ -968,11 +994,14 @@
                                         <input type="text" name="swift_code" value="{{ bank.swift_code|default:'0902600925' }}" class="form-control">
                                     </div>
                                     <div class="col-md-12">
-                                        <label class="form-label fw-bold">bKash/Nagad QR কোড ছবি আপলোড করুন</label>
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-label fw-bold mb-0">bKash/Nagad QR কোড ছবি আপলোড করুন</label>
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300 KB</span>
+                                        </div>
                                         {% if qrcodes.first and qrcodes.first.image %}
                                             {% if qrcodes.first and qrcodes.first.image %}<div class="mb-2"><img src="{{ qrcodes.first.image.url }}" style="height: 100px;" class="rounded border p-1"></div>{% endif %}
                                         {% endif %}
-                                        <input type="file" name="qr_image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                                        <input type="file" name="qr_image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 300, 'QR কোড ছবি')">
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-success fw-bold mt-4"><i class="fas fa-save me-1"></i> ব্যাংক ও QR কোড আপডেট করুন</button>
@@ -1066,11 +1095,14 @@
                                                                 </div>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">ছবি আপলোড করুন</label>
+                                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                    <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
+                                                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                                                </div>
                                                                 {% if c.image %}
                                                                     {% if c.image %}<div class="mb-2"><img src="{{ c.image.url }}" style="height: 60px;" class="rounded"></div>{% endif %}
                                                                 {% endif %}
-                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                                                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'ক্যাম্পেইন কভার ছবি')">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
@@ -1178,8 +1210,11 @@
                         {% csrf_token %}
                         <div class="row g-2 align-items-center">
                             <div class="col-md-5">
-                                <label class="form-label small fw-bold">ছবি নির্বাচন করুন</label>
-                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)" required>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label small fw-bold mb-0">ছবি নির্বাচন করুন</label>
+                                    <span class="badge bg-white text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                </div>
+                                <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 1024, 'গ্যালারির ছবি')" required>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold">ক্যাপশন (Caption)</label>
@@ -1251,8 +1286,11 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">প্রোগ্রামের ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold mb-0">প্রোগ্রামের ছবি আপলোড করুন</label>
+                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                        </div>
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1332,8 +1370,11 @@
                         <textarea name="content" rows="5" required class="form-control"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
+                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                        </div>
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 1024, 'সংবাদের ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1343,6 +1384,7 @@
             </form>
         </div>
     </div>
+</div>
 <!-- Volunteer Modal -->
 <div class="modal fade" id="volunteerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -1411,8 +1453,11 @@
                         <textarea name="bio" rows="2" class="form-control" placeholder="সংক্ষিপ্ত পরিচয়..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">প্রোফাইল ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold mb-0">প্রোফাইল ছবি আপলোড করুন</label>
+                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                        </div>
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1420,6 +1465,8 @@
                     <button type="submit" class="btn btn-primary fw-bold">সংরক্ষণ করুন</button>
                 </div>
             </form>
+        </div>
+    </div>
 </div>
 
 <!-- Income Modal -->
@@ -1476,6 +1523,13 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">অতিরিক্ত নোট</label>
                         <textarea name="note" rows="2" class="form-control" placeholder="নোট বা বিবরণ..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold mb-0">ভাউচার / রশিদ ছবি</label>
+                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                        </div>
+                        <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1542,6 +1596,13 @@
                         <label class="form-label fw-bold">অতিরিক্ত নোট</label>
                         <textarea name="note" rows="2" class="form-control" placeholder="নোট বা বিবরণ..."></textarea>
                     </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold mb-0">ভাউচার / মেমো ছবি</label>
+                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                        </div>
+                        <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
@@ -1592,8 +1653,11 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">কভার ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold mb-0">কভার ছবি আপলোড করুন</label>
+                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                        </div>
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'ক্যাম্পেইন কভার ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1625,8 +1689,11 @@
                         <textarea name="description" rows="3" class="form-control" placeholder="আবেদনের বিবরণ..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">ছবি আপলোড করুন</label>
-                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage100kb(this)">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
+                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                        </div>
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'জরুরি আপিল ছবি')">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1702,6 +1769,27 @@
 
 
 
+<script>
+function validateDashboardImage(input, maxKb, fieldName) {
+    if (!input.files || input.files.length === 0) return true;
+    const maxBytes = (maxKb || 1024) * 1024;
+    for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        if (file.size > maxBytes) {
+            const sizeKb = file.size / 1024;
+            const limitStr = maxKb >= 1024 ? `${(maxKb / 1024).toFixed(0)} MB` : `${maxKb} KB`;
+            const currentStr = sizeKb >= 1024 ? `${(sizeKb / 1024).toFixed(2)} MB` : `${sizeKb.toFixed(1)} KB`;
+            alert(`দুঃখিত! ${fieldName || 'ছবি'}-র সাইজ সর্বোচ্চ ${limitStr} হতে পারবে।\n\nআপনার নির্বাচিত ফাইল "${file.name}"-এর সাইজ: ${currentStr}\nঅনুগ্রহ করে resizepixel.com থেকে সাইজ কিছুটা কমিয়ে পুনরায় আপলোড করুন।`);
+            input.value = '';
+            return false;
+        }
+    }
+    return true;
+}
+
+function validateDashboardImage100kb(input) {
+    return validateDashboardImage(input, 1024, 'ছবি');
+}
 
 document.addEventListener("DOMContentLoaded", function() {
     // 1. Check URL search param e.g. ?tab=volunteers-section
