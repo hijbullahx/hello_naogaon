@@ -151,6 +151,7 @@ class FinancialTransaction(models.Model):
     ]
 
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES, default='income')
+    program = models.ForeignKey('programs.Program', on_delete=models.SET_NULL, null=True, blank=True, related_name='financial_transactions', verbose_name=_('কার্যক্রম (Program)'))
     title = models.CharField(max_length=255, help_text="খাতের নাম বা শিরোনাম")
     category = models.CharField(max_length=100, default="সাধারণ অনুদান")
     amount = models.DecimalField(max_digits=12, decimal_places=2)

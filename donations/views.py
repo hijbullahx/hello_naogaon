@@ -216,6 +216,7 @@ def confirm_checkout_payment(request, tran_id):
 
         FinancialTransaction.objects.create(
             transaction_type='income',
+            program=donation.program,
             title=title_name,
             category=category_name,
             amount=donation.amount,
@@ -294,6 +295,7 @@ def payment_success(request):
 
             FinancialTransaction.objects.create(
                 transaction_type='income',
+                program=donation.program,
                 title=title_name,
                 category=category_name,
                 amount=donation.amount,

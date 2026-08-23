@@ -781,6 +781,9 @@ def save_financial_transaction(request):
         date_val = request.POST.get('date') or date.today()
         note = request.POST.get('note', '')
 
+        program_id = request.POST.get('program_id')
+        prog = Program.objects.filter(pk=program_id).first() if program_id else None
+
         receipt_file = request.FILES.get('receipt')
         if receipt_file and not validate_image_size(request, receipt_file, max_kb=800, field_name='রশিদ/ভাউচার ফাইল'):
             return redirect('/dashboard/?tab=finance-section')
@@ -788,6 +791,7 @@ def save_financial_transaction(request):
         if trx_id_db:
             trx = get_object_or_404(FinancialTransaction, pk=trx_id_db)
             trx.transaction_type = t_type
+            trx.program = prog
             trx.title = title
             trx.category = category
             trx.amount = amount
@@ -803,6 +807,7 @@ def save_financial_transaction(request):
         else:
             FinancialTransaction.objects.create(
                 transaction_type=t_type,
+                program=prog,
                 title=title,
                 category=category,
                 amount=amount,

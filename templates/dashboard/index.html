@@ -822,6 +822,7 @@
                                 <tr>
                                     <th>তারিখ</th>
                                     <th>টাইপ</th>
+                                    <th>কার্যক্রম (Program)</th>
                                     <th>খাতের নাম / বিবরণ</th>
                                     <th>ক্যাটাগরি</th>
                                     <th>দাতা / গ্রহণকারী</th>
@@ -839,6 +840,13 @@
                                             <span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>আয়</span>
                                         {% else %}
                                             <span class="badge bg-danger"><i class="fas fa-arrow-up me-1"></i>ব্যয়</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if trx.program %}
+                                            <span class="badge bg-success text-white fw-bold"><i class="fas fa-tasks me-1"></i>{{ trx.program.title }}</span>
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -881,6 +889,15 @@
                                                         <select name="transaction_type" class="form-select" required>
                                                             <option value="income" {% if trx.transaction_type == 'income' %}selected{% endif %}>আয় / অনুদান (Income)</option>
                                                             <option value="expense" {% if trx.transaction_type == 'expense' %}selected{% endif %}>ব্যয় / খরচ (Expense)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">কার্যক্রম (Program - ঐচ্ছিক)</label>
+                                                        <select name="program_id" class="form-select">
+                                                            <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --</option>
+                                                            {% for p in programs %}
+                                                                <option value="{{ p.id }}" {% if trx.program_id == p.id %}selected{% endif %}>{{ p.title }}</option>
+                                                            {% endfor %}
                                                         </select>
                                                     </div>
                                                     <div class="mb-3">
@@ -1545,7 +1562,15 @@
             <form action="{% url 'core:save_transaction' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="transaction_type" value="income">
-                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">কার্যক্রম (Program - ঐচ্ছিক)</label>
+                        <select name="program_id" class="form-select">
+                            <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --</option>
+                            {% for p in programs %}
+                                <option value="{{ p.id }}">{{ p.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">খাতের নাম / টাইটেল *</label>
                         <input type="text" name="title" required class="form-control" placeholder="যেমন: প্রবাসী সমিতি অনুদান / সাধারণ অনুদান">
@@ -1623,6 +1648,15 @@
                 {% csrf_token %}
                 <input type="hidden" name="transaction_type" value="expense">
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">কার্যক্রম (Program - ঐচ্ছিক)</label>
+                        <select name="program_id" class="form-select">
+                            <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --</option>
+                            {% for p in programs %}
+                                <option value="{{ p.id }}">{{ p.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">খরচের খাতের নাম *</label>
                         <input type="text" name="title" required class="form-control" placeholder="যেমন: খাতা-কলম বিতরণ / ব্যানার প্রিন্টিং">
