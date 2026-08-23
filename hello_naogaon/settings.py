@@ -172,7 +172,6 @@ JAZZMIN_SETTINGS = {
     "topmenu_links": [
         {"name": "ওয়েবসাইট দেখুন", "url": "/", "new_window": True},
         {"name": "আমাদের সম্পর্কে", "url": "/about/", "new_window": True},
-        {"name": "যোগাযোগের বার্তা", "model": "core.contactmessage"},
     ],
 
     "usermenu_links": [
@@ -184,7 +183,6 @@ JAZZMIN_SETTINGS = {
         "core.sitesetting",
         "core.statcounter",
         "core.aboutimage",
-        "core.contactmessage",
         "programs.program",
         "programs.event",
         "programs.successstory",
@@ -212,7 +210,6 @@ JAZZMIN_SETTINGS = {
         "core.sitesetting": "fas fa-sliders-h text-success",
         "core.statcounter": "fas fa-sort-numeric-up text-info",
         "core.aboutimage": "fas fa-images text-warning",
-        "core.contactmessage": "fas fa-envelope-open-text text-danger",
 
         "programs": "fas fa-hands-helping",
         "programs.program": "fas fa-hand-holding-heart text-success",

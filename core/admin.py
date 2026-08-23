@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SiteSetting, StatCounter, AboutImage, ContactMessage
+from .models import SiteSetting, StatCounter, AboutImage
 
 @admin.register(SiteSetting)
 class SiteSettingAdmin(admin.ModelAdmin):
@@ -19,10 +19,4 @@ class AboutImageAdmin(admin.ModelAdmin):
     list_display = ('caption', 'is_featured', 'order')
     list_editable = ('is_featured', 'order')
 
-@admin.register(ContactMessage)
-class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'subject', 'created_at', 'is_read')
-    list_filter = ('is_read', 'created_at')
-    search_fields = ('name', 'email', 'subject')
-    list_per_page = 20
 

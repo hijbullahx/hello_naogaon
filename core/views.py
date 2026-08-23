@@ -5,7 +5,8 @@ from news.models import Article
 from gallery.models import Photo
 from volunteers.models import TeamMember, BloodDonor
 from donations.models import Bank, QRCode, DonationMethod
-from .models import SiteSetting, StatCounter, AboutImage, ContactMessage
+from .models import SiteSetting, StatCounter, AboutImage
+
 
 def home(request):
     site_setting = SiteSetting.objects.first()
@@ -46,24 +47,3 @@ def about(request):
         'team_members': team_members,
     }
     return render(request, 'core/about.html', context)
-
-def contact(request):
-    site_setting = SiteSetting.objects.first()
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        subject = request.POST.get('subject')
-        message = request.POST.get('message')
-        if name and email and message:
-            ContactMessage.objects.create(
-                name=name, email=email, subject=subject, message=message
-            )
-            messages.success(request, 'আপনার বার্তা সফলভাবে পাঠানো হয়েছে। ধন্যবাদ!')
-            return redirect('core:contact')
-        else:
-            messages.error(request, 'দয়া করে সমস্ত প্রয়োজনীয় ফিল্ড পূরণ করুন।')
-
-    context = {
-        'site_setting': site_setting,
-    }
-    return render(request, 'core/contact.html', context)

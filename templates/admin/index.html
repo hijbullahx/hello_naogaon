@@ -84,23 +84,7 @@
             </div>
         </div>
 
-        <!-- Stat Card 5: Unread Messages -->
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="small-box bg-purple shadow-sm rounded-lg overflow-hidden">
-                <div class="inner p-3">
-                    <h3 class="fw-extrabold">{{ dashboard_stats.unread_messages }}</h3>
-                    <p class="fw-semibold mb-0">নতুন বার্তা</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <a href="{% url 'admin:core_contactmessage_changelist' %}" class="small-box-footer py-1 px-3 d-block text-white text-decoration-none">
-                    বিস্তারিত দেখুন <i class="fas fa-arrow-circle-right ms-1"></i>
-                </a>
-            </div>
-        </div>
-
-        <!-- Stat Card 6: Gallery Photos -->
+        <!-- Stat Card 5: Gallery Photos -->
         <div class="col-lg-2 col-md-4 col-sm-6">
             <div class="small-box bg-teal shadow-sm rounded-lg overflow-hidden">
                 <div class="inner p-3">
@@ -132,7 +116,6 @@
                         <a href="{% url 'admin:core_sitesetting_changelist' %}" class="btn btn-outline-success btn-sm text-start"><i class="fas fa-cog me-2"></i> সাইট সেটিং পরিবর্তন করুন</a>
                         <a href="{% url 'admin:core_statcounter_changelist' %}" class="btn btn-outline-info btn-sm text-start"><i class="fas fa-sort-numeric-up me-2"></i> হোমপেজ কাউন্টার কার্ডসমূহ</a>
                         <a href="{% url 'admin:core_aboutimage_changelist' %}" class="btn btn-outline-warning btn-sm text-start"><i class="fas fa-images me-2"></i> সম্পর্কে ফটো কলেজ গ্রিড</a>
-                        <a href="{% url 'admin:core_contactmessage_changelist' %}" class="btn btn-outline-danger btn-sm text-start"><i class="fas fa-envelope-open-text me-2"></i> যোগাযোগের বার্তাসমূহ ({{ dashboard_stats.unread_messages }})</a>
                     </div>
                 </div>
             </div>

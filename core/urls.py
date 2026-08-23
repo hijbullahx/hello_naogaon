@@ -6,7 +6,7 @@ app_name = 'core'
 urlpatterns = [
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
-    path('contact/', views.contact, name='contact'),
+
     
     # Custom Section-by-Section Card Control Admin Dashboard
     path('dashboard/', views_dashboard.dashboard_home, name='dashboard'),
