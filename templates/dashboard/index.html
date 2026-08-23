@@ -64,9 +64,14 @@
                             <form action="{% url 'core:update_hero' %}" method="post" enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                         <label class="form-label fw-bold mb-0">লোগো ছবি (Logo Image)</label>
-                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300 KB</span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300 KB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                            </a>
+                                        </div>
                                     </div>
                                     {% if site_setting.logo %}
                                         {% if site_setting.logo %}<div class="mb-2"><img src="{{ site_setting.logo.url }}" alt="Logo" style="height: 40px;"></div>{% endif %}
@@ -75,9 +80,14 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                         <label class="form-label fw-bold mb-0">হিরো সাইড/ব্যাকগ্রাউন্ড ছবি (Hero Image)</label>
-                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                            </a>
+                                        </div>
                                     </div>
                                     {% if site_setting.hero_image %}
                                         {% if site_setting.hero_image %}<div class="mb-2"><img src="{{ site_setting.hero_image.url }}" alt="Hero" style="height: 60px; object-fit: cover;" class="rounded border"></div>{% endif %}
@@ -152,9 +162,14 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                         <label class="form-label fw-bold mb-0">মেইন বড় ফিচারড ফটো (Featured Main Photo)</label>
-                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                            </a>
+                                        </div>
                                     </div>
                                     {% if about_featured_image %}
                                         {% if about_featured_image and about_featured_image.image %}<div class="mb-2"><img src="{{ about_featured_image.image.url }}" style="height: 70px; object-fit: cover;" class="rounded border"></div>{% endif %}
@@ -163,9 +178,14 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                         <label class="form-label fw-bold mb-0">সাব ফটো গ্রিডে নতুন ছবি যোগ করুন</label>
-                                        <span class="badge bg-light text-secondary border small">প্রতিটি সর্বোচ্চ 600 KB</span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge bg-light text-secondary border small">প্রতিটি সর্বোচ্চ 600 KB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                            </a>
+                                        </div>
                                     </div>
                                     <input type="file" name="sub_images" class="form-control form-control-sm" accept="image/*" onchange="validateDashboardImage(this, 600, 'গ্রিড ছবি')" multiple>
                                     <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i> Ctrl / Shift চেপে একসাথে একাধিক ফটো নির্বাচন করতে পারেন</small>
@@ -467,9 +487,14 @@
                                                                 <textarea name="bio" rows="3" class="form-control">{{ tm.bio }}</textarea>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                                                     <label class="form-label fw-bold mb-0">ছবি পরিবর্তন করুন</label>
-                                                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                                                    <div class="d-flex align-items-center gap-1">
+                                                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                            <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                        </a>
+                                                                    </div>
                                                                 </div>
                                                                 {% if tm.image %}<div class="mb-2"><img src="{{ tm.image.url }}" style="height: 50px;" class="rounded border"></div>{% endif %}
                                                                 <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
@@ -893,9 +918,14 @@
                                                         <textarea name="note" rows="2" class="form-control">{{ trx.note }}</textarea>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                                             <label class="form-label fw-bold mb-0">ভাউচার / রশিদ ছবি</label>
-                                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                                            <div class="d-flex align-items-center gap-1">
+                                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                </a>
+                                                            </div>
                                                         </div>
                                                         {% if trx.receipt %}<div class="mb-2"><a href="{{ trx.receipt.url }}" target="_blank" class="small text-primary fw-bold"><i class="fas fa-file-image me-1"></i>বর্তমান রশিদ দেখুন</a></div>{% endif %}
                                                         <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
@@ -941,9 +971,14 @@
                                     <textarea name="hero_subtitle" rows="2" class="form-control">{{ donation_content.hero_subtitle }}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                         <label class="form-label fw-bold mb-0">হিরো ব্যাকগ্রাউন্ড ছবি</label>
-                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                            <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                            </a>
+                                        </div>
                                     </div>
                                     {% if donation_content.hero_image %}
                                         {% if donation_content.hero_image %}<div class="mb-2"><img src="{{ donation_content.hero_image.url }}" style="height: 70px;" class="rounded border"></div>{% endif %}
@@ -994,9 +1029,14 @@
                                         <input type="text" name="swift_code" value="{{ bank.swift_code|default:'0902600925' }}" class="form-control">
                                     </div>
                                     <div class="col-md-12">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                             <label class="form-label fw-bold mb-0">bKash/Nagad QR কোড ছবি আপলোড করুন</label>
-                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300 KB</span>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300 KB</span>
+                                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                </a>
+                                            </div>
                                         </div>
                                         {% if qrcodes.first and qrcodes.first.image %}
                                             {% if qrcodes.first and qrcodes.first.image %}<div class="mb-2"><img src="{{ qrcodes.first.image.url }}" style="height: 100px;" class="rounded border p-1"></div>{% endif %}
@@ -1095,9 +1135,14 @@
                                                                 </div>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                                                     <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
-                                                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                                                    <div class="d-flex align-items-center gap-1">
+                                                                        <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                            <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                        </a>
+                                                                    </div>
                                                                 </div>
                                                                 {% if c.image %}
                                                                     {% if c.image %}<div class="mb-2"><img src="{{ c.image.url }}" style="height: 60px;" class="rounded"></div>{% endif %}
@@ -1174,7 +1219,6 @@
                                         <a href="{% url 'core:delete_impact' imp.id %}" onclick="return confirm('আইটেমটি মুছবেন?');" class="text-danger small"><i class="fas fa-trash"></i></a>
                                     </div>
                                 {% empty %}
-                                    <small class="text-muted">কোনো প্রভাব তথ্য নেই।</small>
                                 {% endfor %}
                             </div>
 
@@ -1210,9 +1254,14 @@
                         {% csrf_token %}
                         <div class="row g-2 align-items-center">
                             <div class="col-md-5">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                     <label class="form-label small fw-bold mb-0">ছবি নির্বাচন করুন</label>
-                                    <span class="badge bg-white text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="badge bg-white text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                        <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                            <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                        </a>
+                                    </div>
                                 </div>
                                 <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 1024, 'গ্যালারির ছবি')" required>
                             </div>
@@ -1286,9 +1335,14 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">প্রোগ্রামের ছবি আপলোড করুন</label>
-                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
                         </div>
                         <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'কার্যক্রমের ছবি')">
                     </div>
@@ -1370,9 +1424,14 @@
                         <textarea name="content" rows="5" required class="form-control"></textarea>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
-                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1 MB</span>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
                         </div>
                         <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 1024, 'সংবাদের ছবি')">
                     </div>
@@ -1453,9 +1512,14 @@
                         <textarea name="bio" rows="2" class="form-control" placeholder="সংক্ষিপ্ত পরিচয়..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">প্রোফাইল ছবি আপলোড করুন</label>
-                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
                         </div>
                         <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
                     </div>
@@ -1525,9 +1589,14 @@
                         <textarea name="note" rows="2" class="form-control" placeholder="নোট বা বিবরণ..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">ভাউচার / রশিদ ছবি</label>
-                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
                         </div>
                         <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
                     </div>
@@ -1597,9 +1666,14 @@
                         <textarea name="note" rows="2" class="form-control" placeholder="নোট বা বিবরণ..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">ভাউচার / মেমো ছবি</label>
-                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
                         </div>
                         <input type="file" name="receipt" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
                     </div>
@@ -1653,9 +1727,14 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">কভার ছবি আপলোড করুন</label>
-                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
                         </div>
                         <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'ক্যাম্পেইন কভার ছবি')">
                     </div>
@@ -1689,9 +1768,14 @@
                         <textarea name="description" rows="3" class="form-control" placeholder="আবেদনের বিবরণ..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                             <label class="form-label fw-bold mb-0">ছবি আপলোড করুন</label>
-                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 800 KB</span>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
                         </div>
                         <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 800, 'জরুরি আপিল ছবি')">
                     </div>
