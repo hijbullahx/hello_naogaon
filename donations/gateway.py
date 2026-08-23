@@ -1,19 +1,43 @@
 import os
-import json
 import logging
-import urllib.request
-import urllib.parse
+import requests
 from django.conf import settings
 from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
-SSLCOMMERZ_STORE_ID = getattr(settings, 'SSLCOMMERZ_STORE_ID', os.getenv('SSLCOMMERZ_STORE_ID', 'testbox'))
-SSLCOMMERZ_STORE_PASS = getattr(settings, 'SSLCOMMERZ_STORE_PASS', os.getenv('SSLCOMMERZ_STORE_PASS', 'qwerty'))
-SSLCOMMERZ_IS_SANDBOX = getattr(settings, 'SSLCOMMERZ_IS_SANDBOX', os.getenv('SSLCOMMERZ_IS_SANDBOX', 'True') == 'True')
+def get_gateway_config():
+    """
+    Retrieves the active payment gateway configuration from database (PaymentGatewaySetting)
+    or falls back to environment variables and settings.
+    """
+    try:
+        from .models import PaymentGatewaySetting
+        config = PaymentGatewaySetting.objects.filter(is_active=True).first()
+        if config and config.store_id and config.store_password:
+            return {
+                'provider': config.provider,
+                'store_id': config.store_id.strip(),
+                'store_passwd': config.store_password.strip(),
+                'is_sandbox': config.is_sandbox,
+            }
+    except Exception as e:
+        logger.warning(f"Could not load PaymentGatewaySetting from DB: {e}")
 
-def get_sslcommerz_urls():
-    if SSLCOMMERZ_IS_SANDBOX:
+    # Fallback to settings / env variables
+    store_id = getattr(settings, 'SSLCOMMERZ_STORE_ID', os.getenv('SSLCOMMERZ_STORE_ID', 'testbox')).strip()
+    store_passwd = getattr(settings, 'SSLCOMMERZ_STORE_PASS', os.getenv('SSLCOMMERZ_STORE_PASS', 'qwerty')).strip()
+    is_sandbox = getattr(settings, 'SSLCOMMERZ_IS_SANDBOX', os.getenv('SSLCOMMERZ_IS_SANDBOX', 'True') == 'True')
+
+    return {
+        'provider': 'sslcommerz',
+        'store_id': store_id or 'testbox',
+        'store_passwd': store_passwd or 'qwerty',
+        'is_sandbox': is_sandbox,
+    }
+
+def get_sslcommerz_api_urls(is_sandbox=True):
+    if is_sandbox:
         return {
             'session': 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php',
             'validate': 'https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php',
@@ -25,87 +49,89 @@ def get_sslcommerz_urls():
 
 def initiate_payment_gateway_session(request, donation):
     """
-    Initiates an automated payment gateway session.
-    If live/sandbox SSLCommerz credentials are active, connects to SSLCommerz API.
-    Otherwise seamlessly serves the internal secure payment gateway checkout.
+    Directly initiates an official payment gateway session with SSLCommerz API.
+    Returns the official GatewayPageURL to redirect the user to the gateway checkout.
     """
+    config = get_gateway_config()
+    urls = get_sslcommerz_api_urls(config['is_sandbox'])
+
     domain = request.build_absolute_uri('/')[:-1]
     success_url = f"{domain}{reverse('donations:payment_success')}"
     fail_url = f"{domain}{reverse('donations:payment_fail')}"
     cancel_url = f"{domain}{reverse('donations:payment_cancel')}"
     ipn_url = f"{domain}{reverse('donations:payment_ipn')}"
 
-    # Check if custom live credentials are provided and not standard dummy
-    is_live_configured = SSLCOMMERZ_STORE_ID and SSLCOMMERZ_STORE_ID != 'testbox' and SSLCOMMERZ_STORE_PASS != 'qwerty'
-
-    if is_live_configured:
-        post_data = {
-            'store_id': SSLCOMMERZ_STORE_ID,
-            'store_passwd': SSLCOMMERZ_STORE_PASS,
-            'total_amount': str(donation.amount),
-            'currency': 'BDT',
-            'tran_id': donation.tran_id,
-            'success_url': success_url,
-            'fail_url': fail_url,
-            'cancel_url': cancel_url,
-            'ipn_url': ipn_url,
-            'cus_name': donation.donor_name or 'Donor',
-            'cus_email': donation.donor_email or 'info@helplinehellonaogaon.com',
-            'cus_phone': donation.donor_phone or '01700000000',
-            'cus_add1': 'Naogaon',
-            'cus_city': 'Naogaon',
-            'cus_country': 'Bangladesh',
-            'shipping_method': 'NO',
-            'product_name': 'Helpline Hello Naogaon Donation',
-            'product_category': 'Charity Donation',
-            'product_profile': 'non-physical-goods',
-        }
-
-        try:
-            urls = get_sslcommerz_urls()
-            encoded_data = urllib.parse.urlencode(post_data).encode('utf-8')
-            req = urllib.request.Request(urls['session'], data=encoded_data, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=10) as response:
-                res_data = json.loads(response.read().decode('utf-8'))
-                if res_data.get('status') == 'SUCCESS' and res_data.get('GatewayPageURL'):
-                    return {
-                        'success': True,
-                        'gateway_url': res_data['GatewayPageURL']
-                    }
-                else:
-                    logger.warning(f"SSLCommerz Session Error: {res_data.get('failedreason')}")
-        except Exception as e:
-            logger.error(f"Error initiating SSLCommerz session: {e}")
-
-    # Fallback / Built-in Interactive Payment Gateway Checkout
-    checkout_url = reverse('donations:gateway_checkout', args=[donation.tran_id])
-    return {
-        'success': True,
-        'gateway_url': checkout_url
+    post_data = {
+        'store_id': config['store_id'],
+        'store_passwd': config['store_passwd'],
+        'total_amount': f"{donation.amount:.2f}",
+        'currency': 'BDT',
+        'tran_id': donation.tran_id,
+        'success_url': success_url,
+        'fail_url': fail_url,
+        'cancel_url': cancel_url,
+        'ipn_url': ipn_url,
+        'cus_name': donation.donor_name or 'Donor',
+        'cus_email': donation.donor_email or 'info@helplinehellonaogaon.com',
+        'cus_phone': donation.donor_phone or '01700000000',
+        'cus_add1': 'Naogaon, Bangladesh',
+        'cus_city': 'Naogaon',
+        'cus_country': 'Bangladesh',
+        'shipping_method': 'NO',
+        'product_name': 'Helpline Hello Naogaon Financial Contribution',
+        'product_category': 'Charity Donation',
+        'product_profile': 'non-physical-goods',
+        'value_a': str(donation.id),
+        'value_b': donation.membership_id or '',
+        'value_c': donation.donation_type,
     }
-
-def validate_gateway_payment(val_id, tran_id=None):
-    """
-    Validates a transaction with SSLCommerz server if val_id is provided.
-    """
-    if not val_id:
-        return {'status': 'VALID', 'val_id': val_id or tran_id}
-
-    urls = get_sslcommerz_urls()
-    params = {
-        'val_id': val_id,
-        'store_id': SSLCOMMERZ_STORE_ID,
-        'store_passwd': SSLCOMMERZ_STORE_PASS,
-        'format': 'json'
-    }
-    query_string = urllib.parse.urlencode(params)
-    full_url = f"{urls['validate']}?{query_string}"
 
     try:
-        req = urllib.request.Request(full_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=10) as response:
-            res_data = json.loads(response.read().decode('utf-8'))
-            return res_data
+        response = requests.post(urls['session'], data=post_data, timeout=12)
+        res_data = response.json()
+        if res_data.get('status') == 'SUCCESS' and res_data.get('GatewayPageURL'):
+            logger.info(f"SSLCommerz Session created successfully for {donation.tran_id}: {res_data.get('sessionkey')}")
+            return {
+                'success': True,
+                'gateway_url': res_data['GatewayPageURL'],
+                'sessionkey': res_data.get('sessionkey')
+            }
+        else:
+            error_reason = res_data.get('failedreason', 'Unknown Gateway Error')
+            logger.error(f"SSLCommerz Session Error: {error_reason}")
+            return {
+                'success': False,
+                'error': error_reason
+            }
     except Exception as e:
-        logger.error(f"Error validating SSLCommerz payment: {e}")
-        return {'status': 'VALID', 'val_id': val_id}
+        logger.error(f"Failed to connect to SSLCommerz API: {e}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+def validate_gateway_payment(val_id):
+    """
+    Validates a transaction directly with SSLCommerz Validation Server.
+    """
+    if not val_id:
+        return {'status': 'INVALID', 'error': 'No val_id provided'}
+
+    config = get_gateway_config()
+    urls = get_sslcommerz_api_urls(config['is_sandbox'])
+
+    params = {
+        'val_id': val_id,
+        'store_id': config['store_id'],
+        'store_passwd': config['store_passwd'],
+        'format': 'json'
+    }
+
+    try:
+        response = requests.get(urls['validate'], params=params, timeout=12)
+        res_data = response.json()
+        logger.info(f"SSLCommerz Validation Response: {res_data.get('status')} for val_id: {val_id}")
+        return res_data
+    except Exception as e:
+        logger.error(f"SSLCommerz Validation API error: {e}")
+        return {'status': 'ERROR', 'error': str(e)}

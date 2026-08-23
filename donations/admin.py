@@ -61,11 +61,24 @@ class DonationStatisticAdmin(admin.ModelAdmin):
     list_filter = ('is_active',)
 
 
-from .models import ProgramDonation
+from .models import ProgramDonation, PaymentGatewaySetting, FinancialTransaction
+
+@admin.register(PaymentGatewaySetting)
+class PaymentGatewaySettingAdmin(admin.ModelAdmin):
+    list_display = ('provider', 'store_id', 'is_sandbox', 'is_active', 'updated_at')
+    list_filter = ('provider', 'is_sandbox', 'is_active')
+    search_fields = ('store_id',)
+
+@admin.register(FinancialTransaction)
+class FinancialTransactionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'transaction_type', 'category', 'amount', 'payment_method', 'trx_id', 'donor_name', 'date')
+    list_filter = ('transaction_type', 'category', 'payment_method', 'date')
+    search_fields = ('title', 'donor_name', 'trx_id', 'note')
+    ordering = ('-date', '-id')
 
 @admin.register(ProgramDonation)
 class ProgramDonationAdmin(admin.ModelAdmin):
     list_display = ('donor_name', 'donation_type', 'frequency', 'amount', 'payment_method', 'membership_id', 'donor_phone', 'status', 'created_at')
     list_filter = ('status', 'donation_type', 'frequency', 'payment_method', 'program', 'created_at')
-    search_fields = ('donor_name', 'donor_phone', 'donor_email', 'membership_id', 'trx_id', 'program__title')
+    search_fields = ('donor_name', 'donor_phone', 'donor_email', 'membership_id', 'trx_id', 'tran_id', 'bank_tran_id', 'program__title')
     ordering = ('-created_at',)

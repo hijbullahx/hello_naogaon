@@ -1,4 +1,5 @@
 import random
+import logging
 from datetime import date, datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -18,11 +19,14 @@ from .models import (
     FAQ,
     DonationStatistic,
     ProgramDonation,
-    FinancialTransaction
+    FinancialTransaction,
+    PaymentGatewaySetting
 )
 from programs.models import Program
 from volunteers.models import Volunteer
-from .gateway import initiate_payment_gateway_session, validate_gateway_payment
+from .gateway import initiate_payment_gateway_session, validate_gateway_payment, get_gateway_config
+
+logger = logging.getLogger(__name__)
 
 def donation_page_view(request):
     """
@@ -87,8 +91,8 @@ def member_pledge_lookup(request):
 @require_POST
 def initiate_payment(request):
     """
-    Automated payment gateway initiation.
-    Does NOT require manual TrxID. Redirects user to secure online payment checkout.
+    Automated official payment gateway initiation.
+    Redirects user directly to the official Payment Gateway (SSLCommerz) hosted page.
     """
     donor_identity_type = request.POST.get('donor_identity_type', 'general').strip()
     membership_id = request.POST.get('membership_id', '').strip()
@@ -149,41 +153,31 @@ def initiate_payment(request):
         status='pending'
     )
 
-    # Initiate payment gateway session
+    # Initiate official payment gateway session
     gw_res = initiate_payment_gateway_session(request, donation)
     if gw_res.get('success') and gw_res.get('gateway_url'):
         return redirect(gw_res['gateway_url'])
 
-    # Fallback to internal checkout
-    return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
-
-
-def gateway_checkout_view(request, tran_id):
-    """
-    Renders interactive and secure payment gateway checkout simulation.
-    """
-    donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
-    if donation.status == 'approved':
-        return redirect('donations:receipt', donation_id=donation.id)
-
-    return render(request, 'donations/gateway_checkout.html', {
-        'donation': donation
-    })
+    # Handle gateway connection error
+    err_msg = gw_res.get('error', 'পেমেন্ট গেটওয়েতে সংযোগ করতে সমস্যা হয়েছে।')
+    logger.error(f"Payment gateway session failed: {err_msg}")
+    messages.error(request, f"পেমেন্ট গেটওয়ে এর সাথে সংযোগ স্থাপন করা সম্ভব হয়নি: {err_msg}")
+    return redirect('donations:donate')
 
 
 @csrf_exempt
 def payment_success(request):
     """
-    Payment Gateway Success Callback.
-    Verifies transaction, marks donation as approved, logs financial income transaction, and shows receipt.
+    Official Payment Gateway Success Callback.
+    Verifies transaction with gateway validation server, updates donation, logs financial transaction, and shows receipt.
     """
     tran_id = request.POST.get('tran_id') or request.GET.get('tran_id')
     val_id = request.POST.get('val_id') or request.GET.get('val_id')
-    card_type = request.POST.get('card_type') or request.POST.get('payment_method') or 'Online Gateway'
-    bank_tran_id = request.POST.get('bank_tran_id') or request.POST.get('trx_id') or f"PGW{random.randint(10000000, 99999999)}"
+    card_type = request.POST.get('card_type') or request.POST.get('card_brand') or 'Online Payment'
+    bank_tran_id = request.POST.get('bank_tran_id') or request.POST.get('val_id') or request.POST.get('tran_id')
 
     if not tran_id:
-        messages.error(request, "পেমেন্ট তথ্য পাওয়া যায়নি।")
+        messages.error(request, "পেমেন্ট সংক্রান্ত তথ্য পাওয়া যায়নি।")
         return redirect('donations:donate')
 
     donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
@@ -191,8 +185,14 @@ def payment_success(request):
         messages.error(request, "অনুরোধকৃত লেনদেনটি খুঁজে পাওয়া যায়নি।")
         return redirect('donations:donate')
 
+    # Optional server-side validation if val_id is provided
+    if val_id:
+        validation_res = validate_gateway_payment(val_id)
+        if validation_res.get('status') in ['VALID', 'VALIDATED']:
+            card_type = validation_res.get('card_type', card_type)
+            bank_tran_id = validation_res.get('bank_tran_id', bank_tran_id)
+
     if donation.status != 'approved':
-        # Update donation to approved status
         donation.status = 'approved'
         donation.payment_method = card_type
         donation.card_type = card_type
@@ -200,9 +200,9 @@ def payment_success(request):
         donation.trx_id = bank_tran_id
         donation.save()
 
-        # Log into Financial Transactions (Income)
+        # Record income in Financial Transactions
         category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা' if donation.donation_type == 'volunteer' else 'সাধারণ আর্থিক সহায়তা'
-        trx_note = f"গেটওয়ে চ্যানেল: {card_type} | ট্রানজেকশন আইডি: {bank_tran_id} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | মোবাইল: {donation.donor_phone}"
+        trx_note = f"পেমেন্ট চ্যানেল: {card_type} | ট্রানজেকশন আইডি: {bank_tran_id} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | মোবাইল: {donation.donor_phone}"
         if donation.note:
             trx_note += f" | নোট: {donation.note}"
 
@@ -221,7 +221,7 @@ def payment_success(request):
     member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
     messages.success(
         request, 
-        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন পেমেন্ট সফলভাবে গৃহীত হয়েছে।'
+        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
     )
     return redirect('donations:receipt', donation_id=donation.id)
 
@@ -268,10 +268,13 @@ def payment_ipn(request):
     if tran_id:
         donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
         if donation and donation.status == 'pending':
-            donation.status = 'approved'
-            donation.bank_tran_id = val_id or f"IPN{random.randint(100000, 999999)}"
-            donation.trx_id = donation.bank_tran_id
-            donation.save()
+            if val_id:
+                val_res = validate_gateway_payment(val_id)
+                if val_res.get('status') in ['VALID', 'VALIDATED']:
+                    donation.status = 'approved'
+                    donation.bank_tran_id = val_id
+                    donation.trx_id = val_id
+                    donation.save()
     return JsonResponse({'status': 'IPN received'})
 
 
