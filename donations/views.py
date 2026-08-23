@@ -153,12 +153,17 @@ def initiate_payment(request):
         status='pending'
     )
 
-    member_txt = f" (সদস্য আইডি: {membership_id})" if membership_id else ""
-    messages.info(
-        request, 
-        f'ধন্যবাদ {donor_name}{member_txt}! অনলাইন পেমেন্ট গেটওয়ে ইন্টিগ্রেশন খুব শীঘ্রই আসছে। আপনার ৳{amount_val:,.0f} আর্থিক সহায়তার তথ্যটি সংরক্ষিত হয়েছে।'
-    )
-    return redirect('donations:donate')
+    return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
+
+
+def gateway_checkout_view(request, tran_id):
+    """
+    Renders the official gateway checkout page with channels and coming soon popup on final action.
+    """
+    donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
+    return render(request, 'donations/gateway_checkout.html', {
+        'donation': donation
+    })
 
 
 @csrf_exempt

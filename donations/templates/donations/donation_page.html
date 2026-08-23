@@ -139,11 +139,8 @@
                         <!-- Submit Button -->
                         <div class="text-center pt-2">
                             <button type="submit" class="btn btn-success btn-lg fw-bold px-5 py-3 rounded-pill shadow">
-                                <i class="fas fa-paper-plane me-2"></i>আর্থিক সহায়তা সাবমিট করুন &rarr;
+                                <i class="fas fa-lock me-2"></i>অনলাইনে পেমেন্ট গেটওয়েতে যান &rarr;
                             </button>
-                            <div class="small text-muted mt-2">
-                                <i class="fas fa-info-circle text-primary me-1"></i>অনলাইন পেমেন্ট গেটওয়ে ইন্টিগ্রেশন খুব শীঘ্রই চালু হবে।
-                            </div>
                         </div>
                     </form>
                 </div>
@@ -359,14 +356,11 @@
                             <input type="text" class="form-control" id="modal_note" name="note" placeholder="যেমন: চলতি মাসের চাঁদা">
                         </div>
 
-                        <!-- Submit Button -->
+                        <!-- Submit Button to Gateway -->
                         <div class="d-grid pt-2">
                             <button type="submit" class="btn btn-success btn-lg fw-bold py-3 rounded-pill shadow" id="modalSubmitBtn">
-                                <i class="fas fa-paper-plane me-2"></i>৳<span id="modalPayBtnText">{{ prefill_volunteer.contribution_amount|default:500|floatformat:0 }}</span> চাঁদা / সহায়তা সাবমিট করুন &rarr;
+                                <i class="fas fa-lock me-2"></i>অনলাইনে ৳<span id="modalPayBtnText">{{ prefill_volunteer.contribution_amount|default:500|floatformat:0 }}</span> পেমেন্ট গেটওয়েতে যান &rarr;
                             </button>
-                            <div class="text-center small text-muted mt-2">
-                                <i class="fas fa-clock text-warning me-1"></i>অনলাইন পেমেন্ট গেটওয়ে সুবিধা খুব শীঘ্রই যুক্ত হচ্ছে।
-                            </div>
                         </div>
                     </div>
                 </form>
