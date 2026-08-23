@@ -179,14 +179,14 @@
                     </div>
                 </div>
 
-                <!-- 3. Stat Counters Card (Pop-up Modal Edit) -->
+                <!-- 3. Stat Counters Card (Native Bootstrap Pop-up Modal Edit) -->
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-header bg-info text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h5 class="card-title fw-bold mb-0">
                                 <i class="fas fa-sort-numeric-up me-2"></i>৩. হোমপেজ কাউন্টার কার্ডসমূহ এডিট (5 Stat Cards)
                             </h5>
-                            <button type="button" class="btn btn-light btn-sm fw-bold shadow-sm" onclick="openCreateStatModal()">
+                            <button type="button" class="btn btn-light btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#createStatModal">
                                 <i class="fas fa-plus-circle me-1 text-info"></i> নতুন কাউন্টার যোগ করুন
                             </button>
                         </div>
@@ -203,9 +203,45 @@
                                             <div class="fw-semibold text-secondary small">{{ stat.title }}</div>
                                         </div>
                                         <div class="mt-2 pt-2 border-top">
-                                            <button type="button" class="btn btn-sm btn-info text-white fw-bold w-100 py-1" onclick="openEditStatModal('{{ stat.id }}', '{{ stat.title|escapejs }}', '{{ stat.value|escapejs }}')">
+                                            <button type="button" class="btn btn-sm btn-info text-white fw-bold w-100 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#editStatModal_{{ stat.id }}">
                                                 <i class="fas fa-edit me-1"></i> মান পরিবর্তন করুন
                                             </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Stat Modal for this card -->
+                                <div class="modal fade" id="editStatModal_{{ stat.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-info text-white">
+                                                <h5 class="modal-title fw-bold">
+                                                    <i class="fas fa-edit me-2"></i>{{ stat.title }} - মান পরিবর্তন করুন
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{% url 'core:save_stat_counter' %}" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="stat_id" value="{{ stat.id }}">
+                                                <div class="modal-body text-start">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">কাউন্টারের নাম / বিষয় *</label>
+                                                        <input type="text" name="title" value="{{ stat.title }}" required class="form-control">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">সংখ্যা বা পরিমাণ (Value) *</label>
+                                                        <input type="text" name="value" value="{{ stat.value }}" required class="form-control form-control-lg fw-bold text-success" placeholder="যেমন: ৫০০+">
+                                                        <div class="form-text small text-muted mt-1">হোমপেজে প্রদর্শিত মোট সংখ্যা বা পরিমাণ এখানে লিখুন।</div>
+                                                    </div>
+                                                    <div class="p-3 bg-light rounded-3 small text-muted border">
+                                                        <i class="fas fa-check-circle text-success me-1"></i>আইকন ও কালার সিস্টেমের সাথে স্বয়ংক্রিয়ভাবে ফিক্সড রয়েছে।
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer bg-light">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                                                    <button type="submit" class="btn btn-info text-white fw-bold px-4"><i class="fas fa-save me-1"></i> সংরক্ষণ করুন</button>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -215,6 +251,37 @@
                                 </div>
                                 {% endfor %}
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create New Stat Modal -->
+                <div class="modal fade" id="createStatModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-info text-white">
+                                <h5 class="modal-title fw-bold">
+                                    <i class="fas fa-plus-circle me-2"></i>নতুন কাউন্টার কার্ড যোগ করুন
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="{% url 'core:save_stat_counter' %}" method="post">
+                                {% csrf_token %}
+                                <div class="modal-body text-start">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">কাউন্টারের নাম / বিষয় *</label>
+                                        <input type="text" name="title" required class="form-control" placeholder="যেমন: গাছ রোপণ, রক্তদান">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">সংখ্যা বা পরিমাণ (Value) *</label>
+                                        <input type="text" name="value" required class="form-control form-control-lg fw-bold text-success" placeholder="যেমন: ১,০০০+">
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                                    <button type="submit" class="btn btn-info text-white fw-bold px-4"><i class="fas fa-save me-1"></i> তৈরি করুন</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -1668,62 +1735,7 @@
 </div>
 
 
-<!-- Stat Counter Edit / Create Pop-up Modal -->
-<div class="modal fade" id="statCounterModal" tabindex="-1" aria-labelledby="statCounterModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title fw-bold" id="statCounterModalLabel">
-                    <i class="fas fa-sort-numeric-up me-2"></i>কাউন্টার কার্ড এডিট করুন
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'core:save_stat_counter' %}" method="post" id="statCounterForm">
-                {% csrf_token %}
-                <input type="hidden" name="stat_id" id="stat_id_input" value="">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">কাউন্টারের নাম / বিষয় *</label>
-                        <input type="text" name="title" id="stat_title_input" required class="form-control" placeholder="যেমন: রক্তদান, পরিবারকে সহায়তা, শিক্ষার্থী সহায়তা, স্বেচ্ছাসেবক, গাছ রোপণ">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">সংখ্যা বা পরিমাণ (Value) *</label>
-                        <input type="text" name="value" id="stat_value_input" required class="form-control form-control-lg fw-bold text-success" placeholder="যেমন: ৫০০+, ২,০০০+, ৩০০+, ১৫০+, ১,০০০+">
-                        <div class="form-text small text-muted mt-1">হোমপেজে প্রদর্শিত মোট সংখ্যা বা পরিমাণ এখানে লিখুন।</div>
-                    </div>
-                    <div class="p-3 bg-light rounded-3 small text-muted border">
-                        <i class="fas fa-info-circle text-info me-1"></i>প্রতিটি কার্ডের আইকন ও কালার থিম সিস্টেমের সাথে স্বয়ংক্রিয়ভাবে সিঙ্ক থাকবে।
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-info text-white fw-bold px-4"><i class="fas fa-save me-1"></i> সংরক্ষণ করুন</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
-<script>
-function openCreateStatModal() {
-    document.getElementById('statCounterModalLabel').innerHTML = '<i class="fas fa-plus-circle me-2"></i>নতুন কাউন্টার কার্ড যোগ করুন';
-    document.getElementById('stat_id_input').value = '';
-    document.getElementById('stat_title_input').value = '';
-    document.getElementById('stat_value_input').value = '';
-
-    const modal = new bootstrap.Modal(document.getElementById('statCounterModal'));
-    modal.show();
-}
-
-function openEditStatModal(id, title, value) {
-    document.getElementById('statCounterModalLabel').innerHTML = '<i class="fas fa-edit me-2"></i>কাউন্টার এডিট করুন: ' + title;
-    document.getElementById('stat_id_input').value = id;
-    document.getElementById('stat_title_input').value = title;
-    document.getElementById('stat_value_input').value = value;
-
-    const modal = new bootstrap.Modal(document.getElementById('statCounterModal'));
-    modal.show();
-}
 
 document.addEventListener("DOMContentLoaded", function() {
     // 1. Check URL search param e.g. ?tab=volunteers-section
