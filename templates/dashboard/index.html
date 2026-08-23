@@ -395,9 +395,8 @@
         <!-- ================= TAB 3: BLOOD DONORS ================= -->
         <div class="tab-pane fade" id="donors-section" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-danger text-white py-3">
                     <h5 class="card-title fw-bold mb-0"><i class="fas fa-tint me-2"></i>রক্তদাতা ডাটাবেস (Blood Donors Database)</h5>
-                    <button class="btn btn-light btn-sm fw-bold text-danger" data-bs-toggle="modal" data-bs-target="#donorModal"><i class="fas fa-plus-circle me-1"></i> নতুন রক্তদাতা যোগ করুন</button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -1445,54 +1444,6 @@
     </div>
 </div>
 {% endfor %}
-
-<!-- Donor Modal -->
-<div class="modal fade" id="donorModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন রক্তদাতা যোগ করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'core:save_donor' %}" method="post">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">পূর্ণ নাম *</label>
-                        <input type="text" name="full_name" required class="form-control">
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">রক্তের গ্রুপ *</label>
-                            <select name="blood_group" class="form-select" required>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">ফোন নম্বর *</label>
-                            <input type="text" name="phone" required class="form-control">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">ঠিকানা *</label>
-                        <input type="text" name="location" required class="form-control" placeholder="মহাদেবপুর, নওগাঁ">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-danger fw-bold">সংরক্ষণ করুন</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <!-- News Modal -->
 <div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true">
