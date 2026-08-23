@@ -244,11 +244,24 @@
                                         <textarea name="contact_address" rows="3" class="form-control">{{ site_setting.contact_address }}</textarea>
                                     </div>
                                     <div class="col-md-12">
-                                        <label class="form-label fw-bold">গুগল ম্যাপ ইমবেড আইফ্রেম (Google Map Embed Code)</label>
-                                        <textarea name="google_map_embed_url" rows="2" class="form-control" placeholder="<iframe src='...'></iframe>">{{ site_setting.google_map_embed_url }}</textarea>
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-map-marked-alt text-success me-1"></i>গুগল ম্যাপ ইমবেড আইফ্রেম / লিংক (Google Map Embed Code or Link)
+                                        </label>
+                                        <textarea name="google_map_embed_url" rows="3" class="form-control font-monospace small" placeholder="<iframe src='https://www.google.com/maps/embed?...' ...></iframe> অথবা সরাসরি লিংক">{{ site_setting.google_map_embed_url }}</textarea>
+                                        <div class="form-text small text-muted mt-1">
+                                            <i class="fas fa-info-circle text-primary me-1"></i>Google Maps-এর 'Share' অপশন থেকে 'Embed a map'-এর HTML কোড (iframe) অথবা সরাসরি লিংক পেস্ট করুন। এটি ওয়েবসাইটের ফুটারের মানচিত্রে প্রদর্শিত হবে।
+                                        </div>
+
+                                        <!-- Live Map Preview -->
+                                        <div class="mt-3 p-3 bg-light border rounded-3">
+                                            <div class="small fw-bold text-secondary mb-2"><i class="fas fa-eye text-success me-1"></i>বর্তমান ম্যাপ প্রিভিউ:</div>
+                                            <div class="rounded overflow-hidden shadow-sm" style="height: 180px; width: 100%;">
+                                                {{ site_setting.google_map_embed_html|safe }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-dark fw-bold mt-3"><i class="fas fa-save me-1"></i> ফুটার আপডেট করুন</button>
+                                <button type="submit" class="btn btn-dark fw-bold mt-3"><i class="fas fa-save me-1"></i> ফুটার ও ম্যাপ আপডেট করুন</button>
                             </form>
                         </div>
                     </div>

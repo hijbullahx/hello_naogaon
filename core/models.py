@@ -29,7 +29,41 @@ class SiteSetting(models.Model):
     youtube_url = models.URLField(blank=True, default='')
     whatsapp_number = models.CharField(max_length=50, blank=True, default='+880 1730-XXXXXX')
     footer_about = models.TextField(blank=True, default='Helpline Hello Naogaon একটি স্বেচ্ছাসেবী সংগঠন। আমাদের লক্ষ্য সমাজকে এগিয়ে নিয়ে যাওয়া এবং অসহায় মানুষের পাশে দাঁড়ানো।')
-    google_map_embed_url = models.TextField(blank=True, default='')
+    google_map_embed_url = models.TextField(
+        blank=True, 
+        default='', 
+        help_text="Google Map Embed Code (<iframe...>) বা ম্যাপের লিঙ্ক দিন।"
+    )
+
+    @property
+    def google_map_embed_html(self):
+        """
+        Safely returns responsive Google Map iframe HTML, supporting:
+        1. Full iframe tags (<iframe src="..."></iframe>)
+        2. Embed URLs (https://www.google.com/maps/embed?pb=...)
+        3. Standard Google Maps URLs
+        """
+        default_iframe = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14515.77259163777!2d88.7516806!3d24.8105741!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39fc96fb24aa7a8d%3A0x7d0251aa3d4be0c2!2sNaogaon%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+        
+        if not self.google_map_embed_url or not self.google_map_embed_url.strip():
+            return default_iframe
+
+        raw = self.google_map_embed_url.strip()
+
+        # If it's a full <iframe>
+        if '<iframe' in raw.lower():
+            import re
+            src_match = re.search(r'src=["\'](.*?)["\']', raw, re.IGNORECASE)
+            if src_match:
+                src_url = src_match.group(1)
+                return f'<iframe src="{src_url}" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+            return raw
+
+        # If it's an embed URL or standard URL
+        if raw.startswith('http://') or raw.startswith('https://'):
+            return f'<iframe src="{raw}" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+
+        return default_iframe
 
     def __str__(self):
         return "Site Settings"
