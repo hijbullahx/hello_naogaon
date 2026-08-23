@@ -933,3 +933,54 @@ def print_financial_statement(request):
         'today': date.today()
     }
     return render(request, 'dashboard/print_financial_statement.html', context)
+
+@staff_member_required
+def approve_program_donation(request, pk):
+    """Approve a pending program/general donation, update raised amount and record in FinancialTransaction"""
+    donation = get_object_or_404(ProgramDonation, pk=pk)
+    if donation.status != 'approved':
+        donation.status = 'approved'
+        donation.save()
+
+        # Update program raised_amount if linked
+        if donation.program:
+            prog = donation.program
+            prog.raised_amount = (prog.raised_amount or 0) + donation.amount
+            prog.save()
+            category_name = f"কার্যক্রম: {prog.title}"
+            title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
+        elif donation.donation_type == 'volunteer':
+            category_name = "স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা"
+            title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
+        else:
+            category_name = "সাধারণ আর্থিক সহায়তা"
+            title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
+
+        trx_note = f"পেমেন্ট মাধ্যম: {donation.payment_method} | Trx ID: {donation.trx_id or 'N/A'} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | ফোন: {donation.donor_phone}"
+        if donation.program:
+            trx_note += f" | কার্যক্রম: {donation.program.title}"
+        if donation.note:
+            trx_note += f" | নোট: {donation.note}"
+
+        FinancialTransaction.objects.create(
+            transaction_type='income',
+            program=donation.program,
+            title=title_name,
+            category=category_name,
+            amount=donation.amount,
+            payment_method=donation.payment_method or 'bKash',
+            trx_id=donation.trx_id or f"HN{donation.id}",
+            donor_name=donation.donor_name,
+            date=date.today(),
+            note=trx_note
+        )
+        messages.success(request, f'অনুদান (৳{donation.amount}) সফলভাবে অনুমোদিত হয়েছে এবং ফাইন্যান্স লেজারে যুক্ত হয়েছে!')
+    return redirect('/dashboard/?tab=finance-section')
+
+@staff_member_required
+def delete_program_donation(request, pk):
+    """Delete a donation entry"""
+    donation = get_object_or_404(ProgramDonation, pk=pk)
+    donation.delete()
+    messages.success(request, 'অনুদানের তথ্য মুছে ফেলা হয়েছে!')
+    return redirect('/dashboard/?tab=finance-section')

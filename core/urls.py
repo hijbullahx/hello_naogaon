@@ -41,5 +41,7 @@ urlpatterns = [
     path('dashboard/print-statement/', views_dashboard.print_financial_statement, name='print_statement'),
     path('dashboard/save-gallery/', views_dashboard.save_gallery_photo, name='save_gallery'),
     path('dashboard/update-footer/', views_dashboard.update_footer_section, name='update_footer'),
+    path('dashboard/approve-donation/<int:pk>/', views_dashboard.approve_program_donation, name='approve_donation'),
+    path('dashboard/delete-donation/<int:pk>/', views_dashboard.delete_program_donation, name='delete_donation'),
 ]
 

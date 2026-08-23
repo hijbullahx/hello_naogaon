@@ -764,7 +764,8 @@
                                     <th>যোগাযোগ (ফোন/ইমেইল)</th>
                                     <th>পেমেন্ট & Trx ID</th>
                                     <th>পরিমাণ (BDT)</th>
-                                    <th>নোট</th>
+                                    <th>স্ট্যাটাস</th>
+                                    <th>অ্যাকশন</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -793,11 +794,23 @@
                                         {% if pd.trx_id %}<small class="text-secondary d-block">Trx: {{ pd.trx_id }}</small>{% endif %}
                                     </td>
                                     <td><span class="fw-bold text-success fs-6">+ ৳ {{ pd.amount }}</span></td>
-                                    <td><small class="text-muted">{{ pd.note|default:"-" }}</small></td>
+                                    <td>
+                                        {% if pd.status == 'approved' %}
+                                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>অনুমোদিত</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>যাচাই বাকি</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if pd.status != 'approved' %}
+                                            <a href="{% url 'core:approve_donation' pd.id %}" onclick="return confirm('এই অনুদানটি অনুমোদন করতে চান? এটি ফাইন্যান্স লেজারে যুক্ত হবে।');" class="btn btn-sm btn-success fw-bold me-1" title="অনুমোদন করুন"><i class="fas fa-check me-1"></i>অনুমোদন</a>
+                                        {% endif %}
+                                        <a href="{% url 'core:delete_donation' pd.id %}" onclick="return confirm('এই এন্ট্রিটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="8" class="text-center py-4 text-muted">এখনো কোনো কার্যক্রম ভিত্তিক আর্থিক সহায়তা জমা হয়নি।</td>
+                                    <td colspan="9" class="text-center py-4 text-muted">এখনো কোনো কার্যক্রম ভিত্তিক আর্থিক সহায়তা জমা হয়নি।</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

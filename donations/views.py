@@ -167,72 +167,42 @@ def initiate_payment(request):
 
 def gateway_checkout_view(request, tran_id):
     """
-    Renders the official gateway checkout page with channels.
+    Renders the official gateway checkout page with notice that automated gateway integration is coming soon,
+    and displays official organization account details (bKash/Nagad/Rocket/Bank) for manual donation.
     """
     donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
+    donation_methods = DonationMethod.objects.filter(is_active=True)
+    banks = Bank.objects.filter(is_active=True)
+    qrcodes = QRCode.objects.filter(is_active=True).select_related('method')
     return render(request, 'donations/gateway_checkout.html', {
-        'donation': donation
+        'donation': donation,
+        'donation_methods': donation_methods,
+        'banks': banks,
+        'qrcodes': qrcodes,
     })
 
 
 @require_POST
 def confirm_checkout_payment(request, tran_id):
     """
-    Directly completes online payment checkout,
-    marks donation approved, adds FinancialTransaction under appropriate program category,
-    updates Program.raised_amount, and redirects to official money receipt.
+    Saves user's manual payment submission (Payment method & Trx ID) as pending verification.
     """
     donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
-    payment_channel = request.POST.get('payment_channel') or 'bKash Direct PGW'
-    trx_id = request.POST.get('trx_id') or f"HNTRX{random.randint(10000000, 99999999)}"
+    payment_channel = request.POST.get('payment_channel') or 'bKash'
+    trx_id = request.POST.get('trx_id', '').strip()
 
-    if donation.status != 'approved':
-        donation.status = 'approved'
-        donation.payment_method = payment_channel
-        donation.card_type = payment_channel
-        donation.bank_tran_id = trx_id
-        donation.trx_id = trx_id
-        donation.save()
-
-        # If linked to a program, update the program raised_amount
-        if donation.program:
-            prog = donation.program
-            prog.raised_amount = (prog.raised_amount or 0) + donation.amount
-            prog.save()
-            category_name = f"কার্যক্রম: {prog.title}"
-            title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
-        elif donation.donation_type == 'volunteer':
-            category_name = "স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা"
-            title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
-        else:
-            category_name = "সাধারণ আর্থিক সহায়তা"
-            title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
-
-        trx_note = f"পেমেন্ট চ্যানেল: {payment_channel} | ট্রানজেকশন আইডি: {trx_id} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | মোবাইল: {donation.donor_phone}"
-        if donation.program:
-            trx_note += f" | কার্যক্রম: {donation.program.title}"
-        if donation.note:
-            trx_note += f" | নোট: {donation.note}"
-
-        FinancialTransaction.objects.create(
-            transaction_type='income',
-            program=donation.program,
-            title=title_name,
-            category=category_name,
-            amount=donation.amount,
-            payment_method=payment_channel,
-            trx_id=trx_id,
-            donor_name=donation.donor_name,
-            date=date.today(),
-            note=trx_note
-        )
+    donation.payment_method = payment_channel
+    donation.card_type = payment_channel
+    donation.trx_id = trx_id
+    donation.status = 'pending'
+    donation.save()
 
     member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
     messages.success(
         request, 
-        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
+        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} সহায়তার তথ্য ও ট্রানজেকশন আইডি সফলভাবে জমা হয়েছে। অ্যাডমিন প্যানেল থেকে যাচাই শেষে এটি অনুমোদিত হবে।'
     )
-    return redirect('donations:receipt', donation_id=donation.id)
+    return redirect('donations:donate')
 
 
 @csrf_exempt
