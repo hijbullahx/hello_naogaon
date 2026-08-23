@@ -105,8 +105,12 @@ def submit_donation(request):
                 donor_phone = vol.phone
             if not donor_email and vol.email:
                 donor_email = vol.email
-            if not frequency and vol.contribution_frequency:
-                frequency = vol.contribution_frequency
+            if not frequency or frequency == 'one_time':
+                if vol.contribution_frequency and vol.contribution_frequency != 'none':
+                    frequency = vol.contribution_frequency
+        else:
+            messages.error(request, "সঠিক সদস্য আইডি পাওয়া যায়নি। অনুগ্রহ করে যাচাই করে পুনরায় চেষ্টা করুন।")
+            return redirect('donations:donate')
     else:
         donation_type = 'general'
         membership_id = None

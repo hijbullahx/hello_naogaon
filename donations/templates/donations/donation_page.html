@@ -243,35 +243,43 @@
                             </div>
                         </div>
 
-                        <!-- Step 7: Donor Contact Details -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label for="donor_name" class="form-label fw-bold">আপনার নাম <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="donor_name" name="donor_name" value="{{ prefill_volunteer.full_name|default:'' }}" required placeholder="যেমন: মো: আবদুর রহিম">
+                        <!-- Step 6: Transaction ID (TrxID) Field -->
+                        <div class="mb-4">
+                            <label for="trx_id" class="form-label fw-bold text-dark mb-1">
+                                <i class="fas fa-receipt text-success me-1"></i>ট্রানজেকশন আইডি (TrxID) <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control form-control-lg text-uppercase fw-bold" id="trx_id" name="trx_id" required placeholder="যেমন: 9J3K8L2M">
+                            <div class="form-text text-muted small">টাকা পাঠানোর পর প্রাপ্ত ফিরতি SMS বা অ্যাপ থেকে TrxID দিন।</div>
+                        </div>
+
+                        <!-- Step 7: General Donor Contact Details (Shown ONLY for General Citizens) -->
+                        <div id="generalDonorContactSection" class="{% if member_id_param or prefill_volunteer %}d-none{% endif %}">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="donor_name" class="form-label fw-bold">আপনার নাম <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="donor_name" name="donor_name" value="{{ prefill_volunteer.full_name|default:'' }}" placeholder="যেমন: মো: আবদুর রহিম">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="donor_phone" class="form-label fw-bold">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="donor_phone" name="donor_phone" value="{{ prefill_volunteer.phone|default:'' }}" placeholder="017XXXXXXXX">
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="donor_email" class="form-label fw-bold">ইমেইল ঠিকানা <small class="text-muted">(ঐচ্ছিক)</small></label>
+                                    <input type="email" class="form-control" id="donor_email" name="donor_email" value="{{ prefill_volunteer.email|default:'' }}" placeholder="example@gmail.com">
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="donor_phone" class="form-label fw-bold">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control" id="donor_phone" name="donor_phone" value="{{ prefill_volunteer.phone|default:'' }}" required placeholder="017XXXXXXXX">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="donor_email" class="form-label fw-bold">ইমেইল ঠিকানা <small class="text-muted">(ঐচ্ছিক)</small></label>
-                                <input type="email" class="form-control" id="donor_email" name="donor_email" value="{{ prefill_volunteer.email|default:'' }}" placeholder="example@gmail.com">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="trx_id" class="form-label fw-bold">ট্রানজেকশন আইডি (TrxID) <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control text-uppercase" id="trx_id" name="trx_id" required placeholder="যেমন: 9J3K8L2M">
-                                <div class="form-text text-muted small">টাকা পাঠানোর পর প্রাপ্ত ফিরতি SMS বা অ্যাপ থেকে TrxID দিন।</div>
-                            </div>
-                            <div class="col-12">
-                                <label for="donation_note" class="form-label fw-bold">মন্তব্য বা দোয়া/পরামর্শ <small class="text-muted">(ঐচ্ছিক)</small></label>
-                                <textarea class="form-control" id="donation_note" name="note" rows="2" placeholder="আপনার কোনো বিশেষ নির্দেশনা বা বার্তা থাকলে লিখুন..."></textarea>
-                            </div>
+                        </div>
+
+                        <!-- Optional Note Field -->
+                        <div class="mb-4">
+                            <label for="donation_note" class="form-label fw-bold">মন্তব্য বা দোয়া/পরামর্শ <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <textarea class="form-control" id="donation_note" name="note" rows="2" placeholder="আপনার কোনো বিশেষ নির্দেশনা বা বার্তা থাকলে লিখুন..."></textarea>
                         </div>
 
                         <!-- Submit Button -->
                         <div class="text-center pt-2">
                             <button type="submit" class="btn btn-success btn-lg fw-bold px-5 py-3 rounded-pill shadow">
-                                <i class="fas fa-heart me-2"></i>আর্থিক সহায়তা জমা দিন
+                                <i class="fas fa-heart me-2"></i>আর্থিক সহায়তা সম্পন্ন করুন
                             </button>
                         </div>
                     </form>
@@ -401,18 +409,27 @@ function toggleDonorIdentity() {
     var isMember = document.getElementById('identity_member').checked;
     var memberIdSection = document.getElementById('memberIdSection');
     var memberIdInput = document.getElementById('donation_membership_id');
+    var generalContactSection = document.getElementById('generalDonorContactSection');
+    var donorNameInput = document.getElementById('donor_name');
+    var donorPhoneInput = document.getElementById('donor_phone');
     var pledgeAlert = document.getElementById('memberPledgeAlert');
     var freqInput = document.getElementById('donation_frequency');
 
     if (isMember) {
         memberIdSection.classList.remove('d-none');
         memberIdInput.setAttribute('required', 'required');
+        if (generalContactSection) generalContactSection.classList.add('d-none');
+        if (donorNameInput) donorNameInput.removeAttribute('required');
+        if (donorPhoneInput) donorPhoneInput.removeAttribute('required');
         if (memberIdInput.value.trim().length >= 6) {
             lookupMemberPledge(memberIdInput.value.trim());
         }
     } else {
         memberIdSection.classList.add('d-none');
         memberIdInput.removeAttribute('required');
+        if (generalContactSection) generalContactSection.classList.remove('d-none');
+        if (donorNameInput) donorNameInput.setAttribute('required', 'required');
+        if (donorPhoneInput) donorPhoneInput.setAttribute('required', 'required');
         if (pledgeAlert) pledgeAlert.classList.add('d-none');
         if (freqInput) freqInput.value = 'one_time';
     }
