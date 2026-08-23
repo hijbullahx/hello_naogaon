@@ -38,19 +38,23 @@ class SiteSetting(models.Model):
     @property
     def google_map_embed_html(self):
         """
-        Safely returns responsive Google Map iframe HTML, supporting:
-        1. Full iframe tags (<iframe src="..."></iframe>)
-        2. Embed URLs (https://www.google.com/maps/embed?pb=...)
-        3. Standard Google Maps URLs
+        Safely converts any Google Map link format into a working, responsive iframe:
+        - Full <iframe> code
+        - Direct /embed URL
+        - Google Maps place link (https://www.google.com/maps/place/...)
+        - Google Maps shortlink (https://maps.app.goo.gl/...)
+        - Coordinates link (https://www.google.com/maps/@lat,lng,...)
+        - Query link (https://maps.google.com/?q=...)
+        - Plain text address
         """
-        default_iframe = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14515.77259163777!2d88.7516806!3d24.8105741!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39fc96fb24aa7a8d%3A0x7d0251aa3d4be0c2!2sNaogaon%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+        default_iframe = '<iframe src="https://maps.google.com/maps?q=Naogaon,+Bangladesh&hl=bn&z=14&output=embed" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
         
         if not self.google_map_embed_url or not self.google_map_embed_url.strip():
             return default_iframe
 
         raw = self.google_map_embed_url.strip()
 
-        # If it's a full <iframe>
+        # 1. If it's a full <iframe> HTML tag
         if '<iframe' in raw.lower():
             import re
             src_match = re.search(r'src=["\'](.*?)["\']', raw, re.IGNORECASE)
@@ -59,11 +63,55 @@ class SiteSetting(models.Model):
                 return f'<iframe src="{src_url}" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
             return raw
 
-        # If it's an embed URL or standard URL
-        if raw.startswith('http://') or raw.startswith('https://'):
+        # 2. If it's already an embed URL
+        if 'output=embed' in raw or '/embed' in raw:
             return f'<iframe src="{raw}" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
 
-        return default_iframe
+        import re
+        import urllib.parse
+
+        # 3. If it's a Google Maps shortlink (maps.app.goo.gl or goo.gl/maps)
+        if 'maps.app.goo.gl' in raw or 'goo.gl/maps' in raw:
+            try:
+                import requests
+                r = requests.get(raw, allow_redirects=True, timeout=5)
+                raw = r.url
+            except Exception:
+                pass
+
+        # 4. If it's a Google Maps place URL
+        if 'google.com/maps/place/' in raw:
+            part = raw.split('google.com/maps/place/')[1]
+            place_name = part.split('/')[0].split('?')[0].replace('+', ' ')
+            place_name = urllib.parse.unquote(place_name)
+            coords = re.search(r'@([0-9\.\-]+),([0-9\.\-]+)', raw)
+            if coords:
+                q = f'{coords.group(1)},{coords.group(2)}'
+            else:
+                q = place_name
+            src_url = f'https://maps.google.com/maps?q={urllib.parse.quote(q)}&hl=bn&z=14&output=embed'
+            return f'<iframe src="{src_url}" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+
+        # 5. If it contains @lat,lng coordinates
+        coords = re.search(r'@([0-9\.\-]+),([0-9\.\-]+)', raw)
+        if coords:
+            q = f'{coords.group(1)},{coords.group(2)}'
+            src_url = f'https://maps.google.com/maps?q={urllib.parse.quote(q)}&hl=bn&z=14&output=embed'
+            return f'<iframe src="{src_url}" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+
+        # 6. If it contains query param ?q=
+        if 'q=' in raw:
+            parsed = urllib.parse.urlparse(raw)
+            params = urllib.parse.parse_qs(parsed.query)
+            if 'q' in params and params['q']:
+                q_val = params['q'][0]
+                src_url = f'https://maps.google.com/maps?q={urllib.parse.quote(q_val)}&hl=bn&z=14&output=embed'
+                return f'<iframe src="{src_url}" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+
+        # 7. Generic fallback for any address or search query
+        clean_query = raw.replace('https://', '').replace('http://', '').replace('www.', '')
+        src_url = f'https://maps.google.com/maps?q={urllib.parse.quote(clean_query)}&hl=bn&z=14&output=embed'
+        return f'<iframe src="{src_url}" width="100%" height="100%" style="border:0; min-height: 150px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
 
     def __str__(self):
         return "Site Settings"
