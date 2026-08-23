@@ -587,9 +587,8 @@
                 <!-- 2. Registered Volunteers Management Card -->
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-dark text-white py-3">
                             <h5 class="card-title fw-bold mb-0"><i class="fas fa-user-check me-2"></i>স্বেচ্ছাসেবক ডাটাবেস ও আবেদনপত্রসমূহ</h5>
-                            <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#volunteerModal"><i class="fas fa-plus-circle me-1"></i> নতুন স্বেচ্ছাসেবক যোগ করুন</button>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -602,7 +601,6 @@
                                             <th>ফোন নম্বর</th>
                                             <th>ঠিকানা</th>
                                             <th>আবেদনের তারিখ</th>
-                                            <th>স্ট্যাটাস</th>
                                             <th>অ্যাকশন</th>
                                         </tr>
                                     </thead>
@@ -615,7 +613,6 @@
                                             <td><a href="tel:{{ v.phone }}" class="text-success fw-bold">{{ v.phone }}</a></td>
                                             <td>{{ v.address|default:"-" }}</td>
                                             <td><small class="text-secondary">{{ v.application_date|date:"d M Y" }}</small></td>
-                                            <td><span class="badge bg-success">{{ v.status }}</span></td>
                                             <td>
                                                 <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editVolunteerModal_{{ v.id }}"><i class="fas fa-edit"></i> এডিট</button>
                                                 <a href="{% url 'core:delete_volunteer' v.id %}" onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
@@ -650,16 +647,9 @@
                                                                 <label class="form-label fw-bold">ঠিকানা / এলাকা</label>
                                                                 <textarea name="address" rows="2" class="form-control">{{ v.address }}</textarea>
                                                             </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">স্ট্যাটাস</label>
-                                                                <select name="status" class="form-select">
-                                                                    <option value="approved" {% if v.status == 'approved' %}selected{% endif %}>Approved (অনুমোদিত)</option>
-                                                                    <option value="pending" {% if v.status == 'pending' %}selected{% endif %}>Pending (অপেক্ষমাণ)</option>
-                                                                </select>
-                                                            </div>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-modal="dismiss">বাতিল</button>
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
                                                             <button type="submit" class="btn btn-success fw-bold">আপডেট করুন</button>
                                                         </div>
                                                     </form>
@@ -667,7 +657,7 @@
                                             </div>
                                         </div>
                                         {% empty %}
-                                        <tr><td colspan="8" class="text-center py-4 text-muted">কোনো স্বেচ্ছাসেবক তথ্য পাওয়া যায়নি।</td></tr>
+                                        <tr><td colspan="7" class="text-center py-4 text-muted">কোনো স্বেচ্ছাসেবক তথ্য পাওয়া যায়নি।</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -1479,49 +1469,6 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-warning fw-bold text-dark">প্রকাশ করুন</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- Volunteer Modal -->
-<div class="modal fade" id="volunteerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-1"></i> নতুন স্বেচ্ছাসেবক যোগ করুন</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'core:save_volunteer' %}" method="post">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">পূর্ণ নাম *</label>
-                        <input type="text" name="full_name" required class="form-control" placeholder="স্বেচ্ছাসেবকের নাম">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">ইমেইল এড্রেস</label>
-                        <input type="email" name="email" class="form-control" placeholder="example@gmail.com">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">ফোন নম্বর *</label>
-                        <input type="text" name="phone" required class="form-control" placeholder="017XXXXXXXX">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">ঠিকানা / এলাকা</label>
-                        <textarea name="address" rows="2" class="form-control" placeholder="মহাদেবপুর, নওগাঁ"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">স্ট্যাটাস</label>
-                        <select name="status" class="form-select">
-                            <option value="approved">Approved (অনুমোদিত)</option>
-                            <option value="pending">Pending (অপেক্ষমাণ)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-success fw-bold">সংরক্ষণ করুন</button>
                 </div>
             </form>
         </div>
