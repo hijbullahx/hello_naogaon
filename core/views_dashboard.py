@@ -158,34 +158,42 @@ def delete_about_image(request, pk):
 
 @staff_member_required
 def save_stat_counter(request):
-    """Create or update a single StatCounter via Pop-up Modal"""
+    """Create or update a single StatCounter via Pop-up Modal (fixed system icons & theme colors)"""
     if request.method == 'POST':
         stat_id = request.POST.get('stat_id')
         title = request.POST.get('title', '').strip()
         value = request.POST.get('value', '').strip()
-        icon_class = request.POST.get('icon_class', 'fas fa-heart').strip()
-        badge_color = request.POST.get('badge_color', 'success').strip()
-        order = request.POST.get('order', '1').strip()
-        is_active = 'is_active' in request.POST
+
+        # System design matching maps for icons & colors
+        SYSTEM_SLOTS = {
+            1: ('fas fa-tint', 'danger'),           # রক্তদান
+            2: ('fas fa-users', 'success'),         # পরিবারকে সহায়তা
+            3: ('fas fa-graduation-cap', 'warning'), # শিক্ষার্থী সহায়তা
+            4: ('fas fa-hands-helping', 'primary'), # স্বেচ্ছাসেবক
+            5: ('fas fa-seedling', 'info'),         # গাছ রোপণ
+        }
 
         if stat_id:
             stat = get_object_or_404(StatCounter, pk=stat_id)
             stat.title = title
             stat.value = value
-            stat.icon_class = icon_class
-            stat.badge_color = badge_color
-            stat.order = int(order) if order.isdigit() else 1
-            stat.is_active = is_active
+            # Ensure icon and color match system design
+            default_icon, default_color = SYSTEM_SLOTS.get(stat.order, ('fas fa-heart', 'success'))
+            stat.icon_class = stat.icon_class or default_icon
+            stat.badge_color = stat.badge_color or default_color
             stat.save()
-            messages.success(request, f'"{stat.title}" কাউন্টার কার্ড সফলভাবে আপডেট করা হয়েছে!')
+            messages.success(request, f'"{stat.title}" কাউন্টার কার্ডের মান ({stat.value}) সফলভাবে আপডেট করা হয়েছে!')
         else:
+            current_count = StatCounter.objects.count()
+            order = current_count + 1
+            default_icon, default_color = SYSTEM_SLOTS.get(order, ('fas fa-heart', 'success'))
             StatCounter.objects.create(
                 title=title,
                 value=value,
-                icon_class=icon_class,
-                badge_color=badge_color,
-                order=int(order) if order.isdigit() else 1,
-                is_active=is_active
+                icon_class=default_icon,
+                badge_color=default_color,
+                order=order,
+                is_active=True
             )
             messages.success(request, f'নতুন কাউন্টার কার্ড "{title}" সফলভাবে তৈরি হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
