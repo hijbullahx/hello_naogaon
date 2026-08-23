@@ -119,27 +119,10 @@
                             </div>
                         </div>
 
-                        <!-- Step 3: Frequency Selector (Shown ONLY for Registered Member) -->
-                        <div id="frequencySection" class="mb-4 {% if not member_id_param and not prefill_volunteer %}d-none{% endif %}">
-                            <label class="form-label fw-bold text-dark mb-2">
-                                <i class="fas fa-calendar-alt text-success me-1"></i>সহায়তার পর্যায়কাল / ফ্রিকোয়েন্সি
-                            </label>
-                            <div class="btn-group w-100 shadow-sm" role="group">
-                                <input type="radio" class="btn-check" name="frequency" id="freq_monthly" value="monthly" {% if prefill_volunteer.contribution_frequency == 'monthly' or not prefill_volunteer %}checked{% endif %} autocomplete="off">
-                                <label class="btn btn-outline-success fw-bold py-2" for="freq_monthly">মাসিক</label>
+                        <!-- Hidden Frequency Field (Auto-managed) -->
+                        <input type="hidden" name="frequency" id="donation_frequency" value="{{ prefill_volunteer.contribution_frequency|default:'one_time' }}">
 
-                                <input type="radio" class="btn-check" name="frequency" id="freq_weekly" value="weekly" {% if prefill_volunteer.contribution_frequency == 'weekly' %}checked{% endif %} autocomplete="off">
-                                <label class="btn btn-outline-success fw-bold py-2" for="freq_weekly">সাপ্তাহিক</label>
-
-                                <input type="radio" class="btn-check" name="frequency" id="freq_yearly" value="yearly" {% if prefill_volunteer.contribution_frequency == 'yearly' %}checked{% endif %} autocomplete="off">
-                                <label class="btn btn-outline-success fw-bold py-2" for="freq_yearly">বাৎসরিক</label>
-
-                                <input type="radio" class="btn-check" name="frequency" id="freq_onetime" value="one_time" {% if prefill_volunteer.contribution_frequency == 'one_time' %}checked{% endif %} autocomplete="off">
-                                <label class="btn btn-outline-success fw-bold py-2" for="freq_onetime">এককালীন</label>
-                            </div>
-                        </div>
-
-                        <!-- Step 4: Amount Selection -->
+                        <!-- Step 3: Amount Selection -->
                         <div class="mb-4">
                             <label for="donation_amount" class="form-label fw-bold text-dark mb-2">
                                 <i class="fas fa-money-bill-wave text-success me-1"></i>আর্থিক সহায়তার পরিমাণ <span class="text-danger">*</span>
@@ -417,22 +400,21 @@ let memberLookupTimeout = null;
 function toggleDonorIdentity() {
     var isMember = document.getElementById('identity_member').checked;
     var memberIdSection = document.getElementById('memberIdSection');
-    var frequencySection = document.getElementById('frequencySection');
     var memberIdInput = document.getElementById('donation_membership_id');
     var pledgeAlert = document.getElementById('memberPledgeAlert');
+    var freqInput = document.getElementById('donation_frequency');
 
     if (isMember) {
         memberIdSection.classList.remove('d-none');
-        frequencySection.classList.remove('d-none');
         memberIdInput.setAttribute('required', 'required');
         if (memberIdInput.value.trim().length >= 6) {
             lookupMemberPledge(memberIdInput.value.trim());
         }
     } else {
         memberIdSection.classList.add('d-none');
-        frequencySection.classList.add('d-none');
         memberIdInput.removeAttribute('required');
         if (pledgeAlert) pledgeAlert.classList.add('d-none');
+        if (freqInput) freqInput.value = 'one_time';
     }
 }
 
@@ -442,10 +424,12 @@ function lookupMemberPledge(memberId) {
     var trimmedId = (memberId || '').trim();
     var feedbackDiv = document.getElementById('memberIdFeedback');
     var pledgeAlert = document.getElementById('memberPledgeAlert');
+    var freqInput = document.getElementById('donation_frequency');
 
     if (!trimmedId || trimmedId.length < 6) {
         if (pledgeAlert) pledgeAlert.classList.add('d-none');
         if (feedbackDiv) feedbackDiv.innerHTML = '<span class="text-muted">সদস্য আইডি দিলে আপনার প্রোফাইল ও প্রতিশ্রুত চাঁদার পরিমাণ স্বয়ংক্রিয়ভাবে লোড হবে।</span>';
+        if (freqInput) freqInput.value = 'one_time';
         return;
     }
 
@@ -465,6 +449,9 @@ function lookupMemberPledge(memberId) {
                     if (phoneInput && (!phoneInput.value || phoneInput.value.trim() === '')) phoneInput.value = data.phone;
                     if (emailInput && (!emailInput.value || emailInput.value.trim() === '') && data.email) emailInput.value = data.email;
 
+                    // Set hidden frequency field
+                    if (freqInput) freqInput.value = data.frequency || 'one_time';
+
                     // If has pledge
                     if (data.has_pledge && data.amount > 0) {
                         if (pledgeAlert) {
@@ -473,10 +460,6 @@ function lookupMemberPledge(memberId) {
                             document.getElementById('pledgeAmountVal').innerText = Number(data.amount).toLocaleString('bn-BD');
                             pledgeAlert.classList.remove('d-none');
                         }
-
-                        // Auto set frequency radio
-                        var freqRadio = document.getElementById('freq_' + data.frequency);
-                        if (freqRadio) freqRadio.checked = true;
 
                         // Auto set amount
                         setAmount(data.amount);
