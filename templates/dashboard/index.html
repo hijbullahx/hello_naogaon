@@ -2529,8 +2529,8 @@
                             </div>
                         </div>
 
-                        <!-- Login Account Credentials Section -->
-                        <div class="col-md-12">
+                        <!-- Login Account Credentials Section (Hidden for 'অন্যান্য' role) -->
+                        <div class="col-md-12 d-none" id="create_login_account_section">
                             <div class="p-3 bg-light rounded-3 border">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="fw-bold text-dark mb-0"><i class="fas fa-user-shield text-success me-1"></i>ড্যাশবোর্ড লগইন একাউন্ট</h6>
@@ -2539,11 +2539,11 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">ইউজারনেম (Username)</label>
-                                        <input type="text" name="username" class="form-control form-control-sm" placeholder="যেমন: president_hn" autocomplete="off" value="" readonly onfocus="this.removeAttribute('readonly');">
+                                        <input type="text" name="username" id="create_tm_username" class="form-control form-control-sm" placeholder="যেমন: president_hn" autocomplete="off" value="" disabled readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">লগইন পাসওয়ার্ড (Password)</label>
-                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="গোপন পাসওয়ার্ড লিখুন" autocomplete="new-password" value="" readonly onfocus="this.removeAttribute('readonly');">
+                                        <input type="password" name="password" id="create_tm_password" class="form-control form-control-sm" placeholder="গোপন পাসওয়ার্ড লিখুন" autocomplete="new-password" value="" disabled readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                 </div>
                                 <small class="text-muted d-block mt-2">
@@ -2951,15 +2951,33 @@
     }
 
     function handleTeamRoleChange(selectEl) {
+        if (!selectEl) return;
         const wrap = document.getElementById('create_custom_role_wrap');
         const input = document.getElementById('create_custom_role_input');
-        if (!wrap || !input) return;
+        const loginSection = document.getElementById('create_login_account_section');
+        const usernameInp = document.getElementById('create_tm_username');
+        const passwordInp = document.getElementById('create_tm_password');
+
         if (selectEl.value === 'অন্যান্য') {
-            wrap.classList.remove('d-none');
-            input.required = true;
+            if (wrap) wrap.classList.remove('d-none');
+            if (input) input.required = true;
+            if (loginSection) loginSection.classList.add('d-none');
+            if (usernameInp) { usernameInp.value = ''; usernameInp.disabled = true; }
+            if (passwordInp) { passwordInp.value = ''; passwordInp.disabled = true; }
         } else {
-            wrap.classList.add('d-none');
-            input.required = false;
+            if (wrap) wrap.classList.add('d-none');
+            if (input) { input.required = false; input.value = ''; }
+            if (loginSection) {
+                if (selectEl.value) {
+                    loginSection.classList.remove('d-none');
+                    if (usernameInp) usernameInp.disabled = false;
+                    if (passwordInp) passwordInp.disabled = false;
+                } else {
+                    loginSection.classList.add('d-none');
+                    if (usernameInp) { usernameInp.value = ''; usernameInp.disabled = true; }
+                    if (passwordInp) { passwordInp.value = ''; passwordInp.disabled = true; }
+                }
+            }
         }
     }
 

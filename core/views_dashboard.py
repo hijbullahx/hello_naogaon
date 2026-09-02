@@ -1159,39 +1159,45 @@ def save_team_member(request):
             vol = Volunteer.objects.filter(phone=phone).first()
 
         # 3. User account creation / linking
-        auth_user = tm.user if (tm and tm.user) else (vol.user if (vol and vol.user) else None)
-        user_created_or_updated = False
-        if username:
-            existing_user_query = User.objects.filter(username__iexact=username)
-            if auth_user:
-                existing_user_query = existing_user_query.exclude(pk=auth_user.pk)
-            if existing_user_query.exists():
-                messages.error(request, f'"{username}" ইউজারনেমটি ইতিমধ্যে ব্যবহৃত হয়েছে। অনুগ্রহ করে অন্য ইউজারনেম দিন।')
-                return redirect('/dashboard/?tab=volunteers-section')
+        is_new_member = (tm is None)
+        if is_new_member and role == 'অন্যান্য':
+            auth_user = None
+            user_created_or_updated = False
+        else:
+            auth_user = tm.user if (tm and tm.user) else None
+            user_created_or_updated = False
+            if username:
+                existing_user_query = User.objects.filter(username__iexact=username)
+                if auth_user:
+                    existing_user_query = existing_user_query.exclude(pk=auth_user.pk)
+                if existing_user_query.exists():
+                    messages.error(request, f'"{username}" ইউজারনেমটি ইতিমধ্যে ব্যবহৃত হয়েছে। অনুগ্রহ করে অন্য ইউজারনেম দিন।')
+                    return redirect('/dashboard/?tab=volunteers-section')
 
-            if auth_user:
-                auth_user.username = username
-                if email:
-                    auth_user.email = email
-                auth_user.first_name = name
-                if password:
-                    auth_user.set_password(password)
-                auth_user.is_staff = True
+                if auth_user:
+                    auth_user.username = username
+                    if email:
+                        auth_user.email = email
+                    auth_user.first_name = name
+                    if password:
+                        auth_user.set_password(password)
+                    auth_user.is_staff = True
+                    auth_user.save()
+                    user_created_or_updated = True
+                else:
+                    auth_user = User.objects.create_user(
+                        username=username,
+                        email=email or '',
+                        password=password if password else 'Pass1234@',
+                        first_name=name
+                    )
+                    auth_user.is_staff = True
+                    auth_user.save()
+                    user_created_or_updated = True
+            elif auth_user and password:
+                auth_user.set_password(password)
                 auth_user.save()
                 user_created_or_updated = True
-            else:
-                auth_user = User.objects.create_user(
-                    username=username,
-                    email=email or '',
-                    password=password if password else 'Pass1234@',
-                    first_name=name,
-                    is_staff=True
-                )
-                user_created_or_updated = True
-        elif auth_user and password:
-            auth_user.set_password(password)
-            auth_user.save()
-            user_created_or_updated = True
 
         # 4. Save Team Member
         if tm:
