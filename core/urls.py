@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views, views_dashboard, views_auth
+from .views_dashboard import update_profile, delete_gallery_photo
 
 app_name = 'core'
 
@@ -50,5 +51,7 @@ urlpatterns = [
     path('dashboard/update-footer/', views_dashboard.update_footer_section, name='update_footer'),
     path('dashboard/approve-donation/<int:pk>/', views_dashboard.approve_program_donation, name='approve_donation'),
     path('dashboard/delete-donation/<int:pk>/', views_dashboard.delete_program_donation, name='delete_donation'),
+    path('dashboard/update-profile/', update_profile, name='update_profile'),
+    path('dashboard/delete-gallery-photo/<int:pk>/', delete_gallery_photo, name='delete_gallery_photo'),
 ]
 

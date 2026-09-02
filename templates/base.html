@@ -153,6 +153,12 @@
                         <li><hr class="dropdown-divider"></li>
                         {% endif %}
                         <li>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileEditModal">
+                                <i class="fas fa-user-edit me-2 text-primary"></i> <span>আমার প্রোফাইল</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
                             <form action="{% url 'logout' %}" method="post" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="dropdown-item text-danger"><i class="fas fa-sign-out-alt me-2"></i> <span data-i18n="nav.logout">লগআউট</span></button>
@@ -160,6 +166,108 @@
                         </li>
                     </ul>
                 </div>
+
+                <!-- ── Profile Edit Modal ───────────────────────────────── -->
+                <div class="modal fade" id="profileEditModal" tabindex="-1" aria-labelledby="profileEditModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg rounded-4">
+                            <div class="modal-header bg-success text-white rounded-top-4">
+                                <h5 class="modal-title fw-bold" id="profileEditModalLabel">
+                                    <i class="fas fa-user-edit me-2"></i> আমার প্রোফাইল সম্পাদনা
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="{% url 'core:update_profile' %}" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="modal-body p-4">
+
+                                    {% if user.team_profile and user.team_profile.image %}
+                                    <div class="text-center mb-3">
+                                        <img src="{{ user.team_profile.image.url }}" class="rounded-circle border border-3 border-success shadow" style="width:80px;height:80px;object-fit:cover;">
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">পূর্ণ নাম</label>
+                                        <input type="text" name="profile_name" class="form-control"
+                                            value="{{ user.get_full_name|default:user.username }}"
+                                            placeholder="আপনার পূর্ণ নাম">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">ইমেইল এড্রেস</label>
+                                        <input type="email" name="profile_email" class="form-control"
+                                            value="{{ user.email }}"
+                                            placeholder="আপনার ইমেইল">
+                                    </div>
+
+                                    {% if user.team_profile %}
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">মোবাইল নম্বর</label>
+                                        <input type="text" name="profile_phone" class="form-control"
+                                            value="{{ user.team_profile.phone|default:'' }}"
+                                            placeholder="মোবাইল নম্বর">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">ঠিকানা (Address)</label>
+                                        <textarea name="profile_address" class="form-control" rows="2" placeholder="আপনার বর্তমান ঠিকানা">{{ user.team_profile.address|default:'' }}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">প্রোফাইল ছবি পরিবর্তন করুন</label>
+                                        <input type="file" name="profile_photo" class="form-control" accept="image/*">
+                                        <small class="text-muted">সর্বোচ্চ ৫০০ KB</small>
+                                    </div>
+                                    {% elif user.volunteer_profile %}
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">মোবাইল নম্বর</label>
+                                        <input type="text" name="profile_phone" class="form-control"
+                                            value="{{ user.volunteer_profile.phone|default:'' }}"
+                                            placeholder="মোবাইল নম্বর">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">ঠিকানা (Address)</label>
+                                        <textarea name="profile_address" class="form-control" rows="2" placeholder="আপনার বর্তমান ঠিকানা">{{ user.volunteer_profile.address|default:'' }}</textarea>
+                                    </div>
+                                    {% else %}
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">মোবাইল নম্বর (ঐচ্ছিক)</label>
+                                        <input type="text" name="profile_phone" class="form-control" placeholder="মোবাইল নম্বর">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">ঠিকানা (ঐচ্ছিক)</label>
+                                        <textarea name="profile_address" class="form-control" rows="2" placeholder="আপনার বর্তমান ঠিকানা"></textarea>
+                                    </div>
+                                    {% endif %}
+
+                                    <hr>
+                                    <p class="small text-muted fw-bold mb-2"><i class="fas fa-lock me-1"></i> পাসওয়ার্ড পরিবর্তন (ঐচ্ছিক)</p>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">নতুন পাসওয়ার্ড</label>
+                                        <input type="password" name="profile_password" class="form-control"
+                                            placeholder="নতুন পাসওয়ার্ড (খালি রাখলে পরিবর্তন হবে না)">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">পাসওয়ার্ড নিশ্চিত করুন</label>
+                                        <input type="password" name="profile_confirm_password" class="form-control"
+                                            placeholder="পাসওয়ার্ড আবার লিখুন">
+                                    </div>
+
+                                    <div class="alert alert-info py-2 small mb-0">
+                                        <i class="fas fa-envelope me-1"></i> পরিবর্তন সংরক্ষণ করলে আপনার ইমেইলে একটি নিশ্চিতকরণ বার্তা পাঠানো হবে।
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 pt-0">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">বাতিল</button>
+                                    <button type="submit" class="btn btn-success fw-bold px-4">
+                                        <i class="fas fa-save me-1"></i> পরিবর্তন সংরক্ষণ করুন
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 {% else %}
                 <a href="{% url 'login' %}" class="btn btn-sm btn-outline-success ms-lg-2 fw-bold">
                     <i class="fas fa-sign-in-alt me-1"></i> <span data-i18n="nav.login">লগইন</span>

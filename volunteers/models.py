@@ -128,6 +128,9 @@ class TeamMember(models.Model):
     custom_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="কাস্টম পদবী (যদি অন্যান্য হয়)")
     email = models.EmailField(blank=True, null=True, verbose_name="ইমেইল এড্রেস")
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="ফোন নম্বর")
+    division = models.CharField(max_length=100, default="রাজশাহী", blank=True, null=True, verbose_name="বিভাগ")
+    district = models.CharField(max_length=100, default="নওগাঁ", blank=True, null=True, verbose_name="জেলা")
+    upazila = models.CharField(max_length=100, blank=True, null=True, verbose_name="উপজেলা / থানা")
     address = models.TextField(blank=True, null=True, verbose_name="ঠিকানা")
     image = models.ImageField(upload_to='team/', blank=True, null=True, verbose_name="ছবি")
     bio = models.TextField(blank=True, verbose_name="সংক্ষিপ্ত বিবরণ")
@@ -141,6 +144,11 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.effective_role}) - {self.member_id or 'No ID'}"
+
+    @property
+    def full_address(self):
+        parts = [p for p in [self.address, self.upazila, self.district, self.division] if p]
+        return ", ".join(parts) if parts else (self.address or "")
 
     @property
     def effective_role(self):
