@@ -95,22 +95,7 @@ class Volunteer(models.Model):
         super().save(*args, **kwargs)
 
         # Auto sync to BloodDonor database if blood_group is provided
-        if self.blood_group:
-            BloodDonor.objects.update_or_create(
-                phone=self.phone,
-                defaults={
-                    'full_name': self.full_name,
-                    'blood_group': self.blood_group,
-                    'division': self.division or 'রাজশাহী',
-                    'district': self.district or 'নওগাঁ',
-                    'upazila': self.upazila,
-                    'location': self.address or self.upazila or 'নওগাঁ',
-                    'last_donated': self.last_donated,
-                    'member_id': self.member_id,
-                    'is_public_details': self.is_public_details,
-                    'is_available': True,
-                }
-            )
+        sync_to_blood_donor(self, is_team=False)
 
 class TeamMember(models.Model):
     ROLE_CHOICES = (
@@ -187,22 +172,7 @@ class TeamMember(models.Model):
         super().save(*args, **kwargs)
 
         # Auto-sync to BloodDonor table if blood_group is provided and phone exists
-        if self.blood_group and self.phone:
-            BloodDonor.objects.update_or_create(
-                phone=self.phone,
-                defaults={
-                    'full_name': self.name,
-                    'blood_group': self.blood_group,
-                    'division': self.division or 'রাজশাহী',
-                    'district': self.district or 'নওগাঁ',
-                    'upazila': self.upazila,
-                    'location': self.address or self.upazila or 'নওগাঁ',
-                    'last_donated': self.last_donated,
-                    'member_id': self.member_id,
-                    'is_public_details': self.is_public_details,
-                    'is_available': True,
-                }
-            )
+        sync_to_blood_donor(self, is_team=True)
 
 def generate_next_member_id():
     today = date.today()
@@ -264,3 +234,53 @@ class BloodDonor(models.Model):
             return 0
         diff = (date.today() - self.last_donated).days
         return max(0, 90 - diff)
+
+
+def sync_to_blood_donor(person, is_team=False):
+    """Auto-sync Volunteer or TeamMember to BloodDonor database if blood_group is provided."""
+    if not getattr(person, 'blood_group', None):
+        return
+    phone = (getattr(person, 'phone', None) or '').strip()
+    if not phone:
+        return
+
+    name = getattr(person, 'name', None) if is_team else getattr(person, 'full_name', None)
+    if not name:
+        return
+
+    member_id = getattr(person, 'member_id', None)
+    
+    # 1. Look for existing BloodDonor record by member_id or phone
+    donor = None
+    if member_id:
+        donor = BloodDonor.objects.filter(member_id=member_id).first()
+    if not donor and phone:
+        donor = BloodDonor.objects.filter(phone=phone).first()
+
+    loc = getattr(person, 'address', '') or getattr(person, 'upazila', '') or 'নওগাঁ'
+    division = getattr(person, 'division', '') or 'রাজশাহী'
+    district = getattr(person, 'district', '') or 'নওগাঁ'
+    upazila = getattr(person, 'upazila', '')
+    last_donated = getattr(person, 'last_donated', None)
+    is_public = getattr(person, 'is_public_details', True)
+
+    defaults = {
+        'full_name': name,
+        'blood_group': person.blood_group,
+        'phone': phone,
+        'division': division,
+        'district': district,
+        'upazila': upazila,
+        'location': loc,
+        'last_donated': last_donated,
+        'member_id': member_id,
+        'is_public_details': is_public,
+        'is_available': True,
+    }
+
+    if donor:
+        for k, v in defaults.items():
+            setattr(donor, k, v)
+        donor.save()
+    else:
+        BloodDonor.objects.create(**defaults)

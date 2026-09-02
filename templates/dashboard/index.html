@@ -758,10 +758,12 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>#</th>
-                                    <th>নাম</th>
-                                    <th>গ্রুপ</th>
-                                    <th>ফোন</th>
-                                    <th>এলাকা</th>
+                                    <th>রক্তদাতার নাম ও পরিচিতি</th>
+                                    <th>রক্তের গ্রুপ</th>
+                                    <th>মোবাইল নম্বর</th>
+                                    <th>ঠিকানা / এলাকা</th>
+                                    <th>সর্বশেষ রক্তদান</th>
+                                    <th>স্ট্যাটাস (৩ মাস / ৯০ দিন)</th>
                                     {% if can_edit_all %}<th>অ্যাকশন</th>{% endif %}
                                 </tr>
                             </thead>
@@ -769,16 +771,53 @@
                                 {% for d in donors %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
-                                    <td class="fw-bold">{{ d.full_name }}</td>
-                                    <td><span class="badge bg-danger fs-6">{{ d.blood_group }}</span></td>
-                                    <td><a href="tel:{{ d.phone }}" class="text-success fw-semibold">{{ d.phone }}</a>
+                                    <td>
+                                        <div class="fw-bold text-dark fs-6">{{ d.full_name }}</div>
+                                        {% if d.member_id %}
+                                        <span class="badge bg-success-subtle text-success border border-success small py-1 px-2 mt-1">
+                                            <i class="fas fa-id-badge me-1"></i>সদস্য আইডি: {{ d.member_id }}
+                                        </span>
+                                        {% endif %}
                                     </td>
-                                    <td>{{ d.location }}</td>
+                                    <td><span class="badge bg-danger fs-6 px-3 py-2 shadow-sm"><i class="fas fa-tint me-1"></i>{{ d.blood_group }}</span></td>
+                                    <td>
+                                        {% if d.is_public_details %}
+                                        <a href="tel:{{ d.phone }}" class="text-success fw-semibold text-decoration-none">
+                                            <i class="fas fa-phone me-1"></i>{{ d.phone }}
+                                        </a>
+                                        {% else %}
+                                        <span class="badge bg-secondary"><i class="fas fa-lock me-1"></i>গোপনীয় ({{ d.phone }})</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="text-secondary fw-semibold"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ d.full_address }}</span></td>
+                                    <td>
+                                        {% if d.last_donated %}
+                                        <span class="fw-semibold text-dark">{{ d.last_donated|date:"d M Y" }}</span>
+                                        {% else %}
+                                        <span class="text-muted small">তথ্য নেই</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if d.is_eligible_to_donate %}
+                                        <span class="badge bg-success fs-6 py-2 px-3">
+                                            <i class="fas fa-check-circle me-1"></i>প্রস্তুত (Ready)
+                                        </span>
+                                        {% elif d.last_donated %}
+                                        <span class="badge bg-warning text-dark fs-6 py-2 px-3"
+                                            title="সর্বশেষ রক্তদানের পর ৩ মাস পূর্ণ হতে আর {{ d.days_until_eligible }} দিন বাকি">
+                                            <i class="fas fa-hourglass-half me-1"></i>বিশ্রামে ({{ d.days_until_eligible }} দিন বাকি)
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary fs-6 py-2 px-3">
+                                            <i class="fas fa-times-circle me-1"></i>অনুপলব্ধ
+                                        </span>
+                                        {% endif %}
+                                    </td>
                                     {% if can_edit_all %}
                                     <td>
                                         <a href="{% url 'core:delete_donor' d.id %}"
-                                            onclick="return confirm('মুছে ফেলতে চান?');"
-                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                            onclick="return confirm('আপনি কি নিশ্চিত যে এই রক্তদাতার তথ্য মুছে ফেলতে চান?');"
+                                            class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
                                     </td>
                                     {% endif %}
                                 </tr>
