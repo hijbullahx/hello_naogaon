@@ -131,11 +131,25 @@
                 {% if user.is_authenticated %}
                 <div class="dropdown ms-lg-2">
                     <button class="btn btn-sm btn-outline-success dropdown-toggle fw-bold" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user-circle me-1"></i> {{ user.username }}
+                        {% if user.team_profile %}
+                        <i class="fas fa-user-shield me-1 text-success"></i> {{ user.team_profile.name }}
+                        {% else %}
+                        <i class="fas fa-user-circle me-1 text-success"></i> {{ user.username }}
+                        {% endif %}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenu">
                         {% if user.is_staff %}
-                        <li><a class="dropdown-item" href="{% url 'core:dashboard' %}"><i class="fas fa-tachometer-alt me-2 text-success"></i> <span data-i18n="nav.dashboard">অ্যাডমিন ড্যাশবোর্ড</span></a></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'core:dashboard' %}">
+                                {% if user.is_superuser %}
+                                <i class="fas fa-tachometer-alt me-2 text-danger"></i> <span>অ্যাডমিন ড্যাশবোর্ড</span>
+                                {% elif user.team_profile %}
+                                <i class="fas fa-shield-alt me-2 text-success"></i> <span>{{ user.team_profile.effective_role }} ড্যাশবোর্ড</span>
+                                {% else %}
+                                <i class="fas fa-sliders-h me-2 text-success"></i> <span>কন্ট্রোল প্যানেল</span>
+                                {% endif %}
+                            </a>
+                        </li>
                         <li><hr class="dropdown-divider"></li>
                         {% endif %}
                         <li>

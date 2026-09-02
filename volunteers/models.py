@@ -169,7 +169,7 @@ class TeamMember(models.Model):
         self.clean()
         if not self.member_id:
             today = date.today()
-            prefix = f"HN-TM-{today.strftime('%y%m%d')}"
+            prefix = f"HHN{today.strftime('%y%m%d')}"
             count = TeamMember.objects.filter(member_id__startswith=prefix).count()
             self.member_id = f"{prefix}{count + 1:02d}"
         try:

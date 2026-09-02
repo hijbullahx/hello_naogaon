@@ -23,7 +23,7 @@ from .models import (
     PaymentGatewaySetting
 )
 from programs.models import Program
-from volunteers.models import Volunteer
+from volunteers.models import Volunteer, TeamMember
 from .gateway import initiate_payment_gateway_session, validate_gateway_payment, get_gateway_config
 
 logger = logging.getLogger(__name__)
@@ -34,11 +34,26 @@ def donation_page_view(request):
     """
     content, _ = DonationPageContent.objects.get_or_create(pk=1)
     
-    # Pre-select volunteer if member_id is in query params (e.g. ?member_id=26082301)
+    # Pre-select volunteer or team member if member_id is in query params (e.g. ?member_id=26082301 or ?member_id=HHN26090201)
     member_id_param = request.GET.get('member_id', '').strip()
     prefill_volunteer = None
     if member_id_param:
-        prefill_volunteer = Volunteer.objects.filter(member_id=member_id_param).first()
+        vol = Volunteer.objects.filter(member_id__iexact=member_id_param).first()
+        if vol:
+            prefill_volunteer = vol
+        else:
+            tm = TeamMember.objects.filter(member_id__iexact=member_id_param).first()
+            if tm:
+                prefill_volunteer = {
+                    'member_id': tm.member_id,
+                    'full_name': tm.name,
+                    'phone': tm.phone or '',
+                    'email': tm.email or '',
+                    'contribution_frequency': 'one_time',
+                    'contribution_amount': 500,
+                    'is_team': True,
+                    'role': tm.effective_role,
+                }
 
     context = {
         'content': content,
@@ -58,34 +73,51 @@ def donation_page_view(request):
 
 
 def member_pledge_lookup(request):
-    """API endpoint to look up registered member info and financial pledge by member_id"""
+    """API endpoint to look up registered member (Volunteer or Team Member) info and financial pledge by member_id"""
     member_id = request.GET.get('member_id', '').strip()
     if not member_id:
         return JsonResponse({'found': False})
     
-    vol = Volunteer.objects.filter(member_id=member_id).first()
-    if not vol:
-        return JsonResponse({'found': False})
+    vol = Volunteer.objects.filter(member_id__iexact=member_id).first()
+    if vol:
+        freq_dict = {
+            'monthly': 'মাসিক (প্রতি মাসে)',
+            'weekly': 'সাপ্তাহিক (প্রতি সপ্তাহে)',
+            'yearly': 'বাৎসরিক (প্রতি বছরে)',
+            'one_time': 'এককালীন',
+            'none': 'কোনো নির্দিষ্ট প্রতিশ্রুতি নেই'
+        }
+        has_pledge = bool(vol.contribution_frequency and vol.contribution_frequency != 'none' and vol.contribution_amount)
+        return JsonResponse({
+            'found': True,
+            'is_team_member': False,
+            'member_id': vol.member_id,
+            'full_name': vol.full_name,
+            'phone': vol.phone,
+            'email': vol.email or '',
+            'has_pledge': has_pledge,
+            'frequency': vol.contribution_frequency if vol.contribution_frequency else 'one_time',
+            'frequency_display': freq_dict.get(vol.contribution_frequency, vol.contribution_frequency or 'এককালীন'),
+            'amount': float(vol.contribution_amount) if vol.contribution_amount else 0,
+        })
     
-    freq_dict = {
-        'monthly': 'মাসিক (প্রতি মাসে)',
-        'weekly': 'সাপ্তাহিক (প্রতি সপ্তাহে)',
-        'yearly': 'বাৎসরিক (প্রতি বছরে)',
-        'one_time': 'এককালীন',
-        'none': 'কোনো নির্দিষ্ট প্রতিশ্রুতি নেই'
-    }
-    has_pledge = bool(vol.contribution_frequency and vol.contribution_frequency != 'none' and vol.contribution_amount)
-    return JsonResponse({
-        'found': True,
-        'member_id': vol.member_id,
-        'full_name': vol.full_name,
-        'phone': vol.phone,
-        'email': vol.email or '',
-        'has_pledge': has_pledge,
-        'frequency': vol.contribution_frequency if vol.contribution_frequency else 'one_time',
-        'frequency_display': freq_dict.get(vol.contribution_frequency, vol.contribution_frequency or 'এককালীন'),
-        'amount': float(vol.contribution_amount) if vol.contribution_amount else 0,
-    })
+    tm = TeamMember.objects.filter(member_id__iexact=member_id).first()
+    if tm:
+        return JsonResponse({
+            'found': True,
+            'is_team_member': True,
+            'member_id': tm.member_id,
+            'full_name': tm.name,
+            'role': tm.effective_role,
+            'phone': tm.phone or '',
+            'email': tm.email or '',
+            'has_pledge': False,
+            'frequency': 'one_time',
+            'frequency_display': f'পরিচালনা পর্ষদ সদস্য ({tm.effective_role})',
+            'amount': 0,
+        })
+
+    return JsonResponse({'found': False})
 
 
 @require_POST
@@ -110,9 +142,9 @@ def initiate_payment(request):
 
     # Determine donation type & fetch member info if applicable
     if donor_identity_type == 'member' or membership_id:
-        donation_type = 'volunteer'
-        vol = Volunteer.objects.filter(member_id=membership_id).first()
+        vol = Volunteer.objects.filter(member_id__iexact=membership_id).first() if membership_id else None
         if vol:
+            donation_type = 'volunteer'
             donor_name = vol.full_name
             donor_phone = vol.phone
             donor_email = vol.email or ''
@@ -120,8 +152,18 @@ def initiate_payment(request):
                 if vol.contribution_frequency and vol.contribution_frequency != 'none':
                     frequency = vol.contribution_frequency
         else:
-            messages.error(request, "সঠিক সদস্য আইডি পাওয়া যায়নি। অনুগ্রহ করে যাচাই করে পুনরায় চেষ্টা করুন।")
-            return redirect('donations:donate')
+            tm = TeamMember.objects.filter(member_id__iexact=membership_id).first() if membership_id else None
+            if tm:
+                donation_type = 'leadership'
+                donor_name = tm.name
+                donor_phone = tm.phone or donor_phone
+                donor_email = tm.email or donor_email
+            elif donor_identity_type == 'member':
+                messages.error(request, "সঠিক সদস্য আইডি পাওয়া যায়নি। অনুগ্রহ করে যাচাই করে পুনরায় চেষ্টা করুন।")
+                return redirect('donations:donate')
+            else:
+                donation_type = 'general'
+                membership_id = None
     elif prog:
         donation_type = 'program'
         membership_id = None

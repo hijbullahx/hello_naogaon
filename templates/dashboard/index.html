@@ -37,7 +37,8 @@
     <div class="container position-relative" style="z-index: 2;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 mb-4 border-bottom border-white border-opacity-25">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 px-3 py-2 rounded-pill font-monospace small">
+                <span class="badge px-3 py-2 rounded-pill font-monospace small shadow-sm"
+                      style="background-color: rgba(0, 0, 0, 0.45) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35); font-size: 0.85rem;">
                     <i class="fas fa-shield-alt text-warning me-1"></i> হেল্পলাইন হ্যালো নওগাঁ — পরিচালনা পর্ষদ ড্যাশবোর্ড
                 </span>
             </div>
@@ -68,17 +69,17 @@
                         <i class="{{ user_role_info.icon }} me-1"></i>{{ user_role_info.welcome_title }}
                     </span>
                     {% if my_tm and my_tm.member_id %}
-                    <span class="badge bg-white bg-opacity-25 text-white font-monospace">
-                        <i class="fas fa-id-badge me-1"></i>মেম্বার আইডি: {{ my_tm.member_id }}
+                    <span class="badge font-monospace shadow-sm" style="background-color: rgba(0, 0, 0, 0.4) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.25);">
+                        <i class="fas fa-id-badge text-warning me-1"></i>মেম্বার আইডি: {{ my_tm.member_id }}
                     </span>
                     {% endif %}
                     {% if can_edit_finance %}
-                    <span class="badge bg-success-subtle text-white border border-white border-opacity-50 px-2 py-1">
+                    <span class="badge bg-success text-white border border-light border-opacity-50 px-2 py-1 shadow-sm">
                         <i class="fas fa-wallet me-1 text-warning"></i>অর্থায়ন নিয়ন্ত্রণ অনুমোদিত
                     </span>
                     {% else %}
-                    <span class="badge bg-white bg-opacity-10 text-white px-2 py-1">
-                        <i class="fas fa-eye me-1"></i>পর্যবেক্ষণ মোড (View Only)
+                    <span class="badge shadow-sm" style="background-color: rgba(0, 0, 0, 0.35) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <i class="fas fa-eye text-warning me-1"></i>পর্যবেক্ষণ মোড (View Only)
                     </span>
                     {% endif %}
                 </div>
