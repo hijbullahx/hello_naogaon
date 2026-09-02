@@ -2,7 +2,6 @@ from datetime import datetime
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from core.models import SiteSetting
 
 
@@ -117,12 +116,10 @@ def send_system_email(
                 formatted_details.append(vd)
 
         # Auto Action Buttons for Volunteer:
-        # Profile link on blood donors list (searchable by Member ID)
         if volunteer.member_id:
             profile_url = f"{base_url}/volunteers/blood-donors/?q={volunteer.member_id}"
             donate_url = f"{base_url}/donations/donate/?member_id={volunteer.member_id}"
             
-            # Check if profile button already exists
             if not any(b.get('url') == profile_url for b in final_buttons):
                 final_buttons.append({
                     'label': '🔎 আপনার প্রোফাইল দেখুন',
@@ -160,7 +157,6 @@ def send_system_email(
             if td['label'] not in existing_labels:
                 formatted_details.append(td)
 
-        # Login button if login_info exists or user account is linked
         login_url = f"{base_url}/accounts/login/"
         if login_info or team_member.user:
             if not any(b.get('url') == login_url for b in final_buttons):
@@ -170,7 +166,6 @@ def send_system_email(
                     'style': 'primary'
                 })
 
-        # Link to About Page (where team members are showcased)
         about_url = f"{base_url}/about/"
         if not any(b.get('url') == about_url for b in final_buttons):
             final_buttons.append({
@@ -189,14 +184,9 @@ def send_system_email(
                 'style': 'secondary'
             })
 
-    # Determine sender email
-    if not from_email:
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@helplinehellonaogaon.com') or 'info@helplinehellonaogaon.com'
-
     # Filter recipients
     valid_recipients = [r.strip() for r in recipient_list if r and isinstance(r, str) and '@' in r]
     if not valid_recipients:
-        print("[EMAIL WARNING] No valid recipients provided to send_system_email.")
         return False
 
     context = {
@@ -275,12 +265,20 @@ def send_system_email(
 
     text_content = "\n".join(plain_text_lines)
 
+    # Determine sender email with display name
+    raw_from = from_email or getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@helplinehellonaogaon.com') or 'info@helplinehellonaogaon.com'
+    if '<' not in raw_from:
+        formatted_from = f"{site_title} <{raw_from}>"
+    else:
+        formatted_from = raw_from
+
     try:
         msg = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
-            from_email=from_email,
+            from_email=formatted_from,
             to=valid_recipients,
+            reply_to=[contact_email] if contact_email else None,
         )
         msg.attach_alternative(html_content, "text/html")
         sent_count = msg.send(fail_silently=fail_silently)

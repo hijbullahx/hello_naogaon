@@ -65,7 +65,7 @@
                 </div>
 
                 <div class="card-body p-4 bg-white">
-                    <form action="{% url 'donations:initiate_payment' %}" method="post" id="generalDonationForm">
+                    <form action="{% url 'donations:initiate_payment' %}" method="post" id="generalDonationForm" autocomplete="off">
                         {% csrf_token %}
                         <input type="hidden" name="donor_identity_type" value="general">
                         <input type="hidden" name="frequency" value="one_time">
@@ -290,7 +290,7 @@
 
             <!-- Modal Body -->
             <div class="modal-body p-4">
-                <form action="{% url 'donations:initiate_payment' %}" method="post" id="memberModalForm">
+                <form action="{% url 'donations:initiate_payment' %}" method="post" id="memberModalForm" autocomplete="off">
                     {% csrf_token %}
                     <input type="hidden" name="donor_identity_type" value="member">
                     <input type="hidden" name="frequency" id="modal_donation_frequency" value="{{ prefill_volunteer.contribution_frequency|default:'one_time' }}">

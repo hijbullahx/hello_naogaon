@@ -250,6 +250,41 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- i18n Translation Engine -->
     <script src="{% static 'js/i18n.js' %}"></script>
+    <script>
+        // Universal Form Reset & Autofill Prevention
+        document.addEventListener('DOMContentLoaded', function() {
+            // Disable autocomplete across all forms and inputs
+            document.querySelectorAll('form').forEach(function(form) {
+                if (!form.getAttribute('autocomplete')) {
+                    form.setAttribute('autocomplete', 'off');
+                }
+            });
+
+            // Prevent browser caching old values in creation modals
+            document.querySelectorAll('.modal').forEach(function(modal) {
+                modal.addEventListener('show.bs.modal', function() {
+                    const modalId = (this.id || '').toLowerCase();
+                    // If it's a new registration/add modal (not an edit/update modal)
+                    if (!modalId.includes('edit') && !modalId.includes('update') && !modalId.includes('detail')) {
+                        const forms = this.querySelectorAll('form');
+                        forms.forEach(function(f) {
+                            f.reset();
+                            // Clear text/tel/email/date/number inputs
+                            f.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="radio"]):not([type="checkbox"])').forEach(function(inp) {
+                                inp.value = '';
+                            });
+                            // Reset select elements
+                            f.querySelectorAll('select').forEach(function(sel) {
+                                if (sel.options.length > 0) {
+                                    sel.selectedIndex = 0;
+                                }
+                            });
+                        });
+                    }
+                });
+            });
+        });
+    </script>
     {% include 'includes/program_donation_modal.html' %}
     {% block extra_js %}{% endblock %}
 </body>

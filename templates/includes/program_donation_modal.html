@@ -11,7 +11,7 @@
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{% url 'donations:initiate_payment' %}" method="POST" id="programGlobalDonateForm">
+            <form action="{% url 'donations:initiate_payment' %}" method="POST" id="programGlobalDonateForm" autocomplete="off">
                 {% csrf_token %}
                 <input type="hidden" name="program_id" id="modal_program_id" value="">
                 
