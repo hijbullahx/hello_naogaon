@@ -947,7 +947,11 @@ def save_team_member(request):
         phone = request.POST.get('phone', '').strip()
         address = request.POST.get('address', '').strip()
         bio = request.POST.get('bio', '').strip()
-        order = request.POST.get('order', 0)
+        try:
+            order_val = request.POST.get('order', '0')
+            order = int(order_val) if order_val and str(order_val).strip() else 0
+        except (ValueError, TypeError):
+            order = 0
         custom_member_id = request.POST.get('custom_member_id', '').strip()
 
         username = request.POST.get('username', '').strip()

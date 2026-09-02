@@ -154,6 +154,10 @@ class TeamMember(models.Model):
             prefix = f"HN-TM-{today.strftime('%y%m%d')}"
             count = TeamMember.objects.filter(member_id__startswith=prefix).count()
             self.member_id = f"{prefix}{count + 1:02d}"
+        try:
+            self.order = int(self.order or 0)
+        except (ValueError, TypeError):
+            self.order = 0
         super().save(*args, **kwargs)
 
 class BloodDonor(models.Model):
