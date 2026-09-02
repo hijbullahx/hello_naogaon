@@ -148,7 +148,25 @@ class TeamMember(models.Model):
             return self.custom_role
         return self.role or ''
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        # Role quota limits
+        single_roles = ['সভাপতি', 'সাধারণ সম্পাদক', 'কোষাধ্যক্ষ']
+        if self.role in single_roles:
+            qs = TeamMember.objects.filter(role=self.role)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                raise ValidationError(f'দুঃখিত! "{self.role}" পদবীতে ইতিমধ্যে ১ জন সদস্য নিযুক্ত রয়েছেন। একক পদে একাধিক সদস্য থাকতে পারবেন না।')
+        elif self.role == 'সাধারণ পরিষদ সদস্য':
+            qs = TeamMember.objects.filter(role='সাধারণ পরিষদ সদস্য')
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.count() >= 4:
+                raise ValidationError('দুঃখিত! "সাধারণ পরিষদ সদস্য" পদে সর্বোচ্চ ৪ জন সদস্যের কোটা পূর্ণ রয়েছে।')
+
     def save(self, *args, **kwargs):
+        self.clean()
         if not self.member_id:
             today = date.today()
             prefix = f"HN-TM-{today.strftime('%y%m%d')}"
