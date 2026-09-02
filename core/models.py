@@ -150,3 +150,25 @@ class AboutImage(models.Model):
         return self.caption or f"About Image {self.id}"
 
 
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='password_reset_otps')
+    email = models.EmailField()
+    otp_code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Password Reset OTP"
+        verbose_name_plural = "Password Reset OTPs"
+
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.is_used and timezone.now() <= self.expires_at and self.attempts < 5
+
+    def __str__(self):
+        return f"OTP for {self.user.username} ({self.otp_code})"
+
+

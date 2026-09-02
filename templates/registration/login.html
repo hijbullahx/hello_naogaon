@@ -3,27 +3,43 @@
 {% block title %}লগইন - Hello Naogaon{% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<div class="container my-5 py-3">
     <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-body p-5">
-                    <h2 class="card-title text-center fw-bold mb-4">লগইন করুন</h2>
-                    
+        <div class="col-12 col-md-8 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-white text-success rounded-circle shadow-sm mb-3" style="width: 65px; height: 65px; font-size: 28px;">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">লগইন করুন</h3>
+                    <p class="text-white-50 small mb-0">হেল্পলাইন হ্যালো নওগাঁ — অ্যাডমিন ও মেম্বার পোর্টাল</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show small" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
                     {% if form.errors %}
-                        <div class="alert alert-danger" role="alert">
-                            আপনার ইউজারনেম এবং পাসওয়ার্ড মেলেনি। অনুগ্রহ করে আবার চেষ্টা করুন।
+                        <div class="alert alert-danger alert-dismissible fade show small" role="alert">
+                            <i class="fas fa-exclamation-triangle me-1"></i> আপনার ইউজারনেম এবং পাসওয়ার্ড মেলেনি। অনুগ্রহ করে যাচাই করে পুনরায় চেষ্টা করুন।
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     {% endif %}
 
                     {% if next %}
                         {% if user.is_authenticated %}
-                            <div class="alert alert-warning" role="alert">
+                            <div class="alert alert-warning small" role="alert">
                                 আপনার অ্যাকাউন্টের এই পাতাটি দেখার অনুমতি নেই।
                             </div>
                         {% else %}
-                            <div class="alert alert-info" role="alert">
-                                এই পাতাটি দেখতে অনুগ্রহ করে লগইন করুন।
+                            <div class="alert alert-info small" role="alert">
+                                ড্যাশবোর্ডে প্রবেশ করতে অনুগ্রহ করে লগইন করুন।
                             </div>
                         {% endif %}
                     {% endif %}
@@ -31,25 +47,63 @@
                     <form method="post" action="{% url 'login' %}">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="id_username" class="form-label">ইউজারনেম</label>
-                            <input type="text" name="username" class="form-control" id="id_username" required>
+                            <label for="id_username" class="form-label fw-bold text-dark">
+                                <i class="fas fa-user text-success me-1"></i> ইউজারনেম
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-user-circle"></i></span>
+                                <input type="text" name="username" class="form-control form-control-lg border-start-0" id="id_username" placeholder="ইউজারনেম লিখুন" required autofocus>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="id_password" class="form-label">পাসওয়ার্ড</label>
-                            <input type="password" name="password" class="form-control" id="id_password" required>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="id_password" class="form-label fw-bold text-dark mb-0">
+                                    <i class="fas fa-lock text-success me-1"></i> পাসওয়ার্ড
+                                </label>
+                                <a href="{% url 'core:password_reset_request' %}" class="text-decoration-none small text-success fw-semibold">
+                                    পাসওয়ার্ড ভুলে গেছেন?
+                                </a>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-key"></i></span>
+                                <input type="password" name="password" class="form-control form-control-lg border-start-0 border-end-0" id="id_password" placeholder="পাসওয়ার্ড দিন" required>
+                                <button class="btn btn-outline-secondary border-start-0" type="button" onclick="togglePasswordVisibility('id_password', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn-lg fw-bold">লগইন</button>
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold rounded-pill shadow-sm">
+                                <i class="fas fa-sign-in-alt me-2"></i> লগইন করুন
+                            </button>
                         </div>
                         <input type="hidden" name="next" value="{{ next }}">
                     </form>
-                    <hr>
-                    <div class="text-center">
-                        <a href="{% url 'password_reset' %}" class="text-decoration-none">পাসওয়ার্ড ভুলে গেছেন?</a>
+
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <a href="{% url 'core:password_reset_request' %}" class="text-decoration-none fw-bold text-success small">
+                            <i class="fas fa-shield-alt me-1"></i> ওটিপি (OTP) দিয়ে পাসওয়ার্ড রিসেট করুন
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
 {% endblock %}
