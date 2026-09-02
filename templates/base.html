@@ -272,6 +272,8 @@
     <div id="google_translate_element" style="display:none;" translate="no" class="notranslate"></div>
     <!-- i18n Translation Engine -->
     <script src="{% static 'js/i18n.js' %}"></script>
+    <!-- Bangladesh Geo 8 Divisions, 64 Districts & 494 Upazilas Synchronous Dataset -->
+    <script src="{% static 'js/bd_geo_data.js' %}"></script>
     <script>
         // Universal Form Reset & Autofill Prevention
         document.addEventListener('DOMContentLoaded', function() {
@@ -296,51 +298,46 @@
                                 inp.value = '';
                             });
                             // Reset select elements
-                            f.querySelectorAll('select').forEach(function(sel) {
+                            f.querySelectorAll('select:not(.division-select):not(.district-select):not(.upazila-select)').forEach(function(sel) {
                                 if (sel.options.length > 0) {
                                     sel.selectedIndex = 0;
                                 }
                             });
                         });
                     }
+                    // Re-initialize geo dropdowns inside the opened modal
+                    initGeoDropdowns(this);
                 });
             });
         });
 
-        // Global Bangladesh Geo Dropdown Cascade
-        let globalBdGeoHierarchy = null;
-        async function getBangladeshGeoData() {
-            if (globalBdGeoHierarchy && Object.keys(globalBdGeoHierarchy).length > 0) {
-                return globalBdGeoHierarchy;
-            }
-            try {
-                const response = await fetch('/volunteers/api/bd-geo/');
-                if (response.ok) {
-                    const json = await response.json();
-                    if (json && json.hierarchy && Object.keys(json.hierarchy).length > 0) {
-                        globalBdGeoHierarchy = json.hierarchy;
-                        return globalBdGeoHierarchy;
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to fetch BD Geo dataset:', err);
+        // Global Bangladesh Geo Dropdown Cascade (8 Divisions, 64 Districts, 494 Upazilas)
+        function getBangladeshGeoData() {
+            if (window.BD_GEO_DATA && Object.keys(window.BD_GEO_DATA).length > 0) {
+                return window.BD_GEO_DATA;
             }
             return null;
         }
 
-        async function initGeoDropdowns(scope) {
-            const geoData = await getBangladeshGeoData();
+        function initGeoDropdowns(scope) {
+            const geoData = getBangladeshGeoData();
             if (!geoData) return;
 
             const root = scope || document;
+
+            // 1. Form cascading selects (.division-select -> .district-select -> .upazila-select)
             root.querySelectorAll('.division-select').forEach(function(divSel) {
-                const selectedDiv = divSel.getAttribute('data-selected-val') || 'রাজশাহী';
-                divSel.innerHTML = '';
+                const preselectedDiv = divSel.getAttribute('data-selected-val') || '';
+                const currentVal = divSel.value || preselectedDiv;
+
+                divSel.innerHTML = '<option value="">-- বিভাগ নির্বাচন করুন (ঐচ্ছিক) --</option>';
                 Object.keys(geoData).forEach(function(divName) {
                     const opt = document.createElement('option');
                     opt.value = divName;
                     opt.innerText = divName;
-                    if (divName === selectedDiv) opt.selected = true;
+                    if (currentVal && divName === currentVal) {
+                        opt.selected = true;
+                    }
                     divSel.appendChild(opt);
                 });
 
@@ -352,42 +349,107 @@
 
                 function updateDistricts(initial) {
                     const selDiv = divSel.value;
-                    const targetDistVal = initial ? (distSel.getAttribute('data-selected-val') || 'নওগাঁ') : '';
-                    distSel.innerHTML = '';
-                    const districts = geoData[selDiv] ? Object.keys(geoData[selDiv]) : [];
-                    districts.forEach(function(dName) {
-                        const dOpt = document.createElement('option');
-                        dOpt.value = dName;
-                        dOpt.innerText = dName;
-                        if (targetDistVal && dName === targetDistVal) {
-                            dOpt.selected = true;
-                        } else if (!targetDistVal && dName === 'নওগাঁ') {
-                            dOpt.selected = true;
-                        }
-                        distSel.appendChild(dOpt);
-                    });
+                    const preselectedDist = distSel.getAttribute('data-selected-val') || '';
+                    const targetDistVal = initial ? (preselectedDist || (selDiv === 'রাজশাহী' ? 'নওগাঁ' : '')) : '';
+
+                    distSel.innerHTML = '<option value="">-- জেলা নির্বাচন করুন (ঐচ্ছিক) --</option>';
+                    if (selDiv && geoData[selDiv]) {
+                        const districts = Object.keys(geoData[selDiv]);
+                        districts.forEach(function(dName) {
+                            const dOpt = document.createElement('option');
+                            dOpt.value = dName;
+                            dOpt.innerText = dName;
+                            if (targetDistVal && dName === targetDistVal) {
+                                dOpt.selected = true;
+                            }
+                            distSel.appendChild(dOpt);
+                        });
+                    }
                     updateUpazilas(initial);
                 }
 
                 function updateUpazilas(initial) {
                     const selDiv = divSel.value;
                     const selDist = distSel.value;
-                    const targetUpzVal = initial ? (upzSel.getAttribute('data-selected-val') || '') : '';
-                    upzSel.innerHTML = '<option value="">-- উপজেলা / থানা নির্বাচন করুন --</option>';
-                    const upazilas = (geoData[selDiv] && geoData[selDiv][selDist]) ? geoData[selDiv][selDist] : [];
-                    upazilas.forEach(function(uName) {
-                        const uOpt = document.createElement('option');
-                        uOpt.value = uName;
-                        uOpt.innerText = uName;
-                        if (targetUpzVal && uName === targetUpzVal) uOpt.selected = true;
-                        upzSel.appendChild(uOpt);
-                    });
+                    const preselectedUpz = upzSel.getAttribute('data-selected-val') || '';
+                    const targetUpzVal = initial ? preselectedUpz : '';
+
+                    upzSel.innerHTML = '<option value="">-- উপজেলা / থানা নির্বাচন করুন (ঐচ্ছিক) --</option>';
+                    if (selDiv && selDist && geoData[selDiv] && geoData[selDiv][selDist]) {
+                        const upazilas = geoData[selDiv][selDist];
+                        upazilas.forEach(function(uName) {
+                            const uOpt = document.createElement('option');
+                            uOpt.value = uName;
+                            uOpt.innerText = uName;
+                            if (targetUpzVal && uName === targetUpzVal) {
+                                uOpt.selected = true;
+                            }
+                            upzSel.appendChild(uOpt);
+                        });
+                    }
                 }
 
-                divSel.addEventListener('change', function() { updateDistricts(false); });
-                distSel.addEventListener('change', function() { updateUpazilas(false); });
+                divSel.onchange = function() { updateDistricts(false); };
+                distSel.onchange = function() { updateUpazilas(false); };
 
                 updateDistricts(true);
+            });
+
+            // 2. Filter Bar cascading selects (.filter-division-select)
+            root.querySelectorAll('.filter-division-select').forEach(function(divSel) {
+                const preselectedDiv = divSel.getAttribute('data-selected-val') || '';
+                const distId = divSel.getAttribute('data-district-target');
+                const upzId = divSel.getAttribute('data-upazila-target');
+                const distSel = document.getElementById(distId);
+                const upzSel = document.getElementById(upzId);
+                const preselectedDist = distSel ? (distSel.getAttribute('data-selected-val') || '') : '';
+                const preselectedUpz = upzSel ? (upzSel.getAttribute('data-selected-val') || '') : '';
+
+                divSel.innerHTML = '<option value="">সকল বিভাগ</option>';
+                Object.keys(geoData).forEach(function(divName) {
+                    const opt = document.createElement('option');
+                    opt.value = divName;
+                    opt.innerText = divName;
+                    if (divName === preselectedDiv) opt.selected = true;
+                    divSel.appendChild(opt);
+                });
+
+                function updateFilterDistricts() {
+                    const selDiv = divSel.value;
+                    if (!distSel) return;
+                    distSel.innerHTML = '<option value="">সকল জেলা</option>';
+                    if (selDiv && geoData[selDiv]) {
+                        Object.keys(geoData[selDiv]).forEach(function(dName) {
+                            const dOpt = document.createElement('option');
+                            dOpt.value = dName;
+                            dOpt.innerText = dName;
+                            if (dName === preselectedDist) dOpt.selected = true;
+                            distSel.appendChild(dOpt);
+                        });
+                    }
+                    updateFilterUpazilas();
+                }
+
+                function updateFilterUpazilas() {
+                    const selDiv = divSel.value;
+                    const selDist = distSel ? distSel.value : '';
+                    if (!upzSel) return;
+                    upzSel.innerHTML = '<option value="">সকল উপজেলা / থানা</option>';
+                    if (selDiv && selDist && geoData[selDiv] && geoData[selDiv][selDist]) {
+                        geoData[selDiv][selDist].forEach(function(uName) {
+                            const uOpt = document.createElement('option');
+                            uOpt.value = uName;
+                            uOpt.innerText = uName;
+                            if (uName === preselectedUpz) uOpt.selected = true;
+                            upzSel.appendChild(uOpt);
+                        });
+                    }
+                }
+
+                divSel.onchange = updateFilterDistricts;
+                if (distSel) distSel.onchange = updateFilterUpazilas;
+
+                updateFilterDistricts();
             });
         }
 

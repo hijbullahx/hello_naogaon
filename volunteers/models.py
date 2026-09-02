@@ -79,19 +79,7 @@ class Volunteer(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.member_id:
-            today = date.today()
-            prefix = today.strftime("%y%m%d")  # e.g. 260823 for 23 Aug 2026 (YYMMDD)
-            todays_volunteers = Volunteer.objects.filter(member_id__startswith=prefix).values_list('member_id', flat=True)
-            max_seq = 0
-            for mid in todays_volunteers:
-                if mid and len(mid) == 8 and mid[6:].isdigit():
-                    seq = int(mid[6:])
-                    if seq > max_seq:
-                        max_seq = seq
-            next_seq = max_seq + 1
-            if next_seq > 99:
-                raise ValueError("আজকের দিনের জন্য সর্বোচ্চ ৯৯ জন সদস্য নিবন্ধনের কোটা পূর্ণ হয়েছে। অনুগ্রহ করে আগামীকাল পুনরায় চেষ্টা করুন।")
-            self.member_id = f"{prefix}{next_seq:02d}"
+            self.member_id = generate_unique_member_id(prefix_str="")
         super().save(*args, **kwargs)
 
         # Auto sync to BloodDonor database if blood_group is provided
@@ -174,11 +162,47 @@ class TeamMember(models.Model):
         # Auto-sync to BloodDonor table if blood_group is provided and phone exists
         sync_to_blood_donor(self, is_team=True)
 
-def generate_next_member_id():
+def generate_unique_member_id(prefix_str=""):
+    """
+    Generate a globally unique member ID whose last 8 digits (YYMMDDXX)
+    are strictly unique across ALL models (Volunteer, TeamMember, BloodDonor).
+    """
+    import re
+    from datetime import date
     today = date.today()
-    prefix = f"HHN{today.strftime('%y%m%d')}"
-    count = TeamMember.objects.filter(member_id__startswith=prefix).count()
-    return f"{prefix}{count + 1:02d}"
+    date_code = today.strftime("%y%m%d")  # 6 digits: YYMMDD
+    
+    # Collect all existing IDs from Volunteer, TeamMember, and BloodDonor that contain today's date_code
+    vol_ids = list(Volunteer.objects.filter(member_id__contains=date_code).values_list('member_id', flat=True))
+    tm_ids = list(TeamMember.objects.filter(member_id__contains=date_code).values_list('member_id', flat=True))
+    donor_ids = list(BloodDonor.objects.filter(member_id__contains=date_code).values_list('member_id', flat=True))
+    
+    all_ids = set(vol_ids + tm_ids + donor_ids)
+    pattern = re.compile(rf"{date_code}(\d{{2,}})")
+    
+    max_seq = 0
+    for mid in all_ids:
+        if not mid:
+            continue
+        m = pattern.search(str(mid))
+        if m:
+            try:
+                seq = int(m.group(1))
+                if seq > max_seq:
+                    max_seq = seq
+            except ValueError:
+                pass
+                
+    next_seq = max_seq + 1
+    eight_digits = f"{date_code}{next_seq:02d}"
+    
+    if prefix_str:
+        return f"{prefix_str}{eight_digits}"
+    return eight_digits
+
+
+def generate_next_member_id():
+    return generate_unique_member_id(prefix_str="HHN")
 
 class BloodDonor(models.Model):
     BLOOD_GROUPS = (
@@ -195,10 +219,10 @@ class BloodDonor(models.Model):
     full_name = models.CharField(max_length=200, verbose_name="পূর্ণ নাম")
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUPS, verbose_name="রক্তের গ্রুপ")
     phone = models.CharField(max_length=20, verbose_name="মোবাইল নম্বর")
-    division = models.CharField(max_length=100, default="রাজশাহী", blank=True, verbose_name="বিভাগ")
-    district = models.CharField(max_length=100, default="নওগাঁ", blank=True, verbose_name="জেলা")
+    division = models.CharField(max_length=100, default="", blank=True, null=True, verbose_name="বিভাগ")
+    district = models.CharField(max_length=100, default="", blank=True, null=True, verbose_name="জেলা")
     upazila = models.CharField(max_length=100, blank=True, null=True, verbose_name="উপজেলা / থানা")
-    location = models.CharField(max_length=255, help_text="Area / Address", verbose_name="ঠিকানা / এলাকা")
+    location = models.CharField(max_length=255, default="", blank=True, help_text="Area / Address", verbose_name="ঠিকানা / এলাকা")
     last_donated = models.DateField(blank=True, null=True, verbose_name="সর্বশেষ রক্তদানের তারিখ")
     is_available = models.BooleanField(default=True, verbose_name="রক্তদানে সক্রিয়")
     is_public_details = models.BooleanField(default=True, verbose_name="তথ্য সকলের জন্য প্রদর্শন করতে চান?")
@@ -257,10 +281,10 @@ def sync_to_blood_donor(person, is_team=False):
     if not donor and phone:
         donor = BloodDonor.objects.filter(phone=phone).first()
 
-    loc = getattr(person, 'address', '') or getattr(person, 'upazila', '') or 'নওগাঁ'
-    division = getattr(person, 'division', '') or 'রাজশাহী'
-    district = getattr(person, 'district', '') or 'নওগাঁ'
-    upazila = getattr(person, 'upazila', '')
+    loc = getattr(person, 'address', '') or getattr(person, 'upazila', '') or getattr(person, 'district', '') or ''
+    division = getattr(person, 'division', '') or ''
+    district = getattr(person, 'district', '') or ''
+    upazila = getattr(person, 'upazila', '') or ''
     last_donated = getattr(person, 'last_donated', None)
     is_public = getattr(person, 'is_public_details', True)
 
