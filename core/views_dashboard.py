@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
+from core.email_utils import send_system_email
 from core.models import SiteSetting, StatCounter, AboutImage
 from programs.models import Program, Event, SuccessStory
 from news.models import Article, Category
@@ -13,32 +14,132 @@ from donations.models import (
     Bank, QRCode, DonationMethod, FinancialTransaction,
     DonationPageContent, Campaign, ProgramDonation, EmergencyAppeal, DonationImpact, FAQ
 )
-from django.db.models import Sum
-from datetime import date
+from django.db.models import Q, Sum
 
 User = get_user_model()
 
 def get_user_dashboard_role(user):
     """
-    Returns (role_name, can_edit_all, can_edit_finance)
-    - superuser: ('প্রধান অ্যাডমিন', True, True)
-    - TeamMember role == 'কোষাধ্যক্ষ': ('কোষাধ্যক্ষ', False, True)
-    - TeamMember other roles: (role, False, False)
-    - regular staff: ('মডারেটর', False, False)
+    Returns a comprehensive dictionary of role properties and permissions.
     """
     if not user or not user.is_authenticated:
-        return ('ভিজিটর', False, False)
+        return {
+            'role_name': 'ভিজিটর',
+            'role_type': 'visitor',
+            'can_manage_cms': False,
+            'can_manage_team': False,
+            'can_manage_volunteers': False,
+            'can_edit_finance': False,
+            'is_leader': False,
+            'team_member': None,
+            'badge_color': 'secondary',
+            'icon': 'fas fa-user',
+            'welcome_title': 'স্বাগতম',
+        }
+
     if user.is_superuser:
-        return ('প্রধান অ্যাডমিন', True, True)
+        return {
+            'role_name': 'প্রধান অ্যাডমিন (Super Admin)',
+            'role_type': 'superuser',
+            'can_manage_cms': True,
+            'can_manage_team': True,
+            'can_manage_volunteers': True,
+            'can_edit_finance': True,
+            'is_leader': False,
+            'team_member': getattr(user, 'team_profile', None),
+            'badge_color': 'danger',
+            'icon': 'fas fa-user-shield',
+            'welcome_title': 'প্রধান অ্যাডমিন কন্ট্রোল প্যানেল',
+        }
 
     tm = getattr(user, 'team_profile', None)
     if tm:
-        role = tm.effective_role or tm.role
-        if tm.role == 'কোষাধ্যক্ষ':
-            return (f'কোষাধ্যক্ষ ({tm.name})', False, True)
-        return (f'{role} ({tm.name})', False, False)
+        role = tm.role
+        eff_role = tm.effective_role or role
+        if role == 'সভাপতি':
+            return {
+                'role_name': f'সভাপতি ({tm.name})',
+                'role_type': 'president',
+                'can_manage_cms': False,
+                'can_manage_team': False,
+                'can_manage_volunteers': False,
+                'can_edit_finance': False,
+                'is_leader': True,
+                'team_member': tm,
+                'badge_color': 'warning',
+                'icon': 'fas fa-crown',
+                'welcome_title': f'সম্মানিত সভাপতি, {tm.name}',
+            }
+        elif role == 'সাধারণ সম্পাদক':
+            return {
+                'role_name': f'সাধারণ সম্পাদক ({tm.name})',
+                'role_type': 'secretary',
+                'can_manage_cms': False,
+                'can_manage_team': False,
+                'can_manage_volunteers': False,
+                'can_edit_finance': False,
+                'is_leader': True,
+                'team_member': tm,
+                'badge_color': 'primary',
+                'icon': 'fas fa-feather-alt',
+                'welcome_title': f'সম্মানিত সাধারণ সম্পাদক, {tm.name}',
+            }
+        elif role == 'কোষাধ্যক্ষ':
+            return {
+                'role_name': f'কোষাধ্যক্ষ ({tm.name})',
+                'role_type': 'treasurer',
+                'can_manage_cms': False,
+                'can_manage_team': False,
+                'can_manage_volunteers': False,
+                'can_edit_finance': True,
+                'is_leader': True,
+                'team_member': tm,
+                'badge_color': 'success',
+                'icon': 'fas fa-wallet',
+                'welcome_title': f'সম্মানিত কোষাধ্যক্ষ, {tm.name}',
+            }
+        elif role == 'সাধারণ পরিষদ সদস্য':
+            return {
+                'role_name': f'সাধারণ পরিষদ সদস্য ({tm.name})',
+                'role_type': 'council',
+                'can_manage_cms': False,
+                'can_manage_team': False,
+                'can_manage_volunteers': False,
+                'can_edit_finance': False,
+                'is_leader': True,
+                'team_member': tm,
+                'badge_color': 'info',
+                'icon': 'fas fa-users',
+                'welcome_title': f'সম্মানিত পরিষদ সদস্য, {tm.name}',
+            }
+        else:
+            return {
+                'role_name': f'{eff_role} ({tm.name})',
+                'role_type': 'other_leader',
+                'can_manage_cms': False,
+                'can_manage_team': False,
+                'can_manage_volunteers': False,
+                'can_edit_finance': False,
+                'is_leader': True,
+                'team_member': tm,
+                'badge_color': 'secondary',
+                'icon': 'fas fa-user-tie',
+                'welcome_title': f'সম্মানিত টিম মেম্বার, {tm.name}',
+            }
 
-    return (user.get_full_name() or user.username or 'এডমিন ইউজার', False, False)
+    return {
+        'role_name': user.get_full_name() or user.username or 'স্টাফ ইউজার',
+        'role_type': 'staff',
+        'can_manage_cms': False,
+        'can_manage_team': False,
+        'can_manage_volunteers': False,
+        'can_edit_finance': False,
+        'is_leader': False,
+        'team_member': None,
+        'badge_color': 'secondary',
+        'icon': 'fas fa-user-tag',
+        'welcome_title': f'স্বাগতম, {user.get_full_name() or user.username}',
+    }
 
 def can_user_edit_finance(user):
     if not user or not user.is_authenticated:
@@ -58,7 +159,6 @@ def can_user_edit_general(user):
 def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"):
     """
     Validates uploaded image file size dynamically within 100KB to 1MB range.
-    max_kb: Maximum allowed size in KB (e.g. 300 for Logo/QR, 500 for avatars, 800 for cards, 1024 for 1MB banners/gallery)
     """
     if image_file and image_file.size > max_kb * 1024:
         size_kb = image_file.size / 1024
@@ -75,8 +175,10 @@ def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"
 @staff_member_required
 def dashboard_home(request):
     """
-    Main Custom Cardly Front-End Admin Control Panel.
-    Provides section-by-section edit cards for Hero, About, Programs, Blood Donors, Volunteers, Financial Management, News, Gallery, Donations & Footer.
+    Main Custom Front-End Control Panel with Role-Based Separation:
+    - Superuser: Full CMS, Teams, Volunteers, News, Gallery, Finance & Bank management.
+    - President / Secretary / Council: Customized animated welcome, view-only for Team Members, Volunteers/Donors, Finance, and personal donation tab.
+    - Treasurer: Full Finance & Accounting control, view-only for Team & Volunteers, and personal donation tab.
     """
     site_setting, _ = SiteSetting.objects.get_or_create(pk=1)
     stat_counters = StatCounter.objects.all().order_by('order')
@@ -113,7 +215,35 @@ def dashboard_home(request):
     total_expense = transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
     net_balance = total_income - total_expense
 
-    user_role_name, can_edit_all, can_edit_finance = get_user_dashboard_role(request.user)
+    # Role and access permissions
+    user_role_info = get_user_dashboard_role(request.user)
+    user_role_name = user_role_info['role_name']
+    can_edit_all = user_role_info['can_manage_cms']
+    can_edit_finance = user_role_info['can_edit_finance']
+
+    # Leadership Role Quotas
+    president_count = TeamMember.objects.filter(role='সভাপতি').count()
+    secretary_count = TeamMember.objects.filter(role='সাধারণ সম্পাদক').count()
+    treasurer_count = TeamMember.objects.filter(role='কোষাধ্যক্ষ').count()
+    council_count = TeamMember.objects.filter(role='সাধারণ পরিষদ সদস্য').count()
+
+    # Personal Donation history for logged-in Team Member
+    my_tm = user_role_info.get('team_member')
+    my_donations = []
+    my_total_donated = 0
+    my_donation_count = 0
+    if my_tm:
+        q_filter = Q()
+        if my_tm.member_id:
+            q_filter |= Q(membership_id=my_tm.member_id)
+        if my_tm.email:
+            q_filter |= Q(donor_email__iexact=my_tm.email)
+        if my_tm.phone:
+            q_filter |= Q(donor_phone__iexact=my_tm.phone)
+        if q_filter:
+            my_donations = ProgramDonation.objects.filter(q_filter).order_by('-created_at')
+            my_total_donated = my_donations.filter(status='approved').aggregate(Sum('amount'))['amount__sum'] or 0
+            my_donation_count = my_donations.filter(status='approved').count()
 
     context = {
         'site_setting': site_setting,
@@ -139,10 +269,19 @@ def dashboard_home(request):
         'total_income': total_income,
         'total_expense': total_expense,
         'net_balance': net_balance,
+        'user_role_info': user_role_info,
         'user_role_name': user_role_name,
         'can_edit_all': can_edit_all,
         'can_edit_finance': can_edit_finance,
         'team_role_choices': TeamMember.ROLE_CHOICES,
+        'president_count': president_count,
+        'secretary_count': secretary_count,
+        'treasurer_count': treasurer_count,
+        'council_count': council_count,
+        'my_tm': my_tm,
+        'my_donations': my_donations,
+        'my_total_donated': my_total_donated,
+        'my_donation_count': my_donation_count,
     }
     return render(request, 'dashboard/index.html', context)
 
@@ -946,7 +1085,11 @@ def save_team_member(request):
         phone = request.POST.get('phone', '').strip()
         address = request.POST.get('address', '').strip()
         bio = request.POST.get('bio', '').strip()
-        order = request.POST.get('order', 0)
+        try:
+            order_val = request.POST.get('order', '0')
+            order = int(order_val) if order_val and str(order_val).strip() else 0
+        except (ValueError, TypeError):
+            order = 0
         custom_member_id = request.POST.get('custom_member_id', '').strip()
 
         username = request.POST.get('username', '').strip()
@@ -956,7 +1099,7 @@ def save_team_member(request):
         if image_file and not validate_image_size(request, image_file, max_kb=500, field_name='টিম সদস্যের ছবি'):
             return redirect('/dashboard/?tab=volunteers-section')
 
-        # 1. Single-Seat Role Uniqueness Validation
+        # 1. Role Quota Validation
         SINGLE_SEAT_ROLES = ['সভাপতি', 'সাধারণ সম্পাদক', 'কোষাধ্যক্ষ']
         if role in SINGLE_SEAT_ROLES:
             existing_query = TeamMember.objects.filter(role=role)
@@ -967,6 +1110,16 @@ def save_team_member(request):
                 messages.error(
                     request,
                     f'দুঃখিত! "{role}" পদবীতে ইতিমধ্যে একজন সদস্য ({existing_member.name}) নিযুক্ত রয়েছেন। একক পদে সর্বোচ্চ ১ জন সদস্য থাকতে পারবেন।'
+                )
+                return redirect('/dashboard/?tab=volunteers-section')
+        elif role == 'সাধারণ পরিষদ সদস্য':
+            council_query = TeamMember.objects.filter(role='সাধারণ পরিষদ সদস্য')
+            if tm_id:
+                council_query = council_query.exclude(pk=tm_id)
+            if council_query.count() >= 4:
+                messages.error(
+                    request,
+                    'দুঃখিত! "সাধারণ পরিষদ সদস্য" পদে সর্বোচ্চ ৪ জন সদস্যের কোটা পূর্ণ রয়েছে। নতুন সাধারণ পরিষদ সদস্য যুক্ত করা যাবে না।'
                 )
                 return redirect('/dashboard/?tab=volunteers-section')
 
@@ -1052,41 +1205,36 @@ def save_team_member(request):
         # 5. Email Notification to Member (fail-silently)
         if email:
             try:
-                subject = f"Hello Naogaon - টিম মেম্বার হিসেবে আপনাকে স্বাগতম!"
-                message_lines = [
-                    f"আসসালামু আলাইকুম {name},",
-                    "",
-                    "হ্যালো নওগাঁ (Hello Naogaon)-এর পরিচালনা পর্ষদ / টিম মেম্বার হিসেবে আপনাকে স্বাগতম!",
-                    "",
-                    "আপনার প্রোফাইল বিবরণ:",
-                    f"- মেম্বার আইডি: {tm.member_id}",
-                    f"- পদবী: {tm.effective_role}",
-                    f"- মোবাইল: {tm.phone or 'N/A'}",
-                    f"- ইমেইল: {email}",
+                subject = f"Hello Naogaon - পরিচালনা পর্ষদ / টিম মেম্বার হিসেবে আপনাকে স্বাগতম!"
+                paragraphs = [
+                    f"হ্যালো নওগাঁ (Hello Naogaon)-এর পরিচালনা পর্ষদ / টিম মেম্বার ({tm.effective_role}) হিসেবে যুক্ত হওয়ায় আপনাকে আন্তরিক মোবারকবাদ ও শুভেচ্ছা!",
+                    "সংগঠনকে সামনের দিকে এগিয়ে নিতে এবং মানবতার সেবায় কার্যকর ভূমিকা পালনে আপনার সক্রিয় ভূমিকা আমাদের জন্য অত্যন্ত গর্বের ও অনুপ্রেরণার।"
                 ]
+                
+                login_info_data = None
                 if username or (auth_user and user_created_or_updated):
-                    login_id = username or auth_user.username if auth_user else tm.member_id
-                    message_lines.extend([
-                        "",
-                        "আপনার এডমিন ড্যাশবোর্ড একাউন্ট তথ্য:",
-                        f"- ইউজারনেম / আইডি: {login_id}",
-                        f"- পাসওয়ার্ড: {password if password else '(নির্ধারিত পাসওয়ার্ড)'}",
-                        f"- লগইন লিংক: {request.build_absolute_uri('/accounts/login/')}",
-                    ])
-                message_lines.extend([
-                    "",
-                    "ধন্যবাদান্তে,",
-                    "হ্যালো নওগাঁ ফাউন্ডেশন"
-                ])
-                send_mail(
-                    subject,
-                    "\n".join(message_lines),
-                    settings.DEFAULT_FROM_EMAIL,
-                    [email],
-                    fail_silently=True
+                    login_id = username or (auth_user.username if auth_user else tm.member_id)
+                    login_info_data = {
+                        'username': login_id,
+                        'password': password if password else '(নির্ধারিত পাসওয়ার্ড)',
+                        'role': tm.effective_role,
+                    }
+
+                send_system_email(
+                    subject=subject,
+                    recipient_list=[email],
+                    recipient_name=name,
+                    greeting="আসসালামু আলাইকুম",
+                    headline="পরিচালনা পর্ষদ ও টিম সদস্য নিবন্ধন",
+                    message_paragraphs=paragraphs,
+                    team_member=tm,
+                    login_info=login_info_data,
+                    request=request,
+                    footer_note="আপনার অ্যাকাউন্টের নিরাপত্তা রক্ষার্থে প্রথমবার লগইন করার পর পাসওয়ার্ড পরিবর্তন করে নিন।",
+                    fail_silently=True,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[TEAM MEMBER EMAIL ERROR] {e}")
 
     return redirect('/dashboard/?tab=volunteers-section')
 

@@ -283,7 +283,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
-            <form action="{% url 'volunteers:register_blood_donor' %}" method="post">
+            <form action="{% url 'volunteers:register_blood_donor' %}" method="post" autocomplete="off">
                 {% csrf_token %}
                 <div class="modal-body p-4">
                     <div class="alert alert-danger d-flex align-items-center mb-4">
@@ -402,7 +402,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
-            <form action="{% url 'volunteers:apply' %}" method="post" enctype="multipart/form-data">
+            <form action="{% url 'volunteers:apply' %}" method="post" enctype="multipart/form-data" autocomplete="off">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{% url 'volunteers:blood_donors' %}">
 
