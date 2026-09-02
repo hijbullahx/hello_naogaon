@@ -512,3 +512,35 @@ footer a:hover {
     font-size: 0.82rem;
     color: #9ca3af;
 }
+
+/* ============================================================
+   GOOGLE TRANSLATE SEAMLESS INTEGRATION (CLEAN UI)
+   ============================================================ */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+.goog-te-gadget,
+.goog-tooltip,
+.goog-tooltip:hover,
+#goog-gt-tt,
+.goog-text-highlight {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+body {
+    top: 0px !important;
+    position: static !important;
+}
+
+#goog-gt-tt, .goog-te-balloon-frame {
+    display: none !important;
+}
+
+.skiptranslate iframe {
+    display: none !important;
+}
+
+font {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
