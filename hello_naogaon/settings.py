@@ -29,7 +29,15 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-development-key-change-m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', 'testserver'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
+    'localhost',
+    '127.0.0.1',
+    'testserver',
+    'helplinehellonaogaon.com',
+    'www.helplinehellonaogaon.com',
+    'mail.helplinehellonaogaon.com',
+    '.helplinehellonaogaon.com',
+])
 
 # To handle CSRF issues with cloud IDEs and other proxies
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
@@ -39,6 +47,8 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
     'https://*.gitpod.io',
     'https://*.github.dev',
     'https://*.app.github.dev',
+    'https://helplinehellonaogaon.com',
+    'https://*.helplinehellonaogaon.com',
 ])
 
 

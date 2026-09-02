@@ -49,7 +49,10 @@ def send_member_notifications(volunteer):
 
     if volunteer.phone:
         sms_text = f"Helpline Hello Naogaon: ধন্যবাদ {volunteer.full_name}! আপনার সদস্য আইডি: {volunteer.member_id}{sms_contrib}। আর্থিক সহায়তা লিঙ্ক: https://helplinehellonaogaon.com/donations/donate/?member_id={volunteer.member_id}"
-        print(f"[SMS SUCCESS] Sent Member ID {volunteer.member_id} to {volunteer.phone} | Content: {sms_text}")
+        try:
+            print(f"[SMS SUCCESS] Sent Member ID {volunteer.member_id} to {volunteer.phone}")
+        except Exception:
+            pass
 
 
 from datetime import datetime, date
