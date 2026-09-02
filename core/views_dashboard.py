@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -1095,6 +1096,17 @@ def save_team_member(request):
             order = int(order_val) if order_val and str(order_val).strip() else 0
         except (ValueError, TypeError):
             order = 0
+
+        blood_group = request.POST.get('blood_group', '').strip()
+        last_donated_str = request.POST.get('last_donated', '').strip()
+        last_donated = None
+        if last_donated_str:
+            try:
+                from datetime import datetime
+                last_donated = datetime.strptime(last_donated_str, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                last_donated = None
+        is_public_details = bool(request.POST.get('is_public_details'))
         custom_member_id = request.POST.get('custom_member_id', '').strip()
 
         username = request.POST.get('username', '').strip()
@@ -1178,6 +1190,9 @@ def save_team_member(request):
             tm.custom_role = custom_role if role == 'অন্যান্য' else ''
             tm.email = email
             tm.phone = phone
+            tm.blood_group = blood_group
+            tm.last_donated = last_donated
+            tm.is_public_details = is_public_details
             tm.division = division
             tm.district = district
             tm.upazila = upazila
@@ -1199,6 +1214,9 @@ def save_team_member(request):
                 custom_role=custom_role if role == 'অন্যান্য' else '',
                 email=email,
                 phone=phone,
+                blood_group=blood_group,
+                last_donated=last_donated,
+                is_public_details=is_public_details,
                 division=division,
                 district=district,
                 upazila=upazila,
@@ -1524,17 +1542,32 @@ def delete_program_donation(request, pk):
     return redirect('/dashboard/?tab=finance-section')
 
 
-@staff_member_required
+@login_required
 def update_profile(request):
-    """Allow any logged-in staff/team member to update their own profile (name, email, phone, address, password, photo)."""
+    """Allow any logged-in user (admin, team member, volunteer) to update their own profile."""
+    redirect_target = request.META.get('HTTP_REFERER') or '/dashboard/'
     if request.method != 'POST':
-        return redirect('/dashboard/')
+        return redirect(redirect_target)
 
     user = request.user
     new_name = request.POST.get('profile_name', '').strip()
     new_email = request.POST.get('profile_email', '').strip()
     new_phone = request.POST.get('profile_phone', '').strip()
+    new_division = request.POST.get('profile_division', '').strip()
+    new_district = request.POST.get('profile_district', '').strip()
+    new_upazila = request.POST.get('profile_upazila', '').strip()
     new_address = request.POST.get('profile_address', '').strip()
+    new_bio = request.POST.get('profile_bio', '').strip()
+    profile_blood_group = request.POST.get('profile_blood_group', '').strip()
+    profile_last_donated_str = request.POST.get('profile_last_donated', '').strip()
+    profile_last_donated = None
+    if profile_last_donated_str:
+        try:
+            from datetime import datetime
+            profile_last_donated = datetime.strptime(profile_last_donated_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            profile_last_donated = None
+    profile_is_public_details = bool(request.POST.get('profile_is_public_details'))
     new_password = request.POST.get('profile_password', '').strip()
     confirm_password = request.POST.get('profile_confirm_password', '').strip()
 
@@ -1550,24 +1583,49 @@ def update_profile(request):
     if new_email and new_email != user.email:
         if User.objects.filter(email__iexact=new_email).exclude(pk=user.pk).exists():
             messages.error(request, 'এই ইমেইলটি অন্য কোনো অ্যাকাউন্টে ইতিমধ্যে ব্যবহৃত হয়েছে।')
-            return redirect('/dashboard/')
+            return redirect(redirect_target)
         user.email = new_email
         changes.append(f'ইমেইল: {new_email}')
 
     if new_password:
         if new_password != confirm_password:
             messages.error(request, 'নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।')
-            return redirect('/dashboard/')
+            return redirect(redirect_target)
         if len(new_password) < 6:
             messages.error(request, 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।')
-            return redirect('/dashboard/')
+            return redirect(redirect_target)
         user.set_password(new_password)
         changes.append('পাসওয়ার্ড পরিবর্তিত হয়েছে')
 
     user.save()
 
-    # Update TeamMember profile if exists
+    # Update TeamMember profile if exists or link/create for staff/superuser
     tm = getattr(user, 'team_profile', None)
+    if not tm and (user.is_staff or user.is_superuser):
+        tm = TeamMember.objects.filter(user=user).first()
+        if not tm and user.email:
+            tm = TeamMember.objects.filter(email__iexact=user.email).first()
+            if tm and not tm.user:
+                tm.user = user
+                tm.save()
+        if not tm and (new_phone or new_address or new_division or new_district or new_upazila or 'profile_photo' in request.FILES):
+            from volunteers.models import generate_next_member_id
+            role_title = 'প্রধান অ্যাডমিন' if user.is_superuser else 'স্টাফ অ্যাডমিন'
+            tm = TeamMember.objects.create(
+                user=user,
+                name=new_name or user.get_full_name() or user.username,
+                role='অন্যান্য',
+                custom_role=role_title,
+                email=user.email,
+                member_id=generate_next_member_id(),
+                phone=new_phone,
+                division=new_division or 'রাজশাহী',
+                district=new_district or 'নওগাঁ',
+                upazila=new_upazila,
+                address=new_address
+            )
+            changes.append('টিম প্রোফাইল সংযুক্ত হয়েছে')
+
     if tm:
         if new_name:
             tm.name = new_name
@@ -1576,15 +1634,34 @@ def update_profile(request):
         if new_phone and new_phone != tm.phone:
             tm.phone = new_phone
             changes.append(f'ফোন: {new_phone}')
+        if new_division and new_division != tm.division:
+            tm.division = new_division
+            changes.append(f'বিভাগ: {new_division}')
+        if new_district and new_district != tm.district:
+            tm.district = new_district
+            changes.append(f'জেলা: {new_district}')
+        if new_upazila and new_upazila != tm.upazila:
+            tm.upazila = new_upazila
+            changes.append(f'উপজেলা: {new_upazila}')
         if new_address and new_address != tm.address:
             tm.address = new_address
             changes.append(f'ঠিকানা: {new_address}')
+        if new_bio and new_bio != tm.bio:
+            tm.bio = new_bio
+            changes.append('সংক্ষিপ্ত পরিচিতি (Bio) আপডেট হয়েছে')
+        if profile_blood_group:
+            tm.blood_group = profile_blood_group
+            changes.append(f'রক্তের গ্রুপ: {profile_blood_group}')
+        if profile_last_donated:
+            tm.last_donated = profile_last_donated
+            changes.append(f'সর্বশেষ রক্তদান: {profile_last_donated}')
+        tm.is_public_details = profile_is_public_details
 
         # Photo update
         if 'profile_photo' in request.FILES:
             photo_file = request.FILES['profile_photo']
             if not validate_image_size(request, photo_file, max_kb=500, field_name='প্রোফাইল ছবি'):
-                return redirect('/dashboard/')
+                return redirect(redirect_target)
             tm.image = photo_file
             changes.append('প্রোফাইল ছবি আপডেট হয়েছে')
 
@@ -1597,10 +1674,26 @@ def update_profile(request):
             vp.full_name = new_name
         if new_email:
             vp.email = new_email
-        if new_phone:
+        if new_phone and new_phone != vp.phone:
             vp.phone = new_phone
-        if new_address:
+            changes.append(f'ফোন: {new_phone}')
+        if profile_blood_group:
+            vp.blood_group = profile_blood_group
+        if profile_last_donated:
+            vp.last_donated = profile_last_donated
+        vp.is_public_details = profile_is_public_details
+        if new_division and new_division != vp.division:
+            vp.division = new_division
+            changes.append(f'বিভাগ: {new_division}')
+        if new_district and new_district != vp.district:
+            vp.district = new_district
+            changes.append(f'জেলা: {new_district}')
+        if new_upazila and new_upazila != vp.upazila:
+            vp.upazila = new_upazila
+            changes.append(f'উপজেলা: {new_upazila}')
+        if new_address and new_address != vp.address:
             vp.address = new_address
+            changes.append(f'ঠিকানা: {new_address}')
         vp.save()
 
     # Send notification email if changes made
@@ -1634,7 +1727,7 @@ def update_profile(request):
         from django.contrib.auth import update_session_auth_hash
         update_session_auth_hash(request, user)
 
-    return redirect('/dashboard/')
+    return redirect(redirect_target)
 
 
 @staff_member_required

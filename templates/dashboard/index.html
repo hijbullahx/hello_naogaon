@@ -892,11 +892,29 @@
                                                                         </div>
                                                                         <div class="col-md-6">
                                                                             <label class="form-label fw-bold">ইমেইল এড্রেস *</label>
-                                                                            <input type="email" name="email" value="{{ tm.email|default:'' }}" required class="form-control" placeholder="member@example.com">
+                                                                            <input type="email" name="email" value="{{ tm.email|default:'' }}" required class="form-control" placeholder="example@gmail.com">
                                                                         </div>
                                                                         <div class="col-md-6">
                                                                             <label class="form-label fw-bold">ফোন নম্বর *</label>
                                                                             <input type="text" name="phone" value="{{ tm.phone|default:'' }}" required class="form-control" placeholder="017XXXXXXXX">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">রক্তের গ্রুপ (Blood Group — ঐচ্ছিক)</label>
+                                                                            <select name="blood_group" class="form-select">
+                                                                                <option value="">-- রক্তের গ্রুপ নির্বাচন করুন (ঐচ্ছিক) --</option>
+                                                                                <option value="A+" {% if tm.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                                                                                <option value="A-" {% if tm.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                                                                                <option value="B+" {% if tm.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                                                                                <option value="B-" {% if tm.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                                                                                <option value="O+" {% if tm.blood_group == 'O+' %}selected{% endif %}>O+</option>
+                                                                                <option value="O-" {% if tm.blood_group == 'O-' %}selected{% endif %}>O-</option>
+                                                                                <option value="AB+" {% if tm.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                                                                                <option value="AB-" {% if tm.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ (ঐচ্ছিক — যদি রক্তদাতা হন)</label>
+                                                                            <input type="date" name="last_donated" value="{{ tm.last_donated|date:'Y-m-d' }}" class="form-control">
                                                                         </div>
                                                                         <div class="col-md-6">
                                                                             <label class="form-label fw-bold">সদস্য আইডি (Member ID)</label>
@@ -944,10 +962,27 @@
                                                                         <div class="col-md-12">
                                                                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                                                                 <label class="form-label fw-bold mb-0">ছবি পরিবর্তন করুন</label>
-                                                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                                                                <div class="d-flex align-items-center gap-1">
+                                                                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                                                                    <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                                                                        class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                                        <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                                    </a>
+                                                                                </div>
                                                                             </div>
                                                                             {% if tm.image %}<div class="mb-2"><img src="{{ tm.image.url }}" style="height: 50px;" class="rounded border"></div>{% endif %}
                                                                             <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
+                                                                        </div>
+
+                                                                        <!-- Privacy Choice Checkbox -->
+                                                                        <div class="col-md-12">
+                                                                            <div class="form-check form-switch bg-light p-3 rounded border">
+                                                                                <input class="form-check-input ms-0 me-2" type="checkbox" id="tm_edit_is_public_{{ tm.id }}" name="is_public_details" {% if tm.is_public_details %}checked{% endif %}>
+                                                                                <label class="form-check-label fw-bold text-dark" for="tm_edit_is_public_{{ tm.id }}">
+                                                                                    <i class="fas fa-shield-alt text-success me-1"></i>আপনি কি মোবাইল নম্বর এবং বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?
+                                                                                </label>
+                                                                                <div class="form-text text-muted ps-4">টিক চিহ্ন তুলে দিলে তালিকায় শুধুমাত্র ছবি, নাম ও আইডি দেখতে পাবেন, মোবাইল নম্বর গোপন থাকবে।</div>
+                                                                            </div>
                                                                         </div>
 
                                                                         <!-- Login Account Section -->
@@ -961,7 +996,7 @@
                                                                                     </div>
                                                                                     <div class="col-md-6">
                                                                                         <label class="form-label small fw-bold">নতুন পাসওয়ার্ড (পরিবর্তন করতে চাইলে)</label>
-                                                                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="নতুন পাসওয়ার্ড লিখুন">
+                                                                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="নতুন পাসওয়ার্ড লিখুন" autocomplete="new-password">
                                                                                     </div>
                                                                                 </div>
                                                                                 <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>লগইন করার সময় ইউজারনেম, ইমেইল অথবা মেম্বার আইডি ব্যবহার করা যাবে।</small>
@@ -2362,12 +2397,30 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">ইমেইল এড্রেস *</label>
-                            <input type="email" name="email" required class="form-control" placeholder="member@example.com">
+                            <input type="email" name="email" required class="form-control" placeholder="example@gmail.com">
                             <div class="form-text small text-muted">এই ইমেইলে সদস্যের আইডি ও লগইন তথ্য স্বয়ংক্রিয়ভাবে পাঠানো হবে।</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">ফোন নম্বর *</label>
                             <input type="text" name="phone" required class="form-control" placeholder="017XXXXXXXX">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">রক্তের গ্রুপ (Blood Group — ঐচ্ছিক)</label>
+                            <select name="blood_group" class="form-select">
+                                <option value="">-- রক্তের গ্রুপ নির্বাচন করুন (ঐচ্ছিক) --</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ (ঐচ্ছিক — যদি রক্তদাতা হন)</label>
+                            <input type="date" name="last_donated" class="form-control">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">সদস্য আইডি (Member ID - ঐচ্ছিক)</label>
@@ -2415,9 +2468,26 @@
                         <div class="col-md-12">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                 <label class="form-label fw-bold mb-0">প্রোফাইল ছবি আপলোড করুন</label>
-                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                    <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                        class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                        <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                    </a>
+                                </div>
                             </div>
                             <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
+                        </div>
+
+                        <!-- Privacy Choice Checkbox -->
+                        <div class="col-md-12">
+                            <div class="form-check form-switch bg-light p-3 rounded border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="tm_create_is_public_details" name="is_public_details" checked>
+                                <label class="form-check-label fw-bold text-dark" for="tm_create_is_public_details">
+                                    <i class="fas fa-shield-alt text-success me-1"></i>আপনি কি মোবাইল নম্বর এবং বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?
+                                </label>
+                                <div class="form-text text-muted ps-4">টিক চিহ্ন তুলে দিলে তালিকায় শুধুমাত্র ছবি, নাম ও আইডি দেখতে পাবেন, মোবাইল নম্বর গোপন থাকবে।</div>
+                            </div>
                         </div>
 
                         <!-- Login Account Credentials Section -->
@@ -2430,11 +2500,11 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">ইউজারনেম (Username)</label>
-                                        <input type="text" name="username" class="form-control form-control-sm" placeholder="যেমন: president_hn">
+                                        <input type="text" name="username" class="form-control form-control-sm" placeholder="যেমন: president_hn" autocomplete="off" value="" readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">লগইন পাসওয়ার্ড (Password)</label>
-                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="গোপন পাসওয়ার্ড লিখুন">
+                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="গোপন পাসওয়ার্ড লিখুন" autocomplete="new-password" value="" readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                 </div>
                                 <small class="text-muted d-block mt-2">

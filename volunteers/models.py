@@ -128,6 +128,9 @@ class TeamMember(models.Model):
     custom_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="কাস্টম পদবী (যদি অন্যান্য হয়)")
     email = models.EmailField(blank=True, null=True, verbose_name="ইমেইল এড্রেস")
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="ফোন নম্বর")
+    blood_group = models.CharField(max_length=5, choices=Volunteer.BLOOD_GROUPS, blank=True, null=True, verbose_name="রক্তের গ্রুপ")
+    last_donated = models.DateField(blank=True, null=True, verbose_name="সর্বশেষ রক্তদানের তারিখ")
+    is_public_details = models.BooleanField(default=True, verbose_name="মোবাইল নম্বর ও বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?")
     division = models.CharField(max_length=100, default="রাজশাহী", blank=True, null=True, verbose_name="বিভাগ")
     district = models.CharField(max_length=100, default="নওগাঁ", blank=True, null=True, verbose_name="জেলা")
     upazila = models.CharField(max_length=100, blank=True, null=True, verbose_name="উপজেলা / থানা")
@@ -176,15 +179,36 @@ class TeamMember(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         if not self.member_id:
-            today = date.today()
-            prefix = f"HHN{today.strftime('%y%m%d')}"
-            count = TeamMember.objects.filter(member_id__startswith=prefix).count()
-            self.member_id = f"{prefix}{count + 1:02d}"
+            self.member_id = generate_next_member_id()
         try:
             self.order = int(self.order or 0)
         except (ValueError, TypeError):
             self.order = 0
         super().save(*args, **kwargs)
+
+        # Auto-sync to BloodDonor table if blood_group is provided and phone exists
+        if self.blood_group and self.phone:
+            BloodDonor.objects.update_or_create(
+                phone=self.phone,
+                defaults={
+                    'full_name': self.name,
+                    'blood_group': self.blood_group,
+                    'division': self.division or 'রাজশাহী',
+                    'district': self.district or 'নওগাঁ',
+                    'upazila': self.upazila,
+                    'location': self.address or self.upazila or 'নওগাঁ',
+                    'last_donated': self.last_donated,
+                    'member_id': self.member_id,
+                    'is_public_details': self.is_public_details,
+                    'is_available': True,
+                }
+            )
+
+def generate_next_member_id():
+    today = date.today()
+    prefix = f"HHN{today.strftime('%y%m%d')}"
+    count = TeamMember.objects.filter(member_id__startswith=prefix).count()
+    return f"{prefix}{count + 1:02d}"
 
 class BloodDonor(models.Model):
     BLOOD_GROUPS = (

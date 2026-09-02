@@ -61,3 +61,37 @@ def notify_superuser_creation(sender, instance, created, **kwargs):
                 logger.warning("Superuser creation email could not be sent to %s", instance.email)
         except Exception as e:
             logger.error("Error sending superuser notification email: %s", e)
+
+
+@receiver(post_save, sender=User)
+def sync_superuser_to_team_member(sender, instance, created, **kwargs):
+    """
+    Ensure every superuser/main admin automatically has a corresponding TeamMember entry
+    with role 'প্রধান অ্যাডমিন', so they appear in public leadership list.
+    """
+    if instance.is_superuser:
+        try:
+            from volunteers.models import TeamMember, generate_next_member_id
+            tm = getattr(instance, 'team_profile', None)
+            if not tm:
+                tm = TeamMember.objects.filter(user=instance).first()
+            if not tm and instance.email:
+                tm = TeamMember.objects.filter(email__iexact=instance.email).first()
+                if tm and not tm.user:
+                    tm.user = instance
+                    tm.save()
+            if not tm:
+                name = instance.get_full_name() or instance.username
+                TeamMember.objects.create(
+                    user=instance,
+                    member_id=generate_next_member_id(),
+                    name=name,
+                    role='অন্যান্য',
+                    custom_role='প্রধান অ্যাডমিন',
+                    email=instance.email or '',
+                    division='রাজশাহী',
+                    district='নওগাঁ',
+                    order=0,
+                )
+        except Exception as e:
+            logger.error("Error auto-syncing superuser to TeamMember: %s", e)

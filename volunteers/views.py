@@ -278,7 +278,7 @@ def apply_volunteer(request):
     if selected_upazila:
         volunteers_list = volunteers_list.filter(Q(upazila__icontains=selected_upazila) | Q(address__icontains=selected_upazila))
 
-    team_members = TeamMember.objects.all()
+    team_members = TeamMember.objects.all().order_by('order', 'id')
 
     context = {
         'team_members': team_members,
