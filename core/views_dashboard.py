@@ -1147,9 +1147,19 @@ def save_team_member(request):
             if not tm:
                 messages.warning(request, 'টিম সদস্যের তথ্য খুঁজে পাওয়া যায়নি।')
                 return redirect('/dashboard/?tab=volunteers-section')
+        elif custom_member_id:
+            # If custom_member_id is provided, check if a TeamMember already has this ID
+            tm = TeamMember.objects.filter(member_id__iexact=custom_member_id).first()
+
+        # Check if an existing Volunteer matches custom_member_id or phone to link their account
+        vol = None
+        if custom_member_id:
+            vol = Volunteer.objects.filter(member_id__iexact=custom_member_id).first()
+        if not vol and phone:
+            vol = Volunteer.objects.filter(phone=phone).first()
 
         # 3. User account creation / linking
-        auth_user = tm.user if tm else None
+        auth_user = tm.user if (tm and tm.user) else (vol.user if (vol and vol.user) else None)
         user_created_or_updated = False
         if username:
             existing_user_query = User.objects.filter(username__iexact=username)
@@ -1206,7 +1216,7 @@ def save_team_member(request):
             if image_file:
                 tm.image = image_file
             tm.save()
-            messages.success(request, f'টিম সদস্য "{name}"-এর তথ্য সফলভাবে আপডেট হয়েছে!')
+            messages.success(request, f'সদস্য আইডি "{tm.member_id}" অনুযায়ী টিম সদস্য "{name}"-এর তথ্য সফলভাবে আপডেট হয়েছে!')
         else:
             tm = TeamMember(
                 name=name,
@@ -1229,7 +1239,7 @@ def save_team_member(request):
             if custom_member_id:
                 tm.member_id = custom_member_id
             tm.save()
-            messages.success(request, f'নতুন টিম সদস্য "{name}" সফলভাবে যুক্ত হয়েছে! (মেম্বার আইডি: {tm.member_id})')
+            messages.success(request, f'সদস্য আইডি "{tm.member_id}" দিয়ে টিম সদস্য "{name}" সফলভাবে যুক্ত হয়েছে!')
 
         # 5. Email Notification to Member (fail-silently)
         if email:
