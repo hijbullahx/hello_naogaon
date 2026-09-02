@@ -172,8 +172,8 @@ def apply_volunteer(request):
         phone = request.POST.get('phone', '').strip()
         blood_group = request.POST.get('blood_group', '').strip()
         occupation = request.POST.get('occupation', '').strip()
-        division = request.POST.get('division', 'রাজশাহী').strip()
-        district = request.POST.get('district', 'নওগাঁ').strip()
+        division = request.POST.get('division', '').strip()
+        district = request.POST.get('district', '').strip()
         upazila = request.POST.get('upazila', '').strip()
         address = request.POST.get('address', '').strip()
         last_donated_str = request.POST.get('last_donated', '').strip()
@@ -216,8 +216,8 @@ def apply_volunteer(request):
                     phone=phone,
                     blood_group=blood_group if blood_group else None,
                     occupation=occupation if occupation else None,
-                    division=division or 'রাজশাহী',
-                    district=district or 'নওগাঁ',
+                    division=division,
+                    district=district,
                     upazila=upazila,
                     address=address if address else None,
                     last_donated=last_donated_val,
