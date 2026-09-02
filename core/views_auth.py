@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
+from django.http import JsonResponse
 from core.models import PasswordResetOTP
 from core.email_utils import send_system_email, get_base_url
 
@@ -29,6 +30,52 @@ def mask_email(email):
 def generate_secure_otp():
     """Generates a 6-digit numeric OTP"""
     return f"{secrets.randbelow(900000) + 100000}"
+
+
+@require_POST
+def validate_otp_code_api(request):
+    """
+    Ajax endpoint to validate 6-digit OTP code before enabling new password inputs.
+    """
+    user_id = request.session.get('reset_user_id')
+    if not user_id:
+        return JsonResponse({'valid': False, 'message': 'সেশন পাওয়া যায়নি। অনুগ্রহ করে শুরু থেকে চেষ্টা করুন।'})
+
+    user = User.objects.filter(pk=user_id, is_active=True).first()
+    if not user:
+        return JsonResponse({'valid': False, 'message': 'ব্যবহারকারী অ্যাকাউন্ট খুঁজে পাওয়া যায়নি।'})
+
+    otp_input = request.POST.get('otp_code', '').strip().replace(' ', '')
+    if not otp_input or len(otp_input) != 6:
+        return JsonResponse({'valid': False, 'message': 'অনুগ্রহ করে সঠিক ৬ ডিজিটের ওটিপি কোডটি লিখুন।'})
+
+    otp_record = PasswordResetOTP.objects.filter(user=user, is_used=False).order_by('-created_at').first()
+    if not otp_record:
+        return JsonResponse({'valid': False, 'message': 'কোনো সক্রিয় ওটিপি পাওয়া যায়নি। নতুন ওটিপি চেয়ে চেষ্টা করুন।'})
+
+    if timezone.now() > otp_record.expires_at:
+        otp_record.is_used = True
+        otp_record.save()
+        return JsonResponse({'valid': False, 'message': 'ওটিপির মেয়াদ (১০ মিনিট) শেষ হয়ে গেছে। দয়া করে পুনরায় ওটিপি চান।'})
+
+    if otp_record.attempts >= 5:
+        otp_record.is_used = True
+        otp_record.save()
+        return JsonResponse({'valid': False, 'message': 'সর্বোচ্চ ৫ বার ভুল ওটিপি দেওয়ায় কোডটি বাতিল হয়েছে। নতুন ওটিপি চান।'})
+
+    if otp_record.otp_code != otp_input:
+        otp_record.attempts += 1
+        otp_record.save()
+        remaining = 5 - otp_record.attempts
+        return JsonResponse({'valid': False, 'message': f'ভুল ওটিপি কোড! অনুগ্রহ করে ইমেইল চেক করে সঠিক কোড দিন। (অবশিষ্ট সুযোগ: {remaining} বার)'})
+
+    # Store verified flag in session
+    request.session['otp_verified_token'] = otp_record.otp_code
+
+    return JsonResponse({
+        'valid': True,
+        'message': '✅ ওটিপি সফলভাবে যাচাই হয়েছে! এবার নিচে আপনার নতুন পাসওয়ার্ড নির্ধারণ করুন।'
+    })
 
 
 @require_http_methods(["GET", "POST"])

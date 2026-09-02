@@ -8,6 +8,7 @@ urlpatterns = [
     path('accounts/password_reset/', views_auth.forgot_password_view, name='password_reset_request'),
     path('accounts/verify-otp/', views_auth.verify_otp_and_reset_password_view, name='verify_password_reset_otp'),
     path('accounts/resend-otp/', views_auth.resend_otp_view, name='resend_password_reset_otp'),
+    path('api/validate-otp/', views_auth.validate_otp_code_api, name='validate_otp_api'),
     path('forgot-password/', views_auth.forgot_password_view, name='forgot_password'),
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
