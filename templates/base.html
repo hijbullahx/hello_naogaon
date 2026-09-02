@@ -153,6 +153,12 @@
                         <li><hr class="dropdown-divider"></li>
                         {% endif %}
                         <li>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileEditModal">
+                                <i class="fas fa-user-edit me-2 text-primary"></i> <span>আমার প্রোফাইল</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
                             <form action="{% url 'logout' %}" method="post" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="dropdown-item text-danger"><i class="fas fa-sign-out-alt me-2"></i> <span data-i18n="nav.logout">লগআউট</span></button>
@@ -300,7 +306,261 @@
                 });
             });
         });
+
+        // Global Bangladesh Geo Dropdown Cascade
+        let globalBdGeoHierarchy = null;
+        async function getBangladeshGeoData() {
+            if (globalBdGeoHierarchy && Object.keys(globalBdGeoHierarchy).length > 0) {
+                return globalBdGeoHierarchy;
+            }
+            try {
+                const response = await fetch('/volunteers/api/bd-geo/');
+                if (response.ok) {
+                    const json = await response.json();
+                    if (json && json.hierarchy && Object.keys(json.hierarchy).length > 0) {
+                        globalBdGeoHierarchy = json.hierarchy;
+                        return globalBdGeoHierarchy;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch BD Geo dataset:', err);
+            }
+            return null;
+        }
+
+        async function initGeoDropdowns(scope) {
+            const geoData = await getBangladeshGeoData();
+            if (!geoData) return;
+
+            const root = scope || document;
+            root.querySelectorAll('.division-select').forEach(function(divSel) {
+                const selectedDiv = divSel.getAttribute('data-selected-val') || 'রাজশাহী';
+                divSel.innerHTML = '';
+                Object.keys(geoData).forEach(function(divName) {
+                    const opt = document.createElement('option');
+                    opt.value = divName;
+                    opt.innerText = divName;
+                    if (divName === selectedDiv) opt.selected = true;
+                    divSel.appendChild(opt);
+                });
+
+                const distId = divSel.getAttribute('data-district-target');
+                const upzId = divSel.getAttribute('data-upazila-target');
+                const distSel = document.getElementById(distId);
+                const upzSel = document.getElementById(upzId);
+                if (!distSel || !upzSel) return;
+
+                function updateDistricts(initial) {
+                    const selDiv = divSel.value;
+                    const targetDistVal = initial ? (distSel.getAttribute('data-selected-val') || 'নওগাঁ') : '';
+                    distSel.innerHTML = '';
+                    const districts = geoData[selDiv] ? Object.keys(geoData[selDiv]) : [];
+                    districts.forEach(function(dName) {
+                        const dOpt = document.createElement('option');
+                        dOpt.value = dName;
+                        dOpt.innerText = dName;
+                        if (targetDistVal && dName === targetDistVal) {
+                            dOpt.selected = true;
+                        } else if (!targetDistVal && dName === 'নওগাঁ') {
+                            dOpt.selected = true;
+                        }
+                        distSel.appendChild(dOpt);
+                    });
+                    updateUpazilas(initial);
+                }
+
+                function updateUpazilas(initial) {
+                    const selDiv = divSel.value;
+                    const selDist = distSel.value;
+                    const targetUpzVal = initial ? (upzSel.getAttribute('data-selected-val') || '') : '';
+                    upzSel.innerHTML = '<option value="">-- উপজেলা / থানা নির্বাচন করুন --</option>';
+                    const upazilas = (geoData[selDiv] && geoData[selDiv][selDist]) ? geoData[selDiv][selDist] : [];
+                    upazilas.forEach(function(uName) {
+                        const uOpt = document.createElement('option');
+                        uOpt.value = uName;
+                        uOpt.innerText = uName;
+                        if (targetUpzVal && uName === targetUpzVal) uOpt.selected = true;
+                        upzSel.appendChild(uOpt);
+                    });
+                }
+
+                divSel.addEventListener('change', function() { updateDistricts(false); });
+                distSel.addEventListener('change', function() { updateUpazilas(false); });
+
+                updateDistricts(true);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initGeoDropdowns();
+            const profileModalEl = document.getElementById('profileEditModal');
+            if (profileModalEl) {
+                profileModalEl.addEventListener('show.bs.modal', function() {
+                    initGeoDropdowns(profileModalEl);
+                });
+            }
+        });
     </script>
+    
+    {% if user.is_authenticated %}
+    <!-- ── Profile Edit Modal (Root-level to prevent stacking context/backdrop click-lock) ── -->
+    <div class="modal fade" id="profileEditModal" tabindex="-1" aria-labelledby="profileEditModalLabel" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-success text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold" id="profileEditModalLabel">
+                        <i class="fas fa-user-edit me-2"></i> আমার প্রোফাইল সম্পাদনা
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{% url 'core:update_profile' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-body p-4">
+
+                        {% if user.team_profile and user.team_profile.image %}
+                        <div class="text-center mb-3">
+                            <img src="{{ user.team_profile.image.url }}" class="rounded-circle border border-3 border-success shadow" style="width:80px;height:80px;object-fit:cover;">
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">পূর্ণ নাম</label>
+                            <input type="text" name="profile_name" class="form-control"
+                                value="{{ user.get_full_name|default:user.username }}"
+                                placeholder="আপনার পূর্ণ নাম" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">ইমেইল এড্রেস</label>
+                            <input type="email" name="profile_email" class="form-control"
+                                value="{{ user.email }}"
+                                placeholder="আপনার ইমেইল" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">মোবাইল নম্বর</label>
+                            <input type="text" name="profile_phone" class="form-control"
+                                value="{% if user.team_profile %}{{ user.team_profile.phone|default:'' }}{% elif user.volunteer_profile %}{{ user.volunteer_profile.phone|default:'' }}{% endif %}"
+                                placeholder="মোবাইল নম্বর">
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">রক্তের গ্রুপ (ঐচ্ছিক)</label>
+                                <select name="profile_blood_group" class="form-select form-select-sm">
+                                    <option value="">-- নির্বাচন করুন --</option>
+                                    {% with bg=user.team_profile.blood_group|default:user.volunteer_profile.blood_group %}
+                                    <option value="A+" {% if bg == 'A+' %}selected{% endif %}>A+</option>
+                                    <option value="A-" {% if bg == 'A-' %}selected{% endif %}>A-</option>
+                                    <option value="B+" {% if bg == 'B+' %}selected{% endif %}>B+</option>
+                                    <option value="B-" {% if bg == 'B-' %}selected{% endif %}>B-</option>
+                                    <option value="O+" {% if bg == 'O+' %}selected{% endif %}>O+</option>
+                                    <option value="O-" {% if bg == 'O-' %}selected{% endif %}>O-</option>
+                                    <option value="AB+" {% if bg == 'AB+' %}selected{% endif %}>AB+</option>
+                                    <option value="AB-" {% if bg == 'AB-' %}selected{% endif %}>AB-</option>
+                                    {% endwith %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">সর্বশেষ রক্তদানের তারিখ</label>
+                                <input type="date" name="profile_last_donated" class="form-control form-control-sm"
+                                    value="{% if user.team_profile and user.team_profile.last_donated %}{{ user.team_profile.last_donated|date:'Y-m-d' }}{% elif user.volunteer_profile and user.volunteer_profile.last_donated %}{{ user.volunteer_profile.last_donated|date:'Y-m-d' }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch bg-light p-2 rounded border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="profile_is_public_details" name="profile_is_public_details"
+                                    {% if user.team_profile %}{% if user.team_profile.is_public_details %}checked{% endif %}{% elif user.volunteer_profile %}{% if user.volunteer_profile.is_public_details %}checked{% endif %}{% else %}checked{% endif %}>
+                                <label class="form-check-label fw-bold small text-dark" for="profile_is_public_details">
+                                    <i class="fas fa-shield-alt text-success me-1"></i>মোবাইল নম্বর ও বিবরণী সকলের জন্য প্রদর্শন করতে চান?
+                                </label>
+                                <div class="form-text text-muted ps-4 small" style="font-size: 0.75rem;">টিক চিহ্ন তুলে দিলে শুধুমাত্র নাম ও আইডি দেখা যাবে, মোবাইল নম্বর গোপন থাকবে।</div>
+                            </div>
+                        </div>
+
+                        <!-- Structured Cascading Address Section (Registration Form Style) -->
+                        <div class="mb-3">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address)
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="profile_division" class="form-label small fw-bold">বিভাগ</label>
+                                        <select class="form-select form-select-sm division-select" id="profile_division" name="profile_division" data-district-target="profile_district" data-upazila-target="profile_upazila" data-selected-val="{% if user.team_profile %}{{ user.team_profile.division|default:'রাজশাহী' }}{% elif user.volunteer_profile %}{{ user.volunteer_profile.division|default:'রাজশাহী' }}{% else %}রাজশাহী{% endif %}">
+                                            <!-- Populated by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="profile_district" class="form-label small fw-bold">জেলা</label>
+                                        <select class="form-select form-select-sm district-select" id="profile_district" name="profile_district" data-upazila-target="profile_upazila" data-selected-val="{% if user.team_profile %}{{ user.team_profile.district|default:'নওগাঁ' }}{% elif user.volunteer_profile %}{{ user.volunteer_profile.district|default:'নওগাঁ' }}{% else %}নওগাঁ{% endif %}">
+                                            <!-- Populated by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="profile_upazila" class="form-label small fw-bold">উপজেলা / থানা</label>
+                                        <select class="form-select form-select-sm upazila-select" id="profile_upazila" name="profile_upazila" data-selected-val="{% if user.team_profile %}{{ user.team_profile.upazila|default:'' }}{% elif user.volunteer_profile %}{{ user.volunteer_profile.upazila|default:'' }}{% endif %}">
+                                            <!-- Populated by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label for="profile_address" class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                        <input type="text" class="form-control form-control-sm" id="profile_address" name="profile_address" value="{% if user.team_profile %}{{ user.team_profile.address|default:'' }}{% elif user.volunteer_profile %}{{ user.volunteer_profile.address|default:'' }}{% endif %}" placeholder="গ্রাম/মহল্লা, ডাকঘর, বাড়ি নং">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                <label class="form-label fw-bold small mb-0">প্রোফাইল ছবি পরিবর্তন করুন (ঐচ্ছিক)</label>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ ৫০০ KB</span>
+                                    <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                        class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                        <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                    </a>
+                                </div>
+                            </div>
+                            <input type="file" name="profile_photo" class="form-control" accept="image/*">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">সংক্ষিপ্ত বিবরণ (Bio / পরিচিতি - ঐচ্ছিক)</label>
+                            <textarea name="profile_bio" class="form-control form-control-sm" rows="2" placeholder="আপনার সংক্ষিপ্ত পরিচয় বা সংগঠনের ভূমিকা...">{% if user.team_profile %}{{ user.team_profile.bio|default:'' }}{% endif %}</textarea>
+                        </div>
+
+                        <hr>
+                        <p class="small text-muted fw-bold mb-2"><i class="fas fa-lock me-1"></i> পাসওয়ার্ড পরিবর্তন (ঐচ্ছিক)</p>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">নতুন পাসওয়ার্ড</label>
+                            <input type="password" name="profile_password" class="form-control"
+                                placeholder="নতুন পাসওয়ার্ড (খালি রাখলে পরিবর্তন হবে না)">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">পাসওয়ার্ড নিশ্চিত করুন</label>
+                            <input type="password" name="profile_confirm_password" class="form-control"
+                                placeholder="পাসওয়ার্ড আবার লিখুন">
+                        </div>
+
+                        <div class="alert alert-info py-2 small mb-0">
+                            <i class="fas fa-envelope me-1"></i> পরিবর্তন সংরক্ষণ করলে আপনার ইমেইলে একটি নিশ্চিতকরণ বার্তা পাঠানো হবে।
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">বাতিল</button>
+                        <button type="submit" class="btn btn-success fw-bold px-4">
+                            <i class="fas fa-save me-1"></i> পরিবর্তন সংরক্ষণ করুন
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {% include 'includes/program_donation_modal.html' %}
     {% block extra_js %}{% endblock %}
 </body>

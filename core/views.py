@@ -41,7 +41,7 @@ def home(request):
 
 def about(request):
     site_setting = SiteSetting.objects.first()
-    team_members = TeamMember.objects.all()
+    team_members = TeamMember.objects.all().order_by('order', 'id')
     context = {
         'site_setting': site_setting,
         'team_members': team_members,

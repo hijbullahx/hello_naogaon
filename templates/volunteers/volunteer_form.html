@@ -260,7 +260,9 @@
         <div class="row g-4 justify-content-center">
             {% for member in team_members %}
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm text-center p-3 rounded-3 team-card">
+                <div class="card h-100 border-0 shadow-sm text-center p-3 rounded-4 team-card position-relative d-flex flex-column" 
+                     role="button" data-bs-toggle="modal" data-bs-target="#teamMemberDetailModal_{{ member.id }}"
+                     style="cursor: pointer; transition: all 0.3s ease;">
                     <div class="team-img-wrapper mb-3 mx-auto">
                         {% if member.image %}
                             <img src="{{ member.image.url }}" class="rounded-circle border border-3 border-success shadow-sm" style="width: 120px; height: 120px; object-fit: cover;" alt="{{ member.name }}">
@@ -271,10 +273,115 @@
                         {% endif %}
                     </div>
                     <h5 class="fw-bold text-dark mb-1">{{ member.name }}</h5>
-                    <div class="badge bg-success-subtle text-success border border-success mb-2 px-3 py-1">{{ member.role }}</div>
-                    {% if member.bio %}
-                        <p class="text-secondary small mb-0">{{ member.bio|truncatewords:15 }}</p>
+                    <div>
+                        <span class="badge bg-success-subtle text-success border border-success mb-2 px-3 py-1">{{ member.effective_role }}</span>
+                    </div>
+                    {% if member.member_id %}
+                    <div class="small text-muted font-monospace mb-2"><i class="fas fa-id-badge me-1 text-success"></i>{{ member.member_id }}</div>
                     {% endif %}
+                    {% if member.bio %}
+                        <p class="text-secondary small mb-3">{{ member.bio|truncatewords:10 }}</p>
+                    {% endif %}
+                    <div class="mt-auto pt-2">
+                        <span class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 small fw-bold">
+                            <i class="fas fa-info-circle me-1"></i>বিস্তারিত তথ্য
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ── Member Detail Modal ── -->
+                <div class="modal fade" id="teamMemberDetailModal_{{ member.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                            <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%) !important;">
+                                <h5 class="modal-title fw-bold">
+                                    <i class="fas fa-user-circle me-2"></i>পরিচালনা পর্ষদ সদস্য পরিচিতি
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4 text-center">
+                                <div class="mb-3">
+                                    {% if member.image %}
+                                        <img src="{{ member.image.url }}" class="rounded-circle border border-4 border-success shadow" style="width: 130px; height: 130px; object-fit: cover;" alt="{{ member.name }}">
+                                    {% else %}
+                                        <div class="bg-success text-white rounded-circle mx-auto d-flex justify-content-center align-items-center shadow" style="width: 130px; height: 130px; font-size: 55px;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <h4 class="fw-bold text-dark mb-1">{{ member.name }}</h4>
+                                <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap mb-3">
+                                    <span class="badge bg-success px-3 py-2 fs-6 rounded-pill shadow-sm">
+                                        <i class="fas fa-user-shield me-1"></i>{{ member.effective_role }}
+                                    </span>
+                                    {% if member.blood_group %}
+                                    <span class="badge bg-danger px-3 py-2 fs-6 rounded-pill shadow-sm">
+                                        <i class="fas fa-tint me-1"></i>রক্তের গ্রুপ: {{ member.blood_group }}
+                                    </span>
+                                    {% endif %}
+                                    {% if member.member_id %}
+                                    <span class="badge bg-light text-dark border font-monospace px-3 py-2 fs-6 rounded-pill shadow-sm">
+                                        <i class="fas fa-id-card text-success me-1"></i>{{ member.member_id }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card border-0 bg-light rounded-3 p-3 text-start mb-3">
+                                    <div class="row g-2 small">
+                                        {% if member.is_public_details %}
+                                            {% if member.phone %}
+                                            <div class="col-sm-6">
+                                                <strong class="text-secondary d-block"><i class="fas fa-phone-alt text-success me-1"></i>মোবাইল নম্বর:</strong>
+                                                <a href="tel:{{ member.phone }}" class="text-decoration-none fw-bold text-dark">{{ member.phone }}</a>
+                                            </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="col-sm-6">
+                                                <strong class="text-secondary d-block"><i class="fas fa-phone-alt text-muted me-1"></i>মোবাইল নম্বর:</strong>
+                                                <span class="badge bg-secondary-subtle text-secondary border">গোপন রাখা হয়েছে</span>
+                                            </div>
+                                        {% endif %}
+                                        {% if member.email %}
+                                        <div class="col-sm-6">
+                                            <strong class="text-secondary d-block"><i class="fas fa-envelope text-success me-1"></i>ইমেইল:</strong>
+                                            <a href="mailto:{{ member.email }}" class="text-decoration-none fw-bold text-dark">{{ member.email }}</a>
+                                        </div>
+                                        {% endif %}
+                                        {% if member.full_address and member.is_public_details %}
+                                        <div class="col-12 mt-2">
+                                            <strong class="text-secondary d-block"><i class="fas fa-map-marker-alt text-success me-1"></i>ঠিকানা:</strong>
+                                            <span class="fw-bold text-dark">{{ member.full_address }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if member.last_donated %}
+                                        <div class="col-sm-6 mt-2">
+                                            <strong class="text-secondary d-block"><i class="fas fa-heartbeat text-danger me-1"></i>সর্বশেষ রক্তদান:</strong>
+                                            <span class="text-dark">{{ member.last_donated|date:"d M Y" }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if member.created_at %}
+                                        <div class="col-sm-6 mt-2">
+                                            <strong class="text-secondary d-block"><i class="fas fa-calendar-check text-success me-1"></i>যোগদানের তারিখ:</strong>
+                                            <span class="text-dark">{{ member.created_at|date:"d M Y" }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {% if member.bio %}
+                                <div class="text-start">
+                                    <h6 class="fw-bold text-success mb-1"><i class="fas fa-quote-left me-1"></i>সংক্ষিপ্ত পরিচিতি / বক্তব্য:</h6>
+                                    <div class="p-3 bg-white rounded border text-secondary small" style="line-height: 1.6;">
+                                        {{ member.bio|linebreaks }}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="modal-footer bg-light py-2 border-0 justify-content-center">
+                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% empty %}

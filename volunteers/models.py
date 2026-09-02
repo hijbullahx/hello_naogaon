@@ -95,22 +95,7 @@ class Volunteer(models.Model):
         super().save(*args, **kwargs)
 
         # Auto sync to BloodDonor database if blood_group is provided
-        if self.blood_group:
-            BloodDonor.objects.update_or_create(
-                phone=self.phone,
-                defaults={
-                    'full_name': self.full_name,
-                    'blood_group': self.blood_group,
-                    'division': self.division or 'রাজশাহী',
-                    'district': self.district or 'নওগাঁ',
-                    'upazila': self.upazila,
-                    'location': self.address or self.upazila or 'নওগাঁ',
-                    'last_donated': self.last_donated,
-                    'member_id': self.member_id,
-                    'is_public_details': self.is_public_details,
-                    'is_available': True,
-                }
-            )
+        sync_to_blood_donor(self, is_team=False)
 
 class TeamMember(models.Model):
     ROLE_CHOICES = (
@@ -128,6 +113,12 @@ class TeamMember(models.Model):
     custom_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="কাস্টম পদবী (যদি অন্যান্য হয়)")
     email = models.EmailField(blank=True, null=True, verbose_name="ইমেইল এড্রেস")
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="ফোন নম্বর")
+    blood_group = models.CharField(max_length=5, choices=Volunteer.BLOOD_GROUPS, blank=True, null=True, verbose_name="রক্তের গ্রুপ")
+    last_donated = models.DateField(blank=True, null=True, verbose_name="সর্বশেষ রক্তদানের তারিখ")
+    is_public_details = models.BooleanField(default=True, verbose_name="মোবাইল নম্বর ও বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?")
+    division = models.CharField(max_length=100, default="রাজশাহী", blank=True, null=True, verbose_name="বিভাগ")
+    district = models.CharField(max_length=100, default="নওগাঁ", blank=True, null=True, verbose_name="জেলা")
+    upazila = models.CharField(max_length=100, blank=True, null=True, verbose_name="উপজেলা / থানা")
     address = models.TextField(blank=True, null=True, verbose_name="ঠিকানা")
     image = models.ImageField(upload_to='team/', blank=True, null=True, verbose_name="ছবি")
     bio = models.TextField(blank=True, verbose_name="সংক্ষিপ্ত বিবরণ")
@@ -141,6 +132,11 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.effective_role}) - {self.member_id or 'No ID'}"
+
+    @property
+    def full_address(self):
+        parts = [p for p in [self.address, self.upazila, self.district, self.division] if p]
+        return ", ".join(parts) if parts else (self.address or "")
 
     @property
     def effective_role(self):
@@ -168,15 +164,21 @@ class TeamMember(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         if not self.member_id:
-            today = date.today()
-            prefix = f"HHN{today.strftime('%y%m%d')}"
-            count = TeamMember.objects.filter(member_id__startswith=prefix).count()
-            self.member_id = f"{prefix}{count + 1:02d}"
+            self.member_id = generate_next_member_id()
         try:
             self.order = int(self.order or 0)
         except (ValueError, TypeError):
             self.order = 0
         super().save(*args, **kwargs)
+
+        # Auto-sync to BloodDonor table if blood_group is provided and phone exists
+        sync_to_blood_donor(self, is_team=True)
+
+def generate_next_member_id():
+    today = date.today()
+    prefix = f"HHN{today.strftime('%y%m%d')}"
+    count = TeamMember.objects.filter(member_id__startswith=prefix).count()
+    return f"{prefix}{count + 1:02d}"
 
 class BloodDonor(models.Model):
     BLOOD_GROUPS = (
@@ -232,3 +234,53 @@ class BloodDonor(models.Model):
             return 0
         diff = (date.today() - self.last_donated).days
         return max(0, 90 - diff)
+
+
+def sync_to_blood_donor(person, is_team=False):
+    """Auto-sync Volunteer or TeamMember to BloodDonor database if blood_group is provided."""
+    if not getattr(person, 'blood_group', None):
+        return
+    phone = (getattr(person, 'phone', None) or '').strip()
+    if not phone:
+        return
+
+    name = getattr(person, 'name', None) if is_team else getattr(person, 'full_name', None)
+    if not name:
+        return
+
+    member_id = getattr(person, 'member_id', None)
+    
+    # 1. Look for existing BloodDonor record by member_id or phone
+    donor = None
+    if member_id:
+        donor = BloodDonor.objects.filter(member_id=member_id).first()
+    if not donor and phone:
+        donor = BloodDonor.objects.filter(phone=phone).first()
+
+    loc = getattr(person, 'address', '') or getattr(person, 'upazila', '') or 'নওগাঁ'
+    division = getattr(person, 'division', '') or 'রাজশাহী'
+    district = getattr(person, 'district', '') or 'নওগাঁ'
+    upazila = getattr(person, 'upazila', '')
+    last_donated = getattr(person, 'last_donated', None)
+    is_public = getattr(person, 'is_public_details', True)
+
+    defaults = {
+        'full_name': name,
+        'blood_group': person.blood_group,
+        'phone': phone,
+        'division': division,
+        'district': district,
+        'upazila': upazila,
+        'location': loc,
+        'last_donated': last_donated,
+        'member_id': member_id,
+        'is_public_details': is_public,
+        'is_available': True,
+    }
+
+    if donor:
+        for k, v in defaults.items():
+            setattr(donor, k, v)
+        donor.save()
+    else:
+        BloodDonor.objects.create(**defaults)

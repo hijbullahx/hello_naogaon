@@ -24,8 +24,10 @@
             </div>
             <div class="d-flex gap-2">
                 <a href="{% url 'core:home' %}" target="_blank" class="btn btn-light fw-bold shadow-sm"><i class="fas fa-external-link-alt me-1"></i> ওয়েবসাইট ভিজিট</a>
-                <a href="/django-admin/" class="btn btn-outline-light fw-bold"><i class="fas fa-cogs me-1"></i> ব্যাকএন্ড</a>
-                <a href="{% url 'logout' %}" class="btn btn-danger fw-bold shadow-sm"><i class="fas fa-sign-out-alt me-1"></i> লগআউট</a>
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger fw-bold shadow-sm"><i class="fas fa-sign-out-alt me-1"></i> লগআউট</button>
+                </form>
             </div>
         </div>
     </div>
@@ -44,7 +46,10 @@
             </div>
             <div class="d-flex gap-2">
                 <a href="{% url 'core:home' %}" target="_blank" class="btn btn-light btn-sm fw-bold shadow-sm"><i class="fas fa-external-link-alt me-1"></i> মূল ওয়েবসাইট</a>
-                <a href="{% url 'logout' %}" class="btn btn-danger btn-sm fw-bold shadow-sm"><i class="fas fa-sign-out-alt me-1"></i> লগআউট</a>
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm fw-bold shadow-sm"><i class="fas fa-sign-out-alt me-1"></i> লগআউট</button>
+                </form>
             </div>
         </div>
 
@@ -753,10 +758,12 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>#</th>
-                                    <th>নাম</th>
-                                    <th>গ্রুপ</th>
-                                    <th>ফোন</th>
-                                    <th>এলাকা</th>
+                                    <th>রক্তদাতার নাম ও পরিচিতি</th>
+                                    <th>রক্তের গ্রুপ</th>
+                                    <th>মোবাইল নম্বর</th>
+                                    <th>ঠিকানা / এলাকা</th>
+                                    <th>সর্বশেষ রক্তদান</th>
+                                    <th>স্ট্যাটাস (৩ মাস / ৯০ দিন)</th>
                                     {% if can_edit_all %}<th>অ্যাকশন</th>{% endif %}
                                 </tr>
                             </thead>
@@ -764,16 +771,53 @@
                                 {% for d in donors %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
-                                    <td class="fw-bold">{{ d.full_name }}</td>
-                                    <td><span class="badge bg-danger fs-6">{{ d.blood_group }}</span></td>
-                                    <td><a href="tel:{{ d.phone }}" class="text-success fw-semibold">{{ d.phone }}</a>
+                                    <td>
+                                        <div class="fw-bold text-dark fs-6">{{ d.full_name }}</div>
+                                        {% if d.member_id %}
+                                        <span class="badge bg-success-subtle text-success border border-success small py-1 px-2 mt-1">
+                                            <i class="fas fa-id-badge me-1"></i>সদস্য আইডি: {{ d.member_id }}
+                                        </span>
+                                        {% endif %}
                                     </td>
-                                    <td>{{ d.location }}</td>
+                                    <td><span class="badge bg-danger fs-6 px-3 py-2 shadow-sm"><i class="fas fa-tint me-1"></i>{{ d.blood_group }}</span></td>
+                                    <td>
+                                        {% if d.is_public_details %}
+                                        <a href="tel:{{ d.phone }}" class="text-success fw-semibold text-decoration-none">
+                                            <i class="fas fa-phone me-1"></i>{{ d.phone }}
+                                        </a>
+                                        {% else %}
+                                        <span class="badge bg-secondary"><i class="fas fa-lock me-1"></i>গোপনীয় ({{ d.phone }})</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="text-secondary fw-semibold"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ d.full_address }}</span></td>
+                                    <td>
+                                        {% if d.last_donated %}
+                                        <span class="fw-semibold text-dark">{{ d.last_donated|date:"d M Y" }}</span>
+                                        {% else %}
+                                        <span class="text-muted small">তথ্য নেই</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if d.is_eligible_to_donate %}
+                                        <span class="badge bg-success fs-6 py-2 px-3">
+                                            <i class="fas fa-check-circle me-1"></i>প্রস্তুত (Ready)
+                                        </span>
+                                        {% elif d.last_donated %}
+                                        <span class="badge bg-warning text-dark fs-6 py-2 px-3"
+                                            title="সর্বশেষ রক্তদানের পর ৩ মাস পূর্ণ হতে আর {{ d.days_until_eligible }} দিন বাকি">
+                                            <i class="fas fa-hourglass-half me-1"></i>বিশ্রামে ({{ d.days_until_eligible }} দিন বাকি)
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary fs-6 py-2 px-3">
+                                            <i class="fas fa-times-circle me-1"></i>অনুপলব্ধ
+                                        </span>
+                                        {% endif %}
+                                    </td>
                                     {% if can_edit_all %}
                                     <td>
                                         <a href="{% url 'core:delete_donor' d.id %}"
-                                            onclick="return confirm('মুছে ফেলতে চান?');"
-                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                            onclick="return confirm('আপনি কি নিশ্চিত যে এই রক্তদাতার তথ্য মুছে ফেলতে চান?');"
+                                            class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
                                     </td>
                                     {% endif %}
                                 </tr>
@@ -841,7 +885,7 @@
                                                 {% if tm.phone %}<div><a href="tel:{{ tm.phone }}" class="text-success fw-bold text-decoration-none"><i class="fas fa-phone me-1"></i>{{ tm.phone }}</a></div>{% endif %}
                                                 {% if tm.email %}<small class="text-muted"><i class="fas fa-envelope me-1"></i>{{ tm.email }}</small>{% endif %}
                                             </td>
-                                            <td><small class="text-secondary">{{ tm.address|default:"-" }}</small></td>
+                                            <td><small class="text-secondary">{{ tm.full_address|default:tm.address|default:"-" }}</small></td>
                                             <td>
                                                 {% if tm.user %}
                                                 <span class="badge bg-primary text-white"><i class="fas fa-user-check me-1"></i>{{ tm.user.username }}</span>
@@ -887,11 +931,29 @@
                                                                         </div>
                                                                         <div class="col-md-6">
                                                                             <label class="form-label fw-bold">ইমেইল এড্রেস *</label>
-                                                                            <input type="email" name="email" value="{{ tm.email|default:'' }}" required class="form-control" placeholder="member@example.com">
+                                                                            <input type="email" name="email" value="{{ tm.email|default:'' }}" required class="form-control" placeholder="example@gmail.com">
                                                                         </div>
                                                                         <div class="col-md-6">
                                                                             <label class="form-label fw-bold">ফোন নম্বর *</label>
                                                                             <input type="text" name="phone" value="{{ tm.phone|default:'' }}" required class="form-control" placeholder="017XXXXXXXX">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">রক্তের গ্রুপ (Blood Group — ঐচ্ছিক)</label>
+                                                                            <select name="blood_group" class="form-select">
+                                                                                <option value="">-- রক্তের গ্রুপ নির্বাচন করুন (ঐচ্ছিক) --</option>
+                                                                                <option value="A+" {% if tm.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                                                                                <option value="A-" {% if tm.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                                                                                <option value="B+" {% if tm.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                                                                                <option value="B-" {% if tm.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                                                                                <option value="O+" {% if tm.blood_group == 'O+' %}selected{% endif %}>O+</option>
+                                                                                <option value="O-" {% if tm.blood_group == 'O-' %}selected{% endif %}>O-</option>
+                                                                                <option value="AB+" {% if tm.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                                                                                <option value="AB-" {% if tm.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ (ঐচ্ছিক — যদি রক্তদাতা হন)</label>
+                                                                            <input type="date" name="last_donated" value="{{ tm.last_donated|date:'Y-m-d' }}" class="form-control">
                                                                         </div>
                                                                         <div class="col-md-6">
                                                                             <label class="form-label fw-bold">সদস্য আইডি (Member ID)</label>
@@ -902,8 +964,35 @@
                                                                             <input type="number" name="order" value="{{ tm.order }}" class="form-control">
                                                                         </div>
                                                                         <div class="col-md-12">
-                                                                            <label class="form-label fw-bold">ঠিকানা (Address)</label>
-                                                                            <textarea name="address" rows="2" class="form-control" placeholder="উপজেলা, জেলা...">{{ tm.address|default:'' }}</textarea>
+                                                                            <div class="card border border-primary-subtle bg-primary-subtle bg-opacity-10 p-3 rounded-3">
+                                                                                <h6 class="fw-bold text-primary mb-2">
+                                                                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address)
+                                                                                </h6>
+                                                                                <div class="row g-2">
+                                                                                    <div class="col-md-4">
+                                                                                        <label class="form-label small fw-bold">বিভাগ</label>
+                                                                                        <select class="form-select division-select" id="tm_edit_division_{{ tm.id }}" name="division" data-district-target="tm_edit_district_{{ tm.id }}" data-upazila-target="tm_edit_upazila_{{ tm.id }}" data-selected-val="{{ tm.division|default:'রাজশাহী' }}">
+                                                                                            <!-- Injected by JS -->
+                                                                                        </select>
+                                                                                    </div>
+                                                                                    <div class="col-md-4">
+                                                                                        <label class="form-label small fw-bold">জেলা</label>
+                                                                                        <select class="form-select district-select" id="tm_edit_district_{{ tm.id }}" name="district" data-upazila-target="tm_edit_upazila_{{ tm.id }}" data-selected-val="{{ tm.district|default:'নওগাঁ' }}">
+                                                                                            <!-- Injected by JS -->
+                                                                                        </select>
+                                                                                    </div>
+                                                                                    <div class="col-md-4">
+                                                                                        <label class="form-label small fw-bold">উপজেলা / থানা</label>
+                                                                                        <select class="form-select upazila-select" id="tm_edit_upazila_{{ tm.id }}" name="upazila" data-selected-val="{{ tm.upazila|default:'' }}">
+                                                                                            <!-- Injected by JS -->
+                                                                                        </select>
+                                                                                    </div>
+                                                                                    <div class="col-12 mt-2">
+                                                                                        <label class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                                                                        <input type="text" class="form-control" name="address" value="{{ tm.address|default:'' }}" placeholder="গ্রাম/মহল্লা, ডাকঘর, বাড়ি নং">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
                                                                         <div class="col-md-12">
                                                                             <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
@@ -912,10 +1001,27 @@
                                                                         <div class="col-md-12">
                                                                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                                                                 <label class="form-label fw-bold mb-0">ছবি পরিবর্তন করুন</label>
-                                                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                                                                <div class="d-flex align-items-center gap-1">
+                                                                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                                                                    <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                                                                        class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                                        <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                                                                    </a>
+                                                                                </div>
                                                                             </div>
                                                                             {% if tm.image %}<div class="mb-2"><img src="{{ tm.image.url }}" style="height: 50px;" class="rounded border"></div>{% endif %}
                                                                             <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
+                                                                        </div>
+
+                                                                        <!-- Privacy Choice Checkbox -->
+                                                                        <div class="col-md-12">
+                                                                            <div class="form-check form-switch bg-light p-3 rounded border">
+                                                                                <input class="form-check-input ms-0 me-2" type="checkbox" id="tm_edit_is_public_{{ tm.id }}" name="is_public_details" {% if tm.is_public_details %}checked{% endif %}>
+                                                                                <label class="form-check-label fw-bold text-dark" for="tm_edit_is_public_{{ tm.id }}">
+                                                                                    <i class="fas fa-shield-alt text-success me-1"></i>আপনি কি মোবাইল নম্বর এবং বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?
+                                                                                </label>
+                                                                                <div class="form-text text-muted ps-4">টিক চিহ্ন তুলে দিলে তালিকায় শুধুমাত্র ছবি, নাম ও আইডি দেখতে পাবেন, মোবাইল নম্বর গোপন থাকবে।</div>
+                                                                            </div>
                                                                         </div>
 
                                                                         <!-- Login Account Section -->
@@ -929,7 +1035,7 @@
                                                                                     </div>
                                                                                     <div class="col-md-6">
                                                                                         <label class="form-label small fw-bold">নতুন পাসওয়ার্ড (পরিবর্তন করতে চাইলে)</label>
-                                                                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="নতুন পাসওয়ার্ড লিখুন">
+                                                                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="নতুন পাসওয়ার্ড লিখুন" autocomplete="new-password">
                                                                                     </div>
                                                                                 </div>
                                                                                 <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>লগইন করার সময় ইউজারনেম, ইমেইল অথবা মেম্বার আইডি ব্যবহার করা যাবে।</small>
@@ -1008,6 +1114,10 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
                 {% if not can_edit_all %}
                 <!-- 3. Registered Blood Donors Card (For Leadership View) -->
                 <div class="col-lg-12">
@@ -1086,9 +1196,55 @@
                                     <td><small class="text-secondary">{{ art.publish_date|date:"d M Y" }}</small></td>
                                     {% if can_edit_all %}
                                     <td>
+                                        <!-- Edit News Button -->
+                                        <button class="btn btn-sm btn-outline-primary me-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editNewsModal{{ art.id }}"
+                                            title="সম্পাদনা করুন">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <!-- Delete News Button -->
                                         <a href="{% url 'core:delete_news' art.id %}"
                                             onclick="return confirm('খবরটি মুছে ফেলতে চান?');"
-                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                            class="btn btn-sm btn-outline-danger" title="মুছুন">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+
+                                        <!-- Edit News Modal -->
+                                        <div class="modal fade" id="editNewsModal{{ art.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                                <div class="modal-content border-0 shadow-lg">
+                                                    <div class="modal-header bg-warning text-dark">
+                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i> সংবাদ সম্পাদনা</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form action="{% url 'core:save_news' %}" method="post" enctype="multipart/form-data">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="article_id" value="{{ art.id }}">
+                                                        <div class="modal-body p-4">
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">শিরোনাম *</label>
+                                                                <input type="text" name="title" class="form-control" value="{{ art.title }}" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">বিষয়বস্তু *</label>
+                                                                <textarea name="content" class="form-control" rows="5" required>{{ art.content }}</textarea>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">কভার ছবি পরিবর্তন করুন (ঐচ্ছিক)</label>
+                                                                {% if art.image %}<div class="mb-2"><img src="{{ art.image.url }}" style="height:60px;" class="rounded border"></div>{% endif %}
+                                                                <input type="file" name="image" class="form-control" accept="image/*"
+                                                                    onchange="validateDashboardImage(this, 1024, 'সংবাদের কভার ছবি')">
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                                                            <button type="submit" class="btn btn-warning fw-bold text-dark">আপডেট সংরক্ষণ করুন</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                     {% endif %}
                                 </tr>
@@ -1944,6 +2100,15 @@
                                 {% if photo.image %}<img src="{{ photo.image.url }}"
                                     style="height: 120px; object-fit: cover;" class="img-fluid">{% endif %}
                                 <div class="p-2 text-center small text-muted">{{ photo.caption|default:"Photo" }}</div>
+                                {% if can_edit_all %}
+                                <div class="p-1 text-center">
+                                    <a href="{% url 'core:delete_gallery_photo' photo.id %}"
+                                        onclick="return confirm('ছবিটি মুছে ফেলতে চান?');"
+                                        class="btn btn-sm btn-outline-danger w-100">
+                                        <i class="fas fa-trash me-1"></i> মুছুন
+                                    </a>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         {% empty %}
@@ -2271,12 +2436,30 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">ইমেইল এড্রেস *</label>
-                            <input type="email" name="email" required class="form-control" placeholder="member@example.com">
+                            <input type="email" name="email" required class="form-control" placeholder="example@gmail.com">
                             <div class="form-text small text-muted">এই ইমেইলে সদস্যের আইডি ও লগইন তথ্য স্বয়ংক্রিয়ভাবে পাঠানো হবে।</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">ফোন নম্বর *</label>
                             <input type="text" name="phone" required class="form-control" placeholder="017XXXXXXXX">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">রক্তের গ্রুপ (Blood Group — ঐচ্ছিক)</label>
+                            <select name="blood_group" class="form-select">
+                                <option value="">-- রক্তের গ্রুপ নির্বাচন করুন (ঐচ্ছিক) --</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ (ঐচ্ছিক — যদি রক্তদাতা হন)</label>
+                            <input type="date" name="last_donated" class="form-control">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">সদস্য আইডি (Member ID - ঐচ্ছিক)</label>
@@ -2287,8 +2470,35 @@
                             <input type="number" name="order" value="0" class="form-control">
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label fw-bold">ঠিকানা (Address)</label>
-                            <textarea name="address" rows="2" class="form-control" placeholder="গ্রাম/মহল্লা, ডাকঘর, উপজেলা, জেলা..."></textarea>
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address)
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="tm_create_division" class="form-label small fw-bold">বিভাগ</label>
+                                        <select class="form-select division-select" id="tm_create_division" name="division" data-district-target="tm_create_district" data-upazila-target="tm_create_upazila" data-selected-val="রাজশাহী">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="tm_create_district" class="form-label small fw-bold">জেলা</label>
+                                        <select class="form-select district-select" id="tm_create_district" name="district" data-upazila-target="tm_create_upazila" data-selected-val="নওগাঁ">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="tm_create_upazila" class="form-label small fw-bold">উপজেলা / থানা</label>
+                                        <select class="form-select upazila-select" id="tm_create_upazila" name="upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label for="tm_create_address" class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                        <input type="text" class="form-control" id="tm_create_address" name="address" placeholder="গ্রাম/মহল্লা, ডাকঘর, বাড়ি নং">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label fw-bold">সংক্ষিপ্ত বিবরণ (Bio)</label>
@@ -2297,9 +2507,26 @@
                         <div class="col-md-12">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                 <label class="form-label fw-bold mb-0">প্রোফাইল ছবি আপলোড করুন</label>
-                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                    <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer"
+                                        class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                        <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                    </a>
+                                </div>
                             </div>
                             <input type="file" name="image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'টিম সদস্যের ছবি')">
+                        </div>
+
+                        <!-- Privacy Choice Checkbox -->
+                        <div class="col-md-12">
+                            <div class="form-check form-switch bg-light p-3 rounded border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="tm_create_is_public_details" name="is_public_details" checked>
+                                <label class="form-check-label fw-bold text-dark" for="tm_create_is_public_details">
+                                    <i class="fas fa-shield-alt text-success me-1"></i>আপনি কি মোবাইল নম্বর এবং বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?
+                                </label>
+                                <div class="form-text text-muted ps-4">টিক চিহ্ন তুলে দিলে তালিকায় শুধুমাত্র ছবি, নাম ও আইডি দেখতে পাবেন, মোবাইল নম্বর গোপন থাকবে।</div>
+                            </div>
                         </div>
 
                         <!-- Login Account Credentials Section -->
@@ -2312,11 +2539,11 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">ইউজারনেম (Username)</label>
-                                        <input type="text" name="username" class="form-control form-control-sm" placeholder="যেমন: president_hn">
+                                        <input type="text" name="username" class="form-control form-control-sm" placeholder="যেমন: president_hn" autocomplete="off" value="" readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">লগইন পাসওয়ার্ড (Password)</label>
-                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="গোপন পাসওয়ার্ড লিখুন">
+                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="গোপন পাসওয়ার্ড লিখুন" autocomplete="new-password" value="" readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                 </div>
                                 <small class="text-muted d-block mt-2">
@@ -2348,6 +2575,7 @@
             <form action="{% url 'core:save_transaction' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="transaction_type" value="income">
+                <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label fw-bold">কার্যক্রম (Program - ঐচ্ছিক)</label>
                     <select name="program_id" class="form-select">
@@ -2784,6 +3012,91 @@
                 localStorage.setItem('activeDashboardTab', targetId);
             });
         });
+
+        // Initialize Geo Dropdowns for Team Members & Address Fields
+        initGeoDropdowns();
     });
+
+    let globalBdGeoHierarchy = null;
+    async function getBangladeshGeoData() {
+        if (globalBdGeoHierarchy && Object.keys(globalBdGeoHierarchy).length > 0) {
+            return globalBdGeoHierarchy;
+        }
+        try {
+            const response = await fetch('/volunteers/api/bd-geo/');
+            if (response.ok) {
+                const json = await response.json();
+                if (json && json.hierarchy && Object.keys(json.hierarchy).length > 0) {
+                    globalBdGeoHierarchy = json.hierarchy;
+                    return globalBdGeoHierarchy;
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch BD Geo dataset:', err);
+        }
+        return null;
+    }
+
+    async function initGeoDropdowns() {
+        const geoData = await getBangladeshGeoData();
+        if (!geoData) return;
+
+        document.querySelectorAll('.division-select').forEach(function(divSel) {
+            const selectedDiv = divSel.getAttribute('data-selected-val') || 'রাজশাহী';
+            divSel.innerHTML = '';
+            Object.keys(geoData).forEach(function(divName) {
+                const opt = document.createElement('option');
+                opt.value = divName;
+                opt.innerText = divName;
+                if (divName === selectedDiv) opt.selected = true;
+                divSel.appendChild(opt);
+            });
+
+            const distId = divSel.getAttribute('data-district-target');
+            const upzId = divSel.getAttribute('data-upazila-target');
+            const distSel = document.getElementById(distId);
+            const upzSel = document.getElementById(upzId);
+            if (!distSel || !upzSel) return;
+
+            function updateDistricts(initial) {
+                const selDiv = divSel.value;
+                const targetDistVal = initial ? (distSel.getAttribute('data-selected-val') || 'নওগাঁ') : '';
+                distSel.innerHTML = '';
+                const districts = geoData[selDiv] ? Object.keys(geoData[selDiv]) : [];
+                districts.forEach(function(dName) {
+                    const dOpt = document.createElement('option');
+                    dOpt.value = dName;
+                    dOpt.innerText = dName;
+                    if (targetDistVal && dName === targetDistVal) {
+                        dOpt.selected = true;
+                    } else if (!targetDistVal && dName === 'নওগাঁ') {
+                        dOpt.selected = true;
+                    }
+                    distSel.appendChild(dOpt);
+                });
+                updateUpazilas(initial);
+            }
+
+            function updateUpazilas(initial) {
+                const selDiv = divSel.value;
+                const selDist = distSel.value;
+                const targetUpzVal = initial ? (upzSel.getAttribute('data-selected-val') || '') : '';
+                upzSel.innerHTML = '<option value="">-- উপজেলা / থানা নির্বাচন করুন --</option>';
+                const upazilas = (geoData[selDiv] && geoData[selDiv][selDist]) ? geoData[selDiv][selDist] : [];
+                upazilas.forEach(function(uName) {
+                    const uOpt = document.createElement('option');
+                    uOpt.value = uName;
+                    uOpt.innerText = uName;
+                    if (targetUpzVal && uName === targetUpzVal) uOpt.selected = true;
+                    upzSel.appendChild(uOpt);
+                });
+            }
+
+            divSel.addEventListener('change', function() { updateDistricts(false); });
+            distSel.addEventListener('change', function() { updateUpazilas(false); });
+
+            updateDistricts(true);
+        });
+    }
 </script>
 {% endblock %}

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -37,10 +38,10 @@ def get_user_dashboard_role(user):
             'welcome_title': 'স্বাগতম',
         }
 
-    if user.is_superuser:
+    if user.is_superuser or (user.is_staff and not getattr(user, 'team_profile', None)):
         return {
-            'role_name': 'প্রধান অ্যাডমিন (Super Admin)',
-            'role_type': 'superuser',
+            'role_name': 'প্রধান অ্যাডমিন (Super Admin)' if user.is_superuser else 'অ্যাডমিন (Admin)',
+            'role_type': 'superuser' if user.is_superuser else 'staff_admin',
             'can_manage_cms': True,
             'can_manage_team': True,
             'can_manage_volunteers': True,
@@ -49,7 +50,7 @@ def get_user_dashboard_role(user):
             'team_member': getattr(user, 'team_profile', None),
             'badge_color': 'danger',
             'icon': 'fas fa-user-shield',
-            'welcome_title': 'প্রধান অ্যাডমিন কন্ট্রোল প্যানেল',
+            'welcome_title': 'প্রধান অ্যাডমিন কন্ট্রোল প্যানেল' if user.is_superuser else 'অ্যাডমিন কন্ট্রোল প্যানেল',
         }
 
     tm = getattr(user, 'team_profile', None)
@@ -144,17 +145,19 @@ def get_user_dashboard_role(user):
 def can_user_edit_finance(user):
     if not user or not user.is_authenticated:
         return False
-    if user.is_superuser:
+    if user.is_superuser or user.is_staff:
         return True
     tm = getattr(user, 'team_profile', None)
-    if tm and tm.role == 'কোষাধ্যক্ষ':
+    if tm and tm.role in ['কোষাধ্যক্ষ', 'সভাপতি', 'সাধারণ সম্পাদক']:
         return True
     return False
 
 def can_user_edit_general(user):
     if not user or not user.is_authenticated:
         return False
-    return user.is_superuser
+    if user.is_superuser or user.is_staff:
+        return True
+    return False
 
 def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"):
     """
@@ -1083,6 +1086,9 @@ def save_team_member(request):
         custom_role = request.POST.get('custom_role', '').strip()
         email = request.POST.get('email', '').strip()
         phone = request.POST.get('phone', '').strip()
+        division = request.POST.get('division', 'রাজশাহী').strip()
+        district = request.POST.get('district', 'নওগাঁ').strip()
+        upazila = request.POST.get('upazila', '').strip()
         address = request.POST.get('address', '').strip()
         bio = request.POST.get('bio', '').strip()
         try:
@@ -1090,6 +1096,17 @@ def save_team_member(request):
             order = int(order_val) if order_val and str(order_val).strip() else 0
         except (ValueError, TypeError):
             order = 0
+
+        blood_group = request.POST.get('blood_group', '').strip()
+        last_donated_str = request.POST.get('last_donated', '').strip()
+        last_donated = None
+        if last_donated_str:
+            try:
+                from datetime import datetime
+                last_donated = datetime.strptime(last_donated_str, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                last_donated = None
+        is_public_details = bool(request.POST.get('is_public_details'))
         custom_member_id = request.POST.get('custom_member_id', '').strip()
 
         username = request.POST.get('username', '').strip()
@@ -1130,9 +1147,19 @@ def save_team_member(request):
             if not tm:
                 messages.warning(request, 'টিম সদস্যের তথ্য খুঁজে পাওয়া যায়নি।')
                 return redirect('/dashboard/?tab=volunteers-section')
+        elif custom_member_id:
+            # If custom_member_id is provided, check if a TeamMember already has this ID
+            tm = TeamMember.objects.filter(member_id__iexact=custom_member_id).first()
+
+        # Check if an existing Volunteer matches custom_member_id or phone to link their account
+        vol = None
+        if custom_member_id:
+            vol = Volunteer.objects.filter(member_id__iexact=custom_member_id).first()
+        if not vol and phone:
+            vol = Volunteer.objects.filter(phone=phone).first()
 
         # 3. User account creation / linking
-        auth_user = tm.user if tm else None
+        auth_user = tm.user if (tm and tm.user) else (vol.user if (vol and vol.user) else None)
         user_created_or_updated = False
         if username:
             existing_user_query = User.objects.filter(username__iexact=username)
@@ -1173,6 +1200,12 @@ def save_team_member(request):
             tm.custom_role = custom_role if role == 'অন্যান্য' else ''
             tm.email = email
             tm.phone = phone
+            tm.blood_group = blood_group
+            tm.last_donated = last_donated
+            tm.is_public_details = is_public_details
+            tm.division = division
+            tm.district = district
+            tm.upazila = upazila
             tm.address = address
             tm.bio = bio
             tm.order = order
@@ -1183,7 +1216,7 @@ def save_team_member(request):
             if image_file:
                 tm.image = image_file
             tm.save()
-            messages.success(request, f'টিম সদস্য "{name}"-এর তথ্য সফলভাবে আপডেট হয়েছে!')
+            messages.success(request, f'সদস্য আইডি "{tm.member_id}" অনুযায়ী টিম সদস্য "{name}"-এর তথ্য সফলভাবে আপডেট হয়েছে!')
         else:
             tm = TeamMember(
                 name=name,
@@ -1191,6 +1224,12 @@ def save_team_member(request):
                 custom_role=custom_role if role == 'অন্যান্য' else '',
                 email=email,
                 phone=phone,
+                blood_group=blood_group,
+                last_donated=last_donated,
+                is_public_details=is_public_details,
+                division=division,
+                district=district,
+                upazila=upazila,
                 address=address,
                 bio=bio,
                 order=order,
@@ -1200,7 +1239,7 @@ def save_team_member(request):
             if custom_member_id:
                 tm.member_id = custom_member_id
             tm.save()
-            messages.success(request, f'নতুন টিম সদস্য "{name}" সফলভাবে যুক্ত হয়েছে! (মেম্বার আইডি: {tm.member_id})')
+            messages.success(request, f'সদস্য আইডি "{tm.member_id}" দিয়ে টিম সদস্য "{name}" সফলভাবে যুক্ত হয়েছে!')
 
         # 5. Email Notification to Member (fail-silently)
         if email:
@@ -1511,3 +1550,207 @@ def delete_program_donation(request, pk):
     else:
         messages.warning(request, 'অনুদানের তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=finance-section')
+
+
+@login_required
+def update_profile(request):
+    """Allow any logged-in user (admin, team member, volunteer) to update their own profile."""
+    redirect_target = request.META.get('HTTP_REFERER') or '/dashboard/'
+    if request.method != 'POST':
+        return redirect(redirect_target)
+
+    user = request.user
+    new_name = request.POST.get('profile_name', '').strip()
+    new_email = request.POST.get('profile_email', '').strip()
+    new_phone = request.POST.get('profile_phone', '').strip()
+    new_division = request.POST.get('profile_division', '').strip()
+    new_district = request.POST.get('profile_district', '').strip()
+    new_upazila = request.POST.get('profile_upazila', '').strip()
+    new_address = request.POST.get('profile_address', '').strip()
+    new_bio = request.POST.get('profile_bio', '').strip()
+    profile_blood_group = request.POST.get('profile_blood_group', '').strip()
+    profile_last_donated_str = request.POST.get('profile_last_donated', '').strip()
+    profile_last_donated = None
+    if profile_last_donated_str:
+        try:
+            from datetime import datetime
+            profile_last_donated = datetime.strptime(profile_last_donated_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            profile_last_donated = None
+    profile_is_public_details = bool(request.POST.get('profile_is_public_details'))
+    new_password = request.POST.get('profile_password', '').strip()
+    confirm_password = request.POST.get('profile_confirm_password', '').strip()
+
+    changes = []
+
+    # Update User model
+    if new_name and new_name != user.get_full_name():
+        parts = new_name.split(' ')
+        user.first_name = parts[0]
+        user.last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
+        changes.append(f'নাম: {new_name}')
+
+    if new_email and new_email != user.email:
+        if User.objects.filter(email__iexact=new_email).exclude(pk=user.pk).exists():
+            messages.error(request, 'এই ইমেইলটি অন্য কোনো অ্যাকাউন্টে ইতিমধ্যে ব্যবহৃত হয়েছে।')
+            return redirect(redirect_target)
+        user.email = new_email
+        changes.append(f'ইমেইল: {new_email}')
+
+    if new_password:
+        if new_password != confirm_password:
+            messages.error(request, 'নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।')
+            return redirect(redirect_target)
+        if len(new_password) < 6:
+            messages.error(request, 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।')
+            return redirect(redirect_target)
+        user.set_password(new_password)
+        changes.append('পাসওয়ার্ড পরিবর্তিত হয়েছে')
+
+    user.save()
+
+    # Update TeamMember profile if exists or link/create for staff/superuser
+    tm = getattr(user, 'team_profile', None)
+    if not tm and (user.is_staff or user.is_superuser):
+        tm = TeamMember.objects.filter(user=user).first()
+        if not tm and user.email:
+            tm = TeamMember.objects.filter(email__iexact=user.email).first()
+            if tm and not tm.user:
+                tm.user = user
+                tm.save()
+        if not tm and (new_phone or new_address or new_division or new_district or new_upazila or 'profile_photo' in request.FILES):
+            from volunteers.models import generate_next_member_id
+            role_title = 'প্রধান অ্যাডমিন' if user.is_superuser else 'স্টাফ অ্যাডমিন'
+            tm = TeamMember.objects.create(
+                user=user,
+                name=new_name or user.get_full_name() or user.username,
+                role='অন্যান্য',
+                custom_role=role_title,
+                email=user.email,
+                member_id=generate_next_member_id(),
+                phone=new_phone,
+                division=new_division or 'রাজশাহী',
+                district=new_district or 'নওগাঁ',
+                upazila=new_upazila,
+                address=new_address
+            )
+            changes.append('টিম প্রোফাইল সংযুক্ত হয়েছে')
+
+    if tm:
+        if new_name:
+            tm.name = new_name
+        if new_email:
+            tm.email = new_email
+        if new_phone and new_phone != tm.phone:
+            tm.phone = new_phone
+            changes.append(f'ফোন: {new_phone}')
+        if new_division and new_division != tm.division:
+            tm.division = new_division
+            changes.append(f'বিভাগ: {new_division}')
+        if new_district and new_district != tm.district:
+            tm.district = new_district
+            changes.append(f'জেলা: {new_district}')
+        if new_upazila and new_upazila != tm.upazila:
+            tm.upazila = new_upazila
+            changes.append(f'উপজেলা: {new_upazila}')
+        if new_address and new_address != tm.address:
+            tm.address = new_address
+            changes.append(f'ঠিকানা: {new_address}')
+        if new_bio and new_bio != tm.bio:
+            tm.bio = new_bio
+            changes.append('সংক্ষিপ্ত পরিচিতি (Bio) আপডেট হয়েছে')
+        if profile_blood_group:
+            tm.blood_group = profile_blood_group
+            changes.append(f'রক্তের গ্রুপ: {profile_blood_group}')
+        if profile_last_donated:
+            tm.last_donated = profile_last_donated
+            changes.append(f'সর্বশেষ রক্তদান: {profile_last_donated}')
+        tm.is_public_details = profile_is_public_details
+
+        # Photo update
+        if 'profile_photo' in request.FILES:
+            photo_file = request.FILES['profile_photo']
+            if not validate_image_size(request, photo_file, max_kb=500, field_name='প্রোফাইল ছবি'):
+                return redirect(redirect_target)
+            tm.image = photo_file
+            changes.append('প্রোফাইল ছবি আপডেট হয়েছে')
+
+        tm.save()
+
+    # Update Volunteer profile if exists
+    vp = getattr(user, 'volunteer_profile', None)
+    if vp:
+        if new_name:
+            vp.full_name = new_name
+        if new_email:
+            vp.email = new_email
+        if new_phone and new_phone != vp.phone:
+            vp.phone = new_phone
+            changes.append(f'ফোন: {new_phone}')
+        if profile_blood_group:
+            vp.blood_group = profile_blood_group
+        if profile_last_donated:
+            vp.last_donated = profile_last_donated
+        vp.is_public_details = profile_is_public_details
+        if new_division and new_division != vp.division:
+            vp.division = new_division
+            changes.append(f'বিভাগ: {new_division}')
+        if new_district and new_district != vp.district:
+            vp.district = new_district
+            changes.append(f'জেলা: {new_district}')
+        if new_upazila and new_upazila != vp.upazila:
+            vp.upazila = new_upazila
+            changes.append(f'উপজেলা: {new_upazila}')
+        if new_address and new_address != vp.address:
+            vp.address = new_address
+            changes.append(f'ঠিকানা: {new_address}')
+        vp.save()
+
+    # Send notification email if changes made
+    if changes and (new_email or user.email):
+        recipient = new_email or user.email
+        display_name = new_name or user.get_full_name() or user.username
+        try:
+            send_system_email(
+                subject='আপনার প্রোফাইল তথ্য সফলভাবে আপডেট হয়েছে — Helpline Hello Naogaon',
+                recipient_list=[recipient],
+                recipient_name=display_name,
+                greeting=f'প্রিয় {display_name},',
+                headline='প্রোফাইল সফলভাবে আপডেট হয়েছে',
+                message_paragraphs=[
+                    'আপনার Helpline Hello Naogaon ড্যাশবোর্ড প্রোফাইল তথ্য সফলভাবে পরিবর্তন করা হয়েছে।',
+                    'পরিবর্তনসমূহ: ' + ', '.join(changes),
+                    'আপনি যদি নিজে এই পরিবর্তন না করে থাকেন, তবে অবিলম্বে প্রধান এডমিনের সাথে যোগাযোগ করুন।',
+                ],
+                request=request,
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+    if changes:
+        messages.success(request, f'প্রোফাইল তথ্য সফলভাবে আপডেট হয়েছে! ({", ".join(changes)})')
+    else:
+        messages.info(request, 'কোনো পরিবর্তন করা হয়নি।')
+
+    if new_password:
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, user)
+
+    return redirect(redirect_target)
+
+
+@staff_member_required
+def delete_gallery_photo(request, pk):
+    """Delete a single gallery photo safely."""
+    if not can_user_edit_general(request.user):
+        messages.warning(request, 'গ্যালারি পরিবর্তনের অনুমতি শুধুমাত্র প্রধান এডমিনের রয়েছে।')
+        return redirect('/dashboard/?tab=gallery-section')
+    from gallery.models import Photo
+    photo = Photo.objects.filter(pk=pk).first()
+    if photo:
+        photo.delete()
+        messages.success(request, 'ছবিটি সফলভাবে মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, 'ছবিটি খুঁজে পাওয়া যায়নি।')
+    return redirect('/dashboard/?tab=gallery-section')
