@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
+from core.email_utils import send_system_email
 from core.models import SiteSetting, StatCounter, AboutImage
 from programs.models import Program, Event, SuccessStory
 from news.models import Article, Category
@@ -1052,41 +1053,36 @@ def save_team_member(request):
         # 5. Email Notification to Member (fail-silently)
         if email:
             try:
-                subject = f"Hello Naogaon - টিম মেম্বার হিসেবে আপনাকে স্বাগতম!"
-                message_lines = [
-                    f"আসসালামু আলাইকুম {name},",
-                    "",
-                    "হ্যালো নওগাঁ (Hello Naogaon)-এর পরিচালনা পর্ষদ / টিম মেম্বার হিসেবে আপনাকে স্বাগতম!",
-                    "",
-                    "আপনার প্রোফাইল বিবরণ:",
-                    f"- মেম্বার আইডি: {tm.member_id}",
-                    f"- পদবী: {tm.effective_role}",
-                    f"- মোবাইল: {tm.phone or 'N/A'}",
-                    f"- ইমেইল: {email}",
+                subject = f"Hello Naogaon - পরিচালনা পর্ষদ / টিম মেম্বার হিসেবে আপনাকে স্বাগতম!"
+                paragraphs = [
+                    f"হ্যালো নওগাঁ (Hello Naogaon)-এর পরিচালনা পর্ষদ / টিম মেম্বার ({tm.effective_role}) হিসেবে যুক্ত হওয়ায় আপনাকে আন্তরিক মোবারকবাদ ও শুভেচ্ছা!",
+                    "সংগঠনকে সামনের দিকে এগিয়ে নিতে এবং মানবতার সেবায় কার্যকর ভূমিকা পালনে আপনার সক্রিয় ভূমিকা আমাদের জন্য অত্যন্ত গর্বের ও অনুপ্রেরণার।"
                 ]
+                
+                login_info_data = None
                 if username or (auth_user and user_created_or_updated):
-                    login_id = username or auth_user.username if auth_user else tm.member_id
-                    message_lines.extend([
-                        "",
-                        "আপনার এডমিন ড্যাশবোর্ড একাউন্ট তথ্য:",
-                        f"- ইউজারনেম / আইডি: {login_id}",
-                        f"- পাসওয়ার্ড: {password if password else '(নির্ধারিত পাসওয়ার্ড)'}",
-                        f"- লগইন লিংক: {request.build_absolute_uri('/accounts/login/')}",
-                    ])
-                message_lines.extend([
-                    "",
-                    "ধন্যবাদান্তে,",
-                    "হ্যালো নওগাঁ ফাউন্ডেশন"
-                ])
-                send_mail(
-                    subject,
-                    "\n".join(message_lines),
-                    settings.DEFAULT_FROM_EMAIL,
-                    [email],
-                    fail_silently=True
+                    login_id = username or (auth_user.username if auth_user else tm.member_id)
+                    login_info_data = {
+                        'username': login_id,
+                        'password': password if password else '(নির্ধারিত পাসওয়ার্ড)',
+                        'role': tm.effective_role,
+                    }
+
+                send_system_email(
+                    subject=subject,
+                    recipient_list=[email],
+                    recipient_name=name,
+                    greeting="আসসালামু আলাইকুম",
+                    headline="পরিচালনা পর্ষদ ও টিম সদস্য নিবন্ধন",
+                    message_paragraphs=paragraphs,
+                    team_member=tm,
+                    login_info=login_info_data,
+                    request=request,
+                    footer_note="আপনার অ্যাকাউন্টের নিরাপত্তা রক্ষার্থে প্রথমবার লগইন করার পর পাসওয়ার্ড পরিবর্তন করে নিন।",
+                    fail_silently=True,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[TEAM MEMBER EMAIL ERROR] {e}")
 
     return redirect('/dashboard/?tab=volunteers-section')
 

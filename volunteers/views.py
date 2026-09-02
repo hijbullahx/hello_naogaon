@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Q
-from django.core.mail import send_mail
-from django.conf import settings
+from core.email_utils import send_system_email
 from .models import Volunteer, TeamMember, BloodDonor
 
 def send_member_notifications(volunteer):
@@ -18,45 +17,35 @@ def send_member_notifications(volunteer):
     }
     freq_text = freq_dict.get(volunteer.contribution_frequency, 'কোনো নির্দিষ্ট প্রতিশ্রুতি নেই')
     
-    contrib_info = ""
     sms_contrib = ""
     if volunteer.contribution_frequency != 'none' and volunteer.contribution_amount and volunteer.contribution_amount > 0:
-        contrib_info = (
-            f"আর্থিক সহায়তার প্রতিশ্রুতি: {freq_text}\n"
-            f"প্রতিশ্রুত সহায়তার পরিমাণ: ৳{volunteer.contribution_amount:,.2f}\n"
-            f"সহায়তা পাঠানোর পেইজ লিঙ্ক: https://helplinehellonaogaon.com/donations/donate/?member_id={volunteer.member_id}\n"
-            f"(আপনার প্রতিশ্রুত সময় অনুযায়ী নিয়মিত সহায়তার জন্য আপডেট ও রিমাইন্ডার পাঠানো হবে।)\n\n"
-        )
         sms_contrib = f" | প্রতিশ্রুতি: {freq_text} ৳{volunteer.contribution_amount:,.0f}"
 
     subject = f"Helpline Hello Naogaon - সদস্য নিবন্ধন সম্পন্ন (আইডি: {volunteer.member_id})"
-    message_body = (
-        f"প্রিয় {volunteer.full_name},\n\n"
-        f"Helpline Hello Naogaon-এ সদস্য/স্বেচ্ছাসেবক হিসেবে সফলভাবে নিবন্ধিত হওয়ার জন্য আপনাকে আন্তরিক মোবারকবাদ!\n\n"
-        f"আপনার সদস্য বিবরণ:\n"
-        f"----------------------\n"
-        f"সদস্য আইডি (Member ID): {volunteer.member_id}\n"
-        f"পূর্ণ নাম: {volunteer.full_name}\n"
-        f"মোবাইল নম্বর: {volunteer.phone}\n"
-        f"রক্তের গ্রুপ: {volunteer.blood_group or 'N/A'}\n"
-        f"পেশা: {volunteer.occupation or 'N/A'}\n"
-        f"{contrib_info}"
-        f"ধন্যবাদান্তে,\nHelpline Hello Naogaon টিম\nwww.helplinehellonaogaon.com"
-    )
+    
+    paragraphs = [
+        f"Helpline Hello Naogaon-এ সদস্য/স্বেচ্ছাসেবক হিসেবে সফলভাবে নিবন্ধিত হওয়ার জন্য আপনাকে আন্তরিক মোবারকবাদ ও উষ্ণ অভিনন্দন!",
+        "আমাদের সংগঠনের মূল লক্ষ্য মানবতার সেবায় নিঃস্বার্থভাবে কাজ করা এবং সমাজের অসহায় মানুষের পাশে দাঁড়ানো। আপনার এই অংশগ্রহণ আমাদের পথচলাকে আরও সমৃদ্ধ ও শক্তিশালী করবে।"
+    ]
+
+    if volunteer.contribution_frequency != 'none' and volunteer.contribution_amount and volunteer.contribution_amount > 0:
+        paragraphs.append(
+            f"আপনি স্বেচ্ছায় {freq_text} ৳{volunteer.contribution_amount:,.2f} টাকা আর্থিক সহায়তা প্রদানের সদিচ্ছা প্রকাশ করেছেন। "
+            "আপনার প্রতিশ্রুত সময় অনুযায়ী নিয়মিত সহায়তার জন্য আপডেট ও লিঙ্ক পেয়ে যাবেন।"
+        )
 
     if volunteer.email:
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@helplinehellonaogaon.com') or 'info@helplinehellonaogaon.com'
-        try:
-            send_mail(
-                subject,
-                message_body,
-                from_email,
-                [volunteer.email],
-                fail_silently=True,
-            )
-            print(f"[EMAIL SUCCESS] Sent Member ID {volunteer.member_id} and pledge info to {volunteer.email} from {from_email}")
-        except Exception as e:
-            print(f"[EMAIL ERROR] {e}")
+        send_system_email(
+            subject=subject,
+            recipient_list=[volunteer.email],
+            recipient_name=volunteer.full_name,
+            greeting="প্রিয়",
+            headline="সদস্য ও রক্তদাতা নিবন্ধন সম্পন্ন",
+            message_paragraphs=paragraphs,
+            volunteer=volunteer,
+            footer_note="জরুরি রক্তদান বা যেকোনো প্রয়োজনে আমাদের হটলাইনে যোগাযোগ করতে পারেন।",
+            fail_silently=True,
+        )
 
     if volunteer.phone:
         sms_text = f"Helpline Hello Naogaon: ধন্যবাদ {volunteer.full_name}! আপনার সদস্য আইডি: {volunteer.member_id}{sms_contrib}। আর্থিক সহায়তা লিঙ্ক: https://helplinehellonaogaon.com/donations/donate/?member_id={volunteer.member_id}"
