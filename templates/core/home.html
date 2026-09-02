@@ -4,11 +4,18 @@
 {% block content %}
 <!-- 1. Hero Section -->
 <section class="hero-section">
-    <div class="container">
+    <!-- Full-bleed background: the admin-uploaded image fades left-to-right -->
+    <div class="hero-bg-layer" style="background-image: url('{% if site_setting.hero_image %}{{ site_setting.hero_image.url }}{% else %}https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1600&q=80{% endif %}');"></div>
+    <!-- White gradient covers the LEFT side so text is readable, fades away to the RIGHT -->
+    <div class="hero-gradient-overlay"></div>
+
+    <div class="container hero-content-wrap">
         <div class="row align-items-center gy-4">
-            <div class="col-lg-6">
+            <!-- Left: text content (z-index above gradient) -->
+            <div class="col-lg-6 col-xl-5">
                 <div class="hero-badge">
-                    <i class="fas fa-hand-holding-heart me-1"></i> {{ site_setting.hero_badge|default:"মানবতার পাশে, নওগাঁর প্রতিটি মানুষের জন্য" }}
+                    <i class="fas fa-hand-holding-heart me-2"></i>
+                    <span>{{ site_setting.hero_badge|default:"মানবতার পাশে, নওগাঁর প্রতিটি মানুষের জন্য" }}</span>
                 </div>
                 <h1 class="hero-title mb-3">
                     {{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}
@@ -17,17 +24,16 @@
                     {{ site_setting.hero_subtitle|default:"আমরা একটি অরাজনৈতিক, অলাভজনক ও স্বেচ্ছাসেবী সংগঠন, যা সমাজের অসহায় মানুষের পাশে দাঁড়াতে প্রতিশ্রুতিবদ্ধ।" }}
                 </p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="{% url 'programs:program_list' %}" class="btn btn-hn-primary" data-i18n="home.hero.programs_btn">আমাদের কার্যক্রম</a>
-                    <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-hn-secondary" data-i18n="home.hero.blood_btn">রক্তদাতা হন</a>
+                    <a href="{% url 'programs:program_list' %}" class="btn btn-hn-primary" data-i18n="home.hero.programs_btn">
+                        <i class="fas fa-hands-helping me-1"></i> আমাদের কার্যক্রম
+                    </a>
+                    <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-hn-secondary" data-i18n="home.hero.blood_btn">
+                        <i class="fas fa-tint me-1"></i> রক্তদাতা হন
+                    </a>
                 </div>
             </div>
-            <div class="col-lg-6">
-                {% if site_setting.hero_image %}
-                    {% if site_setting.hero_image %}<img src="{{ site_setting.hero_image.url }}" alt="Hero Image" class="hero-img">{% endif %}
-                {% else %}
-                    <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1000&q=80" alt="Helpline Hello Naogaon Volunteers" class="hero-img">
-                {% endif %}
-            </div>
+            <!-- Right: empty — background image fills this space naturally -->
+            <div class="col-lg-6 col-xl-7 d-none d-lg-block"></div>
         </div>
     </div>
 </section>

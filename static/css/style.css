@@ -93,39 +93,85 @@ main {
     color: var(--hn-green) !important;
 }
 
-/* Hero Section */
+/* ── Hero Section: Cinematic Left-to-Right Image Fade ────────────── */
 .hero-section {
-    background: linear-gradient(135deg, rgba(232, 245, 233, 0.4) 0%, rgba(255, 255, 255, 0.9) 100%);
-    padding: 50px 0 80px 0;
     position: relative;
+    min-height: 480px;
+    display: flex;
+    align-items: center;
+    padding: 70px 0 100px 0;
+    overflow: hidden;
+    background-color: #f4f8f6;
+}
+
+/* Full-bleed admin image — covers entire hero area */
+.hero-bg-layer {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center right;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
+
+/* The key effect: white is fully opaque on the left, transparent on the right.
+   This makes the image invisible under the text and fully visible on the right. */
+.hero-gradient-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+        to right,
+        #f4f8f6 0%,
+        #f4f8f6 30%,
+        rgba(244, 248, 246, 0.88) 48%,
+        rgba(244, 248, 246, 0.45) 65%,
+        rgba(244, 248, 246, 0.10) 82%,
+        transparent 100%
+    );
+    pointer-events: none;
+}
+
+/* All text content sits above both layers */
+.hero-content-wrap {
+    position: relative;
+    z-index: 2;
 }
 
 .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 106, 78, 0.09);
     color: var(--hn-green);
     font-weight: 700;
-    font-size: 1.15rem;
-    margin-bottom: 8px;
+    font-size: 0.95rem;
+    padding: 6px 16px;
+    border-radius: 50px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(0, 106, 78, 0.2);
 }
 
 .hero-title {
-    color: #1a252f;
+    color: #111827;
     font-weight: 800;
     font-size: 2.8rem;
     line-height: 1.2;
+    letter-spacing: -0.4px;
 }
 
 .hero-subtitle {
-    color: #4a5568;
+    color: #374151;
     font-size: 1.1rem;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
 .btn-hn-primary {
     background-color: var(--hn-green);
     color: #ffffff;
     font-weight: 600;
-    padding: 10px 24px;
-    border-radius: 6px;
+    padding: 11px 26px;
+    border-radius: 8px;
     border: none;
     transition: all 0.25s ease;
 }
@@ -133,16 +179,16 @@ main {
 .btn-hn-primary:hover {
     background-color: var(--hn-green-dark);
     color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 106, 78, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 106, 78, 0.3);
 }
 
 .btn-hn-secondary {
     background-color: var(--hn-blue);
     color: #ffffff;
     font-weight: 600;
-    padding: 10px 24px;
-    border-radius: 6px;
+    padding: 11px 26px;
+    border-radius: 8px;
     border: none;
     transition: all 0.25s ease;
 }
@@ -150,10 +196,11 @@ main {
 .btn-hn-secondary:hover {
     background-color: #0277bd;
     color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(2, 136, 209, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(2, 136, 209, 0.3);
 }
 
+/* Keep old .hero-img class for any legacy use */
 .hero-img {
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
