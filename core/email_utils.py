@@ -261,6 +261,8 @@ def send_system_email(
         f"{site_title} টিম",
         f"ওয়েবসাইট: {base_url}",
         f"যোগাযোগ: {contact_phone} | {contact_email}",
+        "",
+        f"© {current_year} {site_title} — All Rights Reserved | Developed by Md. Taher Bin Omar Hijbullah (https://hijbullah.me/)",
     ])
 
     text_content = "\n".join(plain_text_lines)
