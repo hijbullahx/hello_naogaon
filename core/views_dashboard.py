@@ -342,11 +342,12 @@ def update_about_section(request):
             AboutImage.objects.filter(is_featured=True).delete()
             AboutImage.objects.create(image=request.FILES['featured_image'], is_featured=True)
 
-        # Handle Grid Image Upload (600KB max)
-        if 'grid_image' in request.FILES:
-            if not validate_image_size(request, request.FILES['grid_image'], max_kb=600, field_name='গ্রিড ছবি'):
+        # Handle Sub/Grid Image Uploads (600KB max each, support multiple)
+        grid_files = request.FILES.getlist('sub_images') or request.FILES.getlist('grid_image')
+        for g_file in grid_files:
+            if not validate_image_size(request, g_file, max_kb=600, field_name='গ্রিড ছবি'):
                 return redirect('/dashboard/?tab=home-section')
-            AboutImage.objects.create(image=request.FILES['grid_image'], is_featured=False)
+            AboutImage.objects.create(image=g_file, is_featured=False)
 
         messages.success(request, 'আমাদের সম্পর্কে সেকশনের তথ্য আপডেট হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
