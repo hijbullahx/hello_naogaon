@@ -9,6 +9,8 @@ from .models import SiteSetting, StatCounter, AboutImage
 
 
 def home(request):
+    from core.views_dashboard import ensure_default_stat_counters
+    ensure_default_stat_counters()
     site_setting = SiteSetting.objects.first()
     stat_counters = StatCounter.objects.filter(is_active=True).order_by('order')
     
