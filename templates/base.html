@@ -6,11 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ site_setting.title|default:"Helpline Hello Naogaon" }} - {{ site_setting.tagline|default:"মানব সেবায় আমরা" }}{% endblock %}</title>
 
-    <!-- Browser Tab Icon (Favicon) synced with Admin Logo Image -->
+    <!-- Browser Tab Icon (Favicon & Google Search Icon) synced with Admin Logo Image -->
     {% if site_setting.logo %}
-    <link rel="icon" type="image/png" href="{{ site_setting.logo.url }}?v={{ site_setting.logo.size|default:'1' }}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{ site_setting.logo.url }}?v={{ site_setting.logo.size|default:'1' }}">
-    <link rel="apple-touch-icon" href="{{ site_setting.logo.url }}?v={{ site_setting.logo.size|default:'1' }}">
+    <link rel="icon" type="image/png" href="{{ site_setting.logo.url }}">
+    <link rel="shortcut icon" href="{{ site_setting.logo.url }}">
+    <link rel="apple-touch-icon" href="{{ site_setting.logo.url }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ site_setting.logo.url }}">
+    <meta property="og:title" content="{{ site_setting.title|default:'Helpline Hello Naogaon' }}">
+    <meta property="og:description" content="{{ site_setting.tagline|default:'সবসময় আপনার পাশে - একটি স্বেচ্ছাসেবী সংগঠন' }}">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "{{ site_setting.title|default:'Helpline Hello Naogaon' }}",
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "logo": "{{ request.scheme }}://{{ request.get_host }}{{ site_setting.logo.url }}"
+    }
+    </script>
     {% endif %}
 
     <!-- Bootstrap 5 CSS -->
