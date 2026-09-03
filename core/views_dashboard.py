@@ -331,8 +331,8 @@ def update_about_section(request):
 
     if request.method == 'POST':
         setting, _ = SiteSetting.objects.get_or_create(pk=1)
+        setting.about_heading = request.POST.get('about_heading', setting.about_heading)
         setting.about_text = request.POST.get('about_text', setting.about_text)
-        setting.about_video_url = request.POST.get('about_video_url', setting.about_video_url)
         setting.save()
 
         # Handle Featured Main Image (1MB max)
