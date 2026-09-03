@@ -175,6 +175,26 @@ def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"
         return False
     return True
 
+def ensure_default_stat_counters():
+    """Ensure standard 5 stats counters exist in database if empty"""
+    if not StatCounter.objects.exists():
+        default_stats = [
+            {"title": "রক্তদান", "value": "500+", "icon_class": "fas fa-tint", "badge_color": "danger", "order": 1},
+            {"title": "পরিবারকে সহায়তা", "value": "2,000+", "icon_class": "fas fa-users", "badge_color": "success", "order": 2},
+            {"title": "শিক্ষার্থী সহায়তা", "value": "300+", "icon_class": "fas fa-graduation-cap", "badge_color": "warning", "order": 3},
+            {"title": "স্বেচ্ছাসেবক", "value": "100+", "icon_class": "fas fa-hands-helping", "badge_color": "primary", "order": 4},
+            {"title": "সামাজিক কর্মসূচি", "value": "50+", "icon_class": "fas fa-seedling", "badge_color": "info", "order": 5},
+        ]
+        for item in default_stats:
+            StatCounter.objects.create(
+                title=item["title"],
+                value=item["value"],
+                icon_class=item["icon_class"],
+                badge_color=item["badge_color"],
+                order=item["order"],
+                is_active=True
+            )
+
 @staff_member_required
 def dashboard_home(request):
     """
@@ -183,6 +203,7 @@ def dashboard_home(request):
     - President / Secretary / Council: Customized animated welcome, view-only for Team Members, Volunteers/Donors, Finance, and personal donation tab.
     - Treasurer: Full Finance & Accounting control, view-only for Team & Volunteers, and personal donation tab.
     """
+    ensure_default_stat_counters()
     site_setting, _ = SiteSetting.objects.get_or_create(pk=1)
     stat_counters = StatCounter.objects.all().order_by('order')
     about_featured_image = AboutImage.objects.filter(is_featured=True).first()
