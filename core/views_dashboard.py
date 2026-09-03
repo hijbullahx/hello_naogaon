@@ -437,10 +437,6 @@ def update_stat_counters(request):
 
 def get_auto_program_theme(title):
     t = (title or "").lower()
-    if not can_user_edit_general(request.user):
-        messages.warning(request, "এই তথ্য পরিবর্তনের অনুমতি শুধুমাত্র প্রধান এডমিনের রয়েছে।")
-        return redirect("/dashboard/")
-
     if any(k in t for k in ["রক্ত", "চিকিৎসা", "মেডিকেল", "স্বাস্থ্য", "ব্লাড", "blood", "medical", "hospital", "রোগী", "অসুস্থ"]):
         return "fas fa-tint", "danger"
     elif any(k in t for k in ["শিক্ষা", "স্কুল", "বই", "খাতা", "মেধাবী", "student", "education", "school", "কলম", "বৃত্তি", "পাঠাগার"]):
