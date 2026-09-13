@@ -91,16 +91,9 @@ def submit_complaint(request):
     rand_code = random.randint(1000, 9999)
     complaint_no = f"HNC-{time_prefix}-{rand_code}"
 
-    # Prepare Admin Email recipients
-    site_setting = SiteSetting.objects.first()
-    admin_emails = []
-    if site_setting and site_setting.contact_email:
-        admin_emails.append(site_setting.contact_email)
-    if getattr(settings, 'SERVER_EMAIL', None):
-        admin_emails.append(settings.SERVER_EMAIL)
-    if getattr(settings, 'DEFAULT_FROM_EMAIL', None):
-        admin_emails.append(settings.DEFAULT_FROM_EMAIL)
-    recipients = list(dict.fromkeys(r for r in admin_emails if r and '@' in r))
+    # Prepare Admin Email recipient (admin@helplinehellonaogaon.com)
+    admin_email = getattr(settings, 'SERVER_EMAIL', 'admin@helplinehellonaogaon.com') or 'admin@helplinehellonaogaon.com'
+    recipients = [admin_email]
 
     # Formatted submission time string
     submission_time_str = current_time.strftime('%d-%m-%Y %I:%M %p')
