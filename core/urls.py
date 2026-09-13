@@ -13,6 +13,7 @@ urlpatterns = [
     path('forgot-password/', views_auth.forgot_password_view, name='forgot_password'),
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
+    path('submit-complaint/', views.submit_complaint, name='submit_complaint'),
 
     
     # Custom Section-by-Section Card Control Admin Dashboard
