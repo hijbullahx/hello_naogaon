@@ -23,8 +23,7 @@
                     {{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}
                 </h1>
                 <p class="hero-subtitle mb-4">
-                    {{ site_setting.hero_subtitle|default:"আমরা একটি অরাজনৈতিক, অলাভজনক ও স্বেচ্ছাসেবী সংগঠন, যা সমাজের
-                    অসহায় মানুষের পাশে দাঁড়াতে প্রতিশ্রুতিবদ্ধ।" }}
+                    {{ site_setting.hero_subtitle|default:"আমরা একটি অরাজনৈতিক, অলাভজনক ও স্বেচ্ছাসেবী সংগঠন, যা সমাজের অসহায় মানুষের পাশে দাঁড়াতে প্রতিশ্রুতিবদ্ধ।" }}
                 </p>
                 <div class="d-flex flex-wrap gap-3">
                     <a href="{% url 'programs:program_list' %}" class="btn btn-hn-primary"
@@ -114,8 +113,7 @@
 <!-- 3. "আমাদের সম্পর্কে" Section -->
 <section class="py-5 bg-white">
     <div class="container">
-        <h2 class="section-title" data-i18n="home.about.heading">{{ site_setting.about_heading|default:"আমাদের সম্পর্কে"
-            }}</h2>
+        <h2 class="section-title" data-i18n="home.about.heading">{{ site_setting.about_heading|default:"আমাদের সম্পর্কে" }}</h2>
         <div class="section-divider">
             <div class="section-divider-line"></div>
             <div class="section-divider-dot"></div>
@@ -125,9 +123,7 @@
         <div class="row align-items-center gy-4 mt-2">
             <div class="col-lg-5">
                 <p class="lead text-dark fw-normal mb-4" style="line-height: 1.8;">
-                    {{ site_setting.about_text|default:"Helpline Hello Naogaon একটি স্বেচ্ছাসেবী ও মানবিক সংগঠন। আমরা
-                    রক্তদান, শিক্ষা সহায়তা, মানবিক সহায়তা, পরিবেশ সুরক্ষা ও দুর্যোগকালীন সেবাসহ বিভিন্ন সামাজিক
-                    কার্যক্রম পরিচালনা করে থাকি।" }}
+                    {{ site_setting.about_text|default:"Helpline Hello Naogaon একটি স্বেচ্ছাসেবী ও মানবিক সংগঠন। আমরা রক্তদান, শিক্ষা সহায়তা, মানবিক সহায়তা, পরিবেশ সুরক্ষা ও দুর্যোগকালীন সেবাসহ বিভিন্ন সামাজিক কার্যক্রম পরিচালনা করে থাকি।" }}
                 </p>
                 <a href="{% url 'core:about' %}" class="btn btn-hn-primary" data-i18n="home.about.learn_more">বিস্তারিত
                     জানুন</a>
@@ -216,9 +212,7 @@
                                 <div class="d-flex justify-content-between align-items-center small mb-1">
                                     <span class="text-secondary fw-semibold" style="font-size: 0.78rem;"
                                         data-i18n="home.programs.need_label">আর্থিক প্রয়োজন:</span>
-                                    <span class="fw-bold text-success" style="font-size: 0.8rem;">৳{{
-                                        prog.raised_amount|floatformat:0 }} / ৳{{ prog.target_amount|floatformat:0
-                                        }}</span>
+                                    <span class="fw-bold text-success" style="font-size: 0.8rem;">৳{{ prog.raised_amount|floatformat:0 }} / ৳{{ prog.target_amount|floatformat:0 }}</span>
                                 </div>
                                 <div class="progress" style="height: 5px;">
                                     <div class="progress-bar bg-success" role="progressbar"
@@ -271,11 +265,9 @@
                                 <div class="alert alert-success-subtle border border-success p-3 rounded-3 mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <span class="small text-secondary fw-semibold"><span
-                                                data-i18n="home.programs.target">লক্ষ্যমাত্রা:</span> <strong>৳{{
-                                                prog.target_amount|floatformat:0 }}</strong></span>
+                                                data-i18n="home.programs.target">লক্ষ্যমাত্রা:</span> <strong>৳{{ prog.target_amount|floatformat:0 }}</strong></span>
                                         <span class="small fw-bold text-success"><span
-                                                data-i18n="home.programs.raised">সংগৃহীত:</span> ৳{{
-                                            prog.raised_amount|floatformat:0 }} ({{ prog.progress_percent }}%)</span>
+                                                data-i18n="home.programs.raised">সংগৃহীত:</span> ৳{{ prog.raised_amount|floatformat:0 }} ({{ prog.progress_percent }}%)</span>
                                     </div>
                                     <div class="progress" style="height: 6px;">
                                         <div class="progress-bar bg-success"
@@ -493,10 +485,8 @@
 <!-- 5. Full-Width CTA Banner -->
 <section class="cta-banner">
     <div class="container">
-        <h2 class="cta-banner-title">{{ site_setting.cta_banner_title|default:"আসুন, আমরা সবাই মিলে একটি মানবিক ও সুন্দর
-            সমাজ গড়ে তুলি" }}</h2>
-        <a href="{% url 'volunteers:apply' %}" class="btn-hn-yellow">{{
-            site_setting.cta_banner_button_text|default:"স্বেচ্ছাসেবক হন" }}</a>
+        <h2 class="cta-banner-title">{{ site_setting.cta_banner_title|default:"আসুন, আমরা সবাই মিলে একটি মানবিক ও সুন্দর সমাজ গড়ে তুলি" }}</h2>
+        <a href="{% url 'volunteers:apply' %}" class="btn-hn-yellow">{{ site_setting.cta_banner_button_text|default:"স্বেচ্ছাসেবক হন" }}</a>
     </div>
 </section>
 
@@ -612,8 +602,7 @@
                                 <div class="fw-bold text-dark">{{ bank.account_name|default:"Helpline Hello Naogaon" }}
                                 </div>
                                 <div class="small text-secondary">{{ bank.bank_name|default:"Dutch-Bangla Bank" }}</div>
-                                <div class="small text-dark mt-1"><strong>Account:</strong> {{
-                                    bank.account_number|default:"1234567890" }}</div>
+                                <div class="small text-dark mt-1"><strong>Account:</strong> {{ bank.account_number|default:"1234567890" }}</div>
                                 {% if bank.swift_code %}
                                 <div class="small text-dark"><strong>Routing:</strong> {{ bank.swift_code }}</div>
                                 {% else %}
