@@ -5,7 +5,9 @@
 <!-- 1. Hero Section -->
 <section class="hero-section">
     <!-- Full-bleed background: the admin-uploaded image fades left-to-right -->
-    <div class="hero-bg-layer" style="background-image: url('{% if site_setting.hero_image %}{{ site_setting.hero_image.url }}{% else %}https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1600&q=80{% endif %}');"></div>
+    <div class="hero-bg-layer"
+        style="background-image: url('{% if site_setting.hero_image %}{{ site_setting.hero_image.url }}{% else %}https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1600&q=80{% endif %}');">
+    </div>
     <!-- White gradient covers the LEFT side so text is readable, fades away to the RIGHT -->
     <div class="hero-gradient-overlay"></div>
 
@@ -21,15 +23,20 @@
                     {{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}
                 </h1>
                 <p class="hero-subtitle mb-4">
-                    {{ site_setting.hero_subtitle|default:"আমরা একটি অরাজনৈতিক, অলাভজনক ও স্বেচ্ছাসেবী সংগঠন, যা সমাজের অসহায় মানুষের পাশে দাঁড়াতে প্রতিশ্রুতিবদ্ধ।" }}
+                    {{ site_setting.hero_subtitle|default:"আমরা একটি অরাজনৈতিক, অলাভজনক ও স্বেচ্ছাসেবী সংগঠন, যা সমাজের
+                    অসহায় মানুষের পাশে দাঁড়াতে প্রতিশ্রুতিবদ্ধ।" }}
                 </p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="{% url 'programs:program_list' %}" class="btn btn-hn-primary" data-i18n="home.hero.programs_btn">
+                    <a href="{% url 'programs:program_list' %}" class="btn btn-hn-primary"
+                        data-i18n="home.hero.programs_btn">
                         <i class="fas fa-hands-helping me-1"></i> আমাদের কার্যক্রম
                     </a>
-                    <a href="{% url 'volunteers:blood_donors' %}" class="btn btn-hn-secondary" data-i18n="home.hero.blood_btn">
-                        <i class="fas fa-tint me-1"></i> রক্তদাতা হন
-                    </a>
+                    <button type="button" class="btn btn-hn-complaint shadow-sm d-inline-flex align-items-center"
+                        data-bs-toggle="modal" data-bs-target="#complaintModal"
+                        style="background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%) !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.2) !important; padding: 11px 22px !important; border-radius: 8px !important; font-weight: 600 !important; text-decoration: none !important; box-shadow: 0 4px 14px rgba(183, 28, 28, 0.4) !important;">
+                        <i class="fas fa-bullhorn me-2" style="color: #ffca28 !important;"></i>
+                        <span style="color: #ffffff !important;">তথ্য দিন <span class="complaint-btn-subtext" style="color: #ffffff !important; font-size: 0.85em; font-weight: 400; opacity: 0.95; margin-left: 4px;">(অন্যায়, অনিয়ম, দুর্নীতির তথ্য দিন)</span></span>
+                    </button>
                 </div>
             </div>
             <!-- Right: empty — background image fills this space naturally -->
@@ -42,72 +49,73 @@
 <div class="container stats-container mb-5">
     <div class="row g-3 justify-content-center">
         {% if stat_counters %}
-            {% for stat in stat_counters %}
-            <div class="col-6 col-md-4 col-lg-2-4">
-                <div class="stat-card">
-                    <div class="stat-icon-wrapper stat-icon-{{ stat.badge_color|default:'success' }}">
-                        <i class="{{ stat.icon_class|default:'fas fa-heart' }}"></i>
-                    </div>
-                    <div class="stat-value">{{ stat.value }}</div>
-                    <div class="stat-title">{{ stat.title }}</div>
+        {% for stat in stat_counters %}
+        <div class="col-6 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-{{ stat.badge_color|default:'success' }}">
+                    <i class="{{ stat.icon_class|default:'fas fa-heart' }}"></i>
                 </div>
+                <div class="stat-value">{{ stat.value }}</div>
+                <div class="stat-title">{{ stat.title }}</div>
             </div>
-            {% endfor %}
+        </div>
+        {% endfor %}
         {% else %}
-            <!-- Default Stats Fallback matching image -->
-            <div class="col-6 col-md-4 col-lg-2-4">
-                <div class="stat-card">
-                    <div class="stat-icon-wrapper stat-icon-danger"><i class="fas fa-tint"></i></div>
-                    <div class="stat-value">500+</div>
-                    <div class="stat-title" data-i18n="stat.blood">রক্তদান</div>
-                </div>
+        <!-- Default Stats Fallback matching image -->
+        <div class="col-6 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-danger"><i class="fas fa-tint"></i></div>
+                <div class="stat-value">500+</div>
+                <div class="stat-title" data-i18n="stat.blood">রক্তদান</div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2-4">
-                <div class="stat-card">
-                    <div class="stat-icon-wrapper stat-icon-success"><i class="fas fa-users"></i></div>
-                    <div class="stat-value">2,000+</div>
-                    <div class="stat-title" data-i18n="stat.families">পরিবারকে সহায়তা</div>
-                </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-success"><i class="fas fa-users"></i></div>
+                <div class="stat-value">2,000+</div>
+                <div class="stat-title" data-i18n="stat.families">পরিবারকে সহায়তা</div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2-4">
-                <div class="stat-card">
-                    <div class="stat-icon-wrapper stat-icon-warning"><i class="fas fa-graduation-cap"></i></div>
-                    <div class="stat-value">300+</div>
-                    <div class="stat-title" data-i18n="stat.students">শিক্ষার্থী সহায়তা</div>
-                </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-warning"><i class="fas fa-graduation-cap"></i></div>
+                <div class="stat-value">300+</div>
+                <div class="stat-title" data-i18n="stat.students">শিক্ষার্থী সহায়তা</div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2-4">
-                <div class="stat-card">
-                    <div class="stat-icon-wrapper stat-icon-primary"><i class="fas fa-hands-holding-heart"></i></div>
-                    <div class="stat-value">100+</div>
-                    <div class="stat-title" data-i18n="stat.volunteers">স্বেচ্ছাসেবক</div>
-                </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-primary"><i class="fas fa-hands-holding-heart"></i></div>
+                <div class="stat-value">100+</div>
+                <div class="stat-title" data-i18n="stat.volunteers">স্বেচ্ছাসেবক</div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2-4">
-                <div class="stat-card">
-                    <div class="stat-icon-wrapper stat-icon-info"><i class="fas fa-seedling"></i></div>
-                    <div class="stat-value">50+</div>
-                    <div class="stat-title" data-i18n="stat.programs">সামাজিক কর্মসূচি</div>
-                </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-info"><i class="fas fa-seedling"></i></div>
+                <div class="stat-value">50+</div>
+                <div class="stat-title" data-i18n="stat.programs">সামাজিক কর্মসূচি</div>
             </div>
+        </div>
         {% endif %}
     </div>
 </div>
 
 <!-- Custom CSS snippet for 5-column layout on desktop -->
 <style>
-@media (min-width: 992px) {
-    .col-lg-2-4 {
-        flex: 0 0 auto;
-        width: 20%;
+    @media (min-width: 992px) {
+        .col-lg-2-4 {
+            flex: 0 0 auto;
+            width: 20%;
+        }
     }
-}
 </style>
 
 <!-- 3. "আমাদের সম্পর্কে" Section -->
 <section class="py-5 bg-white">
     <div class="container">
-        <h2 class="section-title" data-i18n="home.about.heading">{{ site_setting.about_heading|default:"আমাদের সম্পর্কে" }}</h2>
+        <h2 class="section-title" data-i18n="home.about.heading">{{ site_setting.about_heading|default:"আমাদের সম্পর্কে"
+            }}</h2>
         <div class="section-divider">
             <div class="section-divider-line"></div>
             <div class="section-divider-dot"></div>
@@ -117,42 +125,53 @@
         <div class="row align-items-center gy-4 mt-2">
             <div class="col-lg-5">
                 <p class="lead text-dark fw-normal mb-4" style="line-height: 1.8;">
-                    {{ site_setting.about_text|default:"Helpline Hello Naogaon একটি স্বেচ্ছাসেবী ও মানবিক সংগঠন। আমরা রক্তদান, শিক্ষা সহায়তা, মানবিক সহায়তা, পরিবেশ সুরক্ষা ও দুর্যোগকালীন সেবাসহ বিভিন্ন সামাজিক কার্যক্রম পরিচালনা করে থাকি।" }}
+                    {{ site_setting.about_text|default:"Helpline Hello Naogaon একটি স্বেচ্ছাসেবী ও মানবিক সংগঠন। আমরা
+                    রক্তদান, শিক্ষা সহায়তা, মানবিক সহায়তা, পরিবেশ সুরক্ষা ও দুর্যোগকালীন সেবাসহ বিভিন্ন সামাজিক
+                    কার্যক্রম পরিচালনা করে থাকি।" }}
                 </p>
-                <a href="{% url 'core:about' %}" class="btn btn-hn-primary" data-i18n="home.about.learn_more">বিস্তারিত জানুন</a>
+                <a href="{% url 'core:about' %}" class="btn btn-hn-primary" data-i18n="home.about.learn_more">বিস্তারিত
+                    জানুন</a>
             </div>
-            
+
             <div class="col-lg-7">
                 <div class="row g-2">
                     <div class="col-md-7">
                         {% if about_featured_image %}
-                            {% if about_featured_image and about_featured_image.image %}<img src="{{ about_featured_image.image.url }}" alt="{{ about_featured_image.caption }}" class="about-grid-featured">{% endif %}
+                        {% if about_featured_image and about_featured_image.image %}<img
+                            src="{{ about_featured_image.image.url }}" alt="{{ about_featured_image.caption }}"
+                            class="about-grid-featured">{% endif %}
                         {% else %}
-                            <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=800&q=80" alt="About Main" class="about-grid-featured">
+                        <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=800&q=80"
+                            alt="About Main" class="about-grid-featured">
                         {% endif %}
                     </div>
                     <div class="col-md-5">
                         <div class="row g-2">
                             {% if about_grid_images %}
-                                {% for item in about_grid_images %}
-                                <div class="col-6">
-                                    {% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.caption }}" class="about-grid-sm">{% endif %}
-                                </div>
-                                {% endfor %}
+                            {% for item in about_grid_images %}
+                            <div class="col-6">
+                                {% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.caption }}"
+                                    class="about-grid-sm">{% endif %}
+                            </div>
+                            {% endfor %}
                             {% else %}
-                                <!-- Default grid fallback images matching design layout -->
-                                <div class="col-6">
-                                    <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=400&q=80" alt="Sub 1" class="about-grid-sm">
-                                </div>
-                                <div class="col-6">
-                                    <img src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=400&q=80" alt="Sub 2" class="about-grid-sm">
-                                </div>
-                                <div class="col-6">
-                                    <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=400&q=80" alt="Sub 3" class="about-grid-sm">
-                                </div>
-                                <div class="col-6">
-                                    <img src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=400&q=80" alt="Sub 4" class="about-grid-sm">
-                                </div>
+                            <!-- Default grid fallback images matching design layout -->
+                            <div class="col-6">
+                                <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=400&q=80"
+                                    alt="Sub 1" class="about-grid-sm">
+                            </div>
+                            <div class="col-6">
+                                <img src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=400&q=80"
+                                    alt="Sub 2" class="about-grid-sm">
+                            </div>
+                            <div class="col-6">
+                                <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=400&q=80"
+                                    alt="Sub 3" class="about-grid-sm">
+                            </div>
+                            <div class="col-6">
+                                <img src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=400&q=80"
+                                    alt="Sub 4" class="about-grid-sm">
+                            </div>
                             {% endif %}
                         </div>
                     </div>
@@ -174,224 +193,298 @@
 
         <div class="row g-3 mt-2 justify-content-center">
             {% if ongoing_programs %}
-                {% for prog in ongoing_programs %}
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
-                    <div class="program-card h-100 d-flex flex-column">
-                        <div class="program-card-badge bg-{{ prog.badge_color|default:'success' }} text-white">
-                            <i class="{{ prog.icon_class|default:'fas fa-heart' }}"></i>
+            {% for prog in ongoing_programs %}
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                <div class="program-card h-100 d-flex flex-column">
+                    <div class="program-card-badge bg-{{ prog.badge_color|default:'success' }} text-white">
+                        <i class="{{ prog.icon_class|default:'fas fa-heart' }}"></i>
+                    </div>
+                    {% if prog.image %}
+                    <img src="{{ prog.image.url }}" alt="{{ prog.title }}" class="program-img">
+                    {% else %}
+                    <img src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=500&q=80"
+                        alt="{{ prog.title }}" class="program-img">
+                    {% endif %}
+                    <div class="program-card-body d-flex flex-column justify-content-between flex-grow-1">
+                        <div>
+                            <h3 class="program-card-title">{{ prog.title }}</h3>
+                            <p class="program-card-text">
+                                {{ prog.short_description|default:prog.description|truncatewords:10 }}
+                            </p>
+                            {% if prog.target_amount %}
+                            <div class="mt-2 mb-2 p-2 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between align-items-center small mb-1">
+                                    <span class="text-secondary fw-semibold" style="font-size: 0.78rem;"
+                                        data-i18n="home.programs.need_label">আর্থিক প্রয়োজন:</span>
+                                    <span class="fw-bold text-success" style="font-size: 0.8rem;">৳{{
+                                        prog.raised_amount|floatformat:0 }} / ৳{{ prog.target_amount|floatformat:0
+                                        }}</span>
+                                </div>
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        style="width: {{ prog.progress_percent }}%;"></div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% if prog.image %}
-                            <img src="{{ prog.image.url }}" alt="{{ prog.title }}" class="program-img">
-                        {% else %}
-                            <img src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=500&q=80" alt="{{ prog.title }}" class="program-img">
-                        {% endif %}
-                        <div class="program-card-body d-flex flex-column justify-content-between flex-grow-1">
+                        <div class="d-flex gap-1 align-items-center justify-content-between mt-2 pt-2 border-top">
+                            <a href="{% url 'programs:program_detail' prog.pk %}"
+                                class="btn-detail-sm flex-grow-1 text-center"
+                                data-i18n="home.programs.detail">বিস্তারিত</a>
+                            {% if prog.target_amount %}
+                            <button type="button"
+                                class="btn btn-sm btn-danger fw-bold rounded-pill px-2 py-1 shadow-sm text-nowrap"
+                                data-bs-toggle="modal" data-bs-target="#programDonateModal_{{ prog.id }}"
+                                title="এই কার্যক্রমে অনুদান দিন">
+                                <i class="fas fa-hand-holding-heart me-1"></i><span
+                                    data-i18n="home.programs.donate_btn">সহায়তা দিন</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if prog.target_amount %}
+            <!-- Program Donation Modal -->
+            <div class="modal fade text-start" id="programDonateModal_{{ prog.id }}" tabindex="-1"
+                aria-labelledby="programDonateModalLabel_{{ prog.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        <div class="modal-header bg-success text-white py-3 px-4">
                             <div>
-                                <h3 class="program-card-title">{{ prog.title }}</h3>
-                                <p class="program-card-text">
-                                    {{ prog.short_description|default:prog.description|truncatewords:10 }}
-                                </p>
-                                {% if prog.target_amount %}
-                                <div class="mt-2 mb-2 p-2 bg-light rounded-3 border">
-                                    <div class="d-flex justify-content-between align-items-center small mb-1">
-                                        <span class="text-secondary fw-semibold" style="font-size: 0.78rem;" data-i18n="home.programs.need_label">আর্থিক প্রয়োজন:</span>
-                                        <span class="fw-bold text-success" style="font-size: 0.8rem;">৳{{ prog.raised_amount|floatformat:0 }} / ৳{{ prog.target_amount|floatformat:0 }}</span>
+                                <h5 class="modal-title fw-bold text-white mb-0"
+                                    id="programDonateModalLabel_{{ prog.id }}">
+                                    <i class="fas fa-hand-holding-heart me-2"></i><span
+                                        data-i18n="modal.donate_title">আর্থিক সহায়তা প্রদান</span>
+                                </h5>
+                                <small class="text-white-50">{{ prog.title }}</small>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <form action="{% url 'donations:initiate_payment' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="program_id" value="{{ prog.id }}">
+                            <div class="modal-body p-4">
+                                <!-- Progress Info -->
+                                <div class="alert alert-success-subtle border border-success p-3 rounded-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small text-secondary fw-semibold"><span
+                                                data-i18n="home.programs.target">লক্ষ্যমাত্রা:</span> <strong>৳{{
+                                                prog.target_amount|floatformat:0 }}</strong></span>
+                                        <span class="small fw-bold text-success"><span
+                                                data-i18n="home.programs.raised">সংগৃহীত:</span> ৳{{
+                                            prog.raised_amount|floatformat:0 }} ({{ prog.progress_percent }}%)</span>
                                     </div>
-                                    <div class="progress" style="height: 5px;">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ prog.progress_percent }}%;"></div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-success"
+                                            style="width: {{ prog.progress_percent }};"></div>
                                     </div>
                                 </div>
-                                {% endif %}
+
+                                <!-- Donor Identity Type Selection -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary"><span
+                                            data-i18n="modal.identity_q">আপনি কীভাবে সহায়তা প্রদান করবেন?</span> <span
+                                            class="text-danger">*</span></label>
+                                    <div class="d-flex gap-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="donor_identity_type"
+                                                id="identity_gen_{{ prog.id }}" value="general" checked
+                                                onchange="toggleProgDonorType('{{ prog.id }}', 'general')">
+                                            <label class="form-check-label fw-bold text-dark"
+                                                for="identity_gen_{{ prog.id }}" data-i18n="modal.general_donor">
+                                                সাধারণ শুভাকাঙ্ক্ষী
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="donor_identity_type"
+                                                id="identity_mem_{{ prog.id }}" value="member"
+                                                onchange="toggleProgDonorType('{{ prog.id }}', 'member')">
+                                            <label class="form-check-label fw-bold text-success"
+                                                for="identity_mem_{{ prog.id }}" data-i18n="modal.member_donor">
+                                                সংস্থার সদস্য (Member)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Member ID Field (Hidden by default) -->
+                                <div id="progMemberField_{{ prog.id }}" class="mb-3 d-none">
+                                    <label class="form-label fw-bold text-dark small"><span
+                                            data-i18n="modal.member_id">সদস্য আইডি (Member ID)</span> <span
+                                            class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-success fw-bold"><i
+                                                class="fas fa-id-badge"></i></span>
+                                        <input type="text" class="form-control fw-bold" name="membership_id"
+                                            id="progMemberId_{{ prog.id }}" data-i18n-attr="placeholder:modal.member_id"
+                                            placeholder="যেমন: 26082301"
+                                            oninput="lookupProgramMember('{{ prog.id }}', this.value)">
+                                        <button class="btn btn-success fw-bold" type="button"
+                                            onclick="lookupProgramMember('{{ prog.id }}', document.getElementById('progMemberId_{{ prog.id }}').value)"
+                                            data-i18n="modal.verify_btn">যাচাই</button>
+                                    </div>
+                                    <div id="progMemberFeedback_{{ prog.id }}" class="form-text small mt-1 text-muted"
+                                        data-i18n="modal.member_hint">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।
+                                    </div>
+                                </div>
+
+                                <!-- General Donor Fields -->
+                                <div id="progGeneralFields_{{ prog.id }}" class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label fw-bold small" data-i18n="modal.your_name">আপনার নাম
+                                            <span class="text-danger">*</span></label>
+                                        <input type="text" name="donor_name" id="progDonorName_{{ prog.id }}"
+                                            class="form-control" data-i18n-attr="placeholder:modal.your_name"
+                                            placeholder="নাম লিখুন" required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label fw-bold small" data-i18n="modal.mobile">মোবাইল নম্বর
+                                            <span class="text-danger">*</span></label>
+                                        <input type="tel" name="donor_phone" id="progDonorPhone_{{ prog.id }}"
+                                            class="form-control" placeholder="01XXXXXXXXX" required>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Amount Selection -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small mb-1"
+                                        data-i18n="modal.amount">সহায়তার পরিমাণ (টাকা) <span
+                                            class="text-danger">*</span></label>
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
+                                            onclick="setProgModalAmount('{{ prog.id }}', 100)">৳১০০</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
+                                            onclick="setProgModalAmount('{{ prog.id }}', 250)">৳২৫০</button>
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-secondary rounded-pill active"
+                                            onclick="setProgModalAmount('{{ prog.id }}', 500)">৳৫০০</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
+                                            onclick="setProgModalAmount('{{ prog.id }}', 1000)">৳১,০০০</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
+                                            onclick="setProgModalAmount('{{ prog.id }}', 2000)">৳২,০০০</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
+                                            onclick="setProgModalAmount('{{ prog.id }}', 5000)">৳৫,০০০</button>
+                                    </div>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
+                                        <input type="number" name="amount" id="progAmount_{{ prog.id }}" value="500"
+                                            min="10" required class="form-control fw-bold fs-5 text-success">
+                                    </div>
+                                </div>
+
+                                <!-- Note -->
+                                <div class="mb-2">
+                                    <label class="form-label small text-secondary" data-i18n="modal.note">মন্তব্য /
+                                        দোয়া (ঐচ্ছিক)</label>
+                                    <input type="text" name="note" class="form-control form-control-sm"
+                                        data-i18n-attr="placeholder:modal.note"
+                                        placeholder="প্রোগ্রামের জন্য আপনার কোনো বিশেষ বার্তা">
+                                </div>
                             </div>
-                            <div class="d-flex gap-1 align-items-center justify-content-between mt-2 pt-2 border-top">
-                                <a href="{% url 'programs:program_detail' prog.pk %}" class="btn-detail-sm flex-grow-1 text-center" data-i18n="home.programs.detail">বিস্তারিত</a>
-                                {% if prog.target_amount %}
-                                <button type="button" class="btn btn-sm btn-danger fw-bold rounded-pill px-2 py-1 shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#programDonateModal_{{ prog.id }}" title="এই কার্যক্রমে অনুদান দিন">
-                                    <i class="fas fa-hand-holding-heart me-1"></i><span data-i18n="home.programs.donate_btn">সহায়তা দিন</span>
+                            <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                    data-bs-dismiss="modal" data-i18n="modal.cancel">বাতিল</button>
+                                <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                                    <i class="fas fa-lock me-1"></i><span data-i18n="modal.pay_btn">পেমেন্টে এগিয়ে
+                                        যান</span> &rarr;
                                 </button>
-                                {% endif %}
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
-
-                {% if prog.target_amount %}
-                <!-- Program Donation Modal -->
-                <div class="modal fade text-start" id="programDonateModal_{{ prog.id }}" tabindex="-1" aria-labelledby="programDonateModalLabel_{{ prog.id }}" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                            <div class="modal-header bg-success text-white py-3 px-4">
-                                <div>
-                                    <h5 class="modal-title fw-bold text-white mb-0" id="programDonateModalLabel_{{ prog.id }}">
-                                        <i class="fas fa-hand-holding-heart me-2"></i><span data-i18n="modal.donate_title">আর্থিক সহায়তা প্রদান</span>
-                                    </h5>
-                                    <small class="text-white-50">{{ prog.title }}</small>
-                                </div>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form action="{% url 'donations:initiate_payment' %}" method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="program_id" value="{{ prog.id }}">
-                                <div class="modal-body p-4">
-                                    <!-- Progress Info -->
-                                    <div class="alert alert-success-subtle border border-success p-3 rounded-3 mb-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <span class="small text-secondary fw-semibold"><span data-i18n="home.programs.target">লক্ষ্যমাত্রা:</span> <strong>৳{{ prog.target_amount|floatformat:0 }}</strong></span>
-                                            <span class="small fw-bold text-success"><span data-i18n="home.programs.raised">সংগৃহীত:</span> ৳{{ prog.raised_amount|floatformat:0 }} ({{ prog.progress_percent }}%)</span>
-                                        </div>
-                                        <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar bg-success" style="width: {{ prog.progress_percent }};"></div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Donor Identity Type Selection -->
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold small text-secondary"><span data-i18n="modal.identity_q">আপনি কীভাবে সহায়তা প্রদান করবেন?</span> <span class="text-danger">*</span></label>
-                                        <div class="d-flex gap-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="donor_identity_type" id="identity_gen_{{ prog.id }}" value="general" checked onchange="toggleProgDonorType('{{ prog.id }}', 'general')">
-                                                <label class="form-check-label fw-bold text-dark" for="identity_gen_{{ prog.id }}" data-i18n="modal.general_donor">
-                                                    সাধারণ শুভাকাঙ্ক্ষী
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="donor_identity_type" id="identity_mem_{{ prog.id }}" value="member" onchange="toggleProgDonorType('{{ prog.id }}', 'member')">
-                                                <label class="form-check-label fw-bold text-success" for="identity_mem_{{ prog.id }}" data-i18n="modal.member_donor">
-                                                    সংস্থার সদস্য (Member)
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Member ID Field (Hidden by default) -->
-                                    <div id="progMemberField_{{ prog.id }}" class="mb-3 d-none">
-                                        <label class="form-label fw-bold text-dark small"><span data-i18n="modal.member_id">সদস্য আইডি (Member ID)</span> <span class="text-danger">*</span></label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light text-success fw-bold"><i class="fas fa-id-badge"></i></span>
-                                            <input type="text" class="form-control fw-bold" name="membership_id" id="progMemberId_{{ prog.id }}" data-i18n-attr="placeholder:modal.member_id" placeholder="যেমন: 26082301" oninput="lookupProgramMember('{{ prog.id }}', this.value)">
-                                            <button class="btn btn-success fw-bold" type="button" onclick="lookupProgramMember('{{ prog.id }}', document.getElementById('progMemberId_{{ prog.id }}').value)" data-i18n="modal.verify_btn">যাচাই</button>
-                                        </div>
-                                        <div id="progMemberFeedback_{{ prog.id }}" class="form-text small mt-1 text-muted" data-i18n="modal.member_hint">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</div>
-                                    </div>
-
-                                    <!-- General Donor Fields -->
-                                    <div id="progGeneralFields_{{ prog.id }}" class="row g-2 mb-3">
-                                        <div class="col-6">
-                                            <label class="form-label fw-bold small" data-i18n="modal.your_name">আপনার নাম <span class="text-danger">*</span></label>
-                                            <input type="text" name="donor_name" id="progDonorName_{{ prog.id }}" class="form-control" data-i18n-attr="placeholder:modal.your_name" placeholder="নাম লিখুন" required>
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label fw-bold small" data-i18n="modal.mobile">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                            <input type="tel" name="donor_phone" id="progDonorPhone_{{ prog.id }}" class="form-control" placeholder="01XXXXXXXXX" required>
-                                        </div>
-                                    </div>
-
-                                    <!-- Quick Amount Selection -->
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold text-dark small mb-1" data-i18n="modal.amount">সহায়তার পরিমাণ (টাকা) <span class="text-danger">*</span></label>
-                                        <div class="d-flex flex-wrap gap-1 mb-2">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 100)">৳১০০</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 250)">৳২৫০</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill active" onclick="setProgModalAmount('{{ prog.id }}', 500)">৳৫০০</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 1000)">৳১,০০০</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 2000)">৳২,০০০</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="setProgModalAmount('{{ prog.id }}', 5000)">৳৫,০০০</button>
-                                        </div>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
-                                            <input type="number" name="amount" id="progAmount_{{ prog.id }}" value="500" min="10" required class="form-control fw-bold fs-5 text-success">
-                                        </div>
-                                    </div>
-
-                                    <!-- Note -->
-                                    <div class="mb-2">
-                                        <label class="form-label small text-secondary" data-i18n="modal.note">মন্তব্য / দোয়া (ঐচ্ছিক)</label>
-                                        <input type="text" name="note" class="form-control form-control-sm" data-i18n-attr="placeholder:modal.note" placeholder="প্রোগ্রামের জন্য আপনার কোনো বিশেষ বার্তা">
-                                    </div>
-                                </div>
-                                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal" data-i18n="modal.cancel">বাতিল</button>
-                                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
-                                        <i class="fas fa-lock me-1"></i><span data-i18n="modal.pay_btn">পেমেন্টে এগিয়ে যান</span> &rarr;
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-                {% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
             {% else %}
-                <!-- Fallback matching exact reference image -->
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
-                    <div class="program-card">
-                        <div class="program-card-badge bg-danger text-white"><i class="fas fa-tint"></i></div>
-                        <img src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=500&q=80" class="program-img" alt="রক্তদান">
-                        <div class="program-card-body">
-                            <div>
-                                <h3 class="program-card-title" data-i18n="prog.blood_service">রক্তদান সেবা</h3>
-                                <p class="program-card-text" data-i18n="prog.blood_desc">জরুরি রক্তদাতা খুঁজে দেয়া ও রক্তদাতা ডাটাবেস পরিচালনা।</p>
-                            </div>
-                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm" data-i18n="home.programs.detail">বিস্তারিত</a></div>
+            <!-- Fallback matching exact reference image -->
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                <div class="program-card">
+                    <div class="program-card-badge bg-danger text-white"><i class="fas fa-tint"></i></div>
+                    <img src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=500&q=80"
+                        class="program-img" alt="রক্তদান">
+                    <div class="program-card-body">
+                        <div>
+                            <h3 class="program-card-title" data-i18n="prog.blood_service">রক্তদান সেবা</h3>
+                            <p class="program-card-text" data-i18n="prog.blood_desc">জরুরি রক্তদাতা খুঁজে দেয়া ও
+                                রক্তদাতা ডাটাবেস পরিচালনা।</p>
                         </div>
+                        <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm"
+                                data-i18n="home.programs.detail">বিস্তারিত</a></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
-                    <div class="program-card">
-                        <div class="program-card-badge bg-success text-white"><i class="fas fa-book-reader"></i></div>
-                        <img src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=500&q=80" class="program-img" alt="শিক্ষা সহায়তা">
-                        <div class="program-card-body">
-                            <div>
-                                <h3 class="program-card-title" data-i18n="prog.edu">শিক্ষা সহায়তা</h3>
-                                <p class="program-card-text" data-i18n="prog.edu_desc">দরিদ্র শিক্ষার্থীদের বই, শিক্ষা উপকরণ ও বৃত্তি প্রদান।</p>
-                            </div>
-                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm" data-i18n="home.programs.detail">বিস্তারিত</a></div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                <div class="program-card">
+                    <div class="program-card-badge bg-success text-white"><i class="fas fa-book-reader"></i></div>
+                    <img src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=500&q=80"
+                        class="program-img" alt="শিক্ষা সহায়তা">
+                    <div class="program-card-body">
+                        <div>
+                            <h3 class="program-card-title" data-i18n="prog.edu">শিক্ষা সহায়তা</h3>
+                            <p class="program-card-text" data-i18n="prog.edu_desc">দরিদ্র শিক্ষার্থীদের বই, শিক্ষা উপকরণ
+                                ও বৃত্তি প্রদান।</p>
                         </div>
+                        <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm"
+                                data-i18n="home.programs.detail">বিস্তারিত</a></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
-                    <div class="program-card">
-                        <div class="program-card-badge bg-warning text-white"><i class="fas fa-hands-holding-child"></i></div>
-                        <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=500&q=80" class="program-img" alt="মানবিক সহায়তা">
-                        <div class="program-card-body">
-                            <div>
-                                <h3 class="program-card-title" data-i18n="prog.human">মানবিক সহায়তা</h3>
-                                <p class="program-card-text" data-i18n="prog.human_desc">অসহায় ও দুঃস্থ পরিবারের পাশে দাঁড়ানো।</p>
-                            </div>
-                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm" data-i18n="home.programs.detail">বিস্তারিত</a></div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                <div class="program-card">
+                    <div class="program-card-badge bg-warning text-white"><i class="fas fa-hands-holding-child"></i>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=500&q=80"
+                        class="program-img" alt="মানবিক সহায়তা">
+                    <div class="program-card-body">
+                        <div>
+                            <h3 class="program-card-title" data-i18n="prog.human">মানবিক সহায়তা</h3>
+                            <p class="program-card-text" data-i18n="prog.human_desc">অসহায় ও দুঃস্থ পরিবারের পাশে
+                                দাঁড়ানো।</p>
                         </div>
+                        <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm"
+                                data-i18n="home.programs.detail">বিস্তারিত</a></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
-                    <div class="program-card">
-                        <div class="program-card-badge bg-success text-white"><i class="fas fa-leaf"></i></div>
-                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&q=80" class="program-img" alt="পরিবেশ কর্মসূচি">
-                        <div class="program-card-body">
-                            <div>
-                                <h3 class="program-card-title" data-i18n="prog.env">পরিবেশ কর্মসূচি</h3>
-                                <p class="program-card-text" data-i18n="prog.env_desc">বৃক্ষরোপণ ও পরিবেশ সচেতনতা বৃদ্ধি।</p>
-                            </div>
-                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm" data-i18n="home.programs.detail">বিস্তারিত</a></div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                <div class="program-card">
+                    <div class="program-card-badge bg-success text-white"><i class="fas fa-leaf"></i></div>
+                    <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&q=80"
+                        class="program-img" alt="পরিবেশ কর্মসূচি">
+                    <div class="program-card-body">
+                        <div>
+                            <h3 class="program-card-title" data-i18n="prog.env">পরিবেশ কর্মসূচি</h3>
+                            <p class="program-card-text" data-i18n="prog.env_desc">বৃক্ষরোপণ ও পরিবেশ সচেতনতা বৃদ্ধি।
+                            </p>
                         </div>
+                        <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm"
+                                data-i18n="home.programs.detail">বিস্তারিত</a></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
-                    <div class="program-card">
-                        <div class="program-card-badge bg-info text-white"><i class="fas fa-ambulance"></i></div>
-                        <img src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=500&q=80" class="program-img" alt="দুর্যোগ সহায়তা">
-                        <div class="program-card-body">
-                            <div>
-                                <h3 class="program-card-title" data-i18n="prog.disaster">দুর্যোগ সহায়তা</h3>
-                                <p class="program-card-text" data-i18n="prog.disaster_desc">বন্যা, ঝড় ও দুর্ঘটনায় জরুরি সহায়তা প্রদান।</p>
-                            </div>
-                            <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm" data-i18n="home.programs.detail">বিস্তারিত</a></div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+                <div class="program-card">
+                    <div class="program-card-badge bg-info text-white"><i class="fas fa-ambulance"></i></div>
+                    <img src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=500&q=80"
+                        class="program-img" alt="দুর্যোগ সহায়তা">
+                    <div class="program-card-body">
+                        <div>
+                            <h3 class="program-card-title" data-i18n="prog.disaster">দুর্যোগ সহায়তা</h3>
+                            <p class="program-card-text" data-i18n="prog.disaster_desc">বন্যা, ঝড় ও দুর্ঘটনায় জরুরি
+                                সহায়তা প্রদান।</p>
                         </div>
+                        <div><a href="{% url 'programs:program_list' %}" class="btn-detail-sm"
+                                data-i18n="home.programs.detail">বিস্তারিত</a></div>
                     </div>
                 </div>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -400,8 +493,10 @@
 <!-- 5. Full-Width CTA Banner -->
 <section class="cta-banner">
     <div class="container">
-        <h2 class="cta-banner-title">{{ site_setting.cta_banner_title|default:"আসুন, আমরা সবাই মিলে একটি মানবিক ও সুন্দর সমাজ গড়ে তুলি" }}</h2>
-        <a href="{% url 'volunteers:apply' %}" class="btn-hn-yellow">{{ site_setting.cta_banner_button_text|default:"স্বেচ্ছাসেবক হন" }}</a>
+        <h2 class="cta-banner-title">{{ site_setting.cta_banner_title|default:"আসুন, আমরা সবাই মিলে একটি মানবিক ও সুন্দর
+            সমাজ গড়ে তুলি" }}</h2>
+        <a href="{% url 'volunteers:apply' %}" class="btn-hn-yellow">{{
+            site_setting.cta_banner_button_text|default:"স্বেচ্ছাসেবক হন" }}</a>
     </div>
 </section>
 
@@ -413,56 +508,63 @@
             <div class="col-lg-6">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="fw-bold text-dark mb-0 fs-4" data-i18n="home.news.heading">সাম্প্রতিক সংবাদ</h3>
-                    <a href="{% url 'news:article_list' %}" class="text-success text-decoration-none fw-semibold small"><span data-i18n="home.news.view_all">সব দেখুন</span> <i class="fas fa-arrow-right ms-1"></i></a>
+                    <a href="{% url 'news:article_list' %}"
+                        class="text-success text-decoration-none fw-semibold small"><span
+                            data-i18n="home.news.view_all">সব দেখুন</span> <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
 
                 {% if recent_news %}
-                    {% for article in recent_news %}
-                    <div class="news-item-card">
-                        {% if article.image %}
-                            <img src="{{ article.image.url }}" alt="{{ article.title }}" class="news-thumb">
-                        {% else %}
-                            <img src="https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=200&q=80" alt="{{ article.title }}" class="news-thumb">
-                        {% endif %}
-                        <div>
-                            <div class="news-title">
-                                <a href="{% url 'news:article_detail' article.pk %}" class="text-dark text-decoration-none">{{ article.title }}</a>
-                            </div>
-                            <div class="news-date mb-1">
-                                <i class="far fa-calendar-alt me-1"></i> {{ article.publish_date|date:"d M Y" }}
-                            </div>
-                            <p class="news-excerpt">
-                                {{ article.content|truncatewords:8 }}
-                            </p>
+                {% for article in recent_news %}
+                <div class="news-item-card">
+                    {% if article.image %}
+                    <img src="{{ article.image.url }}" alt="{{ article.title }}" class="news-thumb">
+                    {% else %}
+                    <img src="https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=200&q=80"
+                        alt="{{ article.title }}" class="news-thumb">
+                    {% endif %}
+                    <div>
+                        <div class="news-title">
+                            <a href="{% url 'news:article_detail' article.pk %}"
+                                class="text-dark text-decoration-none">{{ article.title }}</a>
                         </div>
+                        <div class="news-date mb-1">
+                            <i class="far fa-calendar-alt me-1"></i> {{ article.publish_date|date:"d M Y" }}
+                        </div>
+                        <p class="news-excerpt">
+                            {{ article.content|truncatewords:8 }}
+                        </p>
                     </div>
-                    {% endfor %}
+                </div>
+                {% endfor %}
                 {% else %}
-                    <!-- News fallbacks matching image -->
-                    <div class="news-item-card">
-                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=200&q=80" class="news-thumb" alt="News 1">
-                        <div>
-                            <div class="news-title">বৃক্ষরোপণ কর্মসূচি সম্পন্ন</div>
-                            <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ১০ জুন, ২০২৪</div>
-                            <p class="news-excerpt">নওগাঁর বিভিন্ন এলাকায় বৃক্ষরোপণ কর্মসূচি পালন করা হয়েছে।</p>
-                        </div>
+                <!-- News fallbacks matching image -->
+                <div class="news-item-card">
+                    <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=200&q=80"
+                        class="news-thumb" alt="News 1">
+                    <div>
+                        <div class="news-title">বৃক্ষরোপণ কর্মসূচি সম্পন্ন</div>
+                        <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ১০ জুন, ২০২৪</div>
+                        <p class="news-excerpt">নওগাঁর বিভিন্ন এলাকায় বৃক্ষরোপণ কর্মসূচি পালন করা হয়েছে।</p>
                     </div>
-                    <div class="news-item-card">
-                        <img src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=200&q=80" class="news-thumb" alt="News 2">
-                        <div>
-                            <div class="news-title">রক্তদান কর্মসূচি সফল</div>
-                            <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ০৫ জুন, ২০২৪</div>
-                            <p class="news-excerpt">স্বেচ্ছামূলক রক্তদান কর্মসূচিতে অনেকেই অংশগ্রহণ করেন।</p>
-                        </div>
+                </div>
+                <div class="news-item-card">
+                    <img src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=200&q=80"
+                        class="news-thumb" alt="News 2">
+                    <div>
+                        <div class="news-title">রক্তদান কর্মসূচি সফল</div>
+                        <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ০৫ জুন, ২০২৪</div>
+                        <p class="news-excerpt">স্বেচ্ছামূলক রক্তদান কর্মসূচিতে অনেকেই অংশগ্রহণ করেন।</p>
                     </div>
-                    <div class="news-item-card">
-                        <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=200&q=80" class="news-thumb" alt="News 3">
-                        <div>
-                            <div class="news-title">শীতবস্ত্র বিতরণ</div>
-                            <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ২০ মে, ২০২৪</div>
-                            <p class="news-excerpt">শীতার্ত মানুষের মাঝে শীতবস্ত্র বিতরণ করা হয়েছে।</p>
-                        </div>
+                </div>
+                <div class="news-item-card">
+                    <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=200&q=80"
+                        class="news-thumb" alt="News 3">
+                    <div>
+                        <div class="news-title">শীতবস্ত্র বিতরণ</div>
+                        <div class="news-date mb-1"><i class="far fa-calendar-alt me-1"></i> ২০ মে, ২০২৪</div>
+                        <p class="news-excerpt">শীতার্ত মানুষের মাঝে শীতবস্ত্র বিতরণ করা হয়েছে।</p>
                     </div>
+                </div>
                 {% endif %}
             </div>
 
@@ -470,12 +572,16 @@
             <div class="col-lg-6">
                 <div class="donation-box">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <h3 class="fw-bold text-success mb-0 fs-4" data-i18n="home.donate.heading">আর্থিক সহায়তা করুন</h3>
-                        <a href="{% url 'donations:donate' %}" class="btn btn-sm btn-success fw-bold rounded-pill px-3 shadow-sm">
-                            <i class="fas fa-hand-holding-heart me-1"></i><span data-i18n="home.donate.detail_btn">বিস্তারিত ও ফরম</span>
+                        <h3 class="fw-bold text-success mb-0 fs-4" data-i18n="home.donate.heading">আর্থিক সহায়তা করুন
+                        </h3>
+                        <a href="{% url 'donations:donate' %}"
+                            class="btn btn-sm btn-success fw-bold rounded-pill px-3 shadow-sm">
+                            <i class="fas fa-hand-holding-heart me-1"></i><span
+                                data-i18n="home.donate.detail_btn">বিস্তারিত ও ফরম</span>
                         </a>
                     </div>
-                    <p class="text-secondary small mb-3" data-i18n="home.donate.subtitle">আপনার সামান্য আর্থিক সহায়তা আমাদের বড় কাজে মানুষের পাশে দাঁড়াতে সহায়তা করবে।</p>
+                    <p class="text-secondary small mb-3" data-i18n="home.donate.subtitle">আপনার সামান্য আর্থিক সহায়তা
+                        আমাদের বড় কাজে মানুষের পাশে দাঁড়াতে সহায়তা করবে।</p>
 
                     <!-- Payment Badges -->
                     <div class="d-flex flex-wrap gap-2 mb-3">
@@ -488,35 +594,42 @@
                     <div class="row align-items-center g-3">
                         <div class="col-sm-5 text-center">
                             {% if qrcodes and qrcodes.first.image %}
-                                {% if qrcodes.first and qrcodes.first.image %}<img src="{{ qrcodes.first.image.url }}" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">{% endif %}
+                            {% if qrcodes.first and qrcodes.first.image %}<img src="{{ qrcodes.first.image.url }}"
+                                alt="Donation QR Code" class="img-fluid rounded border p-1"
+                                style="max-height: 140px;">{% endif %}
                             {% else %}
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=HelplineHelloNaogaonDonation" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=HelplineHelloNaogaonDonation"
+                                alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">
                             {% endif %}
                         </div>
 
                         <div class="col-sm-7">
                             {% if banks %}
-                                {% with bank=banks.first %}
-                                <div class="bank-info-box">
-                                    <div class="fw-bold text-success mb-1" data-i18n="home.bank.heading">ব্যাংক একাউন্ট</div>
-                                    <div class="fw-bold text-dark">{{ bank.account_name|default:"Helpline Hello Naogaon" }}</div>
-                                    <div class="small text-secondary">{{ bank.bank_name|default:"Dutch-Bangla Bank" }}</div>
-                                    <div class="small text-dark mt-1"><strong>Account:</strong> {{ bank.account_number|default:"1234567890" }}</div>
-                                    {% if bank.swift_code %}
-                                        <div class="small text-dark"><strong>Routing:</strong> {{ bank.swift_code }}</div>
-                                    {% else %}
-                                        <div class="small text-dark"><strong>Routing:</strong> 0902600925</div>
-                                    {% endif %}
+                            {% with bank=banks.first %}
+                            <div class="bank-info-box">
+                                <div class="fw-bold text-success mb-1" data-i18n="home.bank.heading">ব্যাংক একাউন্ট
                                 </div>
-                                {% endwith %}
+                                <div class="fw-bold text-dark">{{ bank.account_name|default:"Helpline Hello Naogaon" }}
+                                </div>
+                                <div class="small text-secondary">{{ bank.bank_name|default:"Dutch-Bangla Bank" }}</div>
+                                <div class="small text-dark mt-1"><strong>Account:</strong> {{
+                                    bank.account_number|default:"1234567890" }}</div>
+                                {% if bank.swift_code %}
+                                <div class="small text-dark"><strong>Routing:</strong> {{ bank.swift_code }}</div>
+                                {% else %}
+                                <div class="small text-dark"><strong>Routing:</strong> 0902600925</div>
+                                {% endif %}
+                            </div>
+                            {% endwith %}
                             {% else %}
-                                <div class="bank-info-box">
-                                    <div class="fw-bold text-success mb-1" data-i18n="home.bank.heading">ব্যাংক একাউন্ট</div>
-                                    <div class="fw-bold text-dark">Helpline Hello Naogaon</div>
-                                    <div class="small text-secondary">Dutch-Bangla Bank</div>
-                                    <div class="small text-dark mt-1"><strong>Account:</strong> 1234567890</div>
-                                    <div class="small text-dark"><strong>Routing:</strong> 0902600925</div>
+                            <div class="bank-info-box">
+                                <div class="fw-bold text-success mb-1" data-i18n="home.bank.heading">ব্যাংক একাউন্ট
                                 </div>
+                                <div class="fw-bold text-dark">Helpline Hello Naogaon</div>
+                                <div class="small text-secondary">Dutch-Bangla Bank</div>
+                                <div class="small text-dark mt-1"><strong>Account:</strong> 1234567890</div>
+                                <div class="small text-dark"><strong>Routing:</strong> 0902600925</div>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
@@ -525,4 +638,263 @@
         </div>
     </div>
 </section>
+
+<!-- Complaint & Tip-off Modal (তথ্য ও অভিযোগ দাখিল) -->
+<div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="modal-header border-0 text-white px-4 py-3"
+                style="background: linear-gradient(135deg, #1b5e20 0%, #0d3813 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-20 text-warning"
+                        style="width: 44px; height: 44px; font-size: 1.25rem;">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="complaintModalLabel">তথ্য ও অভিযোগ দাখিল
+                        </h5>
+                        <small class="text-white-50">অন্যায়, অনিয়ম ও দুর্নীতির তথ্য দিন</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body Container -->
+            <div class="modal-body p-4">
+                <!-- Security & Confidentiality Notice -->
+                <div
+                    class="alert alert-success border-0 bg-success bg-opacity-10 d-flex align-items-start gap-2 py-2 px-3 mb-3 rounded-3">
+                    <i class="fas fa-user-shield text-success fs-5 mt-1"></i>
+                    <div class="small text-dark">
+                        <strong>শতভাগ গোপনীয়তা নিশ্চিত:</strong> আপনার প্রেরিত তথ্য ও পরিচয় সম্পূর্ণ গোপন রাখা হবে। এই
+                        তথ্যটি কোনো ডাটাবেজ বা পাবলিক তালিকায় রাখা হয় না—সরাসরি কর্তৃপক্ষের নিকট পৌঁছাবে এবং আপনার ফোনে
+                        ট্র্যাকিং নম্বর সহ নিশ্চিতকরণ এসএমএস পাঠানো হবে।
+                    </div>
+                </div>
+
+                <!-- Alert for AJAX Error Messages -->
+                <div id="complaintAlert" class="alert alert-danger d-none py-2 small mb-3"></div>
+
+                <!-- Complaint Form -->
+                <form id="complaintForm" method="POST" action="{% url 'core:submit_complaint' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark small mb-1">
+                                আপনার নাম <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                        class="fas fa-user"></i></span>
+                                <input type="text" name="name" id="complaintName" class="form-control border-start-0"
+                                    placeholder="পূর্ণ নাম লিখুন" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark small mb-1">
+                                মোবাইল নম্বর <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                        class="fas fa-phone-alt"></i></span>
+                                <input type="tel" name="phone" id="complaintPhone" class="form-control border-start-0"
+                                    placeholder="০১XXXXXXXXX" required pattern="^(?:\+88|88)?01[3-9]\d{8}$"
+                                    title="সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন">
+                            </div>
+                            <div class="form-text small text-muted">এই নম্বরে ট্র্যাকিং নম্বর সহ নিশ্চিতকরণ বার্তা
+                                পাঠানো হবে।</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark small mb-1">
+                                ঠিকানা <span class="text-muted fw-normal">(ঐচ্ছিক)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                        class="fas fa-map-marker-alt"></i></span>
+                                <input type="text" name="address" id="complaintAddress"
+                                    class="form-control border-start-0"
+                                    placeholder="গ্রাম/এলাকা, ইউনিয়ন/ওয়ার্ড, উপজেলা (ঐচ্ছিক)">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark small mb-1">
+                                অন্যায়, অনিয়ম বা দুর্নীতির বিস্তারিত বিবরণ <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="details" id="complaintDetails" class="form-control" rows="4"
+                                placeholder="ঘটনার স্থান, সময়, জড়িত ব্যক্তি/পক্ষ এবং প্রাসঙ্গিক বিস্তারিত বিবরণ লিখুন..."
+                                required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-0 px-0 pb-0 mt-3 pt-3 border-top">
+                        <button type="button" class="btn btn-outline-secondary px-4"
+                            data-bs-dismiss="modal">বাতিল</button>
+                        <button type="submit" id="submitComplaintBtn" class="btn btn-success fw-bold px-4 shadow-sm">
+                            <span class="btn-spinner spinner-border spinner-border-sm d-none me-1" role="status"
+                                aria-hidden="true"></span>
+                            <i class="fas fa-paper-plane me-1 btn-icon"></i>
+                            <span class="btn-text">তথ্য জমা দিন</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Success State Screen (shown via AJAX after submission) -->
+                <div id="complaintSuccessState" class="p-4 text-center d-none">
+                    <div class="mb-3">
+                        <div class="mx-auto rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center"
+                            style="width: 72px; height: 72px; font-size: 2.2rem;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">আপনার তথ্য সফলভাবে দাখিল হয়েছে!</h4>
+                    <p class="text-muted mb-3">অভিযোগ ও তথ্যের বিবরণ সরাসরি কর্তৃপক্ষের অফিসিয়াল ইমেইলে প্রেরণ করা
+                        হয়েছে।</p>
+                    <div class="card bg-light border-0 p-3 mb-4 rounded-3 d-inline-block text-start w-100"
+                        style="max-width: 480px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-bold">অভিযোগ ট্র্যাকিং নম্বর:</span>
+                            <span id="displayComplaintNo"
+                                class="badge bg-danger fs-6 px-3 py-1 font-monospace">HNC-XXXXXX</span>
+                        </div>
+                        <div class="small text-muted mb-0">
+                            <i class="fas fa-comment-dots text-success me-1"></i> আপনার মোবাইল নম্বর (<strong
+                                id="displayPhone"></strong>)-এ নিশ্চিতকরণ বার্তা পাঠানো হয়েছে।
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">ঠিক
+                            আছে</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const complaintModal = document.getElementById('complaintModal');
+        const complaintForm = document.getElementById('complaintForm');
+        const successState = document.getElementById('complaintSuccessState');
+        const alertBox = document.getElementById('complaintAlert');
+        const submitBtn = document.getElementById('submitComplaintBtn');
+        const btnSpinner = submitBtn ? submitBtn.querySelector('.btn-spinner') : null;
+        const btnIcon = submitBtn ? submitBtn.querySelector('.btn-icon') : null;
+        const btnText = submitBtn ? submitBtn.querySelector('.btn-text') : null;
+        const displayComplaintNo = document.getElementById('displayComplaintNo');
+        const displayPhone = document.getElementById('displayPhone');
+
+        if (complaintForm) {
+            complaintForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                // Client-side quick check
+                const nameVal = document.getElementById('complaintName').value.trim();
+                const phoneVal = document.getElementById('complaintPhone').value.trim();
+                const detailsVal = document.getElementById('complaintDetails').value.trim();
+
+                if (!nameVal || !phoneVal || !detailsVal) {
+                    if (alertBox) {
+                        alertBox.textContent = 'অনুগ্রহ করে নাম, মোবাইল নম্বর এবং বিস্তারিত বিবরণ পূরণ করুন।';
+                        alertBox.classList.remove('d-none');
+                    }
+                    return;
+                }
+
+                // Hide previous error
+                if (alertBox) {
+                    alertBox.classList.add('d-none');
+                    alertBox.textContent = '';
+                }
+
+                // Loading state
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    if (btnSpinner) btnSpinner.classList.remove('d-none');
+                    if (btnIcon) btnIcon.classList.add('d-none');
+                    if (btnText) btnText.textContent = 'প্রেরণ করা হচ্ছে...';
+                }
+
+                const formData = new FormData(complaintForm);
+
+                fetch(complaintForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(res => {
+                        return res.json().then(data => ({ status: res.status, data: data }));
+                    })
+                    .then(result => {
+                        if (result.status === 200 && result.data.success) {
+                            // Update success screen
+                            if (displayComplaintNo) {
+                                displayComplaintNo.textContent = '#' + result.data.complaint_no;
+                            }
+                            if (displayPhone) {
+                                displayPhone.textContent = result.data.phone || phoneVal;
+                            }
+                            complaintForm.classList.add('d-none');
+                            if (successState) {
+                                successState.classList.remove('d-none');
+                            }
+                        } else {
+                            const msg = (result.data && result.data.message) ? result.data.message : 'তথ্য প্রেরণে ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
+                            if (alertBox) {
+                                alertBox.textContent = msg;
+                                alertBox.classList.remove('d-none');
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        if (alertBox) {
+                            alertBox.textContent = 'সার্ভারের সাথে যোগাযোগে ত্রুটি ঘটেছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।';
+                            alertBox.classList.remove('d-none');
+                        }
+                    })
+                    .finally(() => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            if (btnSpinner) btnSpinner.classList.add('d-none');
+                            if (btnIcon) btnIcon.classList.remove('d-none');
+                            if (btnText) btnText.textContent = 'তথ্য জমা দিন';
+                        }
+                    });
+            });
+        }
+
+        // Reset modal when closed
+        if (complaintModal) {
+            complaintModal.addEventListener('hidden.bs.modal', function () {
+                if (complaintForm) {
+                    complaintForm.reset();
+                    complaintForm.classList.remove('d-none');
+                }
+                if (successState) {
+                    successState.classList.add('d-none');
+                }
+                if (alertBox) {
+                    alertBox.classList.add('d-none');
+                    alertBox.textContent = '';
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    if (btnSpinner) btnSpinner.classList.add('d-none');
+                    if (btnIcon) btnIcon.classList.remove('d-none');
+                    if (btnText) btnText.textContent = 'তথ্য জমা দিন';
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

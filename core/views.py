@@ -49,3 +49,107 @@ def about(request):
         'team_members': team_members,
     }
     return render(request, 'core/about.html', context)
+
+
+import random
+from django.utils import timezone
+from django.http import JsonResponse
+from django.conf import settings
+from core.email_utils import send_system_email
+from core.sms_utils import send_sms
+
+def submit_complaint(request):
+    """
+    Handles citizen reports/complaints about injustice, irregularities, and corruption.
+    CRITICAL REQUIREMENT: This data is NOT stored in the database or admin panel.
+    Instead, a unique complaint tracking number is generated, an email with the details
+    is sent to the organization admin, and an SMS confirmation is sent to the complainant's phone.
+    """
+    if request.method != 'POST':
+        return redirect('core:home')
+
+    is_ajax = (
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or 'application/json' in request.headers.get('Accept', '')
+    )
+
+    name = request.POST.get('name', '').strip()
+    phone = request.POST.get('phone', '').strip()
+    address = request.POST.get('address', '').strip()
+    details = request.POST.get('details', '').strip()
+
+    if not name or not phone or not details:
+        error_msg = "অনুগ্রহ করে নাম, মোবাইল নম্বর এবং বিস্তারিত তথ্য পূরণ করুন।"
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': error_msg}, status=400)
+        messages.error(request, error_msg)
+        return redirect('core:home')
+
+    # Generate unique complaint tracking number (e.g. HNC-260913-7482)
+    current_time = timezone.now()
+    time_prefix = current_time.strftime('%y%m%d')
+    rand_code = random.randint(1000, 9999)
+    complaint_no = f"HNC-{time_prefix}-{rand_code}"
+
+    # Prepare Admin Email recipients
+    site_setting = SiteSetting.objects.first()
+    admin_emails = []
+    if site_setting and site_setting.contact_email:
+        admin_emails.append(site_setting.contact_email)
+    if getattr(settings, 'SERVER_EMAIL', None):
+        admin_emails.append(settings.SERVER_EMAIL)
+    if getattr(settings, 'DEFAULT_FROM_EMAIL', None):
+        admin_emails.append(settings.DEFAULT_FROM_EMAIL)
+    recipients = list(dict.fromkeys(r for r in admin_emails if r and '@' in r))
+
+    # Formatted submission time string
+    submission_time_str = current_time.strftime('%d-%m-%Y %I:%M %p')
+
+    # Dispatch Email to Admin
+    email_subject = f"[জরুরি অভিযোগ/তথ্য] অভিযোগ নং #{complaint_no} - হেল্পলাইন হ্যালো নওগাঁ"
+    email_details = [
+        {'label': 'অভিযোগ ট্র্যাকিং নং', 'value': complaint_no},
+        {'label': 'তথ্য প্রদানকারীর নাম', 'value': name},
+        {'label': 'মোবাইল নম্বর', 'value': phone},
+        {'label': 'ঠিকানা', 'value': address if address else 'উল্লেখ করা হয়নি'},
+        {'label': 'দাখিলের তারিখ ও সময়', 'value': submission_time_str},
+        {'label': 'অভিযোগ / তথ্যের বিবরণ', 'value': details},
+    ]
+
+    try:
+        send_system_email(
+            subject=email_subject,
+            recipient_list=recipients,
+            headline="অন্যায়, অনিয়ম ও দুর্নীতির নতুন তথ্য প্রাপ্তি",
+            greeting="শ্রদ্ধেয় অ্যাডমিন,",
+            message_paragraphs=[
+                f"ওয়েবসাইটে একজন নাগরিক নতুন একটি অভিযোগ/তথ্য দাখিল করেছেন। অভিযোগের ট্র্যাকিং আইডি: <strong>#{complaint_no}</strong>।",
+                "তথ্যের সর্বোচ্চ নিরাপত্তা নিশ্চিত করতে এই তথ্যটি ডাটাবেজে সংরক্ষণ করা হয়নি, সরাসরি আপনার অফিসিয়াল ইমেইলে প্রেরণ করা হলো।"
+            ],
+            details=email_details,
+            footer_note="সতর্কতা: অভিযোগকারীর পরিচয় ও তথ্যের পূর্ণ গোপনীয়তা বজায় রাখুন।",
+            fail_silently=True,
+            request=request,
+        )
+    except Exception:
+        pass
+
+    # Dispatch SMS to Complainant
+    sms_text = f"Helpline Hello Naogaon: আপনার তথ্য/অভিযোগ সফলভাবে গৃহীত হয়েছে। অভিযোগ ট্র্যাকিং নং: {complaint_no}। তথ্যের গোপনীয়তা রক্ষা করা হবে। ধন্যবাদ।"
+    try:
+        send_sms(phone, sms_text)
+    except Exception:
+        pass
+
+    success_msg = f"আপনার তথ্য/অভিযোগ সফলভাবে দাখিল করা হয়েছে! আপনার ট্র্যাকিং নম্বর: {complaint_no}। আপনার ফোনে নিশ্চিতকরণ বার্তা পাঠানো হয়েছে।"
+    if is_ajax:
+        return JsonResponse({
+            'success': True,
+            'complaint_no': complaint_no,
+            'message': success_msg,
+            'phone': phone,
+        })
+
+    messages.success(request, success_msg)
+    return redirect('core:home')
+

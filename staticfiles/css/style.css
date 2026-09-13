@@ -200,6 +200,31 @@ main {
     box-shadow: 0 6px 16px rgba(2, 136, 209, 0.3);
 }
 
+.btn-hn-complaint {
+    background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 11px 22px;
+    border-radius: 8px;
+    border: none;
+    transition: all 0.25s ease;
+    text-decoration: none;
+}
+
+.btn-hn-complaint:hover {
+    background: linear-gradient(135deg, #b71c1c 0%, #8e0000 100%);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(183, 28, 28, 0.4);
+}
+
+.complaint-btn-subtext {
+    font-size: 0.85em;
+    font-weight: 400;
+    opacity: 0.95;
+    margin-left: 4px;
+}
+
 /* Keep old .hero-img class for any legacy use */
 .hero-img {
     border-radius: 12px;
