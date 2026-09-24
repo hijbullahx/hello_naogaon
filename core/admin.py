@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SiteSetting, StatCounter, AboutImage
+from .models import SiteSetting, StatCounter, AboutImage, EmergencyCategory, EmergencyService
 
 @admin.register(SiteSetting)
 class SiteSettingAdmin(admin.ModelAdmin):
@@ -35,5 +35,33 @@ class StatCounterAdmin(admin.ModelAdmin):
 class AboutImageAdmin(admin.ModelAdmin):
     list_display = ('caption', 'is_featured', 'order')
     list_editable = ('is_featured', 'order')
+
+
+class EmergencyServiceInline(admin.TabularInline):
+    model = EmergencyService
+    extra = 1
+    fields = ('title', 'phone_numbers', 'badge_text', 'icon_class', 'is_hotline', 'order', 'is_active')
+
+
+@admin.register(EmergencyCategory)
+class EmergencyCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'icon', 'badge_color', 'order', 'service_count', 'is_active')
+    list_editable = ('order', 'badge_color', 'is_active')
+    search_fields = ('name',)
+    inlines = [EmergencyServiceInline]
+
+    def service_count(self, obj):
+        return obj.services.count()
+    service_count.short_description = "মোট সেবা"
+
+
+@admin.register(EmergencyService)
+class EmergencyServiceAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'phone_numbers', 'badge_text', 'is_hotline', 'order', 'is_active')
+    list_editable = ('phone_numbers', 'badge_text', 'is_hotline', 'order', 'is_active')
+    list_filter = ('category', 'is_hotline', 'is_active')
+    search_fields = ('title', 'phone_numbers', 'subtext', 'address')
+    list_per_page = 25
+
 
 

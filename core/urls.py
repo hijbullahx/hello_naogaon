@@ -13,11 +13,16 @@ urlpatterns = [
     path('forgot-password/', views_auth.forgot_password_view, name='forgot_password'),
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
+    path('emergency/', views.emergency_services, name='emergency_services'),
     path('submit-complaint/', views.submit_complaint, name='submit_complaint'),
 
     
     # Custom Section-by-Section Card Control Admin Dashboard
     path('dashboard/', views_dashboard.dashboard_home, name='dashboard'),
+    path('dashboard/save-emergency-service/', views_dashboard.save_emergency_service, name='save_emergency_service'),
+    path('dashboard/delete-emergency-service/<int:pk>/', views_dashboard.delete_emergency_service, name='delete_emergency_service'),
+    path('dashboard/save-emergency-category/', views_dashboard.save_emergency_category, name='save_emergency_category'),
+    path('dashboard/delete-emergency-category/<int:pk>/', views_dashboard.delete_emergency_category, name='delete_emergency_category'),
     path('dashboard/update-hero/', views_dashboard.update_hero_section, name='update_hero'),
     path('dashboard/update-about/', views_dashboard.update_about_section, name='update_about'),
     path('dashboard/delete-about-image/<int:pk>/', views_dashboard.delete_about_image, name='delete_about_image'),

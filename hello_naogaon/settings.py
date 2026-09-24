@@ -182,6 +182,7 @@ JAZZMIN_SETTINGS = {
     # Top Menu Links
     "topmenu_links": [
         {"name": "ওয়েবসাইট দেখুন", "url": "/", "new_window": True},
+        {"name": "জরুরি সেবা", "url": "/emergency/", "new_window": True},
         {"name": "আমাদের সম্পর্কে", "url": "/about/", "new_window": True},
     ],
 
@@ -192,6 +193,8 @@ JAZZMIN_SETTINGS = {
     # App and model ordering
     "order_with_respect_to": [
         "core.sitesetting",
+        "core.emergencyservice",
+        "core.emergencycategory",
         "core.statcounter",
         "core.aboutimage",
         "programs.program",
@@ -219,6 +222,8 @@ JAZZMIN_SETTINGS = {
 
         "core": "fas fa-cogs",
         "core.sitesetting": "fas fa-sliders-h text-success",
+        "core.emergencyservice": "fas fa-phone-volume text-danger",
+        "core.emergencycategory": "fas fa-list-alt text-primary",
         "core.statcounter": "fas fa-sort-numeric-up text-info",
         "core.aboutimage": "fas fa-images text-warning",
 
