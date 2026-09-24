@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
 from core.email_utils import send_system_email
-from core.models import SiteSetting, StatCounter, AboutImage
+from core.models import SiteSetting, StatCounter, AboutImage, EmergencyCategory, EmergencyService
 from programs.models import Program, Event, SuccessStory
 from news.models import Article, Category
 from volunteers.models import BloodDonor, Volunteer, TeamMember
@@ -306,6 +306,8 @@ def dashboard_home(request):
         'my_donations': my_donations,
         'my_total_donated': my_total_donated,
         'my_donation_count': my_donation_count,
+        'emergency_categories': EmergencyCategory.objects.all().order_by('order', 'id'),
+        'emergency_services': EmergencyService.objects.all().select_related('category').order_by('category__order', 'order', 'id'),
     }
     return render(request, 'dashboard/index.html', context)
 
@@ -1777,4 +1779,167 @@ def delete_gallery_photo(request, pk):
         messages.success(request, 'ছবিটি সফলভাবে মুছে ফেলা হয়েছে!')
     else:
         messages.warning(request, 'ছবিটি খুঁজে পাওয়া যায়নি।')
-    return redirect('/dashboard/?tab=gallery-section')
+    return redirect('/dashboard/?tab=gallery-section')
+
+
+@staff_member_required
+def save_emergency_service(request):
+    """Create or update an EmergencyService entry from custom dashboard modal"""
+    if not can_user_edit_general(request.user):
+        messages.warning(request, "এই তথ্য পরিবর্তনের অনুমতি শুধুমাত্র অ্যাডমিনের রয়েছে।")
+        return redirect("/dashboard/")
+
+    if request.method == 'POST':
+        service_id = request.POST.get('service_id')
+        category_id = request.POST.get('category_id')
+        new_category_name = request.POST.get('new_category_name', '').strip()
+        title = request.POST.get('title', '').strip()
+        phone_numbers = request.POST.get('phone_numbers', '').strip()
+        subtext = request.POST.get('subtext', '').strip()
+        address = request.POST.get('address', '').strip()
+        badge_text = request.POST.get('badge_text', '').strip()
+        icon_class = request.POST.get('icon_class', 'fas fa-phone-alt').strip() or 'fas fa-phone-alt'
+        is_hotline = request.POST.get('is_hotline') in ['on', 'True', '1', True]
+        is_active = request.POST.get('is_active') in ['on', 'True', '1', True] or ('is_active' not in request.POST and not service_id)
+        
+        try:
+            order = int(request.POST.get('order', 0))
+        except (ValueError, TypeError):
+            order = 0
+
+        category = None
+        if new_category_name:
+            category, _ = EmergencyCategory.objects.get_or_create(
+                name=new_category_name,
+                defaults={
+                    'order': EmergencyCategory.objects.count() + 1,
+                    'is_active': True,
+                    'badge_color': 'danger'
+                }
+            )
+        elif category_id:
+            category = EmergencyCategory.objects.filter(pk=category_id).first()
+
+        if not category:
+            messages.error(request, "দয়া করে ক্যাটাগরি নির্বাচন করুন অথবা নতুন ক্যাটাগরির নাম লিখুন।")
+            return redirect('/dashboard/?tab=emergency-section')
+
+        if not title or not phone_numbers:
+            messages.error(request, "সেবার নাম এবং ফোন নম্বর আবশ্যক।")
+            return redirect('/dashboard/?tab=emergency-section')
+
+        if service_id:
+            service = EmergencyService.objects.filter(pk=service_id).first()
+            if service:
+                service.category = category
+                service.title = title
+                service.phone_numbers = phone_numbers
+                service.subtext = subtext
+                service.address = address
+                service.badge_text = badge_text
+                service.icon_class = icon_class
+                service.is_hotline = is_hotline
+                service.is_active = is_active
+                service.order = order
+                service.save()
+                messages.success(request, f'"{service.title}" সেবার তথ্য সফলভাবে আপডেট হয়েছে!')
+            else:
+                messages.warning(request, "সেবাটি খুঁজে পাওয়া যায়নি।")
+        else:
+            service = EmergencyService.objects.create(
+                category=category,
+                title=title,
+                phone_numbers=phone_numbers,
+                subtext=subtext,
+                address=address,
+                badge_text=badge_text,
+                icon_class=icon_class,
+                is_hotline=is_hotline,
+                is_active=is_active,
+                order=order or (EmergencyService.objects.filter(category=category).count() + 1)
+            )
+            messages.success(request, f'নতুন জরুরি সেবা "{service.title}" সফলভাবে তৈরি হয়েছে!')
+
+    return redirect('/dashboard/?tab=emergency-section')
+
+
+@staff_member_required
+def delete_emergency_service(request, pk):
+    """Delete an EmergencyService entry safely"""
+    if not can_user_edit_general(request.user):
+        messages.warning(request, "এই তথ্য পরিবর্তনের অনুমতি শুধুমাত্র অ্যাডমিনের রয়েছে।")
+        return redirect("/dashboard/")
+
+    service = EmergencyService.objects.filter(pk=pk).first()
+    if service:
+        title = service.title
+        service.delete()
+        messages.success(request, f'"{title}" জরুরি সেবা নম্বর সফলভাবে মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, "জরুরি সেবাটি খুঁজে পাওয়া যায়নি বা ইতিমধ্যে মুছে ফেলা হয়েছে।")
+    return redirect('/dashboard/?tab=emergency-section')
+
+
+@staff_member_required
+def save_emergency_category(request):
+    """Create or update an EmergencyCategory from custom dashboard modal"""
+    if not can_user_edit_general(request.user):
+        messages.warning(request, "এই তথ্য পরিবর্তনের অনুমতি শুধুমাত্র অ্যাডমিনের রয়েছে।")
+        return redirect("/dashboard/")
+
+    if request.method == 'POST':
+        category_id = request.POST.get('category_id')
+        name = request.POST.get('name', '').strip()
+        icon = request.POST.get('icon', 'fas fa-phone-alt').strip() or 'fas fa-phone-alt'
+        badge_color = request.POST.get('badge_color', 'danger').strip() or 'danger'
+        try:
+            order = int(request.POST.get('order', 0))
+        except (ValueError, TypeError):
+            order = 0
+        is_active = request.POST.get('is_active') in ['on', 'True', '1', True] or ('is_active' not in request.POST and not category_id)
+
+        if not name:
+            messages.error(request, "ক্যাটাগরির নাম আবশ্যক।")
+            return redirect('/dashboard/?tab=emergency-section')
+
+        if category_id:
+            cat = EmergencyCategory.objects.filter(pk=category_id).first()
+            if cat:
+                cat.name = name
+                cat.icon = icon
+                cat.badge_color = badge_color
+                cat.order = order
+                cat.is_active = is_active
+                cat.save()
+                messages.success(request, f'"{cat.name}" ক্যাটাগরি সফলভাবে আপডেট হয়েছে!')
+            else:
+                messages.warning(request, "ক্যাটাগরি খুঁজে পাওয়া যায়নি।")
+        else:
+            cat = EmergencyCategory.objects.create(
+                name=name,
+                icon=icon,
+                badge_color=badge_color,
+                order=order or (EmergencyCategory.objects.count() + 1),
+                is_active=is_active
+            )
+            messages.success(request, f'নতুন ক্যাটাগরি "{cat.name}" সফলভাবে যুক্ত হয়েছে!')
+
+    return redirect('/dashboard/?tab=emergency-section')
+
+
+@staff_member_required
+def delete_emergency_category(request, pk):
+    """Delete an EmergencyCategory and all its services"""
+    if not can_user_edit_general(request.user):
+        messages.warning(request, "এই তথ্য পরিবর্তনের অনুমতি শুধুমাত্র অ্যাডমিনের রয়েছে।")
+        return redirect("/dashboard/")
+
+    cat = EmergencyCategory.objects.filter(pk=pk).first()
+    if cat:
+        name = cat.name
+        cat.delete()
+        messages.success(request, f'"{name}" ক্যাটাগরি এবং এর আওতাধীন সেবাসমূহ সফলভাবে মুছে ফেলা হয়েছে!')
+    else:
+        messages.warning(request, "ক্যাটাগরি খুঁজে পাওয়া যায়নি।")
+    return redirect('/dashboard/?tab=emergency-section')
+

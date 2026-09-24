@@ -78,6 +78,9 @@
             <div class="d-flex gap-3 align-items-center">
                 <span><i class="fas fa-phone-alt me-1"></i> {{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</span>
                 <span class="d-none d-sm-inline"><i class="fas fa-envelope me-1"></i> {{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</span>
+                <a href="{% url 'core:emergency_services' %}" class="badge bg-danger text-white text-decoration-none px-2 py-1 rounded-pill d-none d-md-inline-flex align-items-center gap-1 shadow-sm">
+                    <i class="fas fa-phone-volume"></i> <span>জাতীয় জরুরি সেবা (৯৯৯ / ৩৩৩)</span>
+                </a>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <div class="social-links d-flex gap-2">
@@ -127,6 +130,11 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'apply' %}active{% endif %}" href="{% url 'volunteers:apply' %}" data-i18n="nav.volunteers">স্বেচ্ছাসেবক</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'emergency_services' %}active{% endif %}" href="{% url 'core:emergency_services' %}">
+                            <i class="fas fa-phone-alt text-danger me-1"></i><span data-i18n="nav.emergency_services">জরুরি সেবা</span>
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.app_name == 'news' %}active{% endif %}" href="{% url 'news:article_list' %}" data-i18n="nav.news">সংবাদ</a>
@@ -241,6 +249,7 @@
                     <ul class="list-unstyled footer-links">
                         <li><a href="{% url 'core:home' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.home">হোম</span></a></li>
                         <li><a href="{% url 'core:about' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.about">আমাদের সম্পর্কে</span></a></li>
+                        <li><a href="{% url 'core:emergency_services' %}"><i class="fas fa-angle-right me-1 text-danger"></i> <span class="text-white fw-bold">জরুরি সেবা ডিরেক্টরি</span></a></li>
                         <li><a href="{% url 'programs:program_list' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.programs">কার্যক্রম</span></a></li>
                         <li><a href="{% url 'volunteers:blood_donors' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.blood_donors">রক্তদাতা</span></a></li>
                         <li><a href="{% url 'volunteers:apply' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.volunteers">স্বেচ্ছাসেবক</span></a></li>

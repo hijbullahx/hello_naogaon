@@ -173,6 +173,10 @@
             <button class="nav-link fw-bold" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery-section"
                 type="button" role="tab"><i class="fas fa-images me-1"></i> গ্যালারি ({{ photos.count }})</button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-danger" id="emergency-tab" data-bs-toggle="tab" data-bs-target="#emergency-section"
+                type="button" role="tab"><i class="fas fa-phone-alt me-1 text-danger"></i> জরুরি সেবা ({{ emergency_services.count }})</button>
+        </li>
         {% else %}
         <!-- Leadership Members Role-Specific Tabs -->
         {% if can_edit_finance %}
@@ -2119,6 +2123,102 @@
             </div>
         </div>
 
+        <!-- ================= TAB 8: EMERGENCY SERVICES DIRECTORY ================= -->
+        <div class="tab-pane fade" id="emergency-section" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-danger text-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h5 class="card-title fw-bold mb-0">
+                            <i class="fas fa-phone-volume me-2"></i>জরুরি সেবা ও হটলাইন নম্বরসমূহ
+                        </h5>
+                        <small class="text-white-50">মোট {{ emergency_services.count }} টি সেবা সংরক্ষিত আছে</small>
+                    </div>
+                    <div>
+                        <button class="btn btn-light text-danger fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addEmergencyServiceModal">
+                            <i class="fas fa-plus-circle me-1"></i>নতুন জরুরি সেবা যোগ করুন
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Search Filter for Table -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6 col-lg-5">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" id="adminEmergencySearch" class="form-control" placeholder="নাম, ক্যাটাগরি বা নম্বর দিয়ে খুঁজুন..." oninput="filterAdminEmergencyTable()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unified Clean Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="adminEmergencyTable">
+                            <thead class="table-light text-muted small">
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>ক্যাটাগরি</th>
+                                    <th>সেবা / প্রতিষ্ঠানের নাম</th>
+                                    <th>ফোন নম্বরসমূহ</th>
+                                    <th>বিবরণ / লোকেশন</th>
+                                    <th>স্ট্যাটাস</th>
+                                    <th class="text-end" style="width: 120px;">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in emergency_services %}
+                                <tr>
+                                    <td class="text-muted small font-monospace">{{ forloop.counter }}</td>
+                                    <td>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                                            <i class="{{ s.category.icon|default:'fas fa-folder' }} me-1 small"></i>{{ s.category.name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-dark">{{ s.title }}</strong>
+                                        {% if s.badge_text %}
+                                        <span class="badge bg-light text-secondary border ms-1 small" style="font-size: 0.72rem;">{{ s.badge_text }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold font-monospace text-danger bg-light px-2 py-1 rounded border small">
+                                            <i class="fas fa-phone-alt me-1 text-danger small"></i>{{ s.phone_numbers }}
+                                        </span>
+                                    </td>
+                                    <td class="small text-muted">
+                                        {{ s.subtext|default:"-" }}
+                                    </td>
+                                    <td>
+                                        {% if s.is_active %}
+                                        <span class="badge bg-success small"><i class="fas fa-check me-1"></i>সক্রিয়</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary small">নিষ্ক্রিয়</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editEmergencyModal_{{ s.id }}" title="এডিট">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <a href="{% url 'core:delete_emergency_service' s.id %}" onclick="return confirm('আপনি কি নিশ্চিত যে &quot;{{ s.title }}&quot; সেবাটি মুছে ফেলতে চান?');" class="btn btn-sm btn-outline-danger" title="মুছুন">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <i class="fas fa-phone-slash fa-3x mb-2 opacity-50 d-block"></i>
+                                        কোনো জরুরি সেবা নেই। উপরের বাটন থেকে যোগ করুন।
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ================= TAB: MY DONATIONS (আমার আর্থিক সহায়তা ও অনুদান) ================= -->
         <div class="tab-pane fade" id="my-donations-section" role="tabpanel">
             <div class="row g-4">
@@ -2927,6 +3027,185 @@
 </div>
 
 
+<!-- ================= EMERGENCY SERVICES MODALS ================= -->
+
+<!-- 1. Add Emergency Service Modal -->
+<div class="modal fade" id="addEmergencyServiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-danger text-white py-3">
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>নতুন জরুরি সেবা নম্বর যোগ করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_emergency_service' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ক্যাটাগরি বেছে নিন</label>
+                            <select name="category_id" class="form-select">
+                                <option value="">-- বিদ্যমান ক্যাটাগরি বেছে নিন --</option>
+                                {% for cat in emergency_categories %}
+                                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">অথবা নতুন ক্যাটাগরি লিখুন</label>
+                            <input type="text" name="new_category_name" class="form-control" placeholder="যেমন: অ্যাম্বুলেন্স ও রক্তদান">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">সেবা / প্রতিষ্ঠানের নাম *</label>
+                            <input type="text" name="title" required class="form-control" placeholder="যেমন: জেলা প্রশাসক (ডিসি) অফিস, নওগাঁ">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ফোন নম্বরসমূহ *</label>
+                            <input type="text" name="phone_numbers" required class="form-control font-monospace" placeholder="যেমন: ০২৫৮৮৮৮২৫২৩ / ০১৭১৫-২৯২৩৭৭">
+                            <small class="text-muted">একাধিক নম্বর থাকলে স্ল্যাশ (/) দিয়ে লিখুন</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ব্যাজ / বিশেষ ট্যাগ (ঐচ্ছিক)</label>
+                            <input type="text" name="badge_text" class="form-control" placeholder="যেমন: ২৪ ঘণ্টা জরুরি, টোল ফ্রি, হটলাইন: ১৬৯৯৯">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">আইকন ক্লাস (FontAwesome)</label>
+                            <select name="icon_class" class="form-select">
+                                <option value="fas fa-phone-alt">ফোন (fas fa-phone-alt)</option>
+                                <option value="fas fa-shield-alt">পুলিশ / নিরাপত্তা (fas fa-shield-alt)</option>
+                                <option value="fas fa-user-shield">থানা / ডিউটি অফিসার (fas fa-user-shield)</option>
+                                <option value="fas fa-fire-extinguisher">ফায়ার সার্ভিস (fas fa-fire-extinguisher)</option>
+                                <option value="fas fa-ambulance">অ্যাম্বুলেন্স (fas fa-ambulance)</option>
+                                <option value="fas fa-hospital">হাসপাতাল (fas fa-hospital)</option>
+                                <option value="fas fa-clinic-medical">স্বাস্থ্য ক্লিনিক (fas fa-clinic-medical)</option>
+                                <option value="fas fa-landmark">প্রশাসন / ইউএনও (fas fa-landmark)</option>
+                                <option value="fas fa-building">ডিসি অফিস / ভবন (fas fa-building)</option>
+                                <option value="fas fa-balance-scale">আদালত / আইন (fas fa-balance-scale)</option>
+                                <option value="fas fa-passport">পাসপোর্ট অফিস (fas fa-passport)</option>
+                                <option value="fas fa-bolt">বিদ্যুৎ অভিযোগ (fas fa-bolt)</option>
+                                <option value="fas fa-bus">পরিবহন / বাস (fas fa-bus)</option>
+                                <option value="fas fa-bus-alt">দূরপাল্লার বাস (fas fa-bus-alt)</option>
+                                <option value="fas fa-pills">ফার্মেসি / ঔষধ (fas fa-pills)</option>
+                                <option value="fas fa-book">বই / লাইব্রেরি (fas fa-book)</option>
+                                <option value="fas fa-hotel">হোটেল / আবাসন (fas fa-hotel)</option>
+                                <option value="fas fa-seedling">কৃষি অফিস (fas fa-seedling)</option>
+                                <option value="fas fa-users">ইউনিয়ন পরিষদ (fas fa-users)</option>
+                                <option value="fas fa-graduation-cap">উচ্চশিক্ষা / ভর্তি তথ্য (fas fa-graduation-cap)</option>
+                                <option value="fas fa-hand-holding-heart">রক্তদান / সেবা (fas fa-hand-holding-heart)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">প্রদর্শনের ক্রম (Order)</label>
+                            <input type="number" name="order" value="0" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">ছোট বিবরণ / ট্যাগলাইন (ঐচ্ছিক)</label>
+                            <input type="text" name="subtext" class="form-control" placeholder="যেমন: পুলিশ, ফায়ার সার্ভিস ও অ্যাম্বুলেন্স সেবা">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">ঠিকানা / লোকেশন (ঐচ্ছিক)</label>
+                            <input type="text" name="address" class="form-control" placeholder="যেমন: নওগাঁ সদর, নওগাঁ">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="add_is_hotline" name="is_hotline">
+                                <label class="form-check-label fw-bold" for="add_is_hotline">হটলাইন / বিশেষ হাইলাইট কার্ড</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="add_is_active" name="is_active" checked>
+                                <label class="form-check-label fw-bold" for="add_is_active">ওয়েবসাইটে সক্রিয় থাকবে</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-danger fw-bold"><i class="fas fa-save me-1"></i> সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Edit Emergency Service Modals (Loop) -->
+{% for s in emergency_services %}
+<div class="modal fade" id="editEmergencyModal_{{ s.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>জরুরি সেবা এডিট: {{ s.title }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:save_emergency_service' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="service_id" value="{{ s.id }}">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ক্যাটাগরি</label>
+                            <select name="category_id" class="form-select">
+                                {% for cat in emergency_categories %}
+                                <option value="{{ cat.id }}" {% if cat.id == s.category.id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">অথবা নতুন ক্যাটাগরি লিখুন</label>
+                            <input type="text" name="new_category_name" class="form-control" placeholder="নতুন ক্যাটাগরি দিতে চাইলে লিখুন">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">সেবা / প্রতিষ্ঠানের নাম *</label>
+                            <input type="text" name="title" value="{{ s.title }}" required class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ফোন নম্বরসমূহ *</label>
+                            <input type="text" name="phone_numbers" value="{{ s.phone_numbers }}" required class="form-control font-monospace">
+                            <small class="text-muted">একাধিক নম্বর থাকলে স্ল্যাশ (/) দিয়ে লিখুন</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ব্যাজ / বিশেষ ট্যাগ</label>
+                            <input type="text" name="badge_text" value="{{ s.badge_text }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">আইকন ক্লাস</label>
+                            <input type="text" name="icon_class" value="{{ s.icon_class }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">প্রদর্শনের ক্রম (Order)</label>
+                            <input type="number" name="order" value="{{ s.order }}" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">ছোট বিবরণ / ট্যাগলাইন</label>
+                            <input type="text" name="subtext" value="{{ s.subtext }}" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">ঠিকানা / লোকেশন</label>
+                            <input type="text" name="address" value="{{ s.address }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="edit_hotline_{{ s.id }}" name="is_hotline" {% if s.is_hotline %}checked{% endif %}>
+                                <label class="form-check-label fw-bold" for="edit_hotline_{{ s.id }}">হটলাইন / বিশেষ হাইলাইট কার্ড</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="edit_active_{{ s.id }}" name="is_active" {% if s.is_active %}checked{% endif %}>
+                                <label class="form-check-label fw-bold" for="edit_active_{{ s.id }}">সক্রিয় থাকবে</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-save me-1"></i> আপডেট করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <script>
     function validateDashboardImage(input, maxKb, fieldName) {
@@ -3034,5 +3313,16 @@
         // Initialize Geo Dropdowns for Team Members & Address Fields
         initGeoDropdowns();
     });
+
+    function filterAdminEmergencyTable() {
+        const input = document.getElementById('adminEmergencySearch');
+        if (!input) return;
+        const filter = input.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#adminEmergencyTable tbody tr');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    }
 </script>
 {% endblock %}

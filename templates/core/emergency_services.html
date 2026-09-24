@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}জাতীয় জরুরি সেবা - {{ site_setting.title|default:"Helpline Hello Naogaon" }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .emergency-list-card {
+        background: #ffffff;
+        border-radius: 1rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    .emergency-category-header {
+        font-weight: 700;
+        color: #b91c1c;
+        border-bottom: 2px solid #fee2e2;
+        padding-bottom: 0.6rem;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .emergency-item-row {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        transition: background 0.15s ease;
+    }
+    .emergency-item-row:last-child {
+        border-bottom: none;
+    }
+    .emergency-item-row:hover {
+        background: #fff8f8;
+    }
+    .phone-dial-link {
+        color: #b91c1c;
+        font-weight: 700;
+        font-family: monospace, sans-serif;
+        font-size: 1.05rem;
+        text-decoration: none;
+        background: #fef2f2;
+        padding: 5px 12px;
+        border-radius: 20px;
+        border: 1px solid #fecaca;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .phone-dial-link:hover {
+        background: #dc2626;
+        color: #ffffff;
+        border-color: #dc2626;
+    }
+    .copy-phone-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 4px;
+        transition: color 0.15s ease;
+    }
+    .copy-phone-btn:hover {
+        color: #0f172a;
+    }
+    #emergencyToast {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 9999;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Top Page Header -->
+    <div class="text-center mb-4">
+        <span class="badge bg-danger px-3 py-2 rounded-pill fw-bold text-uppercase mb-2 shadow-sm">
+            <i class="fas fa-phone-alt me-1"></i> হেল্পলাইন ও জরুরি যোগাযোগ
+        </span>
+        <h1 class="fw-bold text-dark mb-2">জাতীয় ও জেলা জরুরি সেবা</h1>
+        <p class="text-muted mb-0">নওগাঁ জেলা ও জাতীয় গুরুত্বপূর্ণ সকল প্রয়োজনীয় জরুরি সেবা এবং হটলাইন নম্বরসমূহ</p>
+    </div>
+
+    <!-- Live Search Bar -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                <input type="text" id="emergencySearchInput" class="form-control border-start-0 ps-0" placeholder="যেকোনো সেবা, হাসপাতাল, থানা, কাউন্টার বা নম্বর লিখে খুঁজুন..." autocomplete="off">
+                <button class="btn btn-white border border-start-0 text-muted" type="button" id="clearSearchBtn" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clean Simple Directory List -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="emergency-list-card p-4 p-md-5">
+
+                <div id="servicesListContainer">
+                    {% for cat in categories %}
+                    <div class="category-block" id="cat-block-{{ cat.id }}">
+                        <h4 class="emergency-category-header">
+                            <i class="{{ cat.icon|default:'fas fa-folder-open' }}"></i>
+                            <span>{{ cat.name }}</span>
+                        </h4>
+
+                        <div class="category-items-wrap border rounded-3 overflow-hidden bg-white mb-4">
+                            {% for service in cat.services.all %}
+                            <div class="emergency-item-row"
+                                 data-title="{{ service.title|lower }}"
+                                 data-subtext="{{ service.subtext|lower }}"
+                                 data-phone="{{ service.phone_numbers|lower }}">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                    <div class="text-danger small" style="width: 20px; text-align: center;">
+                                        <i class="{{ service.icon_class|default:'fas fa-phone-alt' }}"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-dark fs-6">{{ service.title }}:</span>
+                                        {% if service.subtext %}
+                                        <span class="text-muted small ms-1">({{ service.subtext }})</span>
+                                        {% endif %}
+                                        {% if service.badge_text %}
+                                        <span class="badge bg-light text-danger border border-danger-subtle ms-1 small" style="font-size: 0.72rem;">{{ service.badge_text }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    {% for p in service.parsed_phone_list %}
+                                    <div class="d-inline-flex align-items-center gap-1">
+                                        <a href="tel:{{ p.tel }}" class="phone-dial-link" title="কল করতে ট্যাপ করুন">
+                                            <i class="fas fa-phone-alt small"></i> {{ p.display }}
+                                        </a>
+                                        <button type="button" class="copy-phone-btn" title="কপি করুন" onclick="copyNumber('{{ p.tel|default:p.display }}', this)">
+                                            <i class="far fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    {% empty %}
+                                    <span class="phone-dial-link">{{ service.phone_numbers }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="p-3 text-muted text-center small">এই ক্যাটাগরিতে এখনও কোনো সেবা অন্তর্ভুক্ত হয়নি।</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-phone-slash fa-3x mb-3 text-muted opacity-50"></i>
+                        <h5>কোনো জরুরি সেবা পাওয়া যায়নি</h5>
+                    </div>
+                    {% endfor %}
+
+                    <div id="noResultsAlert" class="alert alert-warning text-center py-4 my-3 rounded-3" style="display: none;">
+                        <i class="fas fa-search me-1"></i> মিল পাওয়া যায়নি। অন্য কিছু লিখে খুঁজুন।
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Copy Toast Notification -->
+<div id="emergencyToast" class="toast align-items-center text-bg-dark border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body">
+            <i class="fas fa-check-circle text-success me-2"></i> <span id="toastMsg">নম্বরটি কপি করা হয়েছে!</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+</div>
+
+<script>
+    function copyNumber(text, btnElement) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function() {
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
+            showToast('নম্বর কপি হয়েছে: ' + text);
+            setTimeout(() => {
+                btnElement.innerHTML = originalHtml;
+            }, 1800);
+        }).catch(function() {
+            showToast('কপি করা সম্ভব হয়নি।');
+        });
+    }
+
+    function showToast(msg) {
+        const toastEl = document.getElementById('emergencyToast');
+        document.getElementById('toastMsg').innerText = msg;
+        const toast = new bootstrap.Toast(toastEl, { delay: 2000 });
+        toastEl.style.display = 'block';
+        toast.show();
+    }
+
+    // Instant Search
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById('emergencySearchInput');
+        const clearBtn = document.getElementById('clearSearchBtn');
+        const rows = document.querySelectorAll('.emergency-item-row');
+        const blocks = document.querySelectorAll('.category-block');
+        const noResultsAlert = document.getElementById('noResultsAlert');
+
+        function filterList() {
+            const query = searchInput.value.toLowerCase().trim();
+            clearBtn.style.display = query.length > 0 ? 'block' : 'none';
+
+            let totalVisible = 0;
+
+            blocks.forEach(block => {
+                const blockRows = block.querySelectorAll('.emergency-item-row');
+                let blockVisible = 0;
+
+                blockRows.forEach(row => {
+                    const title = row.getAttribute('data-title') || '';
+                    const subtext = row.getAttribute('data-subtext') || '';
+                    const phone = row.getAttribute('data-phone') || '';
+
+                    if (!query || title.includes(query) || subtext.includes(query) || phone.includes(query)) {
+                        row.style.display = '';
+                        blockVisible++;
+                        totalVisible++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                block.style.display = (blockVisible > 0) ? '' : 'none';
+            });
+
+            noResultsAlert.style.display = (totalVisible === 0) ? 'block' : 'none';
+        }
+
+        searchInput.addEventListener('input', filterList);
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            filterList();
+            searchInput.focus();
+        });
+    });
+</script>
+{% endblock %}

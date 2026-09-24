@@ -50,6 +50,33 @@ def about(request):
     }
     return render(request, 'core/about.html', context)
 
+def emergency_services(request):
+    """
+    Public National & District Emergency Directory View for Helpline Hello Naogaon.
+    Features instant search, category filtering, click-to-call, and fast phone dialing.
+    """
+    from django.db.models import Prefetch
+    from core.emergency_data import ensure_default_emergency_services
+    from .models import EmergencyCategory, EmergencyService
+    ensure_default_emergency_services()
+
+    site_setting = SiteSetting.objects.first()
+    categories = EmergencyCategory.objects.filter(is_active=True).prefetch_related(
+        Prefetch('services', queryset=EmergencyService.objects.filter(is_active=True).order_by('order', 'id'))
+    ).order_by('order', 'id')
+
+    hotlines = EmergencyService.objects.filter(is_active=True, is_hotline=True).order_by('order', 'id')
+    all_services = EmergencyService.objects.filter(is_active=True).select_related('category').order_by('category__order', 'order', 'id')
+
+    context = {
+        'site_setting': site_setting,
+        'categories': categories,
+        'hotlines': hotlines,
+        'all_services': all_services,
+    }
+    return render(request, 'core/emergency_services.html', context)
+
+
 
 import random
 from django.utils import timezone

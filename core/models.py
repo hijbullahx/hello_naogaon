@@ -172,3 +172,91 @@ class PasswordResetOTP(models.Model):
         return f"OTP for {self.user.username} ({self.otp_code})"
 
 
+class EmergencyCategory(models.Model):
+    name = models.CharField(max_length=150, verbose_name="ক্যাটাগরির নাম")
+    icon = models.CharField(max_length=50, default="fas fa-phone-alt", verbose_name="আইকন ক্লাস (FontAwesome)")
+    badge_color = models.CharField(
+        max_length=30, 
+        default="danger", 
+        verbose_name="কালার থিম (danger, primary, success, warning, info)",
+        help_text="Bootstrap কালার যেমন: danger, primary, success, warning, info"
+    )
+    order = models.IntegerField(default=0, verbose_name="ক্রমিক নম্বর")
+    is_active = models.BooleanField(default=True, verbose_name="সক্রিয়")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        verbose_name = "জরুরি সেবার ক্যাটাগরি"
+        verbose_name_plural = "জরুরি সেবার ক্যাটাগরিসমূহ"
+
+    def __str__(self):
+        return self.name
+
+
+class EmergencyService(models.Model):
+    category = models.ForeignKey(EmergencyCategory, on_delete=models.CASCADE, related_name='services', verbose_name="ক্যাটাগরি")
+    title = models.CharField(max_length=200, verbose_name="সেবা / প্রতিষ্ঠানের নাম")
+    phone_numbers = models.CharField(
+        max_length=255, 
+        verbose_name="ফোন নম্বরসমূহ", 
+        help_text="একাধিক নম্বর থাকলে স্ল্যাশ (/) দিয়ে লিখুন, যেমন: ০২৫৮৮৮৮২৫২৩ / ০১৭১৫-২৯২৩৭৭"
+    )
+    subtext = models.CharField(
+        max_length=255, 
+        blank=True, 
+        verbose_name="ছোট বিবরণ / ট্যাগলাইন", 
+        help_text="যেমন: পুলিশ, ফায়ার সার্ভিস ও অ্যাম্বুলেন্স সেবা"
+    )
+    address = models.CharField(max_length=255, blank=True, verbose_name="ঠিকানা / লোকেশন")
+    badge_text = models.CharField(
+        max_length=60, 
+        blank=True, 
+        verbose_name="ব্যাজ টেক্সট", 
+        help_text="যেমন: ২৪ ঘণ্টা জরুরি, টোল ফ্রি, হটলাইন: ১৬৯৯৯"
+    )
+    icon_class = models.CharField(max_length=50, default="fas fa-phone-alt", verbose_name="আইকন ক্লাস")
+    is_hotline = models.BooleanField(default=False, verbose_name="হটলাইন / বিশেষ হাইলাইট")
+    order = models.IntegerField(default=0, verbose_name="ক্রমিক নম্বর")
+    is_active = models.BooleanField(default=True, verbose_name="সক্রিয়")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        verbose_name = "জরুরি সেবা নম্বর"
+        verbose_name_plural = "জরুরি সেবা নম্বরসমূহ"
+
+    def __str__(self):
+        return f"{self.title} - {self.phone_numbers}"
+
+    @property
+    def parsed_phone_list(self):
+        """
+        Parses `phone_numbers` into a list of dicts:
+        [{'display': '০২৫৮৮৮৮২৫২৩', 'tel': '02588882523'}, ...]
+        Translates Bangla numerals to English numerals for dialable links.
+        """
+        import re
+        b2e = {
+            '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
+            '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9'
+        }
+        raw_parts = [p.strip() for p in self.phone_numbers.split('/') if p.strip()]
+        result = []
+        for part in raw_parts:
+            converted = ""
+            for ch in part:
+                if ch in b2e:
+                    converted += b2e[ch]
+                elif ch.isdigit() or ch == '+':
+                    converted += ch
+            
+            clean_tel = re.sub(r'[^0-9+]', '', converted)
+            result.append({
+                'display': part,
+                'tel': clean_tel
+            })
+        return result
+
+
+
