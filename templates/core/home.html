@@ -355,7 +355,7 @@
                 <i class="fas fa-spinner fa-spin-pulse me-1"></i> চলমান কার্যক্রম
             </button>
             <button type="button" class="program-tab-btn program-tab-complaint-btn shadow-sm" data-bs-toggle="modal" data-bs-target="#complaintModal">
-                <i class="fas fa-bullhorn text-danger me-1"></i> অন্যায়, অনিয়ম ও দুর্নীতির বিষয়ে তথ্য দিন
+                <i class="fas fa-bullhorn text-danger me-1"></i> তথ্য দিন
             </button>
         </div>
 
@@ -998,12 +998,12 @@
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-20 text-warning"
                         style="width: 44px; height: 44px; font-size: 1.25rem;">
-                        <i class="fas fa-shield-alt"></i>
+                        <i class="fas fa-bullhorn"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0 text-white" id="complaintModalLabel">তথ্য ও অভিযোগ দাখিল
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="complaintModalLabel">তথ্য ও সহায়তা আবেদন
                         </h5>
-                        <small class="text-white-50">অন্যায়, অনিয়ম ও দুর্নীতির তথ্য দিন</small>
+                        <small class="text-white-50">অন্যায় ও দুর্নীতির তথ্য দিন অথবা যেকোনো সহায়তা চান</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
@@ -1017,8 +1017,8 @@
                     class="alert alert-success border-0 bg-success bg-opacity-10 d-flex align-items-start gap-2 py-2 px-3 mb-3 rounded-3">
                     <i class="fas fa-user-shield text-success fs-5 mt-1"></i>
                     <div class="small text-dark">
-                        <strong>শতভাগ গোপনীয়তা নিশ্চিত:</strong> আপনার প্রেরিত তথ্য ও পরিচয় সম্পূর্ণ গোপন রাখা হবে। এই
-                        তথ্যটি কোনো ডাটাবেজ বা পাবলিক তালিকায় রাখা হয় না—সরাসরি কর্তৃপক্ষের নিকট পৌঁছাবে এবং আপনার ফোনে
+                        <strong>শতভাগ গোপনীয়তা নিশ্চিত:</strong> আপনার প্রেরিত তথ্য, সহায়তা আবেদন ও পরিচয় সম্পূর্ণ গোপন রাখা হবে। এই
+                        তথ্যটি কোনো ডাটাবেজ বা পাবলিক তালিকায় রাখা হয় না—সরাসরি কর্তৃপক্ষের অফিসিয়াল ইমেইলে পৌঁছাবে এবং আপনার ফোনে
                         ট্র্যাকিং নম্বর সহ নিশ্চিতকরণ এসএমএস পাঠানো হবে।
                     </div>
                 </div>
@@ -1026,10 +1026,27 @@
                 <!-- Alert for AJAX Error Messages -->
                 <div id="complaintAlert" class="alert alert-danger d-none py-2 small mb-3"></div>
 
-                <!-- Complaint Form -->
+                <!-- Complaint & Assistance Form -->
                 <form id="complaintForm" method="POST" action="{% url 'core:submit_complaint' %}">
                     {% csrf_token %}
                     <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark small mb-1">
+                                তথ্যের ধরন / সাহায্যের বিষয় <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                        class="fas fa-layer-group"></i></span>
+                                <select name="subject_type" id="complaintSubjectType" class="form-select border-start-0" required>
+                                    <option value="অন্যায়, অনিয়ম বা দুর্নীতির তথ্য">অন্যায়, অনিয়ম বা দুর্নীতির তথ্য</option>
+                                    <option value="চিকিৎসা বা আর্থিক সহায়তা আবেদন">চিকিৎসা বা আর্থিক সহায়তা আবেদন</option>
+                                    <option value="জরুরি রক্ত বা খাদ্য সহায়তা আবেদন">জরুরি রক্ত বা খাদ্য সহায়তা আবেদন</option>
+                                    <option value="এলাকাভিত্তিক সমস্যা বা সেবামূলক তথ্য">এলাকাভিত্তিক সমস্যা বা সেবামূলক তথ্য</option>
+                                    <option value="অন্যান্য পরামর্শ বা সহায়তা">অন্যান্য পরামর্শ বা সহায়তা</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark small mb-1">
                                 আপনার নাম <span class="text-danger">*</span>
@@ -1072,10 +1089,10 @@
 
                         <div class="col-12">
                             <label class="form-label fw-bold text-dark small mb-1">
-                                অন্যায়, অনিয়ম বা দুর্নীতির বিস্তারিত বিবরণ <span class="text-danger">*</span>
+                                বিস্তারিত বিবরণ / সাহায্যের আবেদন <span class="text-danger">*</span>
                             </label>
                             <textarea name="details" id="complaintDetails" class="form-control" rows="4"
-                                placeholder="ঘটনার স্থান, সময়, জড়িত ব্যক্তি/পক্ষ এবং প্রাসঙ্গিক বিস্তারিত বিবরণ লিখুন..."
+                                placeholder="তথ্য বা ঘটনার স্থান, সময় এবং বিস্তারিত বিবরণ অথবা আপনার কি ধরনের সাহায্য প্রয়োজন তা লিখুন..."
                                 required></textarea>
                         </div>
                     </div>
@@ -1087,7 +1104,7 @@
                             <span class="btn-spinner spinner-border spinner-border-sm d-none me-1" role="status"
                                 aria-hidden="true"></span>
                             <i class="fas fa-paper-plane me-1 btn-icon"></i>
-                            <span class="btn-text">তথ্য জমা দিন</span>
+                            <span class="btn-text">জমা দিন</span>
                         </button>
                     </div>
                 </form>
@@ -1100,13 +1117,13 @@
                             <i class="fas fa-check-circle"></i>
                         </div>
                     </div>
-                    <h4 class="fw-bold text-dark mb-2">আপনার তথ্য সফলভাবে দাখিল হয়েছে!</h4>
-                    <p class="text-muted mb-3">অভিযোগ ও তথ্যের বিবরণ সরাসরি কর্তৃপক্ষের অফিসিয়াল ইমেইলে প্রেরণ করা
+                    <h4 class="fw-bold text-dark mb-2">আপনার তথ্য/আবেদন সফলভাবে দাখিল হয়েছে!</h4>
+                    <p class="text-muted mb-3">বিবরণ সরাসরি কর্তৃপক্ষের অফিসিয়াল ইমেইলে প্রেরণ করা
                         হয়েছে।</p>
                     <div class="card bg-light border-0 p-3 mb-4 rounded-3 d-inline-block text-start w-100"
                         style="max-width: 480px;">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted small fw-bold">অভিযোগ ট্র্যাকিং নম্বর:</span>
+                            <span class="text-muted small fw-bold">ট্র্যাকিং নম্বর:</span>
                             <span id="displayComplaintNo"
                                 class="badge bg-danger fs-6 px-3 py-1 font-monospace">HNC-XXXXXX</span>
                         </div>
