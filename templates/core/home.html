@@ -26,15 +26,11 @@
                     {{ site_setting.hero_subtitle|default:"আমরা একটি অরাজনৈতিক, অলাভজনক ও স্বেচ্ছাসেবী সংগঠন, যা সমাজের অসহায় মানুষের পাশে দাঁড়াতে প্রতিশ্রুতিবদ্ধ।" }}
                 </p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="{% url 'programs:program_list' %}" class="btn btn-hn-primary"
-                        data-i18n="home.hero.programs_btn">
-                        <i class="fas fa-hands-helping me-1"></i> আমাদের কার্যক্রম
-                    </a>
-                    <button type="button" class="btn btn-hn-complaint shadow-sm d-inline-flex align-items-center"
-                        data-bs-toggle="modal" data-bs-target="#complaintModal"
-                        style="background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%) !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.2) !important; padding: 11px 22px !important; border-radius: 8px !important; font-weight: 600 !important; text-decoration: none !important; box-shadow: 0 4px 14px rgba(183, 28, 28, 0.4) !important;">
-                        <i class="fas fa-bullhorn me-2" style="color: #ffca28 !important;"></i>
-                        <span style="color: #ffffff !important;">তথ্য দিন <span class="complaint-btn-subtext" style="color: #ffffff !important; font-size: 0.85em; font-weight: 400; opacity: 0.95; margin-left: 4px;">(অন্যায়, অনিয়ম, দুর্নীতির তথ্য দিন)</span></span>
+                    <button type="button" class="btn shadow-sm d-inline-flex align-items-center"
+                        data-bs-toggle="modal" data-bs-target="#directDonateModal"
+                        style="background: linear-gradient(135deg, #e2136e 0%, #b80d57 100%) !important; color: #ffffff !important; border: none !important; padding: 12px 30px !important; border-radius: 50px !important; font-weight: 700 !important; text-decoration: none !important; box-shadow: 0 4px 16px rgba(226, 19, 110, 0.4) !important;">
+                        <i class="fas fa-hand-holding-heart me-2" style="color: #ffeb3b !important; font-size: 1.2rem;"></i>
+                        <span style="color: #ffffff !important; font-size: 1.05rem;">দান করুন</span>
                     </button>
                 </div>
             </div>
@@ -49,7 +45,7 @@
     <div class="row g-3 justify-content-center">
         {% if stat_counters %}
         {% for stat in stat_counters %}
-        <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="stat-icon-wrapper stat-icon-{{ stat.badge_color|default:'success' }}">
                     <i class="{{ stat.icon_class|default:'fas fa-heart' }}"></i>
@@ -60,40 +56,33 @@
         </div>
         {% endfor %}
         {% else %}
-        <!-- Default Stats Fallback matching image -->
-        <div class="col-6 col-md-4 col-lg-2-4">
+        <!-- Default Stats Fallback -->
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="stat-icon-wrapper stat-icon-danger"><i class="fas fa-tint"></i></div>
                 <div class="stat-value">500+</div>
                 <div class="stat-title" data-i18n="stat.blood">রক্তদান</div>
             </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="stat-icon-wrapper stat-icon-success"><i class="fas fa-users"></i></div>
                 <div class="stat-value">2,000+</div>
                 <div class="stat-title" data-i18n="stat.families">পরিবারকে সহায়তা</div>
             </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="stat-icon-wrapper stat-icon-warning"><i class="fas fa-graduation-cap"></i></div>
                 <div class="stat-value">300+</div>
                 <div class="stat-title" data-i18n="stat.students">শিক্ষার্থী সহায়তা</div>
             </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="stat-icon-wrapper stat-icon-primary"><i class="fas fa-hands-holding-heart"></i></div>
                 <div class="stat-value">100+</div>
                 <div class="stat-title" data-i18n="stat.volunteers">স্বেচ্ছাসেবক</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2-4">
-            <div class="stat-card">
-                <div class="stat-icon-wrapper stat-icon-info"><i class="fas fa-seedling"></i></div>
-                <div class="stat-value">50+</div>
-                <div class="stat-title" data-i18n="stat.programs">সামাজিক কর্মসূচি</div>
             </div>
         </div>
         {% endif %}
@@ -177,8 +166,181 @@
     </div>
 </section>
 
+<!-- 3.5. শীর্ষ নেতৃত্ব (Leadership Section with Arch Emblem) -->
+<section class="leadership-section py-5">
+    <div class="container">
+        <h2 class="section-title">শীর্ষ নেতৃত্ব</h2>
+        <div class="section-divider">
+            <div class="section-divider-line"></div>
+            <div class="section-divider-dot"></div>
+            <div class="section-divider-line"></div>
+        </div>
+
+        <!-- Arched Emblem / Slogan Badge (শীর্ষ নেতৃত্ব হেডিং-এর নিচে) -->
+        <div class="arch-emblem-container">
+            <div class="arch-emblem-badge shadow">
+                <i class="fas fa-quote-left arch-emblem-icon"></i>
+                <span class="arch-emblem-text">“আসুন, আমরা সবাই মিলে একটি মানবিক সুন্দর সমাজ গড়ি”</span>
+                <i class="fas fa-quote-right arch-emblem-icon"></i>
+            </div>
+        </div>
+
+        <!-- শীর্ষ নেতৃত্ব (Circular Profiles, 5-7 per row, strictly ordered by hierarchy / serial) -->
+        <div class="leadership-circle-grid">
+            {% if leadership_members %}
+            {% for leader in leadership_members %}
+            <div class="leader-circle-item {% if leader.effective_role == 'সভাপতি' or leader.effective_role == 'সাধারণ সম্পাদক' %}leader-primary{% endif %}"
+                 data-bs-toggle="modal" data-bs-target="#leaderModal_{{ leader.id }}"
+                 title="{{ leader.name }} ({{ leader.effective_role }}) - ক্লিক করে পরিচিতি দেখুন">
+                <div class="leader-circle-photo-wrap">
+                    {% if leader.image %}
+                    <img src="{{ leader.image.url }}" alt="{{ leader.name }}" class="leader-circle-photo">
+                    {% else %}
+                    <div class="leader-circle-avatar-placeholder">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    {% endif %}
+                    <div class="leader-circle-hover-badge" title="বিস্তারিত">
+                        <i class="fas fa-info"></i>
+                    </div>
+                </div>
+                <h4 class="leader-circle-name">{{ leader.name }}</h4>
+                <span class="leader-circle-role">{{ leader.effective_role }}</span>
+            </div>
+
+            <!-- ── Leader Profile Detail Modal (Fully Synced) ── -->
+            <div class="modal fade" id="leaderModal_{{ leader.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%) !important;">
+                            <h5 class="modal-title fw-bold text-white mb-0">
+                                <i class="fas fa-user-circle me-2"></i>পরিচালনা পর্ষদ সদস্য পরিচিতি
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4 text-center">
+                            <div class="mb-3">
+                                {% if leader.image %}
+                                    <img src="{{ leader.image.url }}" class="rounded-circle border border-4 border-success shadow" style="width: 130px; height: 130px; object-fit: cover;" alt="{{ leader.name }}">
+                                {% else %}
+                                    <div class="bg-success text-white rounded-circle mx-auto d-flex justify-content-center align-items-center shadow" style="width: 130px; height: 130px; font-size: 55px;">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <h4 class="fw-bold text-dark mb-1">{{ leader.name }}</h4>
+                            <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap mb-3">
+                                <span class="badge bg-success px-3 py-2 fs-6 rounded-pill shadow-sm">
+                                    <i class="fas fa-user-shield me-1"></i>{{ leader.effective_role }}
+                                </span>
+                                {% if leader.blood_group %}
+                                <span class="badge bg-danger px-3 py-2 fs-6 rounded-pill shadow-sm">
+                                    <i class="fas fa-tint me-1"></i>রক্তের গ্রুপ: {{ leader.blood_group }}
+                                </span>
+                                {% endif %}
+                                {% if leader.member_id %}
+                                <span class="badge bg-light text-dark border font-monospace px-3 py-2 fs-6 rounded-pill shadow-sm">
+                                    <i class="fas fa-id-card text-success me-1"></i>{{ leader.member_id }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="card border-0 bg-light rounded-3 p-3 text-start mb-3">
+                                <div class="row g-2 small">
+                                    {% if leader.is_public_details %}
+                                        {% if leader.phone %}
+                                        <div class="col-sm-6">
+                                            <strong class="text-secondary d-block"><i class="fas fa-phone-alt text-success me-1"></i>মোবাইল নম্বর:</strong>
+                                            <a href="tel:{{ leader.phone }}" class="text-decoration-none fw-bold text-dark">{{ leader.phone }}</a>
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="col-sm-6">
+                                            <strong class="text-secondary d-block"><i class="fas fa-phone-alt text-muted me-1"></i>মোবাইল নম্বর:</strong>
+                                            <span class="badge bg-secondary-subtle text-secondary border">গোপন রাখা হয়েছে</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if leader.email %}
+                                    <div class="col-sm-6">
+                                        <strong class="text-secondary d-block"><i class="fas fa-envelope text-success me-1"></i>ইমেইল:</strong>
+                                        <a href="mailto:{{ leader.email }}" class="text-decoration-none fw-bold text-dark">{{ leader.email }}</a>
+                                    </div>
+                                    {% endif %}
+                                    {% if leader.full_address and leader.is_public_details %}
+                                    <div class="col-12 mt-2">
+                                        <strong class="text-secondary d-block"><i class="fas fa-map-marker-alt text-success me-1"></i>ঠিকানা:</strong>
+                                        <span class="fw-bold text-dark">{{ leader.full_address }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if leader.last_donated %}
+                                    <div class="col-sm-6 mt-2">
+                                        <strong class="text-secondary d-block"><i class="fas fa-heartbeat text-danger me-1"></i>সর্বশেষ রক্তদান:</strong>
+                                        <span class="text-dark">{{ leader.last_donated|date:"d M Y" }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if leader.bio %}
+                            <div class="text-start">
+                                <h6 class="fw-bold text-success mb-1"><i class="fas fa-quote-left me-1"></i>সংক্ষিপ্ত বক্তব্য / পরিচিতি:</h6>
+                                <div class="p-3 bg-white rounded border text-secondary small" style="line-height: 1.6;">
+                                    {{ leader.bio|linebreaks }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="modal-footer bg-light py-2 border-0 justify-content-center">
+                            <button type="button" class="btn btn-secondary btn-sm px-4 rounded-pill" data-bs-dismiss="modal">বন্ধ করুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <!-- Fallback Leadership Circular Items -->
+            <div class="leader-circle-item leader-primary">
+                <div class="leader-circle-photo-wrap">
+                    <div class="leader-circle-avatar-placeholder"><i class="fas fa-user-tie"></i></div>
+                </div>
+                <h4 class="leader-circle-name">সভাপতি</h4>
+                <span class="leader-circle-role">সভাপতি</span>
+            </div>
+            <div class="leader-circle-item leader-primary">
+                <div class="leader-circle-photo-wrap">
+                    <div class="leader-circle-avatar-placeholder"><i class="fas fa-user-tie"></i></div>
+                </div>
+                <h4 class="leader-circle-name">সাধারণ সম্পাদক</h4>
+                <span class="leader-circle-role">সাধারণ সম্পাদক</span>
+            </div>
+            <div class="leader-circle-item">
+                <div class="leader-circle-photo-wrap">
+                    <div class="leader-circle-avatar-placeholder"><i class="fas fa-user-tie"></i></div>
+                </div>
+                <h4 class="leader-circle-name">কোষাধ্যক্ষ</h4>
+                <span class="leader-circle-role">কোষাধ্যক্ষ</span>
+            </div>
+            <div class="leader-circle-item">
+                <div class="leader-circle-photo-wrap">
+                    <div class="leader-circle-avatar-placeholder"><i class="fas fa-user-tie"></i></div>
+                </div>
+                <h4 class="leader-circle-name">পরিষদ সদস্য ১</h4>
+                <span class="leader-circle-role">সাধারণ পরিষদ সদস্য</span>
+            </div>
+            <div class="leader-circle-item">
+                <div class="leader-circle-photo-wrap">
+                    <div class="leader-circle-avatar-placeholder"><i class="fas fa-user-tie"></i></div>
+                </div>
+                <h4 class="leader-circle-name">পরিষদ সদস্য ২</h4>
+                <span class="leader-circle-role">সাধারণ পরিষদ সদস্য</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
 <!-- 4. "আমাদের কার্যক্রম" Section -->
-<section class="py-5" style="background-color: #f8fafc;">
+<section class="py-5" style="background-color: #f8fafc;" id="homeProgramsSection">
     <div class="container">
         <h2 class="section-title" data-i18n="home.programs.heading">আমাদের কার্যক্রম</h2>
         <div class="section-divider">
@@ -187,14 +349,21 @@
             <div class="section-divider-line"></div>
         </div>
 
-        <div class="row g-3 mt-2 justify-content-center">
+        <!-- Options Requested by User: চলমান কার্যক্রম / তথ্য দিন -->
+        <div class="d-flex justify-content-center gap-3 mb-4 mt-3 flex-wrap">
+            <button type="button" class="program-tab-btn active shadow-sm" id="btnProgOngoing" data-bs-toggle="modal" data-bs-target="#ongoingProgramsModal" title="চলমান কার্যক্রমসমূহ পপ-আপে দেখুন">
+                <i class="fas fa-spinner fa-spin-pulse me-1"></i> চলমান কার্যক্রম <i class="fas fa-layer-group ms-1" style="font-size: 0.75rem;"></i>
+            </button>
+            <button type="button" class="program-tab-btn program-tab-complaint-btn shadow-sm" data-bs-toggle="modal" data-bs-target="#complaintModal">
+                <i class="fas fa-bullhorn text-danger me-1"></i> তথ্য দিন
+            </button>
+        </div>
+
+        <div class="row g-3 mt-2 justify-content-center" id="programsGrid">
             {% if ongoing_programs %}
             {% for prog in ongoing_programs %}
-            <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2-4 program-item-col" data-status="{{ prog.status }}">
                 <div class="program-card h-100 d-flex flex-column">
-                    <div class="program-card-badge bg-{{ prog.badge_color|default:'success' }} text-white">
-                        <i class="{{ prog.icon_class|default:'fas fa-heart' }}"></i>
-                    </div>
                     {% if prog.image %}
                     <img src="{{ prog.image.url }}" alt="{{ prog.title }}" class="program-img">
                     {% else %}
@@ -394,7 +563,6 @@
             <!-- Fallback matching exact reference image -->
             <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
                 <div class="program-card">
-                    <div class="program-card-badge bg-danger text-white"><i class="fas fa-tint"></i></div>
                     <img src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=500&q=80"
                         class="program-img" alt="রক্তদান">
                     <div class="program-card-body">
@@ -411,7 +579,6 @@
 
             <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
                 <div class="program-card">
-                    <div class="program-card-badge bg-success text-white"><i class="fas fa-book-reader"></i></div>
                     <img src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=500&q=80"
                         class="program-img" alt="শিক্ষা সহায়তা">
                     <div class="program-card-body">
@@ -428,8 +595,6 @@
 
             <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
                 <div class="program-card">
-                    <div class="program-card-badge bg-warning text-white"><i class="fas fa-hands-holding-child"></i>
-                    </div>
                     <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=500&q=80"
                         class="program-img" alt="মানবিক সহায়তা">
                     <div class="program-card-body">
@@ -446,7 +611,6 @@
 
             <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
                 <div class="program-card">
-                    <div class="program-card-badge bg-success text-white"><i class="fas fa-leaf"></i></div>
                     <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&q=80"
                         class="program-img" alt="পরিবেশ কর্মসূচি">
                     <div class="program-card-body">
@@ -463,7 +627,6 @@
 
             <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
                 <div class="program-card">
-                    <div class="program-card-badge bg-info text-white"><i class="fas fa-ambulance"></i></div>
                     <img src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=500&q=80"
                         class="program-img" alt="দুর্যোগ সহায়তা">
                     <div class="program-card-body">
@@ -478,6 +641,13 @@
                 </div>
             </div>
             {% endif %}
+        </div>
+
+        <!-- All Programs Button (কার্যক্রম কার্ডগুলোর নিচে) -->
+        <div class="text-center mt-4 pt-2">
+            <a href="{% url 'programs:program_list' %}" class="btn btn-outline-success fw-bold rounded-pill px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                <i class="fas fa-th-large"></i> সকল কার্যক্রম দেখুন <i class="fas fa-arrow-right ms-1"></i>
+            </a>
         </div>
     </div>
 </section>
@@ -573,51 +743,85 @@
                     <p class="text-secondary small mb-3" data-i18n="home.donate.subtitle">আপনার সামান্য আর্থিক সহায়তা
                         আমাদের বড় কাজে মানুষের পাশে দাঁড়াতে সহায়তা করবে।</p>
 
-                    <!-- Payment Badges -->
+                    <!-- Active Clickable bKash Card -->
+                    <div class="p-3 mb-3 rounded-4 border bg-white shadow-sm clickable-payment-card position-relative">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge" style="background-color: #e2136e; font-size: 0.95rem; padding: 7px 14px; border-radius: 8px;">
+                                    <i class="fas fa-mobile-alt me-1"></i> bKash
+                                </span>
+                                <div>
+                                    <div class="fw-bold fs-5 text-dark font-monospace">
+                                        <a href="tel:01748470965" class="text-dark text-decoration-none" title="কল করতে ট্যাপ করুন">
+                                            01748-470965
+                                        </a>
+                                    </div>
+                                    <small class="text-muted"><i class="fas fa-user me-1 text-success"></i>পার্সোনাল (Send Money)</small>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="tel:01748470965" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold" title="সরাসরি কল দিন">
+                                    <i class="fas fa-phone-alt me-1"></i>কল
+                                </a>
+                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold" onclick="copyDonationNumber('01748470965', 'বিকাশ নম্বরটি কপি হয়েছে!')" title="নম্বর কপি করুন">
+                                    <i class="fas fa-copy me-1"></i>কপি
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Badges / Other Methods -->
                     <div class="d-flex flex-wrap gap-2 mb-3">
-                        <span class="payment-badge badge-bkash"><i class="fas fa-mobile-alt"></i> bKash</span>
-                        <span class="payment-badge badge-nagad"><i class="fas fa-wallet"></i> নগদ</span>
-                        <span class="payment-badge badge-rocket"><i class="fas fa-university"></i> রকেট</span>
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-dark fw-bold shadow-sm" onclick="copyDonationNumber('01748470965', 'নগদ নম্বর কপি হয়েছে!')">
+                            <i class="fas fa-wallet text-warning me-1"></i>নগদ: <span class="font-monospace">01748-470965</span> <i class="fas fa-copy ms-1 text-muted"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-dark fw-bold shadow-sm" onclick="copyDonationNumber('017484709657', 'রকেট নম্বর কপি হয়েছে!')">
+                            <i class="fas fa-university text-primary me-1"></i>রকেট: <span class="font-monospace">01748-470965-7</span> <i class="fas fa-copy ms-1 text-muted"></i>
+                        </button>
                     </div>
 
                     <!-- QR Code & Bank Details -->
                     <div class="row align-items-center g-3">
                         <div class="col-sm-5 text-center">
                             {% if qrcodes and qrcodes.first.image %}
-                            {% if qrcodes.first and qrcodes.first.image %}<img src="{{ qrcodes.first.image.url }}"
+                            <img src="{{ qrcodes.first.image.url }}"
                                 alt="Donation QR Code" class="img-fluid rounded border p-1"
-                                style="max-height: 140px;">{% endif %}
+                                style="max-height: 140px;">
                             {% else %}
                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=HelplineHelloNaogaonDonation"
                                 alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 140px;">
                             {% endif %}
+                            <small class="d-block text-muted mt-1" style="font-size: 0.75rem;">স্ক্যান করে দান করুন</small>
                         </div>
 
                         <div class="col-sm-7">
                             {% if banks %}
                             {% with bank=banks.first %}
-                            <div class="bank-info-box">
-                                <div class="fw-bold text-success mb-1" data-i18n="home.bank.heading">ব্যাংক একাউন্ট
+                            <div class="bank-info-box p-3 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="fw-bold text-success" data-i18n="home.bank.heading">ব্যাংক একাউন্ট</div>
+                                    <button type="button" class="btn btn-sm btn-link text-success p-0 fw-bold text-decoration-none" onclick="copyDonationNumber('{{ bank.account_number|default:1234567890 }}', 'ব্যাংক একাউন্ট নম্বর কপি হয়েছে!')">
+                                        <i class="fas fa-copy me-1"></i>কপি
+                                    </button>
                                 </div>
-                                <div class="fw-bold text-dark">{{ bank.account_name|default:"Helpline Hello Naogaon" }}
-                                </div>
-                                <div class="small text-secondary">{{ bank.bank_name|default:"Dutch-Bangla Bank" }}</div>
-                                <div class="small text-dark mt-1"><strong>Account:</strong> {{ bank.account_number|default:"1234567890" }}</div>
-                                {% if bank.swift_code %}
-                                <div class="small text-dark"><strong>Routing:</strong> {{ bank.swift_code }}</div>
-                                {% else %}
-                                <div class="small text-dark"><strong>Routing:</strong> 0902600925</div>
-                                {% endif %}
+                                <div class="fw-bold text-dark">{{ bank.account_name|default:"Helpline Hello Naogaon" }}</div>
+                                <div class="small text-secondary">{{ bank.bank_name|default:"Dutch-Bangla Bank" }} ({{ bank.branch|default:"Naogaon Branch" }})</div>
+                                <div class="small text-dark mt-1 font-monospace"><strong>Account:</strong> {{ bank.account_number|default:"1234567890" }}</div>
+                                <div class="small text-dark font-monospace"><strong>Routing:</strong> {{ bank.swift_code|default:"0902600925" }}</div>
                             </div>
                             {% endwith %}
                             {% else %}
-                            <div class="bank-info-box">
-                                <div class="fw-bold text-success mb-1" data-i18n="home.bank.heading">ব্যাংক একাউন্ট
+                            <div class="bank-info-box p-3 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="fw-bold text-success" data-i18n="home.bank.heading">ব্যাংক একাউন্ট</div>
+                                    <button type="button" class="btn btn-sm btn-link text-success p-0 fw-bold text-decoration-none" onclick="copyDonationNumber('1234567890', 'ব্যাংক একাউন্ট নম্বর কপি হয়েছে!')">
+                                        <i class="fas fa-copy me-1"></i>কপি
+                                    </button>
                                 </div>
                                 <div class="fw-bold text-dark">Helpline Hello Naogaon</div>
-                                <div class="small text-secondary">Dutch-Bangla Bank</div>
-                                <div class="small text-dark mt-1"><strong>Account:</strong> 1234567890</div>
-                                <div class="small text-dark"><strong>Routing:</strong> 0902600925</div>
+                                <div class="small text-secondary">Dutch-Bangla Bank PLC (নওগাঁ শাখা)</div>
+                                <div class="small text-dark mt-1 font-monospace"><strong>Account:</strong> 1234567890</div>
+                                <div class="small text-dark font-monospace"><strong>Routing:</strong> 0902600925</div>
                             </div>
                             {% endif %}
                         </div>
@@ -627,6 +831,262 @@
         </div>
     </div>
 </section>
+
+<!-- Direct Donate Modal (দান করুন বিস্তারিত পপ-আপ) -->
+<div class="modal fade" id="directDonateModal" tabindex="-1" aria-labelledby="directDonateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="modal-header border-0 text-white px-4 py-3" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-20 text-warning" style="width: 48px; height: 48px; font-size: 1.4rem;">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="directDonateModalLabel">দান করুন / আর্থিক সহায়তা</h5>
+                        <small class="text-white-50">Helpline Hello Naogaon - একটি স্বেচ্ছাসেবী সংগঠন</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-4 bg-light">
+                <div class="alert alert-success border-0 bg-success bg-opacity-10 d-flex align-items-center gap-2 py-2 px-3 mb-4 rounded-3">
+                    <i class="fas fa-check-circle text-success fs-5"></i>
+                    <div class="small text-dark">
+                        আপনার প্রতিটি টাকা সরাসরি অসহায় মানুষের চিকিৎসাসেবা, রক্তদান কার্যক্রম, শিক্ষার্থী সহায়তা ও দুর্যোগকালীন সেবায় ব্যয় করা হয়।
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Mobile Banking Column -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-mobile-alt text-success me-2"></i>মোবাইল ব্যাংকিং (বিকাশ / নগদ / রকেট)</h6>
+                        
+                        <!-- bKash Card (Active & Clickable) -->
+                        <div class="p-3 mb-3 bg-white rounded-3 border border-2 border-danger-subtle shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge" style="background-color: #e2136e; font-size: 0.9rem; padding: 6px 12px;">
+                                    <i class="fas fa-mobile-alt me-1"></i> bKash
+                                </span>
+                                <span class="badge bg-secondary-subtle text-secondary small">ব্যক্তিগত / Personal</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="tel:01748470965" class="fs-4 fw-bold text-dark text-decoration-none font-monospace d-block" title="ট্যাপ করে সরাসরি কল দিন">
+                                        01748-470965
+                                    </a>
+                                    <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Send Money করুন</small>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <a href="tel:01748470965" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold" title="কল দিন">
+                                        <i class="fas fa-phone-alt"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold" onclick="copyDonationNumber('01748470965', 'বিকাশ নম্বরটি কপি করা হয়েছে!')">
+                                        <i class="fas fa-copy me-1"></i>কপি
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nagad Card -->
+                        <div class="p-3 mb-3 bg-white rounded-3 border shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-warning text-dark" style="font-size: 0.9rem; padding: 6px 12px;">
+                                    <i class="fas fa-wallet me-1"></i> নগদ (Nagad)
+                                </span>
+                                <span class="badge bg-secondary-subtle text-secondary small">ব্যক্তিগত / Personal</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="tel:01748470965" class="fs-5 fw-bold text-dark text-decoration-none font-monospace d-block">
+                                        01748-470965
+                                    </a>
+                                    <small class="text-muted">Send Money করুন</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-pill px-3 py-1" onclick="copyDonationNumber('01748470965', 'নগদ নম্বরটি কপি করা হয়েছে!')">
+                                    <i class="fas fa-copy me-1"></i>কপি
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Rocket Card -->
+                        <div class="p-3 bg-white rounded-3 border shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary" style="font-size: 0.9rem; padding: 6px 12px;">
+                                    <i class="fas fa-university me-1"></i> রকেট (Rocket)
+                                </span>
+                                <span class="badge bg-secondary-subtle text-secondary small">ব্যক্তিগত / Personal</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fs-5 fw-bold text-dark font-monospace">
+                                        01748-470965-7
+                                    </div>
+                                    <small class="text-muted">Send Money করুন</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold" onclick="copyDonationNumber('017484709657', 'রকেট নম্বরটি কপি করা হয়েছে!')">
+                                    <i class="fas fa-copy me-1"></i>কপি
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Details & QR Column -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-university text-success me-2"></i>ব্যাংক একাউন্ট বিবরণ</h6>
+                        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-success mb-0">Dutch-Bangla Bank PLC</h6>
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1" onclick="copyDonationNumber('1234567890', 'ব্যাংক একাউন্ট নম্বর কপি হয়েছে!')">
+                                    <i class="fas fa-copy me-1"></i>হিসাব নং কপি
+                                </button>
+                            </div>
+                            <div class="small text-secondary mb-1">হিসাবের নাম: <strong>Helpline Hello Naogaon</strong></div>
+                            <div class="small text-dark mb-1 font-monospace">হিসাব নম্বর: <strong class="fs-6 text-success">1234567890</strong></div>
+                            <div class="small text-dark mb-1 font-monospace">রাউটিং নম্বর: <strong>0902600925</strong></div>
+                            <div class="small text-secondary">শাখা: <strong>মহাদেবপুর / নওগাঁ শাখা</strong></div>
+                        </div>
+
+                        <!-- Scan QR Code Box -->
+                        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+                            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-qrcode text-success me-1"></i>QR কোড স্ক্যান করে দান করুন</h6>
+                            <div class="my-2">
+                                {% if qrcodes and qrcodes.first.image %}
+                                <img src="{{ qrcodes.first.image.url }}" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 150px;">
+                                {% else %}
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=HelplineHelloNaogaonDonation" alt="Donation QR Code" class="img-fluid rounded border p-1" style="max-height: 150px;">
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">যেকোনো মোবাইল ব্যাংকিং অ্যাপ দিয়ে স্ক্যান করুন</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer bg-white py-3 px-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" data-bs-dismiss="modal">বন্ধ করুন</button>
+                <a href="{% url 'donations:donate' %}" class="btn btn-success fw-bold px-4 rounded-pill shadow-sm">
+                    <i class="fas fa-credit-card me-2"></i>অনলাইন পেমেন্ট ও ফরম &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Copy Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="copyToast" class="toast align-items-center text-white bg-success border-0 shadow-lg rounded-pill px-3 py-1" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex align-items-center">
+            <div class="toast-body fw-bold" id="copyToastMsg">
+                <i class="fas fa-check-circle me-2"></i>নম্বর কপি করা হয়েছে!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Ongoing Programs Pop-up Modal (চলমান কার্যক্রম পপ-আপ) -->
+<div class="modal fade" id="ongoingProgramsModal" tabindex="-1" aria-labelledby="ongoingProgramsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="modal-header border-0 text-white px-4 py-3" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-20 text-warning" style="width: 46px; height: 46px; font-size: 1.35rem;">
+                        <i class="fas fa-spinner fa-spin-pulse"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="ongoingProgramsModalLabel">
+                            চলমান কার্যক্রমসমূহ
+                        </h5>
+                        <small class="text-white-50">Helpline Hello Naogaon - বর্তমানে পরিচালিত সমাজসেবামূলক উদ্যোগ</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-4 bg-light">
+                <div class="alert alert-success border-0 bg-success bg-opacity-10 d-flex align-items-center gap-2 py-2 px-3 mb-4 rounded-3">
+                    <i class="fas fa-info-circle text-success fs-5"></i>
+                    <div class="small text-dark">
+                        আমাদের চলমান কার্যক্রমগুলোতে সরাসরি অংশগ্রহণ বা স্বেচ্ছাসেবা দিতে পারেন অথবা প্রয়োজনীয় আর্থিক অনুদান দিয়ে পাশে দাঁড়াতে পারেন।
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    {% if ongoing_programs %}
+                    {% for prog in ongoing_programs %}
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 rounded-4 shadow-sm overflow-hidden d-flex flex-column bg-white">
+                            <div class="position-relative">
+                                {% if prog.image %}
+                                <img src="{{ prog.image.url }}" alt="{{ prog.title }}" style="height: 170px; width: 100%; object-fit: cover;">
+                                {% else %}
+                                <img src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=500&q=80" alt="{{ prog.title }}" style="height: 170px; width: 100%; object-fit: cover;">
+                                {% endif %}
+                                <span class="badge bg-success position-absolute top-0 end-0 m-2 px-2 py-1 shadow-sm rounded-pill" style="font-size: 0.75rem;">
+                                    <i class="fas fa-circle text-warning me-1" style="font-size: 0.45rem;"></i>চলমান
+                                </span>
+                            </div>
+                            <div class="card-body p-3 d-flex flex-column justify-content-between flex-grow-1">
+                                <div>
+                                    <h5 class="fw-bold text-dark fs-6 mb-2">{{ prog.title }}</h5>
+                                    <p class="text-secondary small mb-3" style="font-size: 0.83rem; line-height: 1.5;">
+                                        {{ prog.short_description|default:prog.description|truncatewords:14 }}
+                                    </p>
+
+                                    {% if prog.target_amount %}
+                                    <!-- Target Amount Progress -->
+                                    <div class="p-2 mb-2 bg-light rounded-3 border">
+                                        <div class="d-flex justify-content-between align-items-center small mb-1">
+                                            <span class="text-secondary fw-semibold" style="font-size: 0.78rem;">আর্থিক প্রয়োজন:</span>
+                                            <span class="fw-bold text-success" style="font-size: 0.82rem;">৳{{ prog.raised_amount|floatformat:0 }} / ৳{{ prog.target_amount|floatformat:0 }}</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ prog.progress_percent }}%;"></div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-flex gap-2 align-items-center justify-content-between mt-2 pt-2 border-top">
+                                    <a href="{% url 'programs:program_detail' prog.pk %}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 flex-grow-1 text-center fw-bold" style="font-size: 0.82rem;">
+                                        <i class="fas fa-info-circle me-1"></i>বিস্তারিত
+                                    </a>
+                                    {% if prog.target_amount %}
+                                    <button type="button" class="btn btn-sm btn-danger fw-bold rounded-pill px-3 py-1 shadow-sm text-nowrap"
+                                            data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#programDonateModal_{{ prog.id }}" title="এই কার্যক্রমে অনুদান দিন">
+                                        <i class="fas fa-hand-holding-heart me-1"></i>সহায়তা দিন
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="col-12 text-center py-4 text-muted">
+                        <i class="fas fa-info-circle fs-3 text-secondary mb-2 d-block"></i>
+                        বর্তমানে কোনো চলমান কার্যক্রম তালিকাভুক্ত নেই।
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer bg-white py-3 px-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" data-bs-dismiss="modal">বন্ধ করুন</button>
+                <a href="{% url 'programs:program_list' %}" class="btn btn-success fw-bold px-4 rounded-pill shadow-sm">
+                    <i class="fas fa-th-large me-2"></i>সকল কার্যক্রম দেখুন &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Complaint & Tip-off Modal (তথ্য ও অভিযোগ দাখিল) -->
 <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
@@ -638,12 +1098,12 @@
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-20 text-warning"
                         style="width: 44px; height: 44px; font-size: 1.25rem;">
-                        <i class="fas fa-shield-alt"></i>
+                        <i class="fas fa-bullhorn"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0 text-white" id="complaintModalLabel">তথ্য ও অভিযোগ দাখিল
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="complaintModalLabel">তথ্য ও সহায়তা আবেদন
                         </h5>
-                        <small class="text-white-50">অন্যায়, অনিয়ম ও দুর্নীতির তথ্য দিন</small>
+                        <small class="text-white-50">অন্যায় ও দুর্নীতির তথ্য দিন অথবা যেকোনো সহায়তা চান</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
@@ -657,8 +1117,8 @@
                     class="alert alert-success border-0 bg-success bg-opacity-10 d-flex align-items-start gap-2 py-2 px-3 mb-3 rounded-3">
                     <i class="fas fa-user-shield text-success fs-5 mt-1"></i>
                     <div class="small text-dark">
-                        <strong>শতভাগ গোপনীয়তা নিশ্চিত:</strong> আপনার প্রেরিত তথ্য ও পরিচয় সম্পূর্ণ গোপন রাখা হবে। এই
-                        তথ্যটি কোনো ডাটাবেজ বা পাবলিক তালিকায় রাখা হয় না—সরাসরি কর্তৃপক্ষের নিকট পৌঁছাবে এবং আপনার ফোনে
+                        <strong>শতভাগ গোপনীয়তা নিশ্চিত:</strong> আপনার প্রেরিত তথ্য, সহায়তা আবেদন ও পরিচয় সম্পূর্ণ গোপন রাখা হবে। এই
+                        তথ্যটি কোনো ডাটাবেজ বা পাবলিক তালিকায় রাখা হয় না—সরাসরি কর্তৃপক্ষের অফিসিয়াল ইমেইলে পৌঁছাবে এবং আপনার ফোনে
                         ট্র্যাকিং নম্বর সহ নিশ্চিতকরণ এসএমএস পাঠানো হবে।
                     </div>
                 </div>
@@ -666,10 +1126,27 @@
                 <!-- Alert for AJAX Error Messages -->
                 <div id="complaintAlert" class="alert alert-danger d-none py-2 small mb-3"></div>
 
-                <!-- Complaint Form -->
+                <!-- Complaint & Assistance Form -->
                 <form id="complaintForm" method="POST" action="{% url 'core:submit_complaint' %}">
                     {% csrf_token %}
                     <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark small mb-1">
+                                তথ্যের ধরন / সাহায্যের বিষয় <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                        class="fas fa-layer-group"></i></span>
+                                <select name="subject_type" id="complaintSubjectType" class="form-select border-start-0" required>
+                                    <option value="অন্যায়, অনিয়ম বা দুর্নীতির তথ্য">অন্যায়, অনিয়ম বা দুর্নীতির তথ্য</option>
+                                    <option value="চিকিৎসা বা আর্থিক সহায়তা আবেদন">চিকিৎসা বা আর্থিক সহায়তা আবেদন</option>
+                                    <option value="জরুরি রক্ত বা খাদ্য সহায়তা আবেদন">জরুরি রক্ত বা খাদ্য সহায়তা আবেদন</option>
+                                    <option value="এলাকাভিত্তিক সমস্যা বা সেবামূলক তথ্য">এলাকাভিত্তিক সমস্যা বা সেবামূলক তথ্য</option>
+                                    <option value="অন্যান্য পরামর্শ বা সহায়তা">অন্যান্য পরামর্শ বা সহায়তা</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark small mb-1">
                                 আপনার নাম <span class="text-danger">*</span>
@@ -712,10 +1189,10 @@
 
                         <div class="col-12">
                             <label class="form-label fw-bold text-dark small mb-1">
-                                অন্যায়, অনিয়ম বা দুর্নীতির বিস্তারিত বিবরণ <span class="text-danger">*</span>
+                                বিস্তারিত বিবরণ / সাহায্যের আবেদন <span class="text-danger">*</span>
                             </label>
                             <textarea name="details" id="complaintDetails" class="form-control" rows="4"
-                                placeholder="ঘটনার স্থান, সময়, জড়িত ব্যক্তি/পক্ষ এবং প্রাসঙ্গিক বিস্তারিত বিবরণ লিখুন..."
+                                placeholder="তথ্য বা ঘটনার স্থান, সময় এবং বিস্তারিত বিবরণ অথবা আপনার কি ধরনের সাহায্য প্রয়োজন তা লিখুন..."
                                 required></textarea>
                         </div>
                     </div>
@@ -727,7 +1204,7 @@
                             <span class="btn-spinner spinner-border spinner-border-sm d-none me-1" role="status"
                                 aria-hidden="true"></span>
                             <i class="fas fa-paper-plane me-1 btn-icon"></i>
-                            <span class="btn-text">তথ্য জমা দিন</span>
+                            <span class="btn-text">জমা দিন</span>
                         </button>
                     </div>
                 </form>
@@ -740,13 +1217,13 @@
                             <i class="fas fa-check-circle"></i>
                         </div>
                     </div>
-                    <h4 class="fw-bold text-dark mb-2">আপনার তথ্য সফলভাবে দাখিল হয়েছে!</h4>
-                    <p class="text-muted mb-3">অভিযোগ ও তথ্যের বিবরণ সরাসরি কর্তৃপক্ষের অফিসিয়াল ইমেইলে প্রেরণ করা
+                    <h4 class="fw-bold text-dark mb-2">আপনার তথ্য/আবেদন সফলভাবে দাখিল হয়েছে!</h4>
+                    <p class="text-muted mb-3">বিবরণ সরাসরি কর্তৃপক্ষের অফিসিয়াল ইমেইলে প্রেরণ করা
                         হয়েছে।</p>
                     <div class="card bg-light border-0 p-3 mb-4 rounded-3 d-inline-block text-start w-100"
                         style="max-width: 480px;">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted small fw-bold">অভিযোগ ট্র্যাকিং নম্বর:</span>
+                            <span class="text-muted small fw-bold">ট্র্যাকিং নম্বর:</span>
                             <span id="displayComplaintNo"
                                 class="badge bg-danger fs-6 px-3 py-1 font-monospace">HNC-XXXXXX</span>
                         </div>
@@ -768,6 +1245,57 @@
 
 {% block extra_js %}
 <script>
+    // Copy Donation Number Helper Function
+    function copyDonationNumber(number, successMsg) {
+        if (!number) return;
+        const cleanNumber = number.replace(/[^0-9]/g, '');
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(cleanNumber).then(() => {
+                showCopyToast(successMsg || 'নম্বরটি সফলভাবে কপি হয়েছে!');
+            }).catch(() => {
+                fallbackCopy(cleanNumber, successMsg);
+            });
+        } else {
+            fallbackCopy(cleanNumber, successMsg);
+        }
+    }
+
+    function fallbackCopy(text, msg) {
+        const tempInput = document.createElement('input');
+        tempInput.value = text;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        try {
+            document.execCommand('copy');
+            showCopyToast(msg || 'নম্বরটি সফলভাবে কপি হয়েছে!');
+        } catch (err) {
+            alert('কপি করতে ব্যর্থ হয়েছে, অনুগ্রহ করে ম্যানুয়ালি কপি করুন: ' + text);
+        }
+        document.body.removeChild(tempInput);
+    }
+
+    function showCopyToast(msg) {
+        const toastEl = document.getElementById('copyToast');
+        const toastMsgEl = document.getElementById('copyToastMsg');
+        if (toastMsgEl && msg) {
+            toastMsgEl.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + msg;
+        }
+        if (toastEl && typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+        }
+    }
+
+    function toggleProgramView(view) {
+        const btnOngoing = document.getElementById('btnProgOngoing');
+        const btnAll = document.getElementById('btnProgAll');
+        if (view === 'ongoing') {
+            if (btnOngoing) btnOngoing.classList.add('active');
+            if (btnAll) btnAll.classList.remove('active');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const complaintModal = document.getElementById('complaintModal');
         const complaintForm = document.getElementById('complaintForm');

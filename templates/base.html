@@ -73,7 +73,7 @@
 <body>
 
     <!-- Top Bar -->
-    <div class="top-bar">
+    <div class="top-bar py-1">
         <div class="container d-flex justify-content-between align-items-center">
             <div class="d-flex gap-3 align-items-center">
                 <span><i class="fas fa-phone-alt me-1"></i> {{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</span>
@@ -93,7 +93,7 @@
     </div>
 
     <!-- Main Navigation Header -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-2">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-1">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'core:home' %}">
                 {% if site_setting.logo %}
@@ -105,8 +105,7 @@
                 {% endif %}
                 <div class="lh-1">
                     <div class="brand-title">{{ site_setting.hero_title|default:"Helpline Hello Naogaon" }}</div>
-                    <div class="brand-tagline" data-i18n="brand.tagline">মানব সেবায় আমরা</div>
-                    <div class="brand-subtagline" data-i18n="brand.subtagline">একটি অরাজনৈতিক সংগঠন</div>
+                    <div class="brand-tagline">একটি স্বেচ্ছাসেবী সংগঠন</div>
                 </div>
             </a>
 
@@ -120,13 +119,13 @@
                         <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'core:home' %}" data-i18n="nav.home">হোম</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'core:about' %}" data-i18n="nav.about">আমাদের সম্পর্কে</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'core:about' %}" data-i18n="nav.about">আমাদের সম্পর্ক</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.app_name == 'programs' %}active{% endif %}" href="{% url 'programs:program_list' %}" data-i18n="nav.programs">কার্যক্রম</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'blood_donors' %}active{% endif %}" href="{% url 'volunteers:blood_donors' %}" data-i18n="nav.blood_donors">রক্তদাতা</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'blood_donors' %}active{% endif %}" href="{% url 'volunteers:blood_donors' %}" data-i18n="nav.blood_donors">রক্তদান</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'apply' %}active{% endif %}" href="{% url 'volunteers:apply' %}" data-i18n="nav.volunteers">স্বেচ্ছাসেবক</a>
@@ -141,9 +140,6 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.app_name == 'gallery' %}active{% endif %}" href="{% url 'gallery:gallery_view' %}" data-i18n="nav.gallery">গ্যালারি</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_name == 'donations' %}active{% endif %}" href="{% url 'donations:donate' %}" data-i18n="nav.donate">আর্থিক সহায়তা</a>
                     </li>
                 </ul>
 

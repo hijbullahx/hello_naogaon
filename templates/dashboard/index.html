@@ -679,6 +679,14 @@
                                                                     class="form-control">{{ prog.description|default:'' }}</textarea>
                                                             </div>
                                                             <div class="mb-3">
+                                                                <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
+                                                                <select name="status" class="form-select" required>
+                                                                    <option value="ongoing" {% if prog.status == 'ongoing' %}selected{% endif %}>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
+                                                                    <option value="upcoming" {% if prog.status == 'upcoming' %}selected{% endif %}>আসন্ন কার্যক্রম (Upcoming)</option>
+                                                                    <option value="completed" {% if prog.status == 'completed' %}selected{% endif %}>সম্পন্ন কার্যক্রম (Completed)</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
                                                                 <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন
                                                                     / বাজেট (টাকা - ঐচ্ছিক)</label>
                                                                 <div class="input-group">
@@ -2419,6 +2427,15 @@
                         <textarea name="description" rows="3" class="form-control"></textarea>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
+                        <select name="status" class="form-select" required>
+                            <option value="ongoing" selected>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
+                            <option value="upcoming">আসন্ন কার্যক্রম (Upcoming)</option>
+                            <option value="completed">সম্পন্ন কার্যক্রম (Completed)</option>
+                        </select>
+                        <small class="text-muted">"চলমান কার্যক্রম" নির্বাচন করলে এটি হোমপেজের চলমান কার্যক্রমে সরাসরি অন্তর্ভুক্ত হবে।</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন / বাজেট (টাকা - ঐচ্ছিক)</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
@@ -2524,8 +2541,8 @@
                                 <option value="কোষাধ্যক্ষ" {% if treasurer_count >= 1 %}disabled class="text-muted bg-light"{% endif %}>
                                     কোষাধ্যক্ষ (Treasurer) {% if treasurer_count >= 1 %}— [১/১ পূর্ণ (কোটা সমাপ্ত)]{% else %}— [১ জন খালি]{% endif %}
                                 </option>
-                                <option value="সাধারণ পরিষদ সদস্য" {% if council_count >= 4 %}disabled class="text-muted bg-light"{% endif %}>
-                                    সাধারণ পরিষদ সদস্য (General Council) — [{{ council_count }}/৪ জন{% if council_count >= 4 %} - কোটা পূর্ণ{% endif %}]
+                                <option value="সাধারণ পরিষদ সদস্য" {% if council_count >= 7 %}disabled class="text-muted bg-light"{% endif %}>
+                                    সাধারণ পরিষদ সদস্য (General Council) — [{{ council_count }}/৭ জন{% if council_count >= 7 %} - কোটা পূর্ণ{% endif %}]
                                 </option>
                                 <option value="অন্যান্য">অন্যান্য (Other — আনলিমিটেড)</option>
                             </select>
