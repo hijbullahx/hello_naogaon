@@ -866,6 +866,23 @@ font {
     color: #004d34;
 }
 
+.program-tab-complaint-btn {
+    border-color: #dc3545;
+    color: #b02a37;
+    background-color: #ffffff;
+}
+
+.program-tab-complaint-btn:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%) !important;
+    color: #ffffff !important;
+    border-color: #b02a37 !important;
+    box-shadow: 0 4px 14px rgba(220, 53, 69, 0.28);
+}
+
+.program-tab-complaint-btn:hover i {
+    color: #ffffff !important;
+}
+
 /* ── Active Clickable bKash Copy Badge ──── */
 .clickable-payment-card {
     cursor: pointer;

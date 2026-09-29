@@ -353,14 +353,14 @@
             <div class="section-divider-line"></div>
         </div>
 
-        <!-- Options Requested by User: চলমান কার্যক্রম / সকল কার্যক্রম -->
-        <div class="d-flex justify-content-center gap-2 mb-4 mt-3">
+        <!-- Options Requested by User: চলমান কার্যক্রম / অন্যায়, অনিয়ম ও দুর্নীতির বিষয়ে তথ্য দিন -->
+        <div class="d-flex justify-content-center gap-3 mb-4 mt-3 flex-wrap">
             <button type="button" class="program-tab-btn active" id="btnProgOngoing" onclick="toggleProgramView('ongoing')">
                 <i class="fas fa-spinner fa-spin-pulse me-1"></i> চলমান কার্যক্রম
             </button>
-            <a href="{% url 'programs:program_list' %}" class="program-tab-btn" id="btnProgAll">
-                <i class="fas fa-th-large me-1"></i> সকল কার্যক্রম
-            </a>
+            <button type="button" class="program-tab-btn program-tab-complaint-btn shadow-sm" data-bs-toggle="modal" data-bs-target="#complaintModal">
+                <i class="fas fa-bullhorn text-danger me-1"></i> অন্যায়, অনিয়ম ও দুর্নীতির বিষয়ে তথ্য দিন
+            </button>
         </div>
 
         <div class="row g-3 mt-2 justify-content-center" id="programsGrid">
@@ -645,6 +645,13 @@
                 </div>
             </div>
             {% endif %}
+        </div>
+
+        <!-- All Programs Button (কার্যক্রম কার্ডগুলোর নিচে) -->
+        <div class="text-center mt-4 pt-2">
+            <a href="{% url 'programs:program_list' %}" class="btn btn-outline-success fw-bold rounded-pill px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                <i class="fas fa-th-large"></i> সকল কার্যক্রম দেখুন <i class="fas fa-arrow-right ms-1"></i>
+            </a>
         </div>
     </div>
 </section>
