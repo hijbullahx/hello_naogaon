@@ -853,20 +853,30 @@
                 <div class="col-lg-12">
                     <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও পরিচালনা পর্ষদ (Team Members - {{ team_members.count }} জন)</h5>
-                            {% if can_edit_all %}
-                            <button class="btn btn-light btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#teamMemberModal">
-                                <i class="fas fa-plus-circle me-1 text-success"></i> নতুন টিম মেম্বার যোগ করুন
-                            </button>
-                            {% else %}
-                            <span class="badge bg-white text-success px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-eye me-1"></i>পর্যবেক্ষণ মোড (View Only)</span>
-                            {% endif %}
+                            <div>
+                                <h5 class="card-title fw-bold mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও পরিচালনা পর্ষদ (Team Members - {{ team_members.count }} জন)</h5>
+                                <small class="text-white-50"><i class="fas fa-arrows-alt me-1"></i>মাউস দিয়ে ড্র্যাগ (Drag & Drop) করে তালিকার ক্রম পরিবর্তন করতে পারেন (ওয়েবসাইটেও একই ক্রমে দেখাবে)</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span id="reorderStatusToast" class="badge bg-white text-success px-3 py-2 shadow-sm rounded-pill d-none">
+                                    <i class="fas fa-check-circle me-1"></i>ক্রম সফলভাবে সংরক্ষিত হয়েছে!
+                                </span>
+                                {% if can_edit_all %}
+                                <button class="btn btn-light btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#teamMemberModal">
+                                    <i class="fas fa-plus-circle me-1 text-success"></i> নতুন টিম মেম্বার যোগ করুন
+                                </button>
+                                {% else %}
+                                <span class="badge bg-white text-success px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-eye me-1"></i>পর্যবেক্ষণ মোড (View Only)</span>
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table class="table table-hover align-middle mb-0" id="teamMembersSortableTable">
                                     <thead class="table-light">
                                         <tr>
+                                            <th style="width: 45px;" class="text-center text-muted" title="ড্র্যাগ হ্যান্ডেল"><i class="fas fa-grip-vertical"></i></th>
+                                            <th style="width: 50px;" class="text-center">ক্রম</th>
                                             <th>ছবি</th>
                                             <th>সদস্যের নাম ও আইডি</th>
                                             <th>পদবী / ভূমিকা (Role)</th>
@@ -876,9 +886,13 @@
                                             {% if can_edit_all %}<th>অ্যাকশন</th>{% endif %}
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="teamMembersSortableBody">
                                         {% for tm in team_members %}
-                                        <tr>
+                                        <tr class="team-member-drag-row" data-id="{{ tm.id }}">
+                                            <td class="text-center drag-handle text-secondary" style="cursor: grab;" title="মাউস দিয়ে চেপে ধরে টেনে উপরে/নিচে সরান">
+                                                <i class="fas fa-grip-lines fs-5"></i>
+                                            </td>
+                                            <td class="text-center text-muted fw-bold row-index-num font-monospace">{{ forloop.counter }}</td>
                                             <td>
                                                 {% if tm.image %}
                                                 <img src="{{ tm.image.url }}" style="width: 45px; height: 45px; object-fit: cover;" class="rounded-circle border">
@@ -3223,7 +3237,7 @@
     </div>
 </div>
 {% endfor %}
-
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
     function validateDashboardImage(input, maxKb, fieldName) {
         if (!input.files || input.files.length === 0) return true;
@@ -3329,7 +3343,88 @@
 
         // Initialize Geo Dropdowns for Team Members & Address Fields
         initGeoDropdowns();
+
+        // Initialize Drag and Drop Ordering for Team Members
+        initTeamMemberSortable();
     });
+
+    function initTeamMemberSortable() {
+        const tbody = document.getElementById('teamMembersSortableBody');
+        if (!tbody) return;
+
+        function saveOrder() {
+            const rows = tbody.querySelectorAll('.team-member-drag-row');
+            const orderList = [];
+            rows.forEach((row, idx) => {
+                orderList.push(row.dataset.id);
+                const numEl = row.querySelector('.row-index-num');
+                if (numEl) numEl.textContent = idx + 1;
+            });
+
+            const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+            const csrfToken = csrfEl ? csrfEl.value : '';
+
+            fetch("{% url 'core:reorder_team_members' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    'order_list': JSON.stringify(orderList)
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const toast = document.getElementById('reorderStatusToast');
+                    if (toast) {
+                        toast.classList.remove('d-none');
+                        setTimeout(() => {
+                            toast.classList.add('d-none');
+                        }, 2500);
+                    }
+                }
+            })
+            .catch(err => console.error('Error saving team member order:', err));
+        }
+
+        if (typeof Sortable !== 'undefined') {
+            new Sortable(tbody, {
+                handle: '.drag-handle',
+                animation: 200,
+                ghostClass: 'bg-success-subtle',
+                chosenClass: 'bg-light',
+                onEnd: saveOrder
+            });
+        } else {
+            // Native HTML5 Drag & Drop fallback
+            let draggedRow = null;
+            tbody.querySelectorAll('.team-member-drag-row').forEach(row => {
+                row.setAttribute('draggable', 'true');
+                row.addEventListener('dragstart', (e) => {
+                    draggedRow = row;
+                    row.classList.add('opacity-50');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                row.addEventListener('dragend', () => {
+                    if (draggedRow) draggedRow.classList.remove('opacity-50');
+                    draggedRow = null;
+                    saveOrder();
+                });
+                row.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (row !== draggedRow) {
+                        const rect = row.getBoundingClientRect();
+                        const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                        tbody.insertBefore(draggedRow, next && row.nextSibling || row);
+                    }
+                });
+            });
+        }
+    }
 
     function filterAdminEmergencyTable() {
         const input = document.getElementById('adminEmergencySearch');

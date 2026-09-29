@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -212,7 +213,30 @@ def dashboard_home(request):
     articles = Article.objects.all().order_by('-publish_date')
     donors = BloodDonor.objects.all().order_by('-id')
     volunteers = Volunteer.objects.all().order_by('-id')
-    team_members = TeamMember.objects.all().order_by('order')
+    from django.db.models import Case, When, Value, IntegerField, F
+    tm_role_priority = Case(
+        When(role='সভাপতি', then=Value(1)),
+        When(role__icontains='সহ-সভাপতি', then=Value(2)),
+        When(role='সাধারণ সম্পাদক', then=Value(3)),
+        When(role__icontains='যুগ্ম', then=Value(4)),
+        When(role__icontains='সাংগঠনিক', then=Value(5)),
+        When(role__in=['কোষাধ্যক্ষ', 'অর্থ সম্পাদক'], then=Value(6)),
+        When(role='সাধারণ পরিষদ সদস্য', then=Value(7)),
+        When(role__icontains='পরিষদ', then=Value(8)),
+        When(role__icontains='দপ্তর', then=Value(9)),
+        When(role__icontains='প্রচার', then=Value(10)),
+        default=Value(20),
+        output_field=IntegerField(),
+    )
+    tm_effective_order = Case(
+        When(order__gt=0, then=F('order')),
+        default=Value(100) + F('tm_role_priority'),
+        output_field=IntegerField(),
+    )
+    team_members = TeamMember.objects.annotate(
+        tm_role_priority=tm_role_priority,
+        tm_effective_order=tm_effective_order
+    ).order_by('tm_effective_order', 'id')
     photos = Photo.objects.all().order_by('-id')
     banks = Bank.objects.all()
     qrcodes = QRCode.objects.all()
@@ -1319,6 +1343,45 @@ def delete_team_member(request, pk):
     else:
         messages.warning(request, 'টিম সদস্যের তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=volunteers-section')
+
+@staff_member_required
+def reorder_team_members(request):
+    """
+    AJAX endpoint to update order of TeamMember objects via drag-and-drop.
+    Expects order_list array containing member IDs in their new sequence.
+    """
+    if not can_user_edit_general(request.user):
+        return JsonResponse({'success': False, 'message': 'আপনার এই পরিবর্তনের অনুমতি নেই।'}, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+
+    import json
+    order_data = request.POST.get('order_list')
+    if not order_data:
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+            order_data = body.get('order_list')
+        except Exception:
+            order_data = None
+
+    if isinstance(order_data, str):
+        try:
+            order_list = json.loads(order_data)
+        except Exception:
+            order_list = [int(x.strip()) for x in order_data.split(',') if x.strip().isdigit()]
+    elif isinstance(order_data, list):
+        order_list = order_data
+    else:
+        return JsonResponse({'success': False, 'message': 'কোনো ক্রম ডাটা পাওয়া যায়নি।'}, status=400)
+
+    for index, member_id in enumerate(order_list, start=1):
+        try:
+            TeamMember.objects.filter(pk=int(member_id)).update(order=index)
+        except Exception:
+            continue
+
+    return JsonResponse({'success': True, 'message': 'সদস্যদের ক্রম সফলভাবে হালনাগাদ হয়েছে!'})
 
 @staff_member_required
 def save_financial_transaction(request):
