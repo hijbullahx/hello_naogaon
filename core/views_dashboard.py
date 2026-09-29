@@ -212,6 +212,7 @@ def dashboard_home(request):
     programs = Program.objects.all().order_by('order', '-id')
     articles = Article.objects.all().order_by('-publish_date')
     donors = BloodDonor.objects.all().order_by('-id')
+    volunteers = Volunteer.objects.all().order_by('-id')
     from django.db.models import Case, When, Value, IntegerField, F
     tm_role_priority = Case(
         When(role='সভাপতি', then=Value(1)),
