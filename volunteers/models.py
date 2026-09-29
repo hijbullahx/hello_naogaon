@@ -146,8 +146,8 @@ class TeamMember(models.Model):
             qs = TeamMember.objects.filter(role='সাধারণ পরিষদ সদস্য')
             if self.pk:
                 qs = qs.exclude(pk=self.pk)
-            if qs.count() >= 4:
-                raise ValidationError('দুঃখিত! "সাধারণ পরিষদ সদস্য" পদে সর্বোচ্চ ৪ জন সদস্যের কোটা পূর্ণ রয়েছে।')
+            if qs.count() >= 7:
+                raise ValidationError('দুঃখিত! "সাধারণ পরিষদ সদস্য" পদে সর্বোচ্চ ৭ জন সদস্যের কোটা পূর্ণ রয়েছে।')
 
     def save(self, *args, **kwargs):
         self.clean()

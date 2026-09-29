@@ -176,14 +176,13 @@ def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"
     return True
 
 def ensure_default_stat_counters():
-    """Ensure standard 5 stats counters exist in database if empty"""
+    """Ensure standard 4 stats counters exist in database if empty"""
     if not StatCounter.objects.exists():
         default_stats = [
             {"title": "রক্তদান", "value": "500+", "icon_class": "fas fa-tint", "badge_color": "danger", "order": 1},
             {"title": "পরিবারকে সহায়তা", "value": "2,000+", "icon_class": "fas fa-users", "badge_color": "success", "order": 2},
             {"title": "শিক্ষার্থী সহায়তা", "value": "300+", "icon_class": "fas fa-graduation-cap", "badge_color": "warning", "order": 3},
             {"title": "স্বেচ্ছাসেবক", "value": "100+", "icon_class": "fas fa-hands-helping", "badge_color": "primary", "order": 4},
-            {"title": "সামাজিক কর্মসূচি", "value": "50+", "icon_class": "fas fa-seedling", "badge_color": "info", "order": 5},
         ]
         for item in default_stats:
             StatCounter.objects.create(
@@ -1153,10 +1152,10 @@ def save_team_member(request):
             council_query = TeamMember.objects.filter(role='সাধারণ পরিষদ সদস্য')
             if tm_id:
                 council_query = council_query.exclude(pk=tm_id)
-            if council_query.count() >= 4:
+            if council_query.count() >= 7:
                 messages.error(
                     request,
-                    'দুঃখিত! "সাধারণ পরিষদ সদস্য" পদে সর্বোচ্চ ৪ জন সদস্যের কোটা পূর্ণ রয়েছে। নতুন সাধারণ পরিষদ সদস্য যুক্ত করা যাবে না।'
+                    'দুঃখিত! "সাধারণ পরিষদ সদস্য" পদে সর্বোচ্চ ৭ জন সদস্যের কোটা পূর্ণ রয়েছে। নতুন সাধারণ পরিষদ সদস্য যুক্ত করা যাবে না।'
                 )
                 return redirect('/dashboard/?tab=volunteers-section')
 

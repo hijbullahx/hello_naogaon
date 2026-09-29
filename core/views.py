@@ -10,6 +10,7 @@ from .models import SiteSetting, StatCounter, AboutImage
 
 def home(request):
     from core.views_dashboard import ensure_default_stat_counters
+    from django.db.models import Case, When, Value, IntegerField
     ensure_default_stat_counters()
     site_setting = SiteSetting.objects.first()
     stat_counters = StatCounter.objects.filter(is_active=True).order_by('order')
@@ -17,14 +18,45 @@ def home(request):
     about_featured_image = AboutImage.objects.filter(is_featured=True).first()
     about_grid_images = AboutImage.objects.filter(is_featured=False).order_by('order')[:4]
 
-    ongoing_programs = Program.objects.filter(status='ongoing').order_by('order', '-id')[:5]
+    # Programs: ongoing and all
+    ongoing_programs = Program.objects.filter(status='ongoing').order_by('order', '-id')[:6]
     if not ongoing_programs.exists():
-        ongoing_programs = Program.objects.all().order_by('order', '-id')[:5]
+        ongoing_programs = Program.objects.all().order_by('order', '-id')[:6]
+    all_programs = Program.objects.all().order_by('order', '-id')[:12]
+
+    # Top Leadership & Council Members (Ordered strictly by hierarchy / krom onojai)
+    from django.db.models import F
+    role_priority = Case(
+        When(role='সভাপতি', then=Value(1)),
+        When(role__icontains='সহ-সভাপতি', then=Value(2)),
+        When(role='সাধারণ সম্পাদক', then=Value(3)),
+        When(role__icontains='যুগ্ম', then=Value(4)),
+        When(role__icontains='সাংগঠনিক', then=Value(5)),
+        When(role__in=['কোষাধ্যক্ষ', 'অর্থ সম্পাদক'], then=Value(6)),
+        When(role='সাধারণ পরিষদ সদস্য', then=Value(7)),
+        When(role__icontains='পরিষদ', then=Value(8)),
+        When(role__icontains='দপ্তর', then=Value(9)),
+        When(role__icontains='প্রচার', then=Value(10)),
+        default=Value(20),
+        output_field=IntegerField(),
+    )
+    effective_order = Case(
+        When(order__gt=0, then=F('order')),
+        default=Value(100) + F('role_priority'),
+        output_field=IntegerField(),
+    )
+    leadership_members = TeamMember.objects.annotate(
+        role_priority=role_priority,
+        effective_order=effective_order
+    ).order_by('effective_order', 'id')
 
     recent_news = Article.objects.filter(is_published=True).order_by('-publish_date')[:3]
     banks = Bank.objects.filter(is_active=True)
     qrcodes = QRCode.objects.filter(is_active=True)
     donation_methods = DonationMethod.objects.filter(is_active=True)
+    bkash_method = DonationMethod.objects.filter(name__iexact='bKash', is_active=True).first()
+    nagad_method = DonationMethod.objects.filter(name__iexact='Nagad', is_active=True).first()
+    rocket_method = DonationMethod.objects.filter(name__iexact='Rocket', is_active=True).first()
     gallery_photos = Photo.objects.all().order_by('-id')[:6]
 
     context = {
@@ -33,10 +65,15 @@ def home(request):
         'about_featured_image': about_featured_image,
         'about_grid_images': about_grid_images,
         'ongoing_programs': ongoing_programs,
+        'all_programs': all_programs,
+        'leadership_members': leadership_members,
         'recent_news': recent_news,
         'banks': banks,
         'qrcodes': qrcodes,
         'donation_methods': donation_methods,
+        'bkash_method': bkash_method,
+        'nagad_method': nagad_method,
+        'rocket_method': rocket_method,
         'gallery_photos': gallery_photos,
     }
     return render(request, 'core/home.html', context)
