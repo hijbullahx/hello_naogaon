@@ -19,10 +19,10 @@ def home(request):
     about_grid_images = AboutImage.objects.filter(is_featured=False).order_by('order')[:4]
 
     # Programs: ongoing and all
-    ongoing_programs = Program.objects.filter(status='ongoing').order_by('order', '-id')[:6]
+    ongoing_programs = Program.objects.filter(status='ongoing').order_by('order', '-id')
     if not ongoing_programs.exists():
-        ongoing_programs = Program.objects.all().order_by('order', '-id')[:6]
-    all_programs = Program.objects.all().order_by('order', '-id')[:12]
+        ongoing_programs = Program.objects.all().order_by('order', '-id')
+    all_programs = Program.objects.all().order_by('order', '-id')
 
     # Top Leadership & Council Members (Ordered strictly by hierarchy / krom onojai)
     from django.db.models import F

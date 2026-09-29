@@ -679,6 +679,14 @@
                                                                     class="form-control">{{ prog.description|default:'' }}</textarea>
                                                             </div>
                                                             <div class="mb-3">
+                                                                <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
+                                                                <select name="status" class="form-select" required>
+                                                                    <option value="ongoing" {% if prog.status == 'ongoing' %}selected{% endif %}>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
+                                                                    <option value="upcoming" {% if prog.status == 'upcoming' %}selected{% endif %}>আসন্ন কার্যক্রম (Upcoming)</option>
+                                                                    <option value="completed" {% if prog.status == 'completed' %}selected{% endif %}>সম্পন্ন কার্যক্রম (Completed)</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
                                                                 <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন
                                                                     / বাজেট (টাকা - ঐচ্ছিক)</label>
                                                                 <div class="input-group">
@@ -2417,6 +2425,15 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">পূর্ণ বিবরণ (Full Description)</label>
                         <textarea name="description" rows="3" class="form-control"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
+                        <select name="status" class="form-select" required>
+                            <option value="ongoing" selected>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
+                            <option value="upcoming">আসন্ন কার্যক্রম (Upcoming)</option>
+                            <option value="completed">সম্পন্ন কার্যক্রম (Completed)</option>
+                        </select>
+                        <small class="text-muted">"চলমান কার্যক্রম" নির্বাচন করলে এটি হোমপেজের চলমান কার্যক্রমে সরাসরি অন্তর্ভুক্ত হবে।</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন / বাজেট (টাকা - ঐচ্ছিক)</label>
