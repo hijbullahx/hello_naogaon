@@ -37,7 +37,6 @@ class Command(BaseCommand):
             {"title": "পরিবারকে সহায়তা", "value": "2,000+", "icon_class": "fas fa-users", "badge_color": "success", "order": 2},
             {"title": "শিক্ষার্থী সহায়তা", "value": "300+", "icon_class": "fas fa-graduation-cap", "badge_color": "warning", "order": 3},
             {"title": "স্বেচ্ছাসেবক", "value": "100+", "icon_class": "fas fa-hands-holding-heart", "badge_color": "primary", "order": 4},
-            {"title": "সামাজিক কর্মসূচি", "value": "50+", "icon_class": "fas fa-seedling", "badge_color": "info", "order": 5},
         ]
         for item in stats_data:
             StatCounter.objects.get_or_create(
