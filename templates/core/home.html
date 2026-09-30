@@ -28,9 +28,17 @@
                 <div class="d-flex flex-wrap gap-3">
                     <button type="button" class="btn shadow-sm d-inline-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#directDonateModal"
-                        style="background: linear-gradient(135deg, #e2136e 0%, #b80d57 100%) !important; color: #ffffff !important; border: none !important; padding: 12px 30px !important; border-radius: 50px !important; font-weight: 700 !important; text-decoration: none !important; box-shadow: 0 4px 16px rgba(226, 19, 110, 0.4) !important;">
+                        style="background: linear-gradient(135deg, #e2136e 0%, #b80d57 100%) !important; color: #ffffff !important; border: none !important; padding: 12px 30px !important; border-radius: 50px !important; font-weight: 700 !important; text-decoration: none !important; box-shadow: 0 4px 16px rgba(226, 19, 110, 0.4) !important; transition: transform 0.2s ease;"
+                        onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                         <i class="fas fa-hand-holding-heart me-2" style="color: #ffeb3b !important; font-size: 1.2rem;"></i>
                         <span style="color: #ffffff !important; font-size: 1.05rem;">দান করুন</span>
+                    </button>
+                    <button type="button" class="btn shadow-sm d-inline-flex align-items-center"
+                        data-bs-toggle="modal" data-bs-target="#joinVolunteerModal"
+                        style="background: linear-gradient(135deg, #198754 0%, #0f5132 100%) !important; color: #ffffff !important; border: none !important; padding: 12px 28px !important; border-radius: 50px !important; font-weight: 700 !important; text-decoration: none !important; box-shadow: 0 4px 16px rgba(25, 135, 84, 0.35) !important; transition: transform 0.2s ease;"
+                        onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-user-plus me-2" style="color: #a7f3d0 !important; font-size: 1.15rem;"></i>
+                        <span style="color: #ffffff !important; font-size: 1.05rem;">স্বেচ্ছাসেবক হন</span>
                     </button>
                 </div>
             </div>
@@ -647,7 +655,7 @@
 <section class="cta-banner">
     <div class="container">
         <h2 class="cta-banner-title">{{ site_setting.cta_banner_title|default:"আসুন, আমরা সবাই মিলে একটি মানবিক ও সুন্দর সমাজ গড়ে তুলি" }}</h2>
-        <a href="{% url 'volunteers:apply' %}" class="btn-hn-yellow">{{ site_setting.cta_banner_button_text|default:"স্বেচ্ছাসেবক হন" }}</a>
+        <button type="button" class="btn-hn-yellow border-0 shadow" data-bs-toggle="modal" data-bs-target="#joinVolunteerModal">{{ site_setting.cta_banner_button_text|default:"স্বেচ্ছাসেবক হন" }}</button>
     </div>
 </section>
 
@@ -1232,10 +1240,194 @@
         </div>
     </div>
 </div>
+
+<!-- Join Volunteer Registration Popup Modal -->
+<div class="modal fade" id="joinVolunteerModal" tabindex="-1" aria-labelledby="joinVolunteerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title fw-bold" id="joinVolunteerModalLabel">
+                    <i class="fas fa-user-plus me-2"></i>স্বেচ্ছাসেবক / সদস্য হিসেবে রেজিস্ট্রেশন করুন
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'volunteers:apply' %}" method="post" enctype="multipart/form-data" autocomplete="off">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <div class="modal-body p-4 text-start">
+                    <div class="alert alert-success d-flex align-items-center mb-4">
+                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                        <div>
+                            <strong>স্বয়ংক্রিয় সদস্য আইডি:</strong> নিবন্ধন শেষে আপনাকে একটি ইউনিক সদস্য আইডি (Member ID) প্রদান করা হবে এবং আপনার ইমেইল/মোবাইলে বার্তা পাঠানো হবে।
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Full Name -->
+                        <div class="col-md-6">
+                            <label for="home_full_name" class="form-label fw-bold">আপনার পূর্ণ নাম <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="home_full_name" name="full_name" required placeholder="যেমন: মো: আবদুর রহিম">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6">
+                            <label for="home_phone" class="form-label fw-bold">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="home_phone" name="phone" required placeholder="017XXXXXXXX">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label for="home_email" class="form-label fw-bold">ইমেইল ঠিকানা <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <input type="email" class="form-control" id="home_email" name="email" placeholder="example@gmail.com">
+                        </div>
+
+                        <!-- Blood Group -->
+                        <div class="col-md-6">
+                            <label for="home_blood_group" class="form-label fw-bold">রক্তের গ্রুপ <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <select class="form-select" id="home_blood_group" name="blood_group">
+                                <option value="">-- রক্তের গ্রুপ নির্বাচন করুন --</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+
+                        <!-- Last Donated Date Calendar -->
+                        <div class="col-md-6">
+                            <label for="home_volunteer_last_donated" class="form-label fw-bold">সর্বশেষ রক্তদানের তারিখ <small class="text-muted">(ঐচ্ছিক - রক্তদাতা হলে)</small></label>
+                            <input type="date" class="form-control past-date-picker" id="home_volunteer_last_donated" name="last_donated">
+                        </div>
+
+                        <!-- Occupation -->
+                        <div class="col-md-6">
+                            <label for="home_occupation" class="form-label fw-bold">পেশা <small class="text-muted">(ঐচ্ছিক)</small></label>
+                            <input type="text" class="form-control" id="home_occupation" name="occupation" placeholder="যেমন: ছাত্র, শিক্ষক, ব্যবসায়ী">
+                        </div>
+
+                        <!-- Profile Image with 500KB limit & free resizer link -->
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="home_volunteer_image" class="form-label fw-bold mb-0">
+                                    ছবি আপলোড করুন <small class="text-secondary">(সর্বোচ্চ 500 KB)</small>
+                                </label>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
+                            <input type="file" class="form-control" id="home_volunteer_image" name="image" accept="image/*" onchange="validateHomeVolunteerImage(this)">
+                            <div id="homeVolunteerImageSizeError" class="form-text text-danger d-none fw-bold mt-1">
+                                <i class="fas fa-exclamation-triangle me-1"></i>ছবির সাইজ ৫০০ KB এর বেশি! অনুগ্রহ করে <a href="https://www.resizepixel.com" target="_blank" class="text-danger text-decoration-underline fw-bold">ResizePixel (resizepixel.com)</a> থেকে সাইজ কমিয়ে আপলোড করুন।
+                            </div>
+                        </div>
+
+                        <!-- Structured Address Section -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address)
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="home_apply_division" class="form-label small fw-bold">বিভাগ</label>
+                                        <select class="form-select division-select" id="home_apply_division" name="division" data-district-target="home_apply_district" data-upazila-target="home_apply_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="home_apply_district" class="form-label small fw-bold">জেলা</label>
+                                        <select class="form-select district-select" id="home_apply_district" name="district" data-upazila-target="home_apply_upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="home_apply_upazila" class="form-label small fw-bold">উপজেলা / থানা</label>
+                                        <select class="form-select upazila-select" id="home_apply_upazila" name="upazila">
+                                            <!-- Injected by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label for="home_apply_address" class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                        <input type="text" class="form-control" id="home_apply_address" name="address" placeholder="গ্রাম/মহল্লা, ডাকঘর, বাড়ি নং">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Voluntary Financial Contribution Commitment -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-success-subtle bg-opacity-10 p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>স্বেচ্ছাসেবী আর্থিক সহায়তার প্রতিশ্রুতি <small class="text-muted">(ঐচ্ছিক)</small>
+                                </h6>
+                                <p class="text-secondary small mb-3">আপনি চাইলে সংগঠনের মানবসেবামূলক কার্যক্রম সচল রাখতে নিয়মিত বা এককালীন সহায়তার প্রতিশ্রুতি দিতে পারেন। আপনার প্রতিশ্রুতি অনুযায়ী নির্দিষ্ট সময়ে ইমেইল ও এসএমএসে রিমাইন্ডার ও লিঙ্ক পাঠানো হবে।</p>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="home_contribution_frequency" class="form-label small fw-bold">সহায়তার পর্যায়কাল / ধরন</label>
+                                        <select class="form-select" id="home_contribution_frequency" name="contribution_frequency">
+                                            <option value="none">কোনো নির্দিষ্ট প্রতিশ্রুতি নেই / ইচ্ছানুযায়ী</option>
+                                            <option value="monthly">মাসিক (প্রতি মাসে)</option>
+                                            <option value="weekly">সাপ্তাহিক (প্রতি সপ্তাহে)</option>
+                                            <option value="yearly">বাৎসরিক (প্রতি বছরে)</option>
+                                            <option value="one_time">এককালীন</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="home_contribution_amount" class="form-label small fw-bold">প্রতিশ্রুত টাকার পরিমাণ (BDT)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white">৳</span>
+                                            <input type="number" class="form-control" id="home_contribution_amount" name="contribution_amount" placeholder="যেমন: 100, 200, 500, 1000">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Choice Checkbox -->
+                        <div class="col-md-12">
+                            <div class="form-check form-switch bg-light p-3 rounded border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="home_is_public_details" name="is_public_details" checked>
+                                <label class="form-check-label fw-bold text-dark" for="home_is_public_details">
+                                    <i class="fas fa-shield-alt text-success me-1"></i>আপনি কি আপনার মোবাইল নম্বর এবং বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?
+                                </label>
+                                <div class="form-text text-muted ps-4">টিক চিহ্ন তুলে দিলে তালিকায় শুধুমাত্র ছবি, নাম ও আইডি দেখতে পাবেন, মোবাইল নম্বর গোপন থাকবে।</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4"><i class="fas fa-paper-plane me-1"></i> রেজিস্ট্রেশন সম্পন্ন করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    function validateHomeVolunteerImage(input) {
+        var errorDiv = document.getElementById('homeVolunteerImageSizeError');
+        if (input.files && input.files[0]) {
+            var fileSize = input.files[0].size;
+            var maxBytes = 500 * 1024;
+            if (fileSize > maxBytes) {
+                if (errorDiv) errorDiv.classList.remove('d-none');
+                alert('ছবির সাইজ সর্বোচ্চ 500 KB হতে পারবে। অনুগ্রহ করে resizepixel.com থেকে সাইজ কিছুটা কমিয়ে আপলোড করুন।');
+                input.value = '';
+                return false;
+            } else {
+                if (errorDiv) errorDiv.classList.add('d-none');
+            }
+        }
+        return true;
+    }
+
     // Copy Donation Number Helper Function
     function copyDonationNumber(number, successMsg) {
         if (!number) return;
