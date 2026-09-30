@@ -177,7 +177,8 @@ def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"
     return True
 
 def ensure_default_stat_counters():
-    """Ensure standard 4 stats counters exist in database if empty"""
+    """Ensure standard 4 stats counters exist in database if empty and clean up obsolete cards"""
+    StatCounter.objects.filter(title__icontains='সামাজিক কর্মসূচি').delete()
     if not StatCounter.objects.exists():
         default_stats = [
             {"title": "রক্তদান", "value": "500+", "icon_class": "fas fa-tint", "badge_color": "danger", "order": 1},
