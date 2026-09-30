@@ -15,6 +15,38 @@ def get_base_url(request=None):
     return getattr(settings, 'SITE_URL', 'https://helplinehellonaogaon.com').rstrip('/')
 
 
+def get_admin_notification_emails():
+    """
+    Returns a deduplicated list of active admin emails for receiving system alerts,
+    including SERVER_EMAIL, DEFAULT_FROM_EMAIL, and SiteSetting.contact_email.
+    """
+    emails = []
+    server_email = getattr(settings, 'SERVER_EMAIL', None)
+    if server_email and server_email.strip():
+        emails.append(server_email.strip().lower())
+    
+    default_from = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+    if default_from and default_from.strip():
+        emails.append(default_from.strip().lower())
+
+    try:
+        site_setting = SiteSetting.objects.first()
+        if site_setting and site_setting.contact_email:
+            emails.append(site_setting.contact_email.strip().lower())
+    except Exception:
+        pass
+
+    # Deduplicate while preserving order
+    seen = set()
+    unique_emails = []
+    for e in emails:
+        if e not in seen:
+            seen.add(e)
+            unique_emails.append(e)
+
+    return unique_emails or ['admin@helplinehellonaogaon.com']
+
+
 def send_system_email(
     subject,
     recipient_list=None,

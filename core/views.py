@@ -119,7 +119,7 @@ import random
 from django.utils import timezone
 from django.http import JsonResponse
 from django.conf import settings
-from core.email_utils import send_system_email
+from core.email_utils import send_system_email, get_admin_notification_emails
 from core.sms_utils import send_sms
 
 def submit_complaint(request):
@@ -156,9 +156,8 @@ def submit_complaint(request):
     rand_code = random.randint(1000, 9999)
     complaint_no = f"HNC-{time_prefix}-{rand_code}"
 
-    # Prepare Admin Email recipient (admin@helplinehellonaogaon.com)
-    admin_email = getattr(settings, 'SERVER_EMAIL', 'admin@helplinehellonaogaon.com') or 'admin@helplinehellonaogaon.com'
-    recipients = [admin_email]
+    # Prepare Admin Email recipients
+    recipients = get_admin_notification_emails()
 
     # Formatted submission time string
     submission_time_str = current_time.strftime('%d-%m-%Y %I:%M %p')
@@ -194,11 +193,20 @@ def submit_complaint(request):
         pass
 
     # Dispatch SMS to Complainant
-    sms_text = f"Helpline Hello Naogaon: আপনার তথ্য/আবেদন সফলভাবে গৃহীত হয়েছে। ট্র্যাকিং নং: {complaint_no}। তথ্যের গোপনীয়তা রক্ষা করা হবে। ধন্যবাদ।"
+    sms_text = f"[Helpline Hello Naogaon] আপনার তথ্য/আবেদন সফলভাবে গৃহীত হয়েছে। ট্র্যাকিং নং: {complaint_no}। তথ্যের গোপনীয়তা রক্ষা করা হবে। প্রয়োজনে: 01916314315"
     try:
         send_sms(phone, sms_text)
     except Exception:
         pass
+
+    # Dispatch Notification SMS to Admin SIM
+    admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
+    if admin_phone:
+        try:
+            admin_sms = f"[Helpline Hello Naogaon] নতুন নাগরিক বার্তা! বিষয়: {subject_type}। ট্র্যাকিং: {complaint_no}। প্রেরক: {phone}। ইমেইল চেক করুন।"
+            send_sms(admin_phone, admin_sms, is_alert=True)
+        except Exception:
+            pass
 
     success_msg = f"আপনার তথ্য/আবেদন সফলভাবে দাখিল করা হয়েছে! আপনার ট্র্যাকিং নম্বর: {complaint_no}। আপনার ফোনে নিশ্চিতকরণ বার্তা পাঠানো হয়েছে।"
     if is_ajax:

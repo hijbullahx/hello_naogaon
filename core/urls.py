@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, views_dashboard, views_auth
+from . import views, views_dashboard, views_auth, views_sms
 from .views_dashboard import update_profile, delete_gallery_photo
 
 app_name = 'core'
@@ -60,5 +60,8 @@ urlpatterns = [
     path('dashboard/delete-donation/<int:pk>/', views_dashboard.delete_program_donation, name='delete_donation'),
     path('dashboard/update-profile/', update_profile, name='update_profile'),
     path('dashboard/delete-gallery-photo/<int:pk>/', delete_gallery_photo, name='delete_gallery_photo'),
+    path('dashboard/ajax/refresh-sms-balance/', views_dashboard.ajax_refresh_sms_balance, name='ajax_refresh_sms_balance'),
+    path('api/sms/inbound/', views_sms.inbound_sms_webhook, name='sms_inbound_webhook'),
+    path('api/sms/webhook/', views_sms.inbound_sms_webhook, name='sms_webhook_alias'),
 ]
 
