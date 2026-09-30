@@ -1287,8 +1287,86 @@
 
         <!-- ================= TAB: FINANCIAL MANAGEMENT ================= -->
         <div class="tab-pane fade {% if not can_edit_all and can_edit_finance %}show active{% endif %}" id="finance-section" role="tabpanel">
-            <!-- 3 Summary Metric Cards -->
+            <!-- Summary Metric Cards (Financial & SMS Gateway) -->
             <div class="row g-3 mb-4">
+                {% if can_edit_all or can_edit_finance %}
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-3 bg-success text-white p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-white-50 fw-bold">সর্বমোট আয় / অনুদান</small>
+                                <h3 class="fw-bold mb-0 mt-1">৳ {{ total_income|floatformat:2 }}</h3>
+                            </div>
+                            <div class="bg-white text-success rounded-circle p-3 shadow-sm">
+                                <i class="fas fa-arrow-down fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-3 bg-danger text-white p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-white-50 fw-bold">সর্বমোট ব্যয় / খরচ</small>
+                                <h3 class="fw-bold mb-0 mt-1">৳ {{ total_expense|floatformat:2 }}</h3>
+                            </div>
+                            <div class="bg-white text-danger rounded-circle p-3 shadow-sm">
+                                <i class="fas fa-arrow-up fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-3 bg-primary text-white p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-white-50 fw-bold">বর্তমান তহবিল ব্যালেন্স</small>
+                                <h3 class="fw-bold mb-0 mt-1">৳ {{ net_balance|floatformat:2 }}</h3>
+                            </div>
+                            <div class="bg-white text-primary rounded-circle p-3 shadow-sm">
+                                <i class="fas fa-wallet fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automas SMS Gateway Balance Card -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-3 text-white p-3 h-100" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-top: 3px solid #f59e0b !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div>
+                                <small class="text-warning fw-bold text-uppercase" style="letter-spacing: 0.5px;">
+                                    <i class="fas fa-sms me-1"></i> এসএমএস ব্যালেন্স (Automas)
+                                </small>
+                                <h3 class="fw-bold mb-0 mt-1 text-white" id="smsBalanceAmount">
+                                    {% if sms_balance is not None %}৳ {{ sms_balance|floatformat:2 }}{% else %}৳ 0.00{% endif %}
+                                </h3>
+                            </div>
+                            <div class="bg-warning text-dark rounded-circle p-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-paper-plane fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 mt-1 border-top border-secondary">
+                            <span class="badge bg-secondary text-warning fw-normal py-1" style="font-size: 0.76rem;" title="১০ টাকার নিচে নামলে ০১৯১৬৩১৪৩১৫ নম্বরে সতর্কবার্তা যাবে">
+                                <i class="fas fa-bell me-1"></i>অ্যালার্ট সিম: ০১৯১৬৩১৪৩১৫
+                            </span>
+                            <div class="d-flex gap-1">
+                                <button type="button" id="btnRefreshSms" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" title="লাইভ ব্যালেন্স সিঙ্ক করুন">
+                                    <i class="fas fa-sync-alt" id="smsRefreshIcon"></i>
+                                </button>
+                                <a href="https://asms.automas.com.bd/recharge_balance" target="_blank" class="btn btn-sm btn-warning text-dark fw-bold py-0 px-2" style="font-size: 0.75rem;" title="অটম্যাস পোর্টালে রিচার্জ করুন">
+                                    <i class="fas fa-plus-circle me-1"></i>রিচার্জ
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.75rem;" onclick="prefillSmsExpense()" title="রিচার্জের ব্যয় এন্ট্রি করুন">
+                                    <i class="fas fa-receipt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
                 <div class="col-md-4">
                     <div class="card border-0 shadow-sm rounded-3 bg-success text-white p-3">
                         <div class="d-flex justify-content-between align-items-center">
@@ -1330,6 +1408,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
             </div>
 
             <!-- Filter & Print/Excel Export Toolbar Card -->
@@ -3434,6 +3513,66 @@
             const text = row.innerText.toLowerCase();
             row.style.display = text.includes(filter) ? '' : 'none';
         });
+    }
+
+    // Automas SMS Balance Live & Auto Sync
+    function syncSmsBalance(silent = false) {
+        const icon = document.getElementById('smsRefreshIcon');
+        if (icon) icon.classList.add('fa-spin');
+        
+        fetch("{% url 'core:ajax_refresh_sms_balance' %}")
+            .then(res => res.json())
+            .then(data => {
+                if (icon) icon.classList.remove('fa-spin');
+                if (data.success) {
+                    const balElem = document.getElementById('smsBalanceAmount');
+                    if (balElem) balElem.textContent = '৳ ' + data.balance;
+                } else if (!silent) {
+                    alert(data.error || 'ব্যালেন্স আপডেট করা সম্ভব হয়নি।');
+                }
+            })
+            .catch(err => {
+                if (icon) icon.classList.remove('fa-spin');
+                if (!silent) console.error('SMS refresh error:', err);
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnRefreshSms = document.getElementById('btnRefreshSms');
+        if (btnRefreshSms) {
+            btnRefreshSms.addEventListener('click', function(e) {
+                e.preventDefault();
+                syncSmsBalance(false);
+            });
+        }
+
+        // Auto-sync when user switches to Finance tab
+        const financeTabBtn = document.getElementById('finance-tab');
+        if (financeTabBtn) {
+            financeTabBtn.addEventListener('shown.bs.tab', function() {
+                syncSmsBalance(true);
+            });
+        }
+
+        // Auto-sync periodically every 3 minutes
+        setInterval(function() {
+            const financeSec = document.getElementById('finance-section');
+            if (financeSec && financeSec.classList.contains('active')) {
+                syncSmsBalance(true);
+            }
+        }, 180000);
+    });
+
+    function prefillSmsExpense() {
+        const modalEl = document.getElementById('expenseModal');
+        if (modalEl) {
+            const titleInput = modalEl.querySelector('input[name="title"]');
+            const catInput = modalEl.querySelector('input[name="category"]');
+            if (titleInput) titleInput.value = 'এসএমএস ব্যালেন্স রিচার্জ (Automas)';
+            if (catInput) catInput.value = 'যোগাযোগ / আইটি / এসএমএস';
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        }
     }
 </script>
 {% endblock %}

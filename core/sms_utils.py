@@ -1,7 +1,9 @@
 import logging
 import os
 import requests
+import threading
 from django.conf import settings
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +48,53 @@ def clean_bd_phone_number(phone_number, with_country_code=False):
     
     return digits
 
-def send_sms(phone_number, message):
+ALERT_TIERS = [10.0, 8.0, 5.0, 4.0, 3.0, 2.0, 1.0]
+
+def evaluate_low_balance_alert(balance_val):
+    """
+    Checks if balance has dropped below warning tiers (10, 8, 5, 4, 3, etc.).
+    Sends an alert SMS to admin phone (01916314315) without spamming repeatedly
+    for the same tier.
+    """
+    try:
+        current_bal = float(balance_val)
+    except (TypeError, ValueError):
+        return
+
+    admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', os.environ.get('SMS_ADMIN_ALERT_PHONE', '01916314315'))
+    if not admin_phone:
+        return
+
+    # If recharged above 10 BDT, reset the tracker
+    if current_bal > 10.0:
+        cache.delete('sms_last_alerted_tier')
+        return
+
+    # Find the current matching tier (e.g. if 7.50, tier is 8.0)
+    current_tier = None
+    for tier in ALERT_TIERS:
+        if current_bal <= tier:
+            current_tier = tier
+
+    if current_tier is None:
+        return
+
+    last_alerted_tier = cache.get('sms_last_alerted_tier')
+    # If we have already alerted for this tier or a lower tier, skip to avoid spam
+    if last_alerted_tier is not None and last_alerted_tier <= current_tier:
+        return
+
+    # Send alert SMS
+    recharge_url = "asms.automas.com.bd/recharge_balance"
+    msg = f"[Helpline Hello Naogaon] জরুরি সতর্কবার্তা: আপনার এসএমএস ব্যালেন্স কমে {current_bal:.2f} টাকা হয়েছে। নিরবচ্ছিন্ন সেবার জন্য এখনই রিচার্জ করুন: {recharge_url}"
+
+    logger.warning(f"[SMS LOW BALANCE ALERT] Triggering alert for tier {current_tier} (Bal: {current_bal}) to {admin_phone}")
+    success = send_sms(admin_phone, msg, is_alert=True)
+    if success:
+        cache.set('sms_last_alerted_tier', current_tier, 86400 * 7)
+
+
+def send_sms(phone_number, message, is_alert=False):
     """
     Sends an SMS via Automas Bulk SMS API.
     Supports both English (ASCII) and Bengali (Unicode) messages automatically.
@@ -110,6 +158,14 @@ def send_sms(phone_number, message):
                 if status_code == 0:
                     logger.info(f"[AUTOMAS SMS SUCCESS] Sent to {cleaned_phone} | ID: {sms_id}")
                     print(f"[AUTOMAS SMS SUCCESS] To: {cleaned_phone} | ID: {sms_id}")
+
+                    # Trigger non-blocking low balance check after successful send
+                    if not is_alert:
+                        try:
+                            threading.Thread(target=check_sms_balance, kwargs={'trigger_low_balance_alert': True}, daemon=True).start()
+                        except Exception as th_err:
+                            logger.warning(f"Failed to start async balance check: {th_err}")
+
                     return True
                 else:
                     logger.error(f"[AUTOMAS SMS FAILED] Code: {status_code} ({status_desc}) | To: {cleaned_phone}")
@@ -128,10 +184,12 @@ def send_sms(phone_number, message):
         print(f"[AUTOMAS CONNECTION EXCEPTION] {e}")
         return False
 
-def check_sms_balance():
+
+def check_sms_balance(trigger_low_balance_alert=True):
     """
     Checks remaining balance from Automas SMS API.
     Returns balance string (e.g., '100.0') or None on error.
+    Updates cache and optionally evaluates low balance alerts to admin.
     """
     api_key = getattr(settings, 'AUTOMAS_API_KEY', os.environ.get('AUTOMAS_API_KEY', '')).strip()
     if not api_key:
@@ -142,9 +200,23 @@ def check_sms_balance():
         res = requests.get(balance_url, params={'apikey': api_key}, timeout=5)
         if res.status_code == 200:
             data = res.json()
+            balance_val = None
             if isinstance(data, dict) and 'response' in data:
-                return data.get('response')
-            return res.text
+                balance_val = data.get('response')
+            else:
+                balance_val = res.text.strip()
+
+            if balance_val is not None:
+                # Update cache so dashboard stays auto-synced
+                try:
+                    cache.set('automas_sms_balance', float(balance_val), 300)
+                except Exception:
+                    pass
+
+                if trigger_low_balance_alert:
+                    evaluate_low_balance_alert(balance_val)
+
+            return balance_val
     except Exception as e:
         logger.error(f"[AUTOMAS BALANCE CHECK ERROR] {e}")
     return None

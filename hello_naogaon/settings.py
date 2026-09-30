@@ -369,6 +369,8 @@ SERVER_EMAIL = env('SERVER_EMAIL', default='admin@helplinehellonaogaon.com')
 AUTOMAS_API_KEY = env('AUTOMAS_API_KEY', default=env('SMS_API_KEY', default=env('SMS_API_TOKEN', default='')))
 AUTOMAS_SENDER_ID = env('AUTOMAS_SENDER_ID', default=env('SMS_SENDER_ID', default=''))
 AUTOMAS_API_URL = env('AUTOMAS_API_URL', default='https://api.automas.com.bd/smsapiv3')
+SMS_ADMIN_ALERT_PHONE = env('SMS_ADMIN_ALERT_PHONE', default='01916314315')
+SMS_LOW_BALANCE_THRESHOLD = env.float('SMS_LOW_BALANCE_THRESHOLD', default=10.0)
 
 AUTHENTICATION_BACKENDS = [
     'core.backends.MultiIdentifierAuthBackend',

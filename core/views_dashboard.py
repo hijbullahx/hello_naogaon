@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
@@ -5,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.core.cache import cache
 from django.conf import settings
 from core.email_utils import send_system_email
 from core.models import SiteSetting, StatCounter, AboutImage, EmergencyCategory, EmergencyService
@@ -293,6 +295,27 @@ def dashboard_home(request):
             my_total_donated = my_donations.filter(status='approved').aggregate(Sum('amount'))['amount__sum'] or 0
             my_donation_count = my_donations.filter(status='approved').count()
 
+    # SMS Balance & Summary (for Admin & Treasurer)
+    sms_balance = None
+    sms_remaining_count = 0
+    sms_sender_id = getattr(settings, 'AUTOMAS_SENDER_ID', os.environ.get('AUTOMAS_SENDER_ID', '8809617642529'))
+    if can_edit_all or can_edit_finance:
+        cached_bal = cache.get('automas_sms_balance')
+        if cached_bal is not None:
+            sms_balance = cached_bal
+        else:
+            try:
+                from core.sms_utils import check_sms_balance
+                raw_bal = check_sms_balance()
+                if raw_bal is not None:
+                    sms_balance = float(raw_bal)
+                    cache.set('automas_sms_balance', sms_balance, 300)
+            except Exception:
+                sms_balance = None
+        
+        if sms_balance is not None:
+            sms_remaining_count = max(0, int(sms_balance / 0.26))
+
     context = {
         'site_setting': site_setting,
         'stat_counters': stat_counters,
@@ -317,6 +340,9 @@ def dashboard_home(request):
         'total_income': total_income,
         'total_expense': total_expense,
         'net_balance': net_balance,
+        'sms_balance': sms_balance,
+        'sms_remaining_count': sms_remaining_count,
+        'sms_sender_id': sms_sender_id,
         'user_role_info': user_role_info,
         'user_role_name': user_role_name,
         'can_edit_all': can_edit_all,
@@ -2005,4 +2031,35 @@ def delete_emergency_category(request, pk):
     else:
         messages.warning(request, "ক্যাটাগরি খুঁজে পাওয়া যায়নি।")
     return redirect('/dashboard/?tab=emergency-section')
+
+
+@login_required
+def ajax_refresh_sms_balance(request):
+    """
+    Refreshes and returns the live Automas SMS balance as JSON.
+    Accessible only to Admin and Treasurer (can_edit_all or can_edit_finance).
+    """
+    user_role_info = get_user_dashboard_role(request.user)
+    if not (user_role_info['can_manage_cms'] or user_role_info['can_edit_finance']):
+        return JsonResponse({'success': False, 'error': 'অনুমতি নেই।'}, status=403)
+
+    try:
+        from core.sms_utils import check_sms_balance
+        raw_bal = check_sms_balance()
+        if raw_bal is not None:
+            balance = float(raw_bal)
+            cache.set('automas_sms_balance', balance, 300)
+            remaining_count = max(0, int(balance / 0.26))
+            sender_id = getattr(settings, 'AUTOMAS_SENDER_ID', os.environ.get('AUTOMAS_SENDER_ID', '8809617642529'))
+            return JsonResponse({
+                'success': True,
+                'balance': f"{balance:.2f}",
+                'remaining_count': remaining_count,
+                'sender_id': sender_id,
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'অটম্যাস গেটওয়ে থেকে ব্যালেন্স পাওয়া যায়নি।'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
 

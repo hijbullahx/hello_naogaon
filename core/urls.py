@@ -60,5 +60,6 @@ urlpatterns = [
     path('dashboard/delete-donation/<int:pk>/', views_dashboard.delete_program_donation, name='delete_donation'),
     path('dashboard/update-profile/', update_profile, name='update_profile'),
     path('dashboard/delete-gallery-photo/<int:pk>/', delete_gallery_photo, name='delete_gallery_photo'),
+    path('dashboard/ajax/refresh-sms-balance/', views_dashboard.ajax_refresh_sms_balance, name='ajax_refresh_sms_balance'),
 ]
 
