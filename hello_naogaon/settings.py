@@ -365,6 +365,11 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='info@helplinehellonaogaon.com')
 SERVER_EMAIL = env('SERVER_EMAIL', default='admin@helplinehellonaogaon.com')
 
+# Automas Bulk SMS Gateway Configuration
+AUTOMAS_API_KEY = env('AUTOMAS_API_KEY', default=env('SMS_API_KEY', default=env('SMS_API_TOKEN', default='')))
+AUTOMAS_SENDER_ID = env('AUTOMAS_SENDER_ID', default=env('SMS_SENDER_ID', default=''))
+AUTOMAS_API_URL = env('AUTOMAS_API_URL', default='https://api.automas.com.bd/smsapiv3')
+
 AUTHENTICATION_BACKENDS = [
     'core.backends.MultiIdentifierAuthBackend',
     'django.contrib.auth.backends.ModelBackend',

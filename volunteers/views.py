@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Q
 from core.email_utils import send_system_email
+from core.sms_utils import send_sms
 from .models import Volunteer, TeamMember, BloodDonor
 
 def send_member_notifications(volunteer):
@@ -48,11 +49,11 @@ def send_member_notifications(volunteer):
         )
 
     if volunteer.phone:
-        sms_text = f"Helpline Hello Naogaon: ধন্যবাদ {volunteer.full_name}! আপনার সদস্য আইডি: {volunteer.member_id}{sms_contrib}। আর্থিক সহায়তা লিঙ্ক: https://helplinehellonaogaon.com/donations/donate/?member_id={volunteer.member_id}"
+        sms_text = f"[Helpline Hello Naogaon] {volunteer.full_name}, আপনার সদস্য নিবন্ধন সফল হয়েছে। সদস্য আইডি: {volunteer.member_id}{sms_contrib}। বিস্তারিত: helplinehellonaogaon.com"
         try:
-            print(f"[SMS SUCCESS] Sent Member ID {volunteer.member_id} to {volunteer.phone}")
-        except Exception:
-            pass
+            send_sms(volunteer.phone, sms_text)
+        except Exception as e:
+            print(f"[VOLUNTEER SMS ERROR] {e}")
 
 
 from datetime import datetime, date
