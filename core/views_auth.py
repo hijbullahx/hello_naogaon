@@ -148,12 +148,22 @@ def forgot_password_view(request):
             fail_silently=True
         )
 
+        # Dispatch SMS OTP if phone number is available
+        user_phone = getattr(user, 'phone', None) or getattr(getattr(user, 'team_profile', None), 'phone', None) or getattr(getattr(user, 'volunteer_profile', None), 'phone', None)
+        if user_phone:
+            try:
+                from core.sms_utils import send_sms
+                otp_sms = f"[Helpline Hello Naogaon] আপনার পাসওয়ার্ড রিসেট ওটিপি কোড: {otp_code}। মেয়াদ ১০ মিনিট। কাউকে শেয়ার করবেন না। প্রয়োজনে: 01916314315"
+                send_sms(user_phone, otp_sms)
+            except Exception:
+                pass
+
         # Save session context
         request.session['reset_user_id'] = user.id
         request.session['reset_email'] = user.email
         request.session['otp_sent_at'] = timezone.now().timestamp()
 
-        messages.success(request, f"আপনার নিবন্ধিত ইমেইলে ({mask_email(user.email)}) ৬ ডিজিটের একটি ওটিপি পাঠানো হয়েছে।")
+        messages.success(request, f"আপনার নিবন্ধিত ইমেইলে ({mask_email(user.email)}) ও নম্বরে ৬ ডিজিটের একটি ওটিপি পাঠানো হয়েছে।")
         return redirect('core:verify_password_reset_otp')
 
     return render(request, 'registration/password_reset_form.html')

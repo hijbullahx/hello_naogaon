@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Q
-from core.email_utils import send_system_email
+from django.conf import settings
+from core.email_utils import send_system_email, get_admin_notification_emails
 from core.sms_utils import send_sms
 from .models import Volunteer, TeamMember, BloodDonor
 
@@ -49,11 +50,39 @@ def send_member_notifications(volunteer):
         )
 
     if volunteer.phone:
-        sms_text = f"[Helpline Hello Naogaon] {volunteer.full_name}, আপনার সদস্য নিবন্ধন সফল হয়েছে। সদস্য আইডি: {volunteer.member_id}{sms_contrib}। বিস্তারিত: helplinehellonaogaon.com"
+        sms_text = f"[Helpline Hello Naogaon] {volunteer.full_name}, আপনার সদস্য নিবন্ধন সফল হয়েছে। সদস্য আইডি: {volunteer.member_id}{sms_contrib}। প্রয়োজনে: 01916314315"
         try:
             send_sms(volunteer.phone, sms_text)
         except Exception as e:
             print(f"[VOLUNTEER SMS ERROR] {e}")
+
+    # Send Notification to Admin (Email & SMS)
+    try:
+        admin_emails = get_admin_notification_emails()
+        if admin_emails:
+            admin_subject = f"👤 নতুন সদস্য নিবন্ধন — {volunteer.full_name} ({volunteer.member_id})"
+            send_system_email(
+                subject=admin_subject,
+                recipient_list=admin_emails,
+                headline="নতুন সদস্য ও রক্তদাতা নিবন্ধন",
+                greeting="শ্রদ্ধেয় অ্যাডমিন,",
+                message_paragraphs=[
+                    f"ওয়েবসাইটে একজন নতুন সদস্য সফলভাবে নিবন্ধন সম্পন্ন করেছেন। সদস্য আইডি: #{volunteer.member_id}।"
+                ],
+                volunteer=volunteer,
+                footer_note="সদস্যের তথ্যাদি এডমিন ড্যাশবোর্ড থেকে পরিচালনা করতে পারবেন।",
+                fail_silently=True,
+            )
+    except Exception as e:
+        print(f"[ADMIN VOLUNTEER EMAIL NOTIFY ERROR] {e}")
+
+    admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
+    if admin_phone:
+        try:
+            admin_sms = f"[Helpline Hello Naogaon] নতুন সদস্য যুক্ত হয়েছেন: {volunteer.full_name}, মোবাইল: {volunteer.phone}, রক্ত: {volunteer.blood_group}। আইডি: {volunteer.member_id}।"
+            send_sms(admin_phone, admin_sms, is_alert=True)
+        except Exception:
+            pass
 
 
 from datetime import datetime, date
