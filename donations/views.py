@@ -204,7 +204,22 @@ def initiate_payment(request):
         prog = Program.objects.filter(pk=program_id).first()
 
     # Determine donation type & fetch member info if applicable
-    if donor_identity_type == 'program':
+    if donor_identity_type == 'general':
+        donation_type = 'general'
+        frequency = 'one_time'
+        if membership_id:
+            vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
+            if vol:
+                if not donor_name: donor_name = vol.full_name
+                if not donor_phone: donor_phone = vol.phone
+                if not donor_email: donor_email = vol.email or donor_email
+            else:
+                tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
+                if tm:
+                    if not donor_name: donor_name = tm.name
+                    if not donor_phone: donor_phone = tm.phone or donor_phone
+                    if not donor_email: donor_email = tm.email or donor_email
+    elif donor_identity_type == 'program':
         if not prog or not prog.needs_funding:
             messages.error(request, "নির্বাচিত কার্যক্রমে বর্তমানে কোনো আর্থিক সহায়তার প্রয়োজন নেই।")
             return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
@@ -213,31 +228,31 @@ def initiate_payment(request):
         if membership_id:
             vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
             if vol:
-                donor_name = vol.full_name
-                donor_phone = vol.phone
-                donor_email = vol.email or donor_email
+                if not donor_name: donor_name = vol.full_name
+                if not donor_phone: donor_phone = vol.phone
+                if not donor_email: donor_email = vol.email or donor_email
             else:
                 tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
                 if tm:
-                    donor_name = tm.name
-                    donor_phone = tm.phone or donor_phone
-                    donor_email = tm.email or donor_email
+                    if not donor_name: donor_name = tm.name
+                    if not donor_phone: donor_phone = tm.phone or donor_phone
+                    if not donor_email: donor_email = tm.email or donor_email
     elif prog and prog.needs_funding:
         donation_type = 'program'
         frequency = 'one_time'
         if membership_id:
             vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
             if vol:
-                donor_name = vol.full_name
-                donor_phone = vol.phone
-                donor_email = vol.email or donor_email
+                if not donor_name: donor_name = vol.full_name
+                if not donor_phone: donor_phone = vol.phone
+                if not donor_email: donor_email = vol.email or donor_email
             else:
                 tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
                 if tm:
-                    donor_name = tm.name
-                    donor_phone = tm.phone or donor_phone
-                    donor_email = tm.email or donor_email
-    elif donor_identity_type == 'member' or membership_id:
+                    if not donor_name: donor_name = tm.name
+                    if not donor_phone: donor_phone = tm.phone or donor_phone
+                    if not donor_email: donor_email = tm.email or donor_email
+    elif donor_identity_type == 'member':
         vol = Volunteer.objects.filter(member_id__iexact=membership_id).first() if membership_id else None
         if vol:
             donation_type = 'volunteer'
@@ -254,12 +269,9 @@ def initiate_payment(request):
                 donor_name = tm.name
                 donor_phone = tm.phone or donor_phone
                 donor_email = tm.email or donor_email
-            elif donor_identity_type == 'member':
+            else:
                 messages.error(request, "সঠিক সদস্য আইডি পাওয়া যায়নি। অনুগ্রহ করে যাচাই করে পুনরায় চেষ্টা করুন।")
                 return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
-            else:
-                donation_type = 'general'
-                membership_id = None
     else:
         donation_type = 'general'
         membership_id = None
@@ -520,9 +532,9 @@ def process_successful_payment(donation, payment_data, request=None):
 
     # 3. Dispatch Notifications to Donor & Admin
     if not vol_obj:
-        from donations.donation_notifications import send_donation_approval_notifications
+        from donations.donation_notifications import notify_donor_donation_approved
         try:
-            send_donation_approval_notifications(donation, request=request)
+            notify_donor_donation_approved(donation, request=request)
         except Exception as ex:
             logger.error(f"[DONATION APPROVAL NOTIFICATIONS ERROR] {ex}")
 

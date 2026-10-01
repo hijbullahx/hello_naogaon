@@ -140,7 +140,7 @@ def get_member_subscription_summary(member, today=None):
     paid_qs = ProgramDonation.objects.filter(
         membership_id=member.member_id,
         status__in=['approved', 'completed']
-    ).exclude(donation_type='volunteer_registration')
+    ).exclude(donation_type__in=['volunteer_registration', 'general'])
     total_paid = float(paid_qs.aggregate(total=Sum('amount'))['total'] or 0.0)
 
     if monthly_fee <= 0:
