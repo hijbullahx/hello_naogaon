@@ -190,6 +190,7 @@ class ProgramDonation(models.Model):
     STATUS_CHOICES = [
         ('pending', _('অপেক্ষমাণ (Pending)')),
         ('approved', _('সফল / অনুমোদিত (Approved)')),
+        ('rejected', _('বাতিল / প্রত্যাখ্যাত (Rejected)')),
         ('failed', _('ব্যর্থ (Failed)')),
         ('cancelled', _('বাতিল (Cancelled)')),
     ]
@@ -203,6 +204,7 @@ class ProgramDonation(models.Model):
     membership_id = models.CharField(max_length=50, blank=True, null=True, help_text=_('মেম্বারশিপ আইডি (যদি থাকে)'), verbose_name=_('মেম্বারশিপ আইডি'))
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('আর্থিক সহায়তার পরিমাণ (BDT)'))
     payment_method = models.CharField(max_length=50, default='Online Gateway', verbose_name=_('পেমেন্ট মেথড'))
+    sender_account = models.CharField(max_length=100, blank=True, verbose_name=_('প্রেরকের নম্বর / অ্যাকাউন্ট নম্বর'))
     tran_id = models.CharField(max_length=100, unique=True, blank=True, null=True, verbose_name=_('গেটওয়ে ট্রানজেকশন আইডি'))
     bank_tran_id = models.CharField(max_length=100, blank=True, verbose_name=_('ব্যাংক / ভ্যালিডেশন ট্রানজেকশন আইডি'))
     card_type = models.CharField(max_length=50, blank=True, verbose_name=_('পেমেন্ট চ্যানেল / কার্ড টাইপ'))

@@ -78,7 +78,65 @@ class FinancialTransactionAdmin(admin.ModelAdmin):
 
 @admin.register(ProgramDonation)
 class ProgramDonationAdmin(admin.ModelAdmin):
-    list_display = ('donor_name', 'donation_type', 'frequency', 'amount', 'payment_method', 'membership_id', 'donor_phone', 'status', 'created_at')
+    list_display = ('donor_name', 'donation_type', 'amount', 'payment_method', 'sender_account', 'trx_id', 'membership_id', 'donor_phone', 'status', 'created_at')
     list_filter = ('status', 'donation_type', 'frequency', 'payment_method', 'program', 'created_at')
-    search_fields = ('donor_name', 'donor_phone', 'donor_email', 'membership_id', 'trx_id', 'tran_id', 'bank_tran_id', 'program__title')
+    search_fields = ('donor_name', 'donor_phone', 'donor_email', 'membership_id', 'sender_account', 'trx_id', 'tran_id', 'bank_tran_id', 'program__title')
     ordering = ('-created_at',)
+    actions = ['approve_donations', 'reject_donations']
+
+    def save_model(self, request, obj, form, change):
+        old_status = None
+        if change:
+            orig = ProgramDonation.objects.filter(pk=obj.pk).first()
+            if orig:
+                old_status = orig.status
+
+        super().save_model(request, obj, form, change)
+
+        # Status transition to Approved
+        if obj.status == 'approved' and old_status != 'approved':
+            try:
+                from .views import process_successful_payment
+                process_successful_payment(obj, {
+                    'payment_method': obj.payment_method,
+                    'trx_id': obj.trx_id or obj.tran_id,
+                    'transaction_id': obj.trx_id or obj.tran_id,
+                }, request=request)
+            except Exception as e:
+                pass
+        # Status transition to Rejected or Cancelled
+        elif obj.status in ['rejected', 'cancelled', 'failed'] and old_status not in ['rejected', 'cancelled', 'failed']:
+            try:
+                from .donation_notifications import notify_donor_donation_rejected
+                notify_donor_donation_rejected(obj, reason=obj.note or 'তথ্য যাচাই ব্যর্থ হয়েছে', request=request)
+            except Exception as e:
+                pass
+
+    @admin.action(description="✅ নির্বাচিত অনুদানসমূহ অনুমোদন করুন (Approve & Notify Donor)")
+    def approve_donations(self, request, queryset):
+        from .views import process_successful_payment
+        approved_count = 0
+        for item in queryset:
+            if item.status != 'approved':
+                item.status = 'approved'
+                item.save()
+                process_successful_payment(item, {
+                    'payment_method': item.payment_method,
+                    'trx_id': item.trx_id or item.tran_id,
+                    'transaction_id': item.trx_id or item.tran_id,
+                }, request=request)
+                approved_count += 1
+        self.message_user(request, f"{approved_count}টি অনুদান সফলভাবে অনুমোদন করা হয়েছে এবং দাতাদের কাছে নোটিফিকেশন পাঠানো হয়েছে।")
+
+    @admin.action(description="❌ নির্বাচিত অনুদানসমূহ বাতিল করুন (Reject & Notify Donor)")
+    def reject_donations(self, request, queryset):
+        from .donation_notifications import notify_donor_donation_rejected
+        rejected_count = 0
+        for item in queryset:
+            if item.status != 'rejected':
+                item.status = 'rejected'
+                item.save()
+                notify_donor_donation_rejected(item, reason='অ্যাডমিন প্যানেল থেকে বাতিল করা হয়েছে', request=request)
+                rejected_count += 1
+        self.message_user(request, f"{rejected_count}টি অনুদান বাতিল করা হয়েছে এবং দাতাদের কাছে নোটিফিকেশন পাঠানো হয়েছে।")
+

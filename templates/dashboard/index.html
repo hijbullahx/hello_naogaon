@@ -1509,24 +1509,29 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-info text-dark">{{ pd.payment_method }}</span>
-                                        {% if pd.trx_id %}<small class="text-secondary d-block">Trx: {{ pd.trx_id }}</small>{% endif %}
+                                        {% if pd.sender_account %}<small class="text-dark d-block fw-bold">প্রেরক: {{ pd.sender_account }}</small>{% endif %}
+                                        {% if pd.trx_id %}<small class="text-secondary d-block font-monospace">Trx: {{ pd.trx_id }}</small>{% endif %}
                                     </td>
                                     <td><span class="fw-bold text-success fs-6">+ ৳ {{ pd.amount }}</span></td>
                                     <td>
                                         {% if pd.status == 'approved' %}
-                                        <span class="badge bg-success"><i
-                                                class="fas fa-check-circle me-1"></i>অনুমোদিত</span>
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>অনুমোদিত</span>
+                                        {% elif pd.status == 'rejected' %}
+                                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>বাতিল</span>
                                         {% else %}
-                                        <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>যাচাই
-                                            বাকি</span>
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>যাচাই বাকি</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if pd.status != 'approved' %}
                                         <a href="{% url 'core:approve_donation' pd.id %}"
-                                            onclick="return confirm('এই অনুদানটি অনুমোদন করতে চান? এটি ফাইন্যান্স লেজারে যুক্ত হবে।');"
+                                            onclick="return confirm('এই অনুদানটি অনুমোদন করতে চান? দাতার কাছে রসিদ ও নিশ্চিতকরণ বার্তা পাঠানো হবে।');"
                                             class="btn btn-sm btn-success fw-bold me-1" title="অনুমোদন করুন"><i
                                                 class="fas fa-check me-1"></i>অনুমোদন</a>
+                                        <a href="{% url 'core:reject_donation' pd.id %}"
+                                            onclick="return confirm('এই অনুদানটি বাতিল করতে চান? দাতার কাছে নোটিফিকেশন পাঠানো হবে।');"
+                                            class="btn btn-sm btn-outline-warning fw-bold me-1" title="বাতিল করুন"><i
+                                                class="fas fa-times me-1"></i>বাতিল</a>
                                         {% endif %}
                                         <a href="{% url 'core:delete_donation' pd.id %}"
                                             onclick="return confirm('এই এন্ট্রিটি মুছে ফেলতে চান?');"

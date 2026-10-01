@@ -57,6 +57,7 @@ urlpatterns = [
     path('dashboard/save-gallery/', views_dashboard.save_gallery_photo, name='save_gallery'),
     path('dashboard/update-footer/', views_dashboard.update_footer_section, name='update_footer'),
     path('dashboard/approve-donation/<int:pk>/', views_dashboard.approve_program_donation, name='approve_donation'),
+    path('dashboard/reject-donation/<int:pk>/', views_dashboard.reject_program_donation, name='reject_donation'),
     path('dashboard/delete-donation/<int:pk>/', views_dashboard.delete_program_donation, name='delete_donation'),
     path('dashboard/update-profile/', update_profile, name='update_profile'),
     path('dashboard/delete-gallery-photo/<int:pk>/', delete_gallery_photo, name='delete_gallery_photo'),

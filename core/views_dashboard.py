@@ -1648,41 +1648,12 @@ def approve_program_donation(request, pk):
             date=date.today(),
             note=trx_note
         )
-        # Dispatch SMS receipt to donor
-        if donation.donor_phone:
-            try:
-                from core.sms_utils import send_sms
-                donor_sms = f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, আপনার ৳{donation.amount:,.0f} অনুদান সফলভাবে অনুমোদিত হয়েছে। রসিদ নং: {donation.trx_id or donation.id}। ধন্যবাদ। প্রয়োজনে: 01916314315"
-                send_sms(donation.donor_phone, donor_sms)
-            except Exception as ex:
-                print(f"[DONOR SMS ERROR] {ex}")
-
-        # Dispatch Email receipt if donor email present
-        if donation.donor_email:
-            try:
-                send_system_email(
-                    subject=f"🧾 অনুদান প্রাপ্তি রসিদ — হেল্পলাইন হ্যালো নওগাঁ (৳{donation.amount:,.0f})",
-                    recipient_list=[donation.donor_email],
-                    recipient_name=donation.donor_name,
-                    greeting="শ্রদ্ধেয় দাতা,",
-                    headline="অনুদান সফলভাবে অনুমোদিত হয়েছে",
-                    message_paragraphs=[
-                        f"হেল্পলাইন হ্যালো নওগাঁর মাধ্যমে মানবতার সেবায় আপনার অনুদানটি যাচাই ও অনুমোদিত হয়েছে।",
-                        "আপনার এই সহায়তা অসহায় মানুষের মুখে হাসি ফোটাতে কাজে লাগবে। সংগঠনের পক্ষ থেকে আপনার প্রতি অশেষ কৃতজ্ঞতা ও শুভকামনা।"
-                    ],
-                    details=[
-                        {'label': 'দাতা / প্রেরকের নাম', 'value': donation.donor_name},
-                        {'label': 'অনুদানের পরিমাণ', 'value': f"৳ {donation.amount:,.2f}"},
-                        {'label': 'পেমেন্ট মাধ্যম', 'value': donation.payment_method or 'N/A'},
-                        {'label': 'ট্রানজেকশন / রসিদ নং', 'value': donation.trx_id or f"HN{donation.id}"},
-                        {'label': 'কার্যক্রম / খাত', 'value': donation.program.title if donation.program else 'সাধারণ তহবিল'},
-                    ],
-                    footer_note="যেকোনো তথ্যের প্রয়োজনে যোগাযোগ: 01916314315",
-                    fail_silently=True,
-                    request=request
-                )
-            except Exception as ex:
-                print(f"[DONOR EMAIL ERROR] {ex}")
+        # Dispatch SMS & Email receipt to donor via unified notification service
+        try:
+            from donations.donation_notifications import notify_donor_donation_approved
+            notify_donor_donation_approved(donation, request=request)
+        except Exception as ex:
+            print(f"[DONOR APPROVAL NOTIFICATION ERROR] {ex}")
 
         messages.success(request, f'অনুদান (৳{donation.amount}) সফলভাবে অনুমোদিত হয়েছে এবং ফাইন্যান্স লেজারে যুক্ত হয়েছে!')
     return redirect('/dashboard/?tab=finance-section')
@@ -1701,6 +1672,31 @@ def delete_program_donation(request, pk):
     else:
         messages.warning(request, 'অনুদানের তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
     return redirect('/dashboard/?tab=finance-section')
+
+@staff_member_required
+def reject_program_donation(request, pk):
+    """Reject a pending donation, set status to rejected and notify the donor via Email & SMS"""
+    donation = ProgramDonation.objects.filter(pk=pk).first()
+    if not can_user_edit_finance(request.user):
+        messages.warning(request, "আর্থিক হিসাব পরিবর্তনের অনুমতি শুধুমাত্র প্রধান এডমিন ও কোষাধ্যক্ষের রয়েছে।")
+        return redirect("/dashboard/?tab=finance-section")
+
+    if not donation:
+        messages.warning(request, 'অনুদানের তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
+        return redirect('/dashboard/?tab=finance-section')
+
+    reason = request.POST.get('reason', '').strip() or request.GET.get('reason', '').strip()
+    donation.status = 'rejected'
+    if reason:
+        donation.note = (donation.note + f" [বাতিলের কারণ: {reason}]").strip()
+    donation.save()
+
+    from donations.donation_notifications import notify_donor_donation_rejected
+    notify_donor_donation_rejected(donation, reason=reason, request=request)
+
+    messages.warning(request, f'অনুদানটি (৳{donation.amount:,.0f}) বাতিল করা হয়েছে এবং দাতার কাছে নোটিফিকেশন পাঠানো হয়েছে।')
+    return redirect('/dashboard/?tab=finance-section')
+
 
 
 @login_required

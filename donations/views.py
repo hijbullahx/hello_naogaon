@@ -288,7 +288,47 @@ def initiate_payment(request):
     # Generate unique transaction ID
     tran_id = f"HN{datetime.now().strftime('%y%m%d%H%M%S')}{random.randint(100, 999)}"
 
-    # Create pending donation record
+    payment_mode = request.POST.get('payment_mode', 'gateway').strip().lower()
+    manual_channel = request.POST.get('manual_channel', 'bKash').strip()
+    sender_account = request.POST.get('sender_account', '').strip()
+    trx_id = request.POST.get('trx_id', '').strip()
+
+    # Manual Send-Money / Bank Deposit workflow
+    if payment_mode == 'manual':
+        if not sender_account and not trx_id:
+            messages.error(request, "ম্যানুয়াল পেমেন্ট সম্পন্ন করতে আপনার প্রেরক অ্যাকাউন্ট নম্বর বা ট্রানজেকশন আইডি (TrxID) প্রদান করুন।")
+            return redirect('donations:donate')
+
+        donation = ProgramDonation.objects.create(
+            donation_type=donation_type,
+            frequency=frequency,
+            program=prog,
+            donor_name=donor_name,
+            donor_email=donor_email,
+            donor_phone=donor_phone,
+            membership_id=membership_id if membership_id else None,
+            amount=amount_val,
+            payment_method=f"Manual ({manual_channel})",
+            sender_account=sender_account,
+            card_type=manual_channel,
+            trx_id=trx_id,
+            tran_id=tran_id,
+            note=note,
+            status='pending'
+        )
+
+        from .donation_notifications import notify_admin_new_manual_donation, notify_donor_manual_submission
+        notify_admin_new_manual_donation(donation, request=request)
+        notify_donor_manual_submission(donation, request=request)
+
+        member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
+        messages.success(
+            request, 
+            f"ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{amount_val:,.0f} ম্যানুয়াল পেমেন্টের তথ্য সফলভাবে জমা হয়েছে। অ্যাডমিন প্যানেল থেকে স্টেটমেন্ট যাচাই শেষে এটি অনুমোদিত হবে এবং আপনার কাছে নিশ্চিতকরণ এসএমএস ও ইমেইল পাঠানো হবে।"
+        )
+        return redirect('donations:donate')
+
+    # Automated Online Gateway workflow
     donation = ProgramDonation.objects.create(
         donation_type=donation_type,
         frequency=frequency,
@@ -350,22 +390,29 @@ def gateway_checkout_view(request, tran_id):
 @require_POST
 def confirm_checkout_payment(request, tran_id):
     """
-    Saves user's manual payment submission (Payment method & Trx ID) as pending verification.
+    Saves user's manual payment submission (Payment method, Sender Account & Trx ID) as pending verification.
     """
     donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
     payment_channel = request.POST.get('payment_channel') or 'bKash'
+    sender_account = request.POST.get('sender_account', '').strip()
     trx_id = request.POST.get('trx_id', '').strip()
 
-    donation.payment_method = payment_channel
+    donation.payment_method = f"Manual ({payment_channel})"
     donation.card_type = payment_channel
+    if sender_account:
+        donation.sender_account = sender_account
     donation.trx_id = trx_id
     donation.status = 'pending'
     donation.save()
 
+    from .donation_notifications import notify_admin_new_manual_donation, notify_donor_manual_submission
+    notify_admin_new_manual_donation(donation, request=request)
+    notify_donor_manual_submission(donation, request=request)
+
     member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
     messages.success(
         request, 
-        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} সহায়তার তথ্য ও ট্রানজেকশন আইডি সফলভাবে জমা হয়েছে। অ্যাডমিন প্যানেল থেকে যাচাই শেষে এটি অনুমোদিত হবে।'
+        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} সহায়তার তথ্য ও ট্রানজেকশন আইডি সফলভাবে জমা হয়েছে। অ্যাডমিন প্যানেল থেকে যাচাই শেষে এটি অনুমোদিত হবে এবং আপনার কাছে নোটিফিকেশন পাঠানো হবে।'
     )
     return redirect('donations:donate')
 
