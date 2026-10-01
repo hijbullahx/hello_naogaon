@@ -28,9 +28,13 @@ from django.conf import settings
 from core.email_utils import send_system_email, get_admin_notification_emails
 from core.sms_utils import send_sms
 from .gateway import (
+    initiate_active_gateway_session,
+    initiate_paystation_session,
+    verify_paystation_payment,
     initiate_paymently_session,
     verify_paymently_payment,
     get_paymently_config,
+    get_paystation_config,
     initiate_payment_gateway_session,
     validate_gateway_payment
 )
@@ -213,26 +217,26 @@ def initiate_payment(request):
         status='pending'
     )
 
-    # Initiate Paymently automated checkout session
-    session_res = initiate_paymently_session(request, donation)
+    # Initiate automated checkout session (PayStation Direct OTP/PIN or Paymently)
+    session_res = initiate_active_gateway_session(request, donation)
     if session_res.get('success') and session_res.get('payment_url'):
         return redirect(session_res['payment_url'])
     else:
-        logger.warning(f"Paymently checkout initiation fallback for {donation.tran_id}: {session_res.get('error')}")
+        logger.warning(f"Payment gateway initiation fallback for {donation.tran_id}: {session_res.get('error')}")
         messages.info(request, "অনলাইন পেমেন্ট গেটওয়েতে সংযোগ করা যাচ্ছে না। আপনি নিচের তথ্য ব্যবহার করে সহায়তা পাঠাতে পারেন।")
         return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
 
 
 def start_checkout_payment(request, tran_id):
     """
-    Direct endpoint from checkout preview page to initiate or re-launch Paymently payment session.
+    Direct endpoint from checkout preview page to initiate or re-launch active payment session.
     """
     donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
     if donation.status == 'approved':
         messages.info(request, "এই অনুদানটি ইতিমধ্যে সফলভাবে পরিশোধ করা হয়েছে।")
         return redirect('donations:receipt', donation_id=donation.id)
 
-    session_res = initiate_paymently_session(request, donation)
+    session_res = initiate_active_gateway_session(request, donation)
     if session_res.get('success') and session_res.get('payment_url'):
         return redirect(session_res['payment_url'])
     else:
@@ -440,12 +444,37 @@ def process_successful_payment(donation, payment_data, request=None):
 def payment_success(request):
     """
     Official Payment Gateway Success Callback.
-    Verifies transaction with Paymently Verify API, updates donation,
+    Verifies transaction with PayStation or Paymently Verify API, updates donation,
     logs financial transaction, dispatches notifications, and shows official receipt.
     """
+    invoice_number = request.GET.get('invoice_number') or request.POST.get('invoice_number')
     invoice_id = request.GET.get('invoice_id') or request.POST.get('invoice_id')
-    tran_id = request.GET.get('tran_id') or request.POST.get('tran_id')
+    tran_id = request.GET.get('tran_id') or request.POST.get('tran_id') or invoice_number
 
+    # 1. PayStation Verification
+    target_invoice = invoice_number or tran_id
+    if target_invoice:
+        ps_res = verify_paystation_payment(target_invoice)
+        if str(ps_res.get('status_code')) == '200' and ps_res.get('data'):
+            ps_data = ps_res['data']
+            if str(ps_data.get('trx_status', '')).lower() == 'success':
+                donation = ProgramDonation.objects.filter(tran_id=target_invoice).first()
+                if donation:
+                    payment_data = {
+                        'payment_method': ps_data.get('payment_method') or 'PayStation',
+                        'transaction_id': ps_data.get('trx_id') or target_invoice,
+                        'invoice_id': target_invoice,
+                        'amount': ps_data.get('payment_amount') or donation.amount
+                    }
+                    process_successful_payment(donation, payment_data, request=request)
+                    member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
+                    messages.success(
+                        request, 
+                        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
+                    )
+                    return redirect('donations:receipt', donation_id=donation.id)
+
+    # 2. Paymently Verification
     if invoice_id:
         verification_res = verify_paymently_payment(invoice_id)
         status = str(verification_res.get('status', '')).upper()
@@ -483,7 +512,7 @@ def payment_success(request):
         if donation and donation.status == 'approved':
             return redirect('donations:receipt', donation_id=donation.id)
 
-    messages.error(request, "পেমেন্ট সংক্রান্ত তথ্য পাওয়া যায়নি।")
+    messages.error(request, "পেমেন্ট সংক্রান্ত তথ্য পাওয়া যায়নি বা পেমেন্ট সম্পন্ন হয়নি।")
     return redirect('donations:donate')
 
 
@@ -493,7 +522,7 @@ def payment_fail(request):
     Payment Gateway Failure Callback.
     """
     tran_id = request.POST.get('tran_id') or request.GET.get('tran_id')
-    invoice_id = request.POST.get('invoice_id') or request.GET.get('invoice_id')
+    invoice_id = request.POST.get('invoice_id') or request.GET.get('invoice_id') or request.GET.get('invoice_number')
     if tran_id:
         donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
         if donation and donation.status == 'pending':
@@ -515,7 +544,7 @@ def payment_cancel(request):
     Payment Gateway Cancel Callback.
     """
     tran_id = request.POST.get('tran_id') or request.GET.get('tran_id')
-    invoice_id = request.POST.get('invoice_id') or request.GET.get('invoice_id')
+    invoice_id = request.POST.get('invoice_id') or request.GET.get('invoice_id') or request.GET.get('invoice_number')
     if tran_id:
         donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
         if donation and donation.status == 'pending':
@@ -535,7 +564,7 @@ def payment_cancel(request):
 def payment_ipn(request):
     """
     Payment Gateway IPN (Instant Payment Notification) Webhook.
-    Receives automated webhook notifications from UddoktaPay / Paymently.
+    Receives automated webhook notifications from PayStation and Paymently.
     """
     try:
         import json
@@ -547,9 +576,24 @@ def payment_ipn(request):
         logger.warning(f"Failed to parse IPN payload: {e}")
         payload = request.POST.dict()
 
-    invoice_id = payload.get('invoice_id')
-    logger.info(f"Paymently IPN webhook received for invoice: {invoice_id}")
+    invoice_number = payload.get('invoice_number')
+    trx_status = str(payload.get('trx_status', '')).lower()
 
+    # 1. PayStation IPN handler
+    if invoice_number and trx_status == 'success':
+        donation = ProgramDonation.objects.filter(tran_id=invoice_number).first()
+        if donation:
+            payment_data = {
+                'payment_method': payload.get('payment_method') or 'PayStation',
+                'transaction_id': payload.get('trx_id') or invoice_number,
+                'invoice_id': invoice_number,
+                'amount': payload.get('trx_amount') or donation.amount
+            }
+            process_successful_payment(donation, payment_data, request=request)
+            return JsonResponse({'status': 'success'})
+
+    # 2. Paymently IPN handler
+    invoice_id = payload.get('invoice_id')
     if invoice_id:
         verification_res = verify_paymently_payment(invoice_id)
         if str(verification_res.get('status', '')).upper() == 'COMPLETED':
