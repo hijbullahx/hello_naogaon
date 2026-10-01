@@ -24,7 +24,16 @@ from .models import (
 )
 from programs.models import Program
 from volunteers.models import Volunteer, TeamMember
-from .gateway import initiate_payment_gateway_session, validate_gateway_payment, get_gateway_config
+from django.conf import settings
+from core.email_utils import send_system_email, get_admin_notification_emails
+from core.sms_utils import send_sms
+from .gateway import (
+    initiate_paymently_session,
+    verify_paymently_payment,
+    get_paymently_config,
+    initiate_payment_gateway_session,
+    validate_gateway_payment
+)
 
 logger = logging.getLogger(__name__)
 
@@ -204,13 +213,36 @@ def initiate_payment(request):
         status='pending'
     )
 
-    return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
+    # Initiate Paymently automated checkout session
+    session_res = initiate_paymently_session(request, donation)
+    if session_res.get('success') and session_res.get('payment_url'):
+        return redirect(session_res['payment_url'])
+    else:
+        logger.warning(f"Paymently checkout initiation fallback for {donation.tran_id}: {session_res.get('error')}")
+        messages.info(request, "অনলাইন পেমেন্ট গেটওয়েতে সংযোগ করা যাচ্ছে না। আপনি নিচের তথ্য ব্যবহার করে সহায়তা পাঠাতে পারেন।")
+        return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
+
+
+def start_checkout_payment(request, tran_id):
+    """
+    Direct endpoint from checkout preview page to initiate or re-launch Paymently payment session.
+    """
+    donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
+    if donation.status == 'approved':
+        messages.info(request, "এই অনুদানটি ইতিমধ্যে সফলভাবে পরিশোধ করা হয়েছে।")
+        return redirect('donations:receipt', donation_id=donation.id)
+
+    session_res = initiate_paymently_session(request, donation)
+    if session_res.get('success') and session_res.get('payment_url'):
+        return redirect(session_res['payment_url'])
+    else:
+        messages.error(request, f"পেমেন্ট গেটওয়েতে সংযোগ করতে সমস্যা হয়েছে: {session_res.get('error')}")
+        return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
 
 
 def gateway_checkout_view(request, tran_id):
     """
-    Renders the official gateway checkout page with notice that automated gateway integration is coming soon,
-    and displays official organization account details (bKash/Nagad/Rocket/Bank) for manual donation.
+    Renders the official gateway checkout page with automated payment button and manual send-money fallback.
     """
     donation = get_object_or_404(ProgramDonation, tran_id=tran_id)
     donation_methods = DonationMethod.objects.filter(is_active=True)
@@ -247,83 +279,212 @@ def confirm_checkout_payment(request, tran_id):
     return redirect('donations:donate')
 
 
+def process_successful_payment(donation, payment_data, request=None):
+    """
+    Idempotent processor for verified completed donations:
+    1. Updates donation status to 'approved'
+    2. Updates program raised amount
+    3. Records FinancialTransaction
+    4. Dispatches SMS & Email receipts to donor
+    5. Dispatches Admin alert SMS & Email
+    """
+    if donation.status == 'approved':
+        return donation
+
+    raw_method = payment_data.get('payment_method') or 'Online Gateway'
+    # Format payment method nicely
+    m_lower = str(raw_method).lower()
+    if 'bkash' in m_lower:
+        payment_method = 'bKash'
+    elif 'nagad' in m_lower:
+        payment_method = 'Nagad'
+    elif 'rocket' in m_lower:
+        payment_method = 'Rocket'
+    elif 'upay' in m_lower:
+        payment_method = 'Upay'
+    else:
+        payment_method = str(raw_method)
+
+    trx_id = payment_data.get('transaction_id') or payment_data.get('trx_id') or donation.tran_id
+    invoice_id = str(payment_data.get('invoice_id') or donation.bank_tran_id or '')
+
+    donation.status = 'approved'
+    donation.payment_method = payment_method
+    donation.card_type = payment_method
+    donation.bank_tran_id = invoice_id
+    donation.trx_id = trx_id
+    donation.save()
+
+    # 1. Update Program raised_amount
+    if donation.program:
+        prog = donation.program
+        prog.raised_amount = (prog.raised_amount or 0) + donation.amount
+        prog.save()
+        category_name = f"কার্যক্রম: {prog.title}"
+        title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
+    elif donation.donation_type == 'volunteer':
+        category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা'
+        title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
+    else:
+        category_name = 'সাধারণ আর্থিক সহায়তা'
+        title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
+
+    trx_note = f"পেমেন্ট মাধ্যম: {payment_method} | TrxID: {trx_id} | ইনভয়েস: {invoice_id} | মোবাইল: {donation.donor_phone}"
+    if donation.membership_id:
+        trx_note += f" | মেম্বার আইডি: {donation.membership_id}"
+    if donation.program:
+        trx_note += f" | কার্যক্রম: {donation.program.title}"
+    if donation.note:
+        trx_note += f" | নোট: {donation.note}"
+
+    # 2. Record FinancialTransaction (income) if not already created
+    if not FinancialTransaction.objects.filter(trx_id=trx_id, transaction_type='income').exists():
+        FinancialTransaction.objects.create(
+            transaction_type='income',
+            program=donation.program,
+            title=title_name,
+            category=category_name,
+            amount=donation.amount,
+            payment_method=payment_method,
+            trx_id=trx_id,
+            donor_name=donation.donor_name,
+            date=date.today(),
+            note=trx_note
+        )
+
+    # 3. Dispatch SMS receipt to donor
+    if donation.donor_phone:
+        try:
+            donor_sms = (
+                f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
+                f"আপনার ৳{donation.amount:,.0f} অনুদান সফলভাবে অনুমোদিত হয়েছে। "
+                f"পেমেন্ট মেথড: {payment_method}, TrxID: {trx_id}। ধন্যবাদ। প্রয়োজনে: 01916314315"
+            )
+            send_sms(donation.donor_phone, donor_sms)
+        except Exception as ex:
+            logger.error(f"[DONOR SMS ERROR] {ex}")
+
+    # 4. Dispatch Email receipt to donor
+    if donation.donor_email:
+        try:
+            send_system_email(
+                subject=f"🧾 অনুদান প্রাপ্তি রসিদ — হেল্পলাইন হ্যালো নওগাঁ (৳{donation.amount:,.0f})",
+                recipient_list=[donation.donor_email],
+                recipient_name=donation.donor_name,
+                greeting="শ্রদ্ধেয় দাতা,",
+                headline="অনলাইন অনুদান সফলভাবে সম্পন্ন হয়েছে",
+                message_paragraphs=[
+                    "হেল্পলাইন হ্যালো নওগাঁর মাধ্যমে মানবতার সেবায় আপনার অনুদানটি স্বয়ংক্রিয়ভাবে গৃহীত ও অনুমোদিত হয়েছে।",
+                    "আপনার এই মহতী সহায়তা অসহায় ও সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াতে আমাদের সহায়তা করবে। সংগঠনের পক্ষ থেকে আপনার প্রতি অশেষ কৃতজ্ঞতা ও শুভকামনা।"
+                ],
+                details=[
+                    {'label': 'দাতা / প্রেরকের নাম', 'value': donation.donor_name},
+                    {'label': 'অনুদানের পরিমাণ', 'value': f"৳ {donation.amount:,.2f}"},
+                    {'label': 'পেমেন্ট মাধ্যম', 'value': payment_method},
+                    {'label': 'ট্রানজেকশন আইডি (TrxID)', 'value': trx_id},
+                    {'label': 'গেটওয়ে ইনভয়েস নং', 'value': invoice_id or donation.tran_id},
+                    {'label': 'কার্যক্রম / খাত', 'value': donation.program.title if donation.program else 'সাধারণ তহবিল'},
+                ],
+                footer_note="যেকোনো তথ্যের প্রয়োজনে যোগাযোগ: 01916314315",
+                fail_silently=True,
+                request=request
+            )
+        except Exception as ex:
+            logger.error(f"[DONOR EMAIL ERROR] {ex}")
+
+    # 5. Dispatch Admin Alert SMS & Email
+    try:
+        admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
+        if admin_phone:
+            admin_sms = (
+                f"[Helpline Hello Naogaon] নতুন অনলাইন অনুদান! "
+                f"দাতা: {donation.donor_name}, পরিমাণ: ৳{donation.amount:,.0f}, "
+                f"মাধ্যম: {payment_method}, TrxID: {trx_id}। প্রয়োজনে: 01916314315"
+            )
+            send_sms(admin_phone, admin_sms)
+    except Exception as ex:
+        logger.error(f"[ADMIN SMS ALERT ERROR] {ex}")
+
+    try:
+        admin_emails = get_admin_notification_emails()
+        if admin_emails:
+            send_system_email(
+                subject=f"💰 নতুন অনলাইন অনুদান প্রাপ্তি — ৳{donation.amount:,.0f} ({donation.donor_name})",
+                recipient_list=admin_emails,
+                recipient_name="শ্রদ্ধেয় এডমিন",
+                greeting="আসসালামু আলাইকুম,",
+                headline="নতুন অনলাইন অনুদান জমা হয়েছে",
+                message_paragraphs=[
+                    "হেল্পলাইন হ্যালো নওগাঁর অনলাইন পেমেন্ট গেটওয়ের মাধ্যমে একটি নতুন সফল অনুদান সম্পন্ন হয়েছে।"
+                ],
+                details=[
+                    {'label': 'দাতার নাম', 'value': donation.donor_name},
+                    {'label': 'মোবাইল নম্বর', 'value': donation.donor_phone},
+                    {'label': 'অনুদানের পরিমাণ', 'value': f"৳ {donation.amount:,.2f}"},
+                    {'label': 'পেমেন্ট মাধ্যম', 'value': payment_method},
+                    {'label': 'ট্রানজেকশন আইডি (TrxID)', 'value': trx_id},
+                    {'label': 'গেটওয়ে ইনভয়েস নং', 'value': invoice_id or donation.tran_id},
+                    {'label': 'খাত / প্রজেক্ট', 'value': donation.program.title if donation.program else 'সাধারণ তহবিল'},
+                ],
+                footer_note="সিস্টেম স্বয়ংক্রিয় নোটিফিকেশন | হেল্পলাইন হ্যালো নওগাঁ",
+                fail_silently=True,
+                request=request
+            )
+    except Exception as ex:
+        logger.error(f"[ADMIN EMAIL ALERT ERROR] {ex}")
+
+    return donation
+
+
 @csrf_exempt
 def payment_success(request):
     """
     Official Payment Gateway Success Callback.
-    Verifies transaction with gateway validation server, updates donation, logs financial transaction, and shows receipt.
+    Verifies transaction with Paymently Verify API, updates donation,
+    logs financial transaction, dispatches notifications, and shows official receipt.
     """
-    tran_id = request.POST.get('tran_id') or request.GET.get('tran_id')
-    val_id = request.POST.get('val_id') or request.GET.get('val_id')
-    card_type = request.POST.get('card_type') or request.POST.get('card_brand') or 'Online Payment'
-    bank_tran_id = request.POST.get('bank_tran_id') or request.POST.get('val_id') or request.POST.get('tran_id')
+    invoice_id = request.GET.get('invoice_id') or request.POST.get('invoice_id')
+    tran_id = request.GET.get('tran_id') or request.POST.get('tran_id')
 
-    if not tran_id:
-        messages.error(request, "পেমেন্ট সংক্রান্ত তথ্য পাওয়া যায়নি।")
-        return redirect('donations:donate')
+    if invoice_id:
+        verification_res = verify_paymently_payment(invoice_id)
+        status = str(verification_res.get('status', '')).upper()
+        if status == 'COMPLETED':
+            meta = verification_res.get('metadata') or {}
+            target_tran_id = meta.get('tran_id') or tran_id
+            donation = None
+            if target_tran_id:
+                donation = ProgramDonation.objects.filter(tran_id=target_tran_id).first()
+            if not donation and meta.get('donation_id'):
+                donation = ProgramDonation.objects.filter(pk=meta.get('donation_id')).first()
+            if not donation and invoice_id:
+                donation = ProgramDonation.objects.filter(bank_tran_id=invoice_id).first()
 
-    donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
-    if not donation:
-        messages.error(request, "অনুরোধকৃত লেনদেনটি খুঁজে পাওয়া যায়নি।")
-        return redirect('donations:donate')
-
-    is_real_payment_verified = False
-    # Server-side validation if val_id is provided from live payment gateway
-    if val_id:
-        validation_res = validate_gateway_payment(val_id)
-        if validation_res.get('status') in ['VALID', 'VALIDATED']:
-            card_type = validation_res.get('card_type', card_type)
-            bank_tran_id = validation_res.get('bank_tran_id', bank_tran_id)
-            is_real_payment_verified = True
-
-    if donation.status != 'approved':
-        donation.status = 'approved' if is_real_payment_verified else 'pending'
-        donation.payment_method = card_type
-        donation.card_type = card_type
-        donation.bank_tran_id = bank_tran_id
-        donation.trx_id = bank_tran_id
-        donation.save()
-
-        # Record income in Financial Transactions ONLY if real payment was verified
-        if is_real_payment_verified:
-            if donation.program:
-                prog = donation.program
-                prog.raised_amount = (prog.raised_amount or 0) + donation.amount
-                prog.save()
-                category_name = f"কার্যক্রম: {prog.title}"
-                title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
-            elif donation.donation_type == 'volunteer':
-                category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা'
-                title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
+            if donation:
+                process_successful_payment(donation, verification_res, request=request)
+                member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
+                messages.success(
+                    request, 
+                    f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
+                )
+                return redirect('donations:receipt', donation_id=donation.id)
             else:
-                category_name = 'সাধারণ আর্থিক সহায়তা'
-                title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
+                logger.error(f"Donation record not found for verified invoice {invoice_id}")
+                messages.success(request, "আপনার অনুদান সফলভাবে গৃহীত হয়েছে। তথ্য যাচাই শেষে আপডেট করা হবে।")
+                return redirect('donations:donate')
+        else:
+            status_desc = verification_res.get('status', 'PENDING')
+            messages.warning(request, f"পেমেন্ট স্ট্যাটাস: {status_desc}। পেমেন্ট সম্পূর্ণ হয়নি বা অপেক্ষমাণ রয়েছে।")
+            return redirect('donations:donate')
 
-            trx_note = f"পেমেন্ট চ্যানেল: {card_type} | ট্রানজেকশন আইডি: {bank_tran_id} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | মোবাইল: {donation.donor_phone}"
-            if donation.program:
-                trx_note += f" | কার্যক্রম: {donation.program.title}"
-            if donation.note:
-                trx_note += f" | নোট: {donation.note}"
+    # Fallback to tran_id check
+    if tran_id:
+        donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
+        if donation and donation.status == 'approved':
+            return redirect('donations:receipt', donation_id=donation.id)
 
-            FinancialTransaction.objects.create(
-                transaction_type='income',
-                program=donation.program,
-                title=title_name,
-                category=category_name,
-                amount=donation.amount,
-                payment_method=card_type,
-                trx_id=bank_tran_id,
-                donor_name=donation.donor_name,
-                date=date.today(),
-                note=trx_note
-            )
-
-    member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
-    messages.success(
-        request, 
-        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
-    )
-    return redirect('donations:receipt', donation_id=donation.id)
+    messages.error(request, "পেমেন্ট সংক্রান্ত তথ্য পাওয়া যায়নি।")
+    return redirect('donations:donate')
 
 
 @csrf_exempt
@@ -332,8 +493,14 @@ def payment_fail(request):
     Payment Gateway Failure Callback.
     """
     tran_id = request.POST.get('tran_id') or request.GET.get('tran_id')
+    invoice_id = request.POST.get('invoice_id') or request.GET.get('invoice_id')
     if tran_id:
         donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
+        if donation and donation.status == 'pending':
+            donation.status = 'failed'
+            donation.save()
+    elif invoice_id:
+        donation = ProgramDonation.objects.filter(bank_tran_id=invoice_id).first()
         if donation and donation.status == 'pending':
             donation.status = 'failed'
             donation.save()
@@ -348,8 +515,14 @@ def payment_cancel(request):
     Payment Gateway Cancel Callback.
     """
     tran_id = request.POST.get('tran_id') or request.GET.get('tran_id')
+    invoice_id = request.POST.get('invoice_id') or request.GET.get('invoice_id')
     if tran_id:
         donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
+        if donation and donation.status == 'pending':
+            donation.status = 'cancelled'
+            donation.save()
+    elif invoice_id:
+        donation = ProgramDonation.objects.filter(bank_tran_id=invoice_id).first()
         if donation and donation.status == 'pending':
             donation.status = 'cancelled'
             donation.save()
@@ -362,20 +535,39 @@ def payment_cancel(request):
 def payment_ipn(request):
     """
     Payment Gateway IPN (Instant Payment Notification) Webhook.
+    Receives automated webhook notifications from UddoktaPay / Paymently.
     """
-    tran_id = request.POST.get('tran_id')
-    val_id = request.POST.get('val_id')
-    if tran_id:
-        donation = ProgramDonation.objects.filter(tran_id=tran_id).first()
-        if donation and donation.status == 'pending':
-            if val_id:
-                val_res = validate_gateway_payment(val_id)
-                if val_res.get('status') in ['VALID', 'VALIDATED']:
-                    donation.status = 'approved'
-                    donation.bank_tran_id = val_id
-                    donation.trx_id = val_id
-                    donation.save()
-    return JsonResponse({'status': 'IPN received'})
+    try:
+        import json
+        if request.body:
+            payload = json.loads(request.body.decode('utf-8'))
+        else:
+            payload = request.POST.dict()
+    except Exception as e:
+        logger.warning(f"Failed to parse IPN payload: {e}")
+        payload = request.POST.dict()
+
+    invoice_id = payload.get('invoice_id')
+    logger.info(f"Paymently IPN webhook received for invoice: {invoice_id}")
+
+    if invoice_id:
+        verification_res = verify_paymently_payment(invoice_id)
+        if str(verification_res.get('status', '')).upper() == 'COMPLETED':
+            meta = verification_res.get('metadata') or {}
+            target_tran_id = meta.get('tran_id')
+            donation = None
+            if target_tran_id:
+                donation = ProgramDonation.objects.filter(tran_id=target_tran_id).first()
+            if not donation and meta.get('donation_id'):
+                donation = ProgramDonation.objects.filter(pk=meta.get('donation_id')).first()
+            if not donation:
+                donation = ProgramDonation.objects.filter(bank_tran_id=invoice_id).first()
+
+            if donation:
+                process_successful_payment(donation, verification_res, request=request)
+                return JsonResponse({'status': 'SUCCESS', 'message': 'Payment approved'})
+
+    return JsonResponse({'status': 'RECEIVED'})
 
 
 def donation_receipt_view(request, donation_id):

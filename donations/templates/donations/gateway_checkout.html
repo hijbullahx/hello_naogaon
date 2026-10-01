@@ -7,22 +7,22 @@
 <div class="bg-light py-5">
     <div class="container py-3">
         <div class="row justify-content-center">
-            <div class="col-lg-7 col-md-9">
+            <div class="col-lg-8 col-md-10">
 
-                <!-- Gateway Header -->
+                <!-- Gateway Header Card -->
                 <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
                     <div class="bg-dark text-white p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="bg-success text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <div class="bg-success text-white rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;">
                                 <i class="fas fa-shield-alt fa-2x"></i>
                             </div>
                             <div>
                                 <h5 class="fw-bold mb-0 text-white">হেল্পলাইন হ্যালো নওগাঁ</h5>
-                                <small class="text-white-50"><i class="fas fa-lock text-success me-1"></i>SSL Secured 256-bit Payment Gateway</small>
+                                <small class="text-white-50"><i class="fas fa-lock text-success me-1"></i>256-bit SSL Secured Automated Payment Gateway</small>
                             </div>
                         </div>
                         <div class="text-end">
-                            <div class="text-white-50 small">প্রদেয় মোট পরিমাণ</div>
+                            <div class="text-white-50 small">প্রদেয় মোট পরিমাণ</div>
                             <h3 class="fw-bold text-warning mb-0">৳{{ donation.amount|floatformat:2 }}</h3>
                         </div>
                     </div>
@@ -30,10 +30,10 @@
                     <!-- Invoice Summary Bar -->
                     <div class="bg-light px-4 py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 text-secondary small">
                         <div>
-                            <strong>ইনভয়েস আইডি:</strong> <span class="badge bg-secondary font-monospace">{{ donation.tran_id }}</span>
+                            <strong>ইনভয়েস আইডি:</strong> <span class="badge bg-secondary font-monospace fs-6">{{ donation.tran_id }}</span>
                         </div>
                         <div>
-                            <strong>সহায়তাকারী:</strong> <span class="text-dark fw-bold">{{ donation.donor_name }}</span> {% if donation.membership_id %}(সদস্য আইডি: <span class="text-success fw-bold font-monospace">{{ donation.membership_id }}</span>){% else %}({{ donation.donor_phone }}){% endif %}
+                            <strong>সহায়তাকারী:</strong> <span class="text-dark fw-bold">{{ donation.donor_name }}</span> {% if donation.membership_id %}(সদস্য আইডি: <span class="text-success fw-bold font-monospace">{{ donation.membership_id }}</span>){% else %}({{ donation.donor_phone }}){% endif %}
                         </div>
                         {% if donation.program %}
                         <div class="w-100 mt-2 pt-2 border-top d-flex align-items-center gap-2">
@@ -43,130 +43,118 @@
                         {% endif %}
                     </div>
 
-                    <!-- Payment Methods Tab -->
-                    <div class="card-body p-4">
-                        <h6 class="fw-bold text-dark mb-3">
-                            <i class="fas fa-credit-card text-success me-2"></i>আপনার পেমেন্ট চ্যানেল বেছে নিন:
-                        </h6>
+                    <div class="card-body p-4 p-md-5">
 
-                        <!-- Channel Selector Grid -->
-                        <div class="row g-3 mb-4">
-                            <!-- bKash -->
-                            <div class="col-6 col-sm-4">
-                                <div class="channel-card p-3 border rounded-3 text-center cursor-pointer active" onclick="selectChannel('bKash', '#e2136e')">
-                                    <div class="fw-bold text-dark mb-1" style="color: #e2136e !important;">
-                                        <i class="fas fa-mobile-alt fa-2x d-block mb-1"></i>
-                                        bKash (বিকাশ)
-                                    </div>
-                                    <small class="text-muted">Direct PGW</small>
-                                </div>
+                        <!-- Primary Section: Automated Instant Payment -->
+                        <div class="text-center mb-4">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle mb-3" style="width: 64px; height: 64px;">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2">স্বয়ংক্রিয় অনলাইন পেমেন্ট</h4>
+                            <p class="text-muted mb-4">
+                                বিকাশ, নগদ, রকেট, উপায় অথবা যেকোনো ডেবিট/ক্রেডিট কার্ডের মাধ্যমে সরাসরি পেমেন্ট সম্পন্ন করুন। পেমেন্ট নিশ্চিত হওয়ার সাথে সাথে আপনার ফোনে এবং ইমেইলে স্বয়ংক্রিয় মানি রসিদ পাঠানো হবে।
+                            </p>
+
+                            <!-- Supported Payment Icons Badges -->
+                            <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap mb-4">
+                                <span class="badge bg-white text-dark border px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-mobile-alt text-danger me-1"></i>bKash</span>
+                                <span class="badge bg-white text-dark border px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-wallet text-warning me-1"></i>Nagad</span>
+                                <span class="badge bg-white text-dark border px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-money-check-alt text-purple me-1"></i>Rocket</span>
+                                <span class="badge bg-white text-dark border px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-coins text-info me-1"></i>Upay</span>
+                                <span class="badge bg-white text-dark border px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-credit-card text-primary me-1"></i>Visa / Mastercard</span>
                             </div>
 
-                            <!-- Nagad -->
-                            <div class="col-6 col-sm-4">
-                                <div class="channel-card p-3 border rounded-3 text-center cursor-pointer" onclick="selectChannel('Nagad', '#f7941d')">
-                                    <div class="fw-bold text-dark mb-1" style="color: #f7941d !important;">
-                                        <i class="fas fa-wallet fa-2x d-block mb-1"></i>
-                                        Nagad (নগদ)
-                                    </div>
-                                    <small class="text-muted">Direct PGW</small>
-                                </div>
+                            <!-- Primary CTA Button to Paymently -->
+                            <div class="d-grid gap-2 col-md-10 mx-auto">
+                                <a href="{% url 'donations:start_checkout_payment' donation.tran_id %}" id="directPayBtn" class="btn btn-success btn-lg fw-bold py-3 rounded-pill shadow-lg d-flex align-items-center justify-content-center gap-2" onclick="handlePayClick(this)">
+                                    <i class="fas fa-lock fa-lg text-warning"></i>
+                                    <span class="fs-5">সরাসরি অনলাইন পেমেন্ট করুন (৳{{ donation.amount|floatformat:0 }})</span>
+                                    <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
                             </div>
+                        </div>
 
-                            <!-- Rocket -->
-                            <div class="col-6 col-sm-4">
-                                <div class="channel-card p-3 border rounded-3 text-center cursor-pointer" onclick="selectChannel('Rocket', '#8c3494')">
-                                    <div class="fw-bold text-dark mb-1" style="color: #8c3494 !important;">
-                                        <i class="fas fa-money-check-alt fa-2x d-block mb-1"></i>
-                                        Rocket (রকেট)
-                                    </div>
-                                    <small class="text-muted">DBBL</small>
-                                </div>
-                            </div>
+                        <!-- Divider -->
+                        <div class="position-relative my-5">
+                            <hr class="text-muted">
+                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small fw-bold">
+                                অথবা ম্যানুয়ালি সেন্ড মানি করুন
+                            </span>
+                        </div>
 
-                            <!-- Upay -->
-                            <div class="col-6 col-sm-4">
-                                <div class="channel-card p-3 border rounded-3 text-center cursor-pointer" onclick="selectChannel('Upay', '#0072ce')">
-                                    <div class="fw-bold text-dark mb-1" style="color: #0072ce !important;">
-                                        <i class="fas fa-coins fa-2x d-block mb-1"></i>
-                                        Upay (উপায়)
-                                    </div>
-                                    <small class="text-muted">UCB</small>
-                                </div>
-                            </div>
+                        <!-- Secondary Option: Manual Send Money & TrxID Submission -->
+                        <div class="accordion" id="manualPayAccordion">
+                            <div class="accordion-item border rounded-3 overflow-hidden shadow-sm">
+                                <h2 class="accordion-header" id="headingManual">
+                                    <button class="accordion-button collapsed fw-bold text-dark bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManual" aria-expanded="false" aria-controls="collapseManual">
+                                        <i class="fas fa-hand-holding-usd text-success me-2"></i>বিকাশ / নগদ নম্বরে সরাসরি টাকা পাঠিয়ে TrxID জমা দিন
+                                    </button>
+                                </h2>
+                                <div id="collapseManual" class="accordion-collapse collapse" aria-labelledby="headingManual" data-bs-parent="#manualPayAccordion">
+                                    <div class="accordion-body p-4 bg-white">
+                                        <p class="small text-muted mb-3">
+                                            আপনি যদি সরাসরি বিকাশ, নগদ বা রকেট অ্যাপ/এজেন্ট থেকে সেন্ড মানি করতে চান, তবে নিচে দেওয়া নম্বরে <strong>৳{{ donation.amount|floatformat:0 }}</strong> পাঠিয়ে ট্রানজেকশন আইডি (TrxID) নিচে লিখে জমা দিন।
+                                        </p>
 
-                            <!-- Visa / Card -->
-                            <div class="col-6 col-sm-4">
-                                <div class="channel-card p-3 border rounded-3 text-center cursor-pointer" onclick="selectChannel('Visa / Mastercard', '#1a1f71')">
-                                    <div class="fw-bold text-dark mb-1" style="color: #1a1f71 !important;">
-                                        <i class="fas fa-credit-card fa-2x d-block mb-1"></i>
-                                        Debit / Credit
-                                    </div>
-                                    <small class="text-muted">Visa / Master</small>
-                                </div>
-                            </div>
+                                        <!-- Official Accounts List -->
+                                        {% if donation_methods %}
+                                        <div class="row g-2 mb-3">
+                                            {% for method in donation_methods %}
+                                            <div class="col-sm-6">
+                                                <div class="p-3 border rounded-3 bg-light">
+                                                    <div class="fw-bold text-dark"><i class="{{ method.icon_class|default:'fas fa-mobile-alt' }} text-success me-1"></i>{{ method.name }} ({{ method.account_type }})</div>
+                                                    <div class="font-monospace fs-6 text-primary fw-bold mt-1">{{ method.account_number }}</div>
+                                                    {% if method.instructions %}
+                                                    <small class="text-muted d-block mt-1">{{ method.instructions }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
 
-                            <!-- Internet Banking -->
-                            <div class="col-6 col-sm-4">
-                                <div class="channel-card p-3 border rounded-3 text-center cursor-pointer" onclick="selectChannel('Internet Banking', '#198754')">
-                                    <div class="fw-bold text-dark mb-1" style="color: #198754 !important;">
-                                        <i class="fas fa-university fa-2x d-block mb-1"></i>
-                                        Bank Transfer
+                                        <!-- Trx ID Form -->
+                                        <form action="{% url 'donations:confirm_checkout_payment' donation.tran_id %}" method="post" class="mt-3">
+                                            {% csrf_token %}
+                                            <div class="row g-3 align-items-end">
+                                                <div class="col-md-5">
+                                                    <label class="form-label small fw-bold">পেমেন্ট মেথড:</label>
+                                                    <select name="payment_channel" class="form-select">
+                                                        <option value="bKash">bKash (বিকাশ)</option>
+                                                        <option value="Nagad">Nagad (নগদ)</option>
+                                                        <option value="Rocket">Rocket (রকেট)</option>
+                                                        <option value="Upay">Upay (উপায়)</option>
+                                                        <option value="Bank">Bank Transfer</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-7">
+                                                    <label class="form-label small fw-bold">ট্রানজেকশন আইডি (Trx ID) <span class="text-danger">*</span>:</label>
+                                                    <input type="text" name="trx_id" class="form-control font-monospace" placeholder="যেমন: BLM3984829" required>
+                                                </div>
+                                                <div class="col-12 text-end">
+                                                    <button type="submit" class="btn btn-outline-success fw-bold px-4 rounded-pill">
+                                                        <i class="fas fa-check me-1"></i>TrxID সাবমিট করুন
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
                                     </div>
-                                    <small class="text-muted">All BD Banks</small>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Channel Simulation Container -->
-                        <div class="p-4 rounded-4 mb-4 border" id="pgwContainer" style="background-color: #fdf2f7; border-color: #f8c1db !important;">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge px-3 py-2 fs-6 text-white" id="pgwBadge" style="background-color: #e2136e;">bKash Checkout</span>
-                                </div>
-                                <div class="fw-bold text-dark fs-5">
-                                    BDT ৳{{ donation.amount|floatformat:2 }}
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-secondary">আপনার একাউন্ট নম্বর:</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white text-muted"><i class="fas fa-phone"></i></span>
-                                    <input type="text" class="form-control fw-bold" id="pgwAccountNumber" value="{{ donation.donor_phone|default:'017XXXXXXXX' }}" placeholder="01XXXXXXXXX">
-                                </div>
-                            </div>
-
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-secondary">ওটিপি (OTP):</label>
-                                    <input type="text" class="form-control text-center letter-spacing-2 fw-bold" value="8 4 9 2 0 1" readonly>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-secondary">গোপন পিন (PIN):</label>
-                                    <input type="password" class="form-control text-center fw-bold" value="•••••" placeholder="PIN লিখুন">
-                                </div>
-                            </div>
-
-                            <div class="small text-muted mb-0">
-                                <i class="fas fa-info-circle me-1 text-primary"></i>এই অনলাইন পেমেন্ট গেটওয়েতে সরাসরি বিকাশ, নগদ ও কার্ডের মাধ্যমে নিরাপদে পরিশোধ করা যাবে।
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                            <a href="{% url 'donations:donate' %}" class="btn btn-outline-danger px-4 rounded-pill">
-                                <i class="fas fa-times me-1"></i>বাতিল করুন
+                        <!-- Back Button -->
+                        <div class="text-center mt-4 pt-2">
+                            <a href="{% url 'donations:donate' %}" class="btn btn-link text-decoration-none text-muted small">
+                                <i class="fas fa-arrow-left me-1"></i>অনুদান পেজে ফিরে যান
                             </a>
-                            <button type="button" class="btn btn-success btn-lg fw-bold px-5 rounded-pill shadow" id="confirmPayBtn" onclick="triggerComingSoonModal()">
-                                <i class="fas fa-lock me-2"></i>৳{{ donation.amount|floatformat:0 }} পেমেন্ট নিশ্চিত করুন &rarr;
-                            </button>
                         </div>
+
                     </div>
 
-                    <!-- Gateway Footer -->
+                    <!-- Footer Note -->
                     <div class="card-footer bg-white text-center py-3 text-muted small border-top">
-                        <i class="fas fa-shield-alt text-success me-1"></i>নিরাপদ SSL এনক্রিপশন দ্বারা সুরক্ষিত | হেল্পলাইন হ্যালো নওগাঁ অফিসিয়াল পেমেন্ট গেটওয়ে
+                        <i class="fas fa-shield-alt text-success me-1"></i>নিরাপদ SSL এনক্রিপশন দ্বারা সুরক্ষিত | হেল্পলাইন হ্যালো নওগাঁ
                     </div>
                 </div>
 
@@ -174,103 +162,11 @@
         </div>
     </div>
 </div>
-
-<!-- ========================================== -->
-<!-- COMING SOON POP-UP MODAL (পপ-আপ)            -->
-<!-- ========================================== -->
-<div class="modal fade" id="comingSoonModal" tabindex="-1" aria-labelledby="comingSoonModalLabel" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden text-center p-4">
-            <div class="modal-body py-4">
-                <!-- Icon -->
-                <div class="bg-warning bg-opacity-25 text-warning rounded-circle p-4 d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 88px; height: 88px;">
-                    <i class="fas fa-tools fa-3x text-warning"></i>
-                </div>
-
-                <!-- Title & Message -->
-                <h4 class="fw-bold text-dark mb-2">অনলাইন পেমেন্ট গেটওয়ে এখনো ইন্টিগ্রেট করা হয়নি</h4>
-                <p class="badge bg-warning-subtle text-dark border px-3 py-2 fs-6 mb-3">
-                    Payment Gateway Integration Coming Soon
-                </p>
-
-                <p class="text-secondary mb-4 px-2">
-                    সম্মানিত <strong class="text-dark">{{ donation.donor_name }}</strong>{% if donation.membership_id %} (সদস্য আইডি: <strong class="text-success font-monospace">{{ donation.membership_id }}</strong>){% endif %},<br>
-                    হেল্পলাইন হ্যালো নওগাঁর অনলাইন পেমেন্ট গেটওয়ে ইন্টিগ্রেশনের কাজ দ্রুত চলমান রয়েছে। খুব শীঘ্রই আপনি সরাসরি বিকাশ, নগদ, রকেট এবং কার্ডের মাধ্যমে রিয়েল-টাইম অনলাইন পেমেন্ট করতে পারবেন।<br>
-                    <span class="text-success fw-bold d-block mt-2">আপনার অনুদানের অনুরোধটি সিস্টেমে সংরক্ষিত রয়েছে।</span>
-                </p>
-
-                <!-- Actions -->
-                <div class="d-grid gap-2">
-                    <a href="{% url 'donations:donate' %}" class="btn btn-success btn-lg fw-bold rounded-pill shadow-sm">
-                        <i class="fas fa-check-circle me-2"></i>ঠিক আছে (মূল পেজে ফিরে যান)
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-.channel-card {
-    transition: all 0.2s ease-in-out;
-    background: #fff;
-    cursor: pointer;
-}
-.channel-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-.channel-card.active {
-    border-color: #198754 !important;
-    border-width: 2px !important;
-    background-color: #f4fbf7 !important;
-}
-</style>
 
 <script>
-function selectChannel(name, color) {
-    document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
-    if (event && event.currentTarget) event.currentTarget.classList.add('active');
-    
-    var badge = document.getElementById('pgwBadge');
-    if (badge) {
-        badge.innerText = name + ' Checkout';
-        badge.style.backgroundColor = color;
-    }
-
-    var container = document.getElementById('pgwContainer');
-    if (container) {
-        if (name === 'bKash') {
-            container.style.backgroundColor = '#fdf2f7';
-            container.style.borderColor = '#f8c1db';
-        } else if (name === 'Nagad') {
-            container.style.backgroundColor = '#fff8f0';
-            container.style.borderColor = '#fed7aa';
-        } else if (name === 'Rocket') {
-            container.style.backgroundColor = '#faf5ff';
-            container.style.borderColor = '#e9d5ff';
-        } else {
-            container.style.backgroundColor = '#f0fdf4';
-            container.style.borderColor = '#bbf7d0';
-        }
-    }
-}
-
-function triggerComingSoonModal() {
-    var btn = document.getElementById('confirmPayBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>যাচাই হচ্ছে...';
-
-    setTimeout(function() {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-lock me-2"></i>৳{{ donation.amount|floatformat:0 }} পেমেন্ট নিশ্চিত করুন &rarr;';
-        
-        var modalEl = document.getElementById('comingSoonModal');
-        if (modalEl && typeof bootstrap !== 'undefined') {
-            var csModal = new bootstrap.Modal(modalEl);
-            csModal.show();
-        }
-    }, 600);
+function handlePayClick(btn) {
+    btn.classList.add('disabled');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>গেটওয়েতে নিয়ে যাওয়া হচ্ছে...';
 }
 </script>
 {% endblock %}

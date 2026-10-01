@@ -372,6 +372,10 @@ AUTOMAS_API_URL = env('AUTOMAS_API_URL', default='https://api.automas.com.bd/sms
 SMS_ADMIN_ALERT_PHONE = env('SMS_ADMIN_ALERT_PHONE', default='01916314315')
 SMS_LOW_BALANCE_THRESHOLD = env.float('SMS_LOW_BALANCE_THRESHOLD', default=10.0)
 
+# UddoktaPay / Paymently Payment Gateway Configuration
+PAYMENTLY_API_KEY = env('PAYMENTLY_API_KEY', default='METB4CSw9c4KcIB7P5HejGqbCE8lNSYsAfmJWzTp')
+PAYMENTLY_API_URL = env('PAYMENTLY_API_URL', default='https://helplinehellonaogaon.paymently.io/api')
+
 AUTHENTICATION_BACKENDS = [
     'core.backends.MultiIdentifierAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
