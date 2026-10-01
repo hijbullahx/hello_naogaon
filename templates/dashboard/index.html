@@ -1464,8 +1464,7 @@
                 <div
                     class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="card-title fw-bold mb-0">
-                        <i class="fas fa-hand-holding-heart me-2"></i>কার্যক্রম ভিত্তিক প্রাপ্ত আর্থিক সহায়তা (Program
-                        Donations)
+                        <i class="fas fa-hand-holding-heart me-2"></i>প্রাপ্ত আর্থিক সহায়তা
                     </h5>
                     <span class="badge bg-white text-success fs-6 fw-bold">মোট: ৳ {{ total_program_donations|floatformat:2 }}</span>
                 </div>
@@ -1475,7 +1474,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>তারিখ</th>
-                                    <th>কার্যক্রম (Program)</th>
+                                    <th>খাত / উৎস</th>
                                     <th>দাতা / সহায়তাকারীর নাম</th>
                                     <th>মেম্বারশিপ আইডি</th>
                                     <th>যোগাযোগ (ফোন/ইমেইল)</th>
@@ -1490,7 +1489,19 @@
                                 <tr>
                                     <td><small class="fw-bold text-secondary">{{ pd.created_at|date:"d M Y, h:i A" }}</small></td>
                                     <td>
-                                        <span class="badge bg-success text-white">{{ pd.program.title|default:"সাধারণ কার্যক্রম" }}</span>
+                                        {% if pd.program %}
+                                        <span class="badge bg-primary text-white mb-1"><i class="fas fa-project-diagram me-1"></i>কার্যক্রম ভিত্তিক</span>
+                                        <div class="small fw-bold text-dark text-truncate" style="max-width: 170px;" title="{{ pd.program.title }}">{{ pd.program.title }}</div>
+                                        {% elif pd.membership_id or pd.donation_type == 'volunteer' or pd.donation_type == 'leadership' %}
+                                        <span class="badge bg-success text-white mb-1"><i class="fas fa-users me-1"></i>সদস্য চাঁদা</span>
+                                        <div class="small text-muted">সদস্য তহবিল</div>
+                                        {% elif pd.donation_type == 'emergency' %}
+                                        <span class="badge bg-danger text-white mb-1"><i class="fas fa-heartbeat me-1"></i>জরুরি তহবিল</span>
+                                        <div class="small text-muted">ত্রাণ ও চিকিৎসা</div>
+                                        {% else %}
+                                        <span class="badge bg-secondary text-white mb-1"><i class="fas fa-hand-holding-usd me-1"></i>সাধারণ অনুদান</span>
+                                        <div class="small text-muted">সাধারণ তহবিল</div>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div class="fw-bold text-dark">{{ pd.donor_name }}</div>
@@ -1541,8 +1552,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="9" class="text-center py-4 text-muted">এখনো কোনো কার্যক্রম ভিত্তিক
-                                        আর্থিক সহায়তা জমা হয়নি।</td>
+                                    <td colspan="9" class="text-center py-4 text-muted">এখনো কোনো প্রাপ্ত আর্থিক সহায়তা জমা হয়নি।</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -2486,11 +2496,11 @@
                     {% endif %}
                 </div>
                 <div class="d-grid gap-2">
-                    <a href="{% url 'donations:donate' %}{% if my_tm and my_tm.member_id %}?member_id={{ my_tm.member_id }}{% endif %}" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
-                        <i class="fas fa-credit-card me-1"></i> অনলাইন পেমেন্ট গেটওয়ে দিয়ে অনুদান করুন
+                    <a href="/?donate=1{% if my_tm and my_tm.member_id %}&member_id={{ my_tm.member_id }}{% endif %}" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
+                        <i class="fas fa-credit-card me-1"></i> অনলাইন বা ম্যানুয়াল পেমেন্ট দিয়ে চাঁদা দিন
                     </a>
-                    <a href="{% url 'donations:donate' %}#bank-accounts" class="btn btn-outline-dark fw-bold py-2 rounded-pill">
-                        <i class="fas fa-university me-1"></i> ব্যাংক একাউন্ট / কিউআর কোড দেখুন
+                    <a href="/?donate=1{% if my_tm and my_tm.member_id %}&member_id={{ my_tm.member_id }}{% endif %}" class="btn btn-outline-dark fw-bold py-2 rounded-pill">
+                        <i class="fas fa-university me-1"></i> ব্যাংক একাউন্ট ও মোবাইল ব্যাংকিং দেখুন
                     </a>
                 </div>
             </div>

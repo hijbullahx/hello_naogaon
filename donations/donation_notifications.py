@@ -154,18 +154,52 @@ def notify_donor_manual_submission(donation, request=None):
 def notify_donor_donation_approved(donation, request=None):
     """
     Sends official receipt and congratulatory confirmation SMS & Email when admin approves a donation.
+    If the donor is a registered member, calculates and displays their remaining due or advance balance.
     """
     contact_phone, contact_email = get_admin_contact_info()
     base_url = get_base_url(request)
 
+    # Calculate member subscription balance if donation is linked to a membership
+    member_sub = None
+    balance_sms_text = ""
+    balance_email_text = ""
+    if donation.membership_id:
+        try:
+            from volunteers.models import TeamMember
+            from volunteers.subscription_services import get_member_subscription_summary
+            tm = TeamMember.objects.filter(member_id__iexact=donation.membership_id).first()
+            if tm:
+                member_sub = get_member_subscription_summary(tm)
+                due_amt = member_sub.get('due_amount', 0)
+                adv_amt = member_sub.get('advance_amount', 0)
+                if due_amt > 0:
+                    balance_sms_text = f"বর্তমান বকেয়া চাঁদা: ৳{due_amt:,.0f}"
+                    balance_email_text = f"আপনার বর্তমান বকেয়া চাঁদার পরিমাণ ৳{due_amt:,.2f}।"
+                elif adv_amt > 0:
+                    balance_sms_text = f"বর্তমান অগ্রিম জমা: ৳{adv_amt:,.0f}"
+                    balance_email_text = f"আপনার বর্তমানে ৳{adv_amt:,.2f} অগ্রিম চাঁদা জমা রয়েছে।"
+                else:
+                    balance_sms_text = "চলতি চাঁদা সম্পূর্ণ পরিশোধিত"
+                    balance_email_text = "আপনার চলতি মাসের চাঁদা সম্পূর্ণ পরিশোধিত রয়েছে।"
+        except Exception as ex:
+            logger.warning(f"Error calculating member subscription in approval notification: {ex}")
+
     # 1. Donor SMS
     if donation.donor_phone:
         try:
-            donor_sms = (
-                f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
-                f"আপনার ৳{donation.amount:,.0f} অনুদান/চাঁদা সফলভাবে অনুমোদিত হয়েছে। "
-                f"রসিদ/TrxID: {donation.trx_id or donation.tran_id}। সংগঠনের পক্ষ থেকে ধন্যবাদ। প্রয়োজনে: {contact_phone}"
-            )
+            if member_sub:
+                donor_sms = (
+                    f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
+                    f"আপনার ৳{donation.amount:,.0f} চাঁদা অনুমোদিত হয়েছে। "
+                    f"{balance_sms_text}। "
+                    f"TrxID: {donation.trx_id or donation.tran_id}। ধন্যবাদ। প্রয়োজনে: {contact_phone}"
+                )
+            else:
+                donor_sms = (
+                    f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
+                    f"আপনার ৳{donation.amount:,.0f} অনুদান সফলভাবে অনুমোদিত হয়েছে। "
+                    f"TrxID: {donation.trx_id or donation.tran_id}। সংগঠনের পক্ষ থেকে ধন্যবাদ। প্রয়োজনে: {contact_phone}"
+                )
             send_sms(donation.donor_phone, donor_sms)
         except Exception as e:
             logger.error(f"[DONOR APPROVAL SMS ERROR] {e}")
@@ -175,21 +209,40 @@ def notify_donor_donation_approved(donation, request=None):
         try:
             paragraphs = [
                 f"হেল্পলাইন হ্যালো নওগাঁর মাধ্যমে মানবতার সেবায় আপনার ৳{donation.amount:,.2f} অনুদান/চাঁদাটি সফলভাবে যাচাই ও অনুমোদিত হয়েছে।",
-                "আপনার এই মহতী অবদান অসহায় ও সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াতে আমাদের প্রেরণা যোগাবে। সংগঠনের পক্ষ থেকে আপনার প্রতি আন্তরিক ধন্যবাদ ও কৃতজ্ঞতা প্রকাশ করছি।"
             ]
+            if balance_email_text:
+                paragraphs.append(balance_email_text)
+            paragraphs.append("আপনার এই মহতী অবদান অসহায় ও সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াতে আমাদের প্রেরণা যোগাবে। সংগঠনের পক্ষ থেকে আপনার প্রতি আন্তরিক ধন্যবাদ ও কৃতজ্ঞতা প্রকাশ করছি।")
 
             receipt_url = f"{base_url}/donations/receipt/{donation.id}/"
 
             details = [
                 {'label': 'দাতা / সদস্যের নাম', 'value': donation.donor_name},
-                {'label': 'অনুদানের পরিমাণ', 'value': f"৳ {donation.amount:,.2f}"},
+            ]
+            if donation.membership_id:
+                details.append({'label': 'মেম্বারশিপ আইডি', 'value': donation.membership_id})
+            details.extend([
+                {'label': 'অনুমোদিত অনুদানের পরিমাণ', 'value': f"৳ {donation.amount:,.2f}"},
                 {'label': 'পেমেন্ট মাধ্যম', 'value': donation.payment_method},
+            ])
+
+            if member_sub:
+                details.append({'label': 'নির্ধারিত মাসিক চাঁদা', 'value': f"৳ {member_sub.get('monthly_fee', 0):,.2f}"})
+                details.append({'label': 'সর্বমোট পরিশোধিত চাঁদা', 'value': f"৳ {member_sub.get('total_paid', 0):,.2f}"})
+                if member_sub.get('due_amount', 0) > 0:
+                    details.append({'label': 'বর্তমান বকেয়া চাঁদা', 'value': f"৳ {member_sub.get('due_amount', 0):,.2f}"})
+                elif member_sub.get('advance_amount', 0) > 0:
+                    details.append({'label': 'অগ্রিম জমার পরিমাণ', 'value': f"৳ {member_sub.get('advance_amount', 0):,.2f}"})
+                else:
+                    details.append({'label': 'চাঁদার অবস্থা', 'value': 'সম্পূর্ণ পরিশোধিত (Paid in Full)'})
+
+            details.extend([
                 {'label': 'ট্রানজেকশন আইডি (TrxID)', 'value': donation.trx_id or donation.tran_id},
                 {'label': 'ইনভয়েস ট্র্যাকিং নং', 'value': donation.tran_id or str(donation.id)},
                 {'label': 'অনুমোদনের তারিখ', 'value': datetime.now().strftime('%d %B, %Y %I:%M %p')},
                 {'label': 'কার্যক্রম / খাত', 'value': donation.program.title if donation.program else ('সদস্য চাঁদা' if donation.membership_id else 'সাধারণ তহবিল')},
                 {'label': 'বর্তমান অবস্থা', 'value': 'অনুমোদিত (Approved)'},
-            ]
+            ])
 
             action_buttons = [
                 {'label': '🧾 মানি রসিদ দেখুন / ডাউনলোড করুন', 'url': receipt_url, 'style': 'success'},

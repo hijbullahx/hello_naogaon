@@ -43,46 +43,14 @@ logger = logging.getLogger(__name__)
 
 def donation_page_view(request):
     """
-    View to display the main financial support (donation) page.
+    Dedicated donation page was deprecated/removed per user request:
+    All donation actions now happen seamlessly inside the interactive popup modal (#directDonateModal).
+    Redirects cleanly to home with modal opener (?donate=1 and any member_id query params preserved).
     """
-    content, _ = DonationPageContent.objects.get_or_create(pk=1)
-    
-    # Pre-select volunteer or team member if member_id is in query params (e.g. ?member_id=26082301 or ?member_id=HHN26090201)
-    member_id_param = request.GET.get('member_id', '').strip()
-    prefill_volunteer = None
-    if member_id_param:
-        vol = Volunteer.objects.filter(member_id__iexact=member_id_param).first()
-        if vol:
-            prefill_volunteer = vol
-        else:
-            tm = TeamMember.objects.filter(member_id__iexact=member_id_param).first()
-            if tm:
-                prefill_volunteer = {
-                    'member_id': tm.member_id,
-                    'full_name': tm.name,
-                    'phone': tm.phone or '',
-                    'email': tm.email or '',
-                    'contribution_frequency': 'one_time',
-                    'contribution_amount': 500,
-                    'is_team': True,
-                    'role': tm.effective_role,
-                }
-
-    context = {
-        'content': content,
-        'campaigns': Campaign.objects.filter(is_active=True),
-        'impacts': DonationImpact.objects.filter(is_active=True),
-        'emergency_appeals': EmergencyAppeal.objects.filter(is_active=True),
-        'donation_methods': DonationMethod.objects.filter(is_active=True),
-        'banks': Bank.objects.filter(is_active=True),
-        'qrcodes': QRCode.objects.filter(is_active=True).select_related('method'),
-        'faqs': FAQ.objects.filter(is_active=True),
-        'statistics': DonationStatistic.objects.filter(is_active=True),
-        'programs': Program.objects.all(),
-        'member_id_param': member_id_param,
-        'prefill_volunteer': prefill_volunteer,
-    }
-    return render(request, 'donations/donation_page.html', context)
+    params = request.GET.copy()
+    if 'donate' not in params:
+        params['donate'] = '1'
+    return redirect(f"/?{params.urlencode()}")
 
 
 def member_pledge_lookup(request):
@@ -264,7 +232,7 @@ def initiate_payment(request):
                 donor_email = tm.email or donor_email
             elif donor_identity_type == 'member':
                 messages.error(request, "সঠিক সদস্য আইডি পাওয়া যায়নি। অনুগ্রহ করে যাচাই করে পুনরায় চেষ্টা করুন।")
-                return redirect('donations:donate')
+                return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
             else:
                 donation_type = 'general'
                 membership_id = None
@@ -275,7 +243,7 @@ def initiate_payment(request):
 
     if not donor_name or not donor_phone or not amount:
         messages.error(request, "দয়া করে নাম, মোবাইল নম্বর এবং আর্থিক সহায়তার পরিমাণ সঠিকভাবে লিখুন।")
-        return redirect('donations:donate')
+        return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
 
     try:
         amount_val = float(amount)
@@ -283,7 +251,7 @@ def initiate_payment(request):
             raise ValueError()
     except (ValueError, TypeError):
         messages.error(request, "দয়া করে সঠিক আর্থিক পরিমাণ লিখুন।")
-        return redirect('donations:donate')
+        return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
 
     # Generate unique transaction ID
     tran_id = f"HN{datetime.now().strftime('%y%m%d%H%M%S')}{random.randint(100, 999)}"
@@ -297,7 +265,7 @@ def initiate_payment(request):
     if payment_mode == 'manual':
         if not sender_account and not trx_id:
             messages.error(request, "ম্যানুয়াল পেমেন্ট সম্পন্ন করতে আপনার প্রেরক অ্যাকাউন্ট নম্বর বা ট্রানজেকশন আইডি (TrxID) প্রদান করুন।")
-            return redirect('donations:donate')
+            return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
 
         donation = ProgramDonation.objects.create(
             donation_type=donation_type,
@@ -326,7 +294,7 @@ def initiate_payment(request):
             request, 
             f"ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{amount_val:,.0f} ম্যানুয়াল পেমেন্টের তথ্য সফলভাবে জমা হয়েছে। অ্যাডমিন প্যানেল থেকে স্টেটমেন্ট যাচাই শেষে এটি অনুমোদিত হবে এবং আপনার কাছে নিশ্চিতকরণ এসএমএস ও ইমেইল পাঠানো হবে।"
         )
-        return redirect('donations:donate')
+        return redirect(request.META.get('HTTP_REFERER') or '/')
 
     # Automated Online Gateway workflow
     donation = ProgramDonation.objects.create(
@@ -414,7 +382,7 @@ def confirm_checkout_payment(request, tran_id):
         request, 
         f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} সহায়তার তথ্য ও ট্রানজেকশন আইডি সফলভাবে জমা হয়েছে। অ্যাডমিন প্যানেল থেকে যাচাই শেষে এটি অনুমোদিত হবে এবং আপনার কাছে নোটিফিকেশন পাঠানো হবে।'
     )
-    return redirect('donations:donate')
+    return redirect(request.META.get('HTTP_REFERER') or '/')
 
 
 def process_successful_payment(donation, payment_data, request=None):
@@ -634,11 +602,11 @@ def payment_success(request):
             else:
                 logger.error(f"Donation record not found for verified invoice {invoice_id}")
                 messages.success(request, "আপনার অনুদান সফলভাবে গৃহীত হয়েছে। তথ্য যাচাই শেষে আপডেট করা হবে।")
-                return redirect('donations:donate')
+                return redirect('core:home')
         else:
             status_desc = verification_res.get('status', 'PENDING')
             messages.warning(request, f"পেমেন্ট স্ট্যাটাস: {status_desc}। পেমেন্ট সম্পূর্ণ হয়নি বা অপেক্ষমাণ রয়েছে।")
-            return redirect('donations:donate')
+            return redirect('core:home')
 
     # Fallback to tran_id check
     if tran_id:
@@ -647,7 +615,7 @@ def payment_success(request):
             return redirect('donations:receipt', donation_id=donation.id)
 
     messages.error(request, "পেমেন্ট সংক্রান্ত তথ্য পাওয়া যায়নি বা পেমেন্ট সম্পন্ন হয়নি।")
-    return redirect('donations:donate')
+    return redirect('core:home')
 
 
 @csrf_exempt
@@ -669,7 +637,7 @@ def payment_fail(request):
             donation.save()
 
     messages.error(request, "দুঃখিত, আপনার অনলাইন পেমেন্ট সম্পন্ন হয়নি বা ব্যর্থ হয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।")
-    return redirect('donations:donate')
+    return redirect('core:home')
 
 
 @csrf_exempt
@@ -691,7 +659,7 @@ def payment_cancel(request):
             donation.save()
 
     messages.warning(request, "অনলাইন পেমেন্ট প্রক্রিয়াটি বাতিল করা হয়েছে।")
-    return redirect('donations:donate')
+    return redirect('core:home')
 
 
 @csrf_exempt

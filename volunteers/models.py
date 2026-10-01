@@ -77,6 +77,15 @@ class Volunteer(models.Model):
         diff = (date.today() - self.last_donated).days
         return max(0, 90 - diff)
 
+    @property
+    def total_paid(self):
+        from donations.models import ProgramDonation
+        from django.db.models import Sum
+        if not self.member_id:
+            return 0.0
+        qs = ProgramDonation.objects.filter(membership_id__iexact=self.member_id, status__in=['approved', 'completed'])
+        return float(qs.aggregate(t=Sum('amount'))['t'] or 0.0)
+
     def save(self, *args, **kwargs):
         if not self.member_id:
             self.member_id = generate_unique_member_id(prefix_str="")
