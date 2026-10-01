@@ -633,13 +633,20 @@
                                     </td>
                                     <td><span class="badge bg-success">{{ prog.status }}</span></td>
                                     <td>
+                                        {% if prog.target_amount %}
+                                        <a href="{% url 'core:broadcast_program_fund' prog.id %}"
+                                            onclick="return confirm('আপনি কি নিশ্চিত যে এই কার্যক্রমের বাজেট ও অনুদানের তথ্য সকল সদস্য ও স্বেচ্ছাসেবকদের SMS এবং Email এ পাঠাতে চান?');"
+                                            class="btn btn-sm btn-outline-info me-1" title="সদস্য ও স্বেচ্ছাসেবকদের SMS/Email পাঠান">
+                                            <i class="fas fa-bullhorn"></i>
+                                        </a>
+                                        {% endif %}
                                         <button type="button" class="btn btn-sm btn-outline-primary me-1"
                                             data-bs-toggle="modal" data-bs-target="#editProgramModal_{{ prog.id }}"
                                             title="এডিট করুন"><i class="fas fa-edit"></i></button>
                                         <a href="{% url 'core:delete_program' prog.id %}"
                                             onclick="return confirm('আপনি কি নিশ্চিত যে এই প্রোগ্রামটি মুছে ফেলতে চান?');"
                                             class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i
-                                                class="fas fa-trash"></i></a>
+                                                 class="fas fa-trash"></i></a>
 
                                         <!-- Edit Program Modal -->
                                         <div class="modal fade" id="editProgramModal_{{ prog.id }}" tabindex="-1"
@@ -679,13 +686,13 @@
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
-                                                                <select name="status" class="form-select" required>
+                                                                <select name="status" class="form-select" required onchange="toggleProgramBudgetField(this, 'editProgramBudgetDiv_{{ prog.id }}')">
                                                                     <option value="ongoing" {% if prog.status == 'ongoing' %}selected{% endif %}>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
                                                                     <option value="upcoming" {% if prog.status == 'upcoming' %}selected{% endif %}>আসন্ন কার্যক্রম (Upcoming)</option>
                                                                     <option value="completed" {% if prog.status == 'completed' %}selected{% endif %}>সম্পন্ন কার্যক্রম (Completed)</option>
                                                                 </select>
                                                             </div>
-                                                            <div class="mb-3">
+                                                            <div class="mb-3 {% if prog.status == 'completed' %}d-none{% endif %}" id="editProgramBudgetDiv_{{ prog.id }}">
                                                                 <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন
                                                                     / বাজেট (টাকা - ঐচ্ছিক)</label>
                                                                 <div class="input-group">
@@ -2535,22 +2542,21 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
-                        <select name="status" class="form-select" required>
+                        <select name="status" id="newProgramStatus" class="form-select" required onchange="toggleProgramBudgetField(this, 'newProgramBudgetDiv')">
                             <option value="ongoing" selected>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
                             <option value="upcoming">আসন্ন কার্যক্রম (Upcoming)</option>
                             <option value="completed">সম্পন্ন কার্যক্রম (Completed)</option>
                         </select>
                         <small class="text-muted">"চলমান কার্যক্রম" নির্বাচন করলে এটি হোমপেজের চলমান কার্যক্রমে সরাসরি অন্তর্ভুক্ত হবে।</small>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3" id="newProgramBudgetDiv">
                         <label class="form-label fw-bold">আর্থিক সহায়তার প্রয়োজন / বাজেট (টাকা - ঐচ্ছিক)</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
                             <input type="number" step="0.01" name="target_amount" class="form-control fw-bold"
                                 placeholder="যেমন: 50000 (প্রয়োজন না থাকলে খালি রাখুন)">
                         </div>
-                        <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান
-                            গ্রহণের বাটন দৃশ্যমান হবে।</small>
+                        <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান গ্রহণের বাটন দৃশ্যমান হবে।</small>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
@@ -3578,7 +3584,7 @@
         }, 180000);
     });
 
-    function prefillSmsExpense() {
+        function prefillSmsExpense() {
         const modalEl = document.getElementById('expenseModal');
         if (modalEl) {
             const titleInput = modalEl.querySelector('input[name="title"]');
@@ -3587,6 +3593,19 @@
             if (catInput) catInput.value = 'যোগাযোগ / আইটি / এসএমএস';
             const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
             modal.show();
+        }
+    }
+
+    function toggleProgramBudgetField(selectElem, targetDivId) {
+        var budgetDiv = document.getElementById(targetDivId);
+        if (!budgetDiv) return;
+        var val = selectElem.value;
+        if (val === 'ongoing' || val === 'upcoming') {
+            budgetDiv.classList.remove('d-none');
+        } else {
+            budgetDiv.classList.add('d-none');
+            var input = budgetDiv.querySelector('input[name="target_amount"]');
+            if (input) input.value = '';
         }
     }
 </script>

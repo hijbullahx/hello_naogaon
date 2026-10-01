@@ -31,6 +31,7 @@ urlpatterns = [
     path('dashboard/delete-stat-counter/<int:pk>/', views_dashboard.delete_stat_counter, name='delete_stat_counter'),
     path('dashboard/save-program/', views_dashboard.save_program, name='save_program'),
     path('dashboard/delete-program/<int:pk>/', views_dashboard.delete_program, name='delete_program'),
+    path('dashboard/broadcast-program-fund/<int:pk>/', views_dashboard.broadcast_program_fund, name='broadcast_program_fund'),
     path('dashboard/save-news/', views_dashboard.save_news, name='save_news'),
     path('dashboard/delete-news/<int:pk>/', views_dashboard.delete_news, name='delete_news'),
     path('dashboard/update-bank/', views_dashboard.update_bank_and_donation, name='update_bank'),

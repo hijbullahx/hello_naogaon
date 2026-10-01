@@ -573,9 +573,11 @@ def save_program(request):
         if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='কার্যক্রমের ছবি'):
             return redirect('/dashboard/?tab=programs-section')
 
+        old_target = None
         if prog_id:
             prog = Program.objects.filter(pk=prog_id).first()
             if prog:
+                old_target = prog.target_amount
                 prog.title = title
                 prog.short_description = short_description
                 prog.description = description
@@ -586,6 +588,14 @@ def save_program(request):
                 if image_file:
                     prog.image = image_file
                 prog.save()
+
+                # Trigger notification to volunteers and members if target_amount is newly set or changed
+                if target_amount and float(target_amount) > 0:
+                    if old_target is None or float(old_target) == 0 or float(old_target) != float(target_amount):
+                        from programs.program_notifications import notify_members_volunteers_program_fund
+                        notify_members_volunteers_program_fund(prog, request=request)
+                        messages.info(request, f'কার্যক্রমের বাজেট (৳{target_amount:,.0f}) নির্ধারণ বার্তা সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হয়েছে।')
+
                 messages.success(request, f'কার্যক্রম "{title}" আপডেট হয়েছে!')
             else:
                 messages.warning(request, 'কার্যক্রমটি খুঁজে পাওয়া যায়নি।')
@@ -600,8 +610,35 @@ def save_program(request):
                 target_amount=target_amount,
                 image=image_file
             )
+            # Trigger notification if target_amount is set on creation
+            if target_amount and float(target_amount) > 0:
+                from programs.program_notifications import notify_members_volunteers_program_fund
+                notify_members_volunteers_program_fund(prog, request=request)
+                messages.info(request, f'কার্যক্রমের বাজেট (৳{target_amount:,.0f}) নির্ধারণ বার্তা সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হয়েছে।')
+
             messages.success(request, f'নতুন কার্যক্রম "{title}" যোগ করা হয়েছে!')
     return redirect('/dashboard/?tab=programs-section')
+
+@staff_member_required
+def broadcast_program_fund(request, pk):
+    """Manually broadcast or re-send fund notification for a Program to all volunteers & non-admin members"""
+    if not can_user_edit_general(request.user):
+        messages.warning(request, "এই সুবিধা ব্যবহারের অনুমতি শুধুমাত্র প্রধান এডমিনের রয়েছে।")
+        return redirect("/dashboard/?tab=programs-section")
+
+    prog = Program.objects.filter(pk=pk).first()
+    if not prog:
+        messages.error(request, "কার্যক্রমটি খুঁজে পাওয়া যায়নি।")
+        return redirect("/dashboard/?tab=programs-section")
+
+    if not prog.target_amount or float(prog.target_amount) <= 0:
+        messages.warning(request, f'"{prog.title}" কার্যক্রমে কোনো বাজেট বা লক্ষ্যমাত্রা ধার্য করা নেই। আগে বাজেট সেট করুন।')
+        return redirect("/dashboard/?tab=programs-section")
+
+    from programs.program_notifications import notify_members_volunteers_program_fund
+    notify_members_volunteers_program_fund(prog, request=request)
+    messages.success(request, f'"{prog.title}" কার্যক্রমের বাজেট (৳{prog.target_amount:,.0f}) নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের পাঠানো হয়েছে!')
+    return redirect("/dashboard/?tab=programs-section")
 
 @staff_member_required
 def delete_program(request, pk):
