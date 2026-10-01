@@ -239,31 +239,35 @@ def send_member_registration_notification(member):
             fail_silently=True
         )
 
-def send_member_monthly_reminder(member, today=None):
+def send_member_monthly_reminder(member, today=None, force=False):
     """
     Sends recurring monthly fee reminder on the member's monthly billing anniversary.
     Includes current month's fee + any previous dues.
+    If the member has advance payment or no dues (due_amount <= 0), no reminder message is sent
+    until their advance is exhausted and they actually have dues (unless force=True).
     """
     summary = get_member_subscription_summary(member, today=today)
+
+    # Do not send reminder if the member has advance payment or zero dues
+    if not force and summary['due_amount'] <= 0:
+        logger.info(
+            "Skipping monthly reminder for %s (%s): Advance balance available / No dues (Advance: ৳%s, Due: ৳%s)",
+            member.name, member.member_id, summary.get('advance_amount', 0), summary.get('due_amount', 0)
+        )
+        return False
+
     base_url = get_base_url()
     payment_url = f"{base_url}/donations/?member_id={member.member_id}"
 
-    due_str = f"৳{summary['due_amount']:,.0f}" if summary['due_amount'] > 0 else "০"
+    due_str = f"৳{summary['due_amount']:,.0f}"
     
     # 1. SMS Reminder
     if member.phone:
-        if summary['due_amount'] > 0:
-            sms_msg = (
-                f"[Helpline Hello Naogaon] {member.name}, মাসিক চাঁদা রিমাইন্ডার (আইডি: {member.member_id})। "
-                f"মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। মোট বকেয়া: {due_str} টাকা। "
-                f"অনলাইনে পরিশোধ করুন: {payment_url}"
-            )
-        else:
-            sms_msg = (
-                f"[Helpline Hello Naogaon] {member.name}, আইডি: {member.member_id}। "
-                f"চলতি মাসের নির্ধারিত চাঁদা ৳{summary['monthly_fee']:,.0f} টাকা প্রস্তুত রয়েছে। "
-                f"পরিশোধ করতে ভিজিট করুন: {payment_url}"
-            )
+        sms_msg = (
+            f"[Helpline Hello Naogaon] {member.name}, মাসিক চাঁদা রিমাইন্ডার (আইডি: {member.member_id})। "
+            f"মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। মোট বকেয়া: {due_str} টাকা। "
+            f"অনলাইনে পরিশোধ করুন: {payment_url}"
+        )
         try:
             send_sms(member.phone, sms_msg)
             logger.info("Sent monthly subscription reminder SMS to %s", member.phone)
@@ -276,22 +280,10 @@ def send_member_monthly_reminder(member, today=None):
         paragraphs = [
             f"সম্মানিত {member.name},",
             f"হেল্পলাইন হ্যালো নওগাঁর নিয়মিত কার্যক্রম ও মানবিক সেবাসমূহ অব্যাহত রাখতে পরিচালনা পর্ষদের নির্ধারিত মাসিক চাঁদা অত্যন্ত গুরুত্বপূর্ণ।",
-            f"আপনার সদস্য আইডি: #{member.member_id} ({member.effective_role})। প্রতি মাসের {summary['billing_day']} তারিখে আপনার নিয়মিত মাসিক চাঁদা ধার্য করা হয়।"
+            f"আপনার সদস্য আইডি: #{member.member_id} ({member.effective_role})। প্রতি মাসের {summary['billing_day']} তারিখে আপনার নিয়মিত মাসিক চাঁদা ধার্য করা হয়।",
+            f"হিসাব অনুযায়ী আপনার বর্তমান মোট প্রদেয় / বকেয়ার পরিমাণ {due_str} টাকা। "
+            "সংগঠনের কার্যক্রম সুন্দরভাবে পরিচালনার স্বার্থে দ্রুত বকেয়া পরিশোধ করার জন্য বিনীত অনুরোধ জানানো হচ্ছে।"
         ]
-
-        if summary['due_amount'] > 0:
-            paragraphs.append(
-                f"হিসাব অনুযায়ী আপনার বর্তমান মোট প্রদেয় / বকেয়ার পরিমাণ {due_str} টাকা। "
-                "সংগঠনের কার্যক্রম সুন্দরভাবে পরিচালনার স্বার্থে দ্রুত বকেয়া পরিশোধ করার জন্য বিনীত অনুরোধ জানানো হচ্ছে।"
-            )
-        elif summary['advance_amount'] > 0:
-            paragraphs.append(
-                f"আপনার অ্যাকাউন্টে ইতিমধ্যে ৳{summary['advance_amount']:,.2f} টাকা অগ্রিম জমা রয়েছে। আপনার আন্তরিক সহযোগিতার জন্য ধন্যবাদ!"
-            )
-        else:
-            paragraphs.append(
-                "আপনার পূর্বের সকল মাসের চাঁদা পরিশোধিত রয়েছে। চলতি মাসের চাঁদা পরিশোধের জন্য নিচের বাটনে ক্লিক করুন।"
-            )
 
         details = [
             {'label': 'সদস্য আইডি (Member ID)', 'value': member.member_id},
@@ -302,11 +294,9 @@ def send_member_monthly_reminder(member, today=None):
             {'label': 'এ যাবৎ মোট পরিশোধিত', 'value': f"৳{summary['total_paid']:,.2f}"},
             {'label': 'বর্তমান বকেয়া / প্রদেয়', 'value': f"৳{summary['due_amount']:,.2f}"},
         ]
-        if summary['advance_amount'] > 0:
-            details.append({'label': 'অগ্রিম জমা', 'value': f"৳{summary['advance_amount']:,.2f}"})
 
         action_buttons = [
-            {'label': 'অনলাইনে চাঁদা পরিশোধ করুন', 'url': payment_url},
+            {'label': 'অনলাইনে বকেয়া পরিশোধ করুন', 'url': payment_url},
             {'label': 'হিসাব ও অনুদান পেজ দেখুন', 'url': f"{base_url}/donations/"},
         ]
 
@@ -323,6 +313,8 @@ def send_member_monthly_reminder(member, today=None):
             fail_silently=True
         )
 
+    return True
+
 def send_all_existing_members_update():
     """
     Sends an updated status notification (SMS & Email) to ALL existing core TeamMembers right now.
@@ -337,19 +329,25 @@ def send_all_existing_members_update():
         base_url = get_base_url()
         payment_url = f"{base_url}/donations/?member_id={mem.member_id}"
 
-        # 1. SMS
+        # 1. SMS (Only send if there are outstanding dues; skip if member has advance)
         sms_sent = False
         if mem.phone:
-            due_str = f"৳{summary['due_amount']:,.0f}" if summary['due_amount'] > 0 else "০"
-            sms_msg = (
-                f"[Helpline Hello Naogaon] {mem.name}, আপনার সদস্য আইডি: {mem.member_id} ({mem.effective_role})। "
-                f"মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। বর্তমান বকেয়া: {due_str} টাকা। "
-                f"বিস্তারিত ও পরিশোধ: {payment_url}"
-            )
-            try:
-                sms_sent = send_sms(mem.phone, sms_msg)
-            except Exception as e:
-                logger.error("Error sending SMS update to %s: %s", mem.phone, e)
+            if summary['due_amount'] > 0:
+                due_str = f"৳{summary['due_amount']:,.0f}"
+                sms_msg = (
+                    f"[Helpline Hello Naogaon] {mem.name}, আপনার সদস্য আইডি: {mem.member_id} ({mem.effective_role})। "
+                    f"মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। বর্তমান বকেয়া: {due_str} টাকা। "
+                    f"বিস্তারিত ও পরিশোধ: {payment_url}"
+                )
+                try:
+                    sms_sent = send_sms(mem.phone, sms_msg)
+                except Exception as e:
+                    logger.error("Error sending SMS update to %s: %s", mem.phone, e)
+            else:
+                logger.info(
+                    "Skipping payment SMS to %s (%s): Advance balance available / No dues (Advance: ৳%s)",
+                    mem.name, mem.member_id, summary['advance_amount']
+                )
 
         # 2. Email
         email_sent = False
