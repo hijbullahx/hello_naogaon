@@ -86,7 +86,8 @@
                             </div>
                         </div>
 
-                        <!-- Option 3: Program-based Donation -->
+                        <!-- Option 3: Program-based Donation (Only shown if active fundraising programs exist) -->
+                        {% if global_programs %}
                         <div class="col-12">
                             <div class="option-picker-card p-3 rounded-4 border border-2 d-flex align-items-center justify-content-between cursor-pointer transition-all"
                                  onclick="goToDonateFlow('program')"
@@ -113,6 +114,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -586,31 +588,29 @@
                                         <div>
                                             <div class="fw-bold text-dark lh-sm">{{ p.title }}</div>
                                             <div class="d-flex align-items-center gap-2 mt-1">
-                                                {% if p.target_amount %}
                                                 <span class="badge bg-warning-subtle text-dark border border-warning py-0 px-2" style="font-size: 0.72rem;">
                                                     লক্ষ্য: ৳{{ p.target_amount|floatformat:0 }}
                                                 </span>
                                                 <span class="small text-muted" style="font-size: 0.72rem;">
                                                     সংগৃহীত: ৳{{ p.raised_amount|floatformat:0 }}
                                                 </span>
-                                                {% else %}
-                                                <span class="badge bg-success-subtle text-success py-0 px-2" style="font-size: 0.72rem;">চলমান কর্মসূচি</span>
-                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
-                                    {% if p.target_amount %}
                                     <div class="text-end d-none d-sm-block" style="min-width: 90px;">
                                         <div class="small fw-bold text-success">{{ p.progress_percent }}% পূরণ</div>
                                         <div class="progress" style="height: 5px;">
                                             <div class="progress-bar bg-success" style="width: {{ p.progress_percent }}%;"></div>
                                         </div>
                                     </div>
-                                    {% endif %}
                                 </div>
                                 {% endfor %}
                                 {% else %}
-                                <div class="p-3 text-center text-muted">কোনো নির্দিষ্ট কার্যক্রম পাওয়া যায়নি।</div>
+                                <div class="p-4 text-center text-muted">
+                                    <i class="fas fa-hand-holding-heart fs-2 mb-2 text-secondary opacity-50"></i>
+                                    <div class="fw-semibold">বর্তমানে অনুদান গ্রহণের মতো কোনো নির্দিষ্ট কার্যক্রম নেই।</div>
+                                    <div class="small mt-1 text-secondary">আপনি সাধারণ অনুদান বা সদস্য চাঁদা প্রদান করতে পারেন।</div>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -753,8 +753,12 @@
 
                         <!-- Submit Button -->
                         <div class="d-grid">
-                            <button type="submit" id="progPaySubmitBtn" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
+                            <button type="submit" id="progPaySubmitBtn" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm" {% if not global_programs %}disabled{% endif %}>
+                                {% if global_programs %}
                                 <i class="fas fa-lock me-2"></i>কার্যক্রমের তহবিলে পেমেন্ট করুন &rarr;
+                                {% else %}
+                                <i class="fas fa-ban me-2"></i>বর্তমানে কোনো তহবিল সক্রিয় নেই
+                                {% endif %}
                             </button>
                         </div>
                     </form>

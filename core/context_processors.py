@@ -19,7 +19,7 @@ def site_settings_context(request):
         setting = None
 
     try:
-        global_programs = Program.objects.all().order_by('order', '-id')
+        global_programs = Program.objects.filter(target_amount__gt=0).exclude(status='completed').order_by('order', '-id')
         global_banks = Bank.objects.filter(is_active=True)
         global_donation_methods = DonationMethod.objects.filter(is_active=True)
         global_qrcodes = QRCode.objects.filter(is_active=True).select_related('method')

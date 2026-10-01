@@ -24,6 +24,8 @@ class Program(models.Model):
 
     @property
     def needs_funding(self):
+        if self.status == 'completed':
+            return False
         return bool(self.target_amount and self.target_amount > 0)
 
     @property

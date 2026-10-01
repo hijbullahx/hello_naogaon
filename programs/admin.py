@@ -3,8 +3,8 @@ from .models import Program, Event, SuccessStory
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
-    list_display = ('title', 'status', 'icon_class', 'badge_color', 'order')
-    list_editable = ('status', 'order')
+    list_display = ('title', 'status', 'target_amount', 'raised_amount', 'icon_class', 'order')
+    list_editable = ('status', 'target_amount', 'order')
     list_filter = ('status',)
     search_fields = ('title', 'description', 'short_description')
 

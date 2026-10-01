@@ -198,7 +198,25 @@ def initiate_payment(request):
         prog = Program.objects.filter(pk=program_id).first()
 
     # Determine donation type & fetch member info if applicable
-    if prog:
+    if donor_identity_type == 'program':
+        if not prog or not prog.needs_funding:
+            messages.error(request, "নির্বাচিত কার্যক্রমে বর্তমানে কোনো আর্থিক সহায়তার প্রয়োজন নেই।")
+            return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
+        donation_type = 'program'
+        frequency = 'one_time'
+        if membership_id:
+            vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
+            if vol:
+                donor_name = vol.full_name
+                donor_phone = vol.phone
+                donor_email = vol.email or donor_email
+            else:
+                tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
+                if tm:
+                    donor_name = tm.name
+                    donor_phone = tm.phone or donor_phone
+                    donor_email = tm.email or donor_email
+    elif prog and prog.needs_funding:
         donation_type = 'program'
         frequency = 'one_time'
         if membership_id:
