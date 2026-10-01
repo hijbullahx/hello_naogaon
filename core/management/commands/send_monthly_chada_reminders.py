@@ -47,25 +47,33 @@ class Command(BaseCommand):
             return
 
         if member_id:
+            from volunteers.models import Volunteer
             member = TeamMember.objects.filter(member_id__iexact=member_id).first()
+            if not member:
+                member = Volunteer.objects.filter(member_id__iexact=member_id, status='approved').first()
             if not member:
                 self.stdout.write(self.style.ERROR(f"Member with ID '{member_id}' not found."))
                 return
+            member_name = getattr(member, 'name', getattr(member, 'full_name', ''))
             summary = get_member_subscription_summary(member, today=today)
             if not force and summary['due_amount'] <= 0:
                 self.stdout.write(
                     self.style.WARNING(
-                        f"Member {member.name} ({member.member_id}) has advance/no dues (Advance: BDT {summary['advance_amount']}). Reminder skipped. Use --force to override."
+                        f"Member {member_name} ({member.member_id}) has advance/no dues (Advance: BDT {summary['advance_amount']}). Reminder skipped. Use --force to override."
                     )
                 )
                 return
-            self.stdout.write(self.style.NOTICE(f"Sending monthly reminder to {member.name} ({member.member_id})..."))
+            self.stdout.write(self.style.NOTICE(f"Sending monthly reminder to {member_name} ({member.member_id})..."))
             send_member_monthly_reminder(member, today=today, force=force)
-            self.stdout.write(self.style.SUCCESS(f"Notification processed for {member.name}."))
+            self.stdout.write(self.style.SUCCESS(f"Notification processed for {member_name}."))
             return
 
         # Daily scheduled cron mode: Find members whose billing day is today
-        members = TeamMember.objects.all().order_by('order', 'name')
+        from volunteers.models import Volunteer
+        team_members = list(TeamMember.objects.all().order_by('order', 'name'))
+        volunteers_with_pledge = list(Volunteer.objects.filter(status='approved', contribution_frequency='monthly', contribution_amount__gt=0).order_by('full_name'))
+        members = team_members + volunteers_with_pledge
+
         max_days_this_month = calendar.monthrange(today.year, today.month)[1]
         notified_count = 0
         skipped_advance_count = 0
@@ -73,7 +81,14 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE(f"Checking scheduled monthly chada reminders for today ({today.strftime('%d-%m-%Y')})..."))
 
         for mem in members:
-            join_date = mem.created_at.date() if mem.created_at else today
+            member_name = getattr(mem, 'name', getattr(mem, 'full_name', ''))
+            if hasattr(mem, 'application_date') and mem.application_date:
+                join_date = mem.application_date.date()
+            elif hasattr(mem, 'created_at') and mem.created_at:
+                join_date = mem.created_at.date()
+            else:
+                join_date = today
+
             target_day = min(join_date.day, max_days_this_month)
 
             if today.day == target_day:
@@ -81,14 +96,14 @@ class Command(BaseCommand):
                 if not force and summary['due_amount'] <= 0:
                     self.stdout.write(
                         self.style.NOTICE(
-                            f"Skipping {mem.name} ({mem.member_id}): Advance balance available (Advance: BDT {summary['advance_amount']}) / No dues."
+                            f"Skipping {member_name} ({mem.member_id}): Advance balance available (Advance: BDT {summary['advance_amount']}) / No dues."
                         )
                     )
                     skipped_advance_count += 1
                     continue
 
                 self.stdout.write(
-                    f"Triggering monthly billing reminder for {mem.name} ({mem.member_id}) - Due: BDT {summary['due_amount']}"
+                    f"Triggering monthly billing reminder for {member_name} ({mem.member_id}) - Due: BDT {summary['due_amount']}"
                 )
                 sent = send_member_monthly_reminder(mem, today=today, force=force)
                 if sent:

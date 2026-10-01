@@ -140,30 +140,44 @@
                         <!-- Voluntary Financial Commitment (Optional) -->
                         <div class="col-12">
                             <div class="card border border-success-subtle bg-light p-3 rounded-3">
-                                <h6 class="fw-bold text-success mb-1 small">
-                                    <i class="fas fa-hand-holding-usd me-1"></i>স্বেচ্ছাসেবী আর্থিক সহায়তার প্রতিশ্রুতি <small class="text-muted fw-normal">(ঐচ্ছিক)</small>
-                                </h6>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <h6 class="fw-bold text-success mb-0 small">
+                                        <i class="fas fa-hand-holding-usd me-1"></i>স্বেচ্ছাসেবী আর্থিক সহায়তার প্রতিশ্রুতি <small class="text-muted fw-normal">(ঐচ্ছিক)</small>
+                                    </h6>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.7rem;">ঐচ্ছিক নির্বাচন</span>
+                                </div>
                                 <p class="text-secondary small mb-2" style="font-size: 0.78rem;">
-                                    কোনো বাধ্যবাধকতা নেই। আপনি চাইলে পরবর্তীতে নিজ ইচ্ছানুযায়ী যেকোনো সময় সদস্য চাঁদা ফান্ডে সহায়তা করতে পারেন।
+                                    কোনো বাধ্যবাধকতা নেই। আপনি চাইলে পরবর্তীতে নিজ ইচ্ছানুযায়ী যেকোনো সময় সদস্য চাঁদা ফান্ডে সহায়তা করতে পারেন। তবে এখানে মাসিক চাঁদা নির্বাচন করলে তা অন্যান্য নিয়মিত সদস্য চাঁদার মতো কার্যকর হবে।
                                 </p>
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label for="vol_contribution_frequency" class="form-label small fw-bold">সহায়তার পর্যায়কাল / ধরন</label>
-                                        <select class="form-select form-select-sm" id="vol_contribution_frequency" name="contribution_frequency">
-                                            <option value="none">কোনো নির্দিষ্ট প্রতিশ্রুতি নেই / ইচ্ছানুযায়ী</option>
-                                            <option value="monthly">মাসিক (প্রতি মাসে)</option>
+                                        <select class="form-select form-select-sm" id="vol_contribution_frequency" name="contribution_frequency" onchange="handleVolunteerPledgeChange()">
+                                            <option value="none" selected>কোনো নির্দিষ্ট প্রতিশ্রুতি নেই / ইচ্ছানুযায়ী</option>
+                                            <option value="monthly">মাসিক সদস্য চাঁদা (প্রতি মাসে নির্দিষ্ট পরিমাণ)</option>
                                             <option value="weekly">সাপ্তাহিক (প্রতি সপ্তাহে)</option>
                                             <option value="yearly">বাৎসরিক (প্রতি বছরে)</option>
                                             <option value="one_time">এককালীন</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="vol_contribution_amount" class="form-label small fw-bold">প্রতিশ্রুত পরিমাণ (BDT)</label>
+                                    <div class="col-md-6" id="vol_pledge_amount_col">
+                                        <label for="vol_contribution_amount" class="form-label small fw-bold">প্রতিশ্রুত পরিমাণ (টাকা / মাস)</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-white">৳</span>
-                                            <input type="number" class="form-control" id="vol_contribution_amount" name="contribution_amount" placeholder="যেমন: 100, 200, 500">
+                                            <input type="number" class="form-control" id="vol_contribution_amount" name="contribution_amount" placeholder="যেমন: 100, 200, 500" oninput="updateVolunteerPledgeNotice()">
+                                        </div>
+                                        <!-- Quick Amount Pills -->
+                                        <div class="d-flex gap-1 mt-1 flex-wrap" id="vol_pledge_pills">
+                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" style="font-size: 0.72rem;" onclick="setVolunteerPledgeAmount(100)">৳১০০</button>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" style="font-size: 0.72rem;" onclick="setVolunteerPledgeAmount(200)">৳২০০</button>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" style="font-size: 0.72rem;" onclick="setVolunteerPledgeAmount(300)">৳৩০০</button>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" style="font-size: 0.72rem;" onclick="setVolunteerPledgeAmount(500)">৳৫০০</button>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" style="font-size: 0.72rem;" onclick="setVolunteerPledgeAmount(1000)">৳১০০০</button>
                                         </div>
                                     </div>
+                                </div>
+                                <div id="vol_pledge_notice" class="mt-2 p-2 rounded bg-white border border-success-subtle text-success small" style="font-size: 0.78rem;">
+                                    <i class="fas fa-check-circle me-1"></i>কোনো নির্দিষ্ট মাসিক চাঁদা ধার্য হবে না। আপনি পরবর্তীতে যেকোনো সময় ইচ্ছানুযায়ী যেকোনো পরিমাণ অনুদান প্রদান করতে পারবেন।
                                 </div>
                             </div>
                         </div>
@@ -347,6 +361,70 @@ function copyVolunteerNumber(num, msg) {
     }
 }
 
+function handleVolunteerPledgeChange() {
+    var freqSelect = document.getElementById('vol_contribution_frequency');
+    var amtInput = document.getElementById('vol_contribution_amount');
+    var pills = document.getElementById('vol_pledge_pills');
+    var notice = document.getElementById('vol_pledge_notice');
+    if (!freqSelect) return;
+
+    var val = freqSelect.value;
+    if (val === 'none') {
+        if (amtInput) {
+            amtInput.value = '';
+            amtInput.setAttribute('disabled', 'disabled');
+        }
+        if (pills) pills.classList.add('d-none');
+        if (notice) {
+            notice.className = 'mt-2 p-2 rounded bg-white border border-success-subtle text-success small';
+            notice.innerHTML = '<i class="fas fa-check-circle me-1"></i>কোনো নির্দিষ্ট মাসিক চাঁদা ধার্য হবে না। আপনি পরবর্তীতে যেকোনো সময় ইচ্ছানুযায়ী যেকোনো পরিমাণ অনুদান প্রদান করতে পারবেন।';
+        }
+    } else {
+        if (amtInput) amtInput.removeAttribute('disabled');
+        if (pills) pills.classList.remove('d-none');
+        updateVolunteerPledgeNotice();
+    }
+}
+
+function setVolunteerPledgeAmount(amt) {
+    var freqSelect = document.getElementById('vol_contribution_frequency');
+    var amtInput = document.getElementById('vol_contribution_amount');
+    if (freqSelect && freqSelect.value === 'none') {
+        freqSelect.value = 'monthly';
+    }
+    if (amtInput) {
+        amtInput.removeAttribute('disabled');
+        amtInput.value = amt;
+    }
+    handleVolunteerPledgeChange();
+}
+
+function updateVolunteerPledgeNotice() {
+    var freqSelect = document.getElementById('vol_contribution_frequency');
+    var amtInput = document.getElementById('vol_contribution_amount');
+    var notice = document.getElementById('vol_pledge_notice');
+    if (!notice || !freqSelect) return;
+
+    var freq = freqSelect.value;
+    var amt = amtInput ? parseFloat(amtInput.value || '0') : 0;
+
+    if (freq === 'none') {
+        notice.className = 'mt-2 p-2 rounded bg-white border border-success-subtle text-success small';
+        notice.innerHTML = '<i class="fas fa-check-circle me-1"></i>কোনো নির্দিষ্ট মাসিক চাঁদা ধার্য হবে না। আপনি পরবর্তীতে যেকোনো সময় ইচ্ছানুযায়ী যেকোনো পরিমাণ অনুদান প্রদান করতে পারবেন।';
+    } else if (freq === 'monthly') {
+        if (amt > 0) {
+            notice.className = 'mt-2 p-2 rounded bg-primary-subtle border border-primary-subtle text-primary small';
+            notice.innerHTML = '<i class="fas fa-calendar-check me-1"></i>আপনি প্রতি মাসে <strong>৳' + amt + '</strong> চাঁদা দেওয়ার প্রতিশ্রুতি দিয়েছেন। এটি আপনার <strong>নিয়মিত মাসিক সদস্য চাঁদা</strong> হিসেবে ধার্য হবে এবং প্রতি মাসে আপনি চাঁদা সংক্রান্ত আপডেট বার্তা পাবেন।';
+        } else {
+            notice.className = 'mt-2 p-2 rounded bg-warning-subtle border border-warning-subtle text-dark small';
+            notice.innerHTML = '<i class="fas fa-info-circle me-1"></i>অনুগ্রহ করে আপনার প্রতিশ্রুত মাসিক চাঁদার পরিমাণ (টাকা) লিখুন বা উপরের বাটনে চাপ দিন।';
+        }
+    } else {
+        notice.className = 'mt-2 p-2 rounded bg-light border text-muted small';
+        notice.innerHTML = '<i class="fas fa-heart me-1"></i>প্রতিশ্রুত অনুদান: ' + (amt > 0 ? ('৳' + amt) : 'পরিমাণ ঐচ্ছিক');
+    }
+}
+
 function validateVolunteerModalImageSize(input) {
     var errorDiv = document.getElementById('volImageSizeError');
     if (input.files && input.files[0]) {
@@ -361,4 +439,8 @@ function validateVolunteerModalImageSize(input) {
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    handleVolunteerPledgeChange();
+});
 </script>

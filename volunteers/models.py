@@ -93,12 +93,32 @@ class Volunteer(models.Model):
         return max(0, 90 - diff)
 
     @property
+    def name(self):
+        return self.full_name
+
+    @property
+    def effective_role(self):
+        return "স্বেচ্ছাসেবক সদস্য"
+
+    @property
+    def monthly_fee(self):
+        """Monthly fee if pledged, otherwise 0.0"""
+        from .subscription_services import get_member_monthly_fee
+        return get_member_monthly_fee(self)
+
+    @property
+    def subscription_summary(self):
+        """Returns the full subscription and due calculation summary"""
+        from .subscription_services import get_member_subscription_summary
+        return get_member_subscription_summary(self)
+
+    @property
     def total_paid(self):
         from donations.models import ProgramDonation
         from django.db.models import Sum
         if not self.member_id:
             return 0.0
-        qs = ProgramDonation.objects.filter(membership_id__iexact=self.member_id, status__in=['approved', 'completed'])
+        qs = ProgramDonation.objects.filter(membership_id__iexact=self.member_id, status__in=['approved', 'completed']).exclude(donation_type='volunteer_registration')
         return float(qs.aggregate(t=Sum('amount'))['t'] or 0.0)
 
     def save(self, *args, **kwargs):

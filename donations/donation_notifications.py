@@ -165,11 +165,14 @@ def notify_donor_donation_approved(donation, request=None):
     balance_email_text = ""
     if donation.membership_id:
         try:
-            from volunteers.models import TeamMember
+            from volunteers.models import TeamMember, Volunteer
             from volunteers.subscription_services import get_member_subscription_summary
-            tm = TeamMember.objects.filter(member_id__iexact=donation.membership_id).first()
-            if tm:
-                member_sub = get_member_subscription_summary(tm)
+            member_obj = TeamMember.objects.filter(member_id__iexact=donation.membership_id).first()
+            if not member_obj:
+                member_obj = Volunteer.objects.filter(member_id__iexact=donation.membership_id, status='approved').first()
+            
+            if member_obj and getattr(member_obj, 'monthly_fee', 0) > 0:
+                member_sub = get_member_subscription_summary(member_obj)
                 due_amt = member_sub.get('due_amount', 0)
                 adv_amt = member_sub.get('advance_amount', 0)
                 if due_amt > 0:

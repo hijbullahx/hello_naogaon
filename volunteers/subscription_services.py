@@ -65,9 +65,21 @@ def is_secretary_member(member):
 def get_member_monthly_fee(member):
     """
     Determines fixed monthly fee:
-    - শুধুমাত্র সভাপতি, সাধারণ সম্পাদক এবং অ্যাডমিন: 500 BDT
-    - কোষাধ্যক্ষ সহ অন্যান্য সকল কার্যকরী ও সাধারণ পরিষদ সদস্যবৃন্দ: 100 BDT
+    - Volunteer (স্বেচ্ছাসেবক সদস্য):
+      যদি নিবন্ধনের সময় বা প্রোফাইলে মাসিক সহায়তার প্রতিশ্রুতি (contribution_frequency == 'monthly')
+      এবং প্রতিশ্রুত পরিমাণ (contribution_amount > 0) থাকে, তবে সেই পরিমাণটি তার মাসিক চাঁদা হিসেবে ধার্য হবে।
+      অন্যথায় (কোনো নির্দিষ্ট প্রতিশ্রুতি না থাকলে): 0.0 (কোনো বাধ্যতামূলক চাঁদা নেই)।
+    - TeamMember (পরিচালনা পর্ষদ):
+      - শুধুমাত্র সভাপতি, সাধারণ সম্পাদক এবং অ্যাডমিন: 500 BDT
+      - কোষাধ্যক্ষ সহ অন্যান্য সকল কার্যকরী ও সাধারণ পরিষদ সদস্যবৃন্দ: 100 BDT
     """
+    if hasattr(member, 'contribution_frequency'):
+        freq = getattr(member, 'contribution_frequency', 'none')
+        amount = getattr(member, 'contribution_amount', 0)
+        if freq == 'monthly' and amount and float(amount) > 0:
+            return float(amount)
+        return 0.0
+
     if is_admin_member(member) or is_president_member(member) or is_secretary_member(member):
         return 500.0
     return 100.0
@@ -97,12 +109,12 @@ def calculate_billing_cycles(join_date, today=None):
 
 def get_member_subscription_summary(member, today=None):
     """
-    Calculates the complete subscription & fee summary for a TeamMember:
-    - monthly_fee (500 or 100)
+    Calculates the complete subscription & fee summary for a TeamMember or Volunteer:
+    - monthly_fee (pledged fee for volunteer or fixed 500/100 for team member)
     - join_date & billing_day
     - months_billed (billing cycles passed)
     - total_billed
-    - total_paid (completed donations)
+    - total_paid (completed donations, excluding registration fee)
     - due_amount (বকেয়া)
     - advance_amount (অগ্রিম)
     - suggested_amount
@@ -112,22 +124,50 @@ def get_member_subscription_summary(member, today=None):
 
     monthly_fee = get_member_monthly_fee(member)
     
-    if member.created_at:
+    if hasattr(member, 'application_date') and member.application_date:
+        join_date = member.application_date.date()
+    elif hasattr(member, 'created_at') and member.created_at:
         join_date = member.created_at.date()
     else:
         join_date = today
 
     billing_day = join_date.day
-    cycles = calculate_billing_cycles(join_date, today)
-    total_billed = cycles * monthly_fee
+    member_name = getattr(member, 'name', getattr(member, 'full_name', ''))
+    effective_role = getattr(member, 'effective_role', 'সদস্য')
 
-    # Calculate all successful payments made under this member_id
+    # Calculate all successful payments made under this member_id (excluding one-time volunteer registration fee)
     from donations.models import ProgramDonation
     paid_qs = ProgramDonation.objects.filter(
         membership_id=member.member_id,
         status__in=['approved', 'completed']
-    )
+    ).exclude(donation_type='volunteer_registration')
     total_paid = float(paid_qs.aggregate(total=Sum('amount'))['total'] or 0.0)
+
+    if monthly_fee <= 0:
+        return {
+            'member_id': member.member_id or '',
+            'name': member_name,
+            'role': effective_role,
+            'phone': getattr(member, 'phone', '') or '',
+            'email': getattr(member, 'email', '') or '',
+            'monthly_fee': 0.0,
+            'join_date': join_date,
+            'join_date_formatted': join_date.strftime('%d-%m-%Y'),
+            'billing_day': billing_day,
+            'months_billed': 0,
+            'total_billed': 0.0,
+            'total_paid': total_paid,
+            'due_amount': 0.0,
+            'advance_amount': total_paid,
+            'balance': total_paid,
+            'status_label': 'ইচ্ছানুযায়ী',
+            'suggested_amount': 100.0,
+            'next_billing_date': today,
+            'next_billing_date_formatted': today.strftime('%d-%m-%Y'),
+        }
+
+    cycles = calculate_billing_cycles(join_date, today)
+    total_billed = cycles * monthly_fee
 
     balance = total_paid - total_billed
     if balance < 0:
@@ -160,10 +200,10 @@ def get_member_subscription_summary(member, today=None):
 
     return {
         'member_id': member.member_id or '',
-        'name': member.name,
-        'role': member.effective_role,
-        'phone': member.phone or '',
-        'email': member.email or '',
+        'name': member_name,
+        'role': effective_role,
+        'phone': getattr(member, 'phone', '') or '',
+        'email': getattr(member, 'email', '') or '',
         'monthly_fee': monthly_fee,
         'join_date': join_date,
         'join_date_formatted': join_date.strftime('%d-%m-%Y'),
@@ -187,14 +227,22 @@ def send_member_registration_notification(member):
     summary = get_member_subscription_summary(member)
     base_url = get_base_url()
     payment_url = f"{base_url}/donations/?member_id={member.member_id}"
+    member_name = getattr(member, 'name', getattr(member, 'full_name', ''))
+    effective_role = getattr(member, 'effective_role', 'সদস্য')
 
     # 1. SMS Notification
     if member.phone:
-        sms_msg = (
-            f"[Helpline Hello Naogaon] {member.name}, পরিচালনা পর্ষদে আপনাকে স্বাগতম! "
-            f"সদস্য আইডি: {member.member_id}। আপনার পদবীতে মাসিক নির্ধারিত চাঁদা ৳{summary['monthly_fee']:,.0f}। "
-            f"সহজে চাঁদা পরিশোধ করুন: {payment_url}"
-        )
+        if summary['monthly_fee'] > 0:
+            sms_msg = (
+                f"[Helpline Hello Naogaon] {member_name}, আপনাকে স্বাগতম! "
+                f"সদস্য আইডি: {member.member_id} ({effective_role})। প্রতিশ্রুত মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। "
+                f"সহজে চাঁদা পরিশোধ করুন: {payment_url}"
+            )
+        else:
+            sms_msg = (
+                f"[Helpline Hello Naogaon] {member_name}, আপনাকে স্বাগতম! "
+                f"সদস্য আইডি: {member.member_id} ({effective_role})। কোনো নির্দিষ্ট মাসিক চাঁদা নেই, ইচ্ছানুযায়ী অনুদান দিতে পারবেন: {payment_url}"
+            )
         try:
             send_sms(member.phone, sms_msg)
             logger.info("Sent registration subscription SMS to %s", member.phone)
@@ -203,35 +251,47 @@ def send_member_registration_notification(member):
 
     # 2. Email Notification
     if member.email:
-        subject = f"Hello Naogaon - সদস্য নিবন্ধন ও মাসিক চাঁদা বিবরণী (আইডি: {member.member_id})"
-        paragraphs = [
-            f"আসসালামু আলাইকুম {member.name},",
-            f"হেল্পলাইন হ্যালো নওগাঁ (Helpline Hello Naogaon)-এর পরিচালনা পর্ষদে {member.effective_role} হিসেবে অন্তর্ভুক্ত হওয়ায় আপনাকে উষ্ণ অভিনন্দন!",
-            f"সংগঠনের নীতিমালা অনুযায়ী আপনার পদের জন্য নির্ধারিত মাসিক চাঁদার পরিমাণ ৳{summary['monthly_fee']:,.2f} টাকা। "
-            f"প্রতি মাসের {summary['billing_day']} তারিখে আপনার মাসিক চাঁদা ধার্য হবে এবং পূর্বের বকেয়া (যদি থাকে) সহ নিয়মিত আপডেট বার্তা পাবেন।",
-            "আপনার প্রথম মাসের চাঁদা নিচের বোতামে চাপ দিয়ে সরাসরি বিকাশ, নগদ বা ব্যাংক কার্ডের মাধ্যমে অনলাইনে পরিশোধ করতে পারবেন।"
-        ]
+        subject = f"Hello Naogaon - সদস্য নিবন্ধন ও হিসাব বিবরণী (আইডি: {member.member_id})"
+        if summary['monthly_fee'] > 0:
+            paragraphs = [
+                f"আসসালামু আলাইকুম {member_name},",
+                f"হেল্পলাইন হ্যালো নওগাঁ (Helpline Hello Naogaon)-এ {effective_role} হিসেবে অন্তর্ভুক্ত হওয়ায় আপনাকে উষ্ণ অভিনন্দন!",
+                f"আপনার প্রতিশ্রুত মাসিক চাঁদার পরিমাণ ৳{summary['monthly_fee']:,.2f} টাকা। "
+                f"প্রতি মাসের {summary['billing_day']} তারিখে আপনার মাসিক চাঁদা ধার্য হবে এবং পূর্বের বকেয়া (যদি থাকে) সহ নিয়মিত আপডেট বার্তা পাবেন।",
+                "আপনার প্রথম মাসের চাঁদা নিচের বোতামে চাপ দিয়ে সরাসরি বিকাশ, নগদ বা ব্যাংক কার্ডের মাধ্যমে অনলাইনে পরিশোধ করতে পারবেন।"
+            ]
+            fee_display_val = f"৳{summary['monthly_fee']:,.2f} / মাস"
+            due_now_val = f"৳{summary['monthly_fee']:,.2f}"
+        else:
+            paragraphs = [
+                f"আসসালামু আলাইকুম {member_name},",
+                f"হেল্পলাইন হ্যালো নওগাঁ (Helpline Hello Naogaon)-এ {effective_role} হিসেবে অন্তর্ভুক্ত হওয়ায় আপনাকে উষ্ণ অভিনন্দন!",
+                "সংগঠনের নিয়মানুযায়ী আপনার জন্য কোনো বাধ্যতামূলক মাসিক চাঁদা নেই।",
+                "আপনি আপনার সুবিধামতো যেকোনো সময় সদস্য চাঁদা ফান্ডে ইচ্ছানুযায়ী যেকোনো পরিমাণ অর্থ অনুদান হিসেবে প্রদান করতে পারবেন।"
+            ]
+            fee_display_val = "কোনো নির্দিষ্ট চাঁদা নেই (ইচ্ছানুযায়ী)"
+            due_now_val = "৳ 0.00 (বাধ্যতামূলক নয়)"
 
         details = [
-            {'label': 'সদস্যের নাম', 'value': member.name},
-            {'label': 'সদস্য পদবী', 'value': member.effective_role},
+            {'label': 'সদস্যের নাম', 'value': member_name},
+            {'label': 'সদস্য পদবী', 'value': effective_role},
             {'label': 'সদস্য আইডি (Member ID)', 'value': member.member_id},
-            {'label': 'নির্ধারিত মাসিক চাঁদা', 'value': f"৳{summary['monthly_fee']:,.2f} / মাস"},
+            {'label': 'নির্ধারিত মাসিক চাঁদা', 'value': fee_display_val},
             {'label': 'মাসিক বিলিং তারিখ', 'value': f"প্রতি মাসের {summary['billing_day']} তারিখ"},
-            {'label': 'চলতি মাসের প্রদেয় চাঁদা', 'value': f"৳{summary['monthly_fee']:,.2f}"},
+            {'label': 'চলতি মাসের প্রদেয় চাঁদা', 'value': due_now_val},
         ]
 
         action_buttons = [
-            {'label': 'অনলাইনে চাঁদা পরিশোধ করুন', 'url': payment_url},
+            {'label': 'অনলাইনে চাঁদা / অনুদান দিন', 'url': payment_url},
             {'label': 'আমাদের ওয়েবসাইট দেখুন', 'url': base_url},
         ]
 
         send_system_email(
             subject=subject,
             recipient_list=[member.email],
-            recipient_name=member.name,
+            recipient_name=member_name,
             greeting="শ্রদ্ধেয় সদস্য",
-            headline="সদস্য নিবন্ধন ও নির্ধারিত মাসিক চাঁদা",
+            headline="সদস্য নিবন্ধন ও চাঁদা হিসাব",
             message_paragraphs=paragraphs,
             details=details,
             action_buttons=action_buttons,
@@ -248,14 +308,20 @@ def send_member_monthly_reminder(member, today=None, force=False):
     """
     summary = get_member_subscription_summary(member, today=today)
 
+    # Do not send reminder if member has no monthly fee (voluntary only)
+    if summary['monthly_fee'] <= 0:
+        return False
+
     # Do not send reminder if the member has advance payment or zero dues
     if not force and summary['due_amount'] <= 0:
         logger.info(
             "Skipping monthly reminder for %s (%s): Advance balance available / No dues (Advance: ৳%s, Due: ৳%s)",
-            member.name, member.member_id, summary.get('advance_amount', 0), summary.get('due_amount', 0)
+            summary.get('name'), member.member_id, summary.get('advance_amount', 0), summary.get('due_amount', 0)
         )
         return False
 
+    member_name = getattr(member, 'name', getattr(member, 'full_name', ''))
+    effective_role = getattr(member, 'effective_role', 'সদস্য')
     base_url = get_base_url()
     payment_url = f"{base_url}/donations/?member_id={member.member_id}"
 
@@ -264,7 +330,7 @@ def send_member_monthly_reminder(member, today=None, force=False):
     # 1. SMS Reminder
     if member.phone:
         sms_msg = (
-            f"[Helpline Hello Naogaon] {member.name}, মাসিক চাঁদা রিমাইন্ডার (আইডি: {member.member_id})। "
+            f"[Helpline Hello Naogaon] {member_name}, মাসিক চাঁদা রিমাইন্ডার (আইডি: {member.member_id})। "
             f"মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। মোট বকেয়া: {due_str} টাকা। "
             f"অনলাইনে পরিশোধ করুন: {payment_url}"
         )
@@ -278,9 +344,9 @@ def send_member_monthly_reminder(member, today=None, force=False):
     if member.email:
         subject = f"Hello Naogaon - মাসিক চাঁদা রিমাইন্ডার ও হিসাব বিবরণী (আইডি: {member.member_id})"
         paragraphs = [
-            f"সম্মানিত {member.name},",
-            f"হেল্পলাইন হ্যালো নওগাঁর নিয়মিত কার্যক্রম ও মানবিক সেবাসমূহ অব্যাহত রাখতে পরিচালনা পর্ষদের নির্ধারিত মাসিক চাঁদা অত্যন্ত গুরুত্বপূর্ণ।",
-            f"আপনার সদস্য আইডি: #{member.member_id} ({member.effective_role})। প্রতি মাসের {summary['billing_day']} তারিখে আপনার নিয়মিত মাসিক চাঁদা ধার্য করা হয়।",
+            f"সম্মানিত {member_name},",
+            f"হেল্পলাইন হ্যালো নওগাঁর নিয়মিত কার্যক্রম ও মানবিক সেবাসমূহ অব্যাহত রাখতে আপনার প্রতিশ্রুত নিয়মিত মাসিক চাঁদা অত্যন্ত গুরুত্বপূর্ণ।",
+            f"আপনার সদস্য আইডি: #{member.member_id} ({effective_role})। প্রতি মাসের {summary['billing_day']} তারিখে আপনার নিয়মিত মাসিক চাঁদা ধার্য করা হয়।",
             f"হিসাব অনুযায়ী আপনার বর্তমান মোট প্রদেয় / বকেয়ার পরিমাণ {due_str} টাকা। "
             "সংগঠনের কার্যক্রম সুন্দরভাবে পরিচালনার স্বার্থে দ্রুত বকেয়া পরিশোধ করার জন্য বিনীত অনুরোধ জানানো হচ্ছে।"
         ]
@@ -303,7 +369,7 @@ def send_member_monthly_reminder(member, today=None, force=False):
         send_system_email(
             subject=subject,
             recipient_list=[member.email],
-            recipient_name=member.name,
+            recipient_name=member_name,
             greeting="আসসালামু আলাইকুম",
             headline="মাসিক চাঁদা ও হিসাব হালনাগাদ",
             message_paragraphs=paragraphs,
@@ -317,10 +383,12 @@ def send_member_monthly_reminder(member, today=None, force=False):
 
 def send_all_existing_members_update():
     """
-    Sends an updated status notification (SMS & Email) to ALL existing core TeamMembers right now.
+    Sends an updated status notification (SMS & Email) to ALL existing core TeamMembers and pledged Volunteers.
     """
-    from volunteers.models import TeamMember
-    members = TeamMember.objects.all().order_by('order', 'name')
+    from volunteers.models import TeamMember, Volunteer
+    team_members = list(TeamMember.objects.all().order_by('order', 'name'))
+    volunteer_members = list(Volunteer.objects.filter(status='approved', contribution_frequency='monthly', contribution_amount__gt=0).order_by('full_name'))
+    members = team_members + volunteer_members
     sent_count = 0
     results = []
 
@@ -328,6 +396,8 @@ def send_all_existing_members_update():
         summary = get_member_subscription_summary(mem)
         base_url = get_base_url()
         payment_url = f"{base_url}/donations/?member_id={mem.member_id}"
+        member_name = getattr(mem, 'name', getattr(mem, 'full_name', ''))
+        effective_role = getattr(mem, 'effective_role', 'সদস্য')
 
         # 1. SMS (Only send if there are outstanding dues; skip if member has advance)
         sms_sent = False
@@ -335,7 +405,7 @@ def send_all_existing_members_update():
             if summary['due_amount'] > 0:
                 due_str = f"৳{summary['due_amount']:,.0f}"
                 sms_msg = (
-                    f"[Helpline Hello Naogaon] {mem.name}, আপনার সদস্য আইডি: {mem.member_id} ({mem.effective_role})। "
+                    f"[Helpline Hello Naogaon] {member_name}, আপনার সদস্য আইডি: {mem.member_id} ({effective_role})। "
                     f"মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। বর্তমান বকেয়া: {due_str} টাকা। "
                     f"বিস্তারিত ও পরিশোধ: {payment_url}"
                 )
@@ -346,7 +416,7 @@ def send_all_existing_members_update():
             else:
                 logger.info(
                     "Skipping payment SMS to %s (%s): Advance balance available / No dues (Advance: ৳%s)",
-                    mem.name, mem.member_id, summary['advance_amount']
+                    member_name, mem.member_id, summary['advance_amount']
                 )
 
         # 2. Email

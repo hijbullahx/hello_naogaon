@@ -59,27 +59,32 @@ def member_pledge_lookup(request):
     if not member_id:
         return JsonResponse({'found': False})
     
-    vol = Volunteer.objects.filter(member_id__iexact=member_id).first()
+    vol = Volunteer.objects.filter(member_id__iexact=member_id, status='approved').first()
     if vol:
-        freq_dict = {
-            'monthly': 'মাসিক (প্রতি মাসে)',
-            'weekly': 'সাপ্তাহিক (প্রতি সপ্তাহে)',
-            'yearly': 'বাৎসরিক (প্রতি বছরে)',
-            'one_time': 'এককালীন',
-            'none': 'কোনো নির্দিষ্ট প্রতিশ্রুতি নেই'
-        }
-        has_pledge = bool(vol.contribution_frequency and vol.contribution_frequency != 'none' and vol.contribution_amount)
+        sub = vol.subscription_summary
+        has_pledge = (vol.contribution_frequency == 'monthly' and vol.contribution_amount and float(vol.contribution_amount) > 0)
         return JsonResponse({
             'found': True,
             'is_team_member': False,
             'member_id': vol.member_id,
             'full_name': vol.full_name,
+            'role': 'স্বেচ্ছাসেবক সদস্য',
             'phone': vol.phone,
             'email': vol.email or '',
             'has_pledge': has_pledge,
-            'frequency': vol.contribution_frequency if vol.contribution_frequency else 'one_time',
-            'frequency_display': freq_dict.get(vol.contribution_frequency, vol.contribution_frequency or 'এককালীন'),
-            'amount': float(vol.contribution_amount) if vol.contribution_amount else 0,
+            'frequency': 'monthly' if has_pledge else (vol.contribution_frequency or 'none'),
+            'frequency_display': 'মাসিক চাঁদা' if has_pledge else 'ইচ্ছানুযায়ী',
+            'amount': sub['suggested_amount'],
+            'monthly_fee': sub['monthly_fee'],
+            'due_amount': sub['due_amount'],
+            'advance_amount': sub['advance_amount'],
+            'total_paid': sub['total_paid'],
+            'total_billed': sub['total_billed'],
+            'months_billed': sub['months_billed'],
+            'join_date_formatted': sub['join_date_formatted'],
+            'billing_day': sub['billing_day'],
+            'status_label': sub['status_label'],
+            'next_billing_date': sub['next_billing_date_formatted'],
         })
     
     tm = TeamMember.objects.filter(member_id__iexact=member_id).first()
@@ -151,16 +156,10 @@ def api_members_search(request):
     vol_qs = Volunteer.objects.filter(status='approved').order_by('full_name')
     if q:
         vol_qs = vol_qs.filter(Q(full_name__icontains=q) | Q(member_id__icontains=q) | Q(phone__icontains=q))
-    
-    freq_dict = {
-        'monthly': 'মাসিক',
-        'weekly': 'সাপ্তাহিক',
-        'yearly': 'বাৎসরিক',
-        'one_time': 'এককালীন',
-        'none': 'ইচ্ছানুযায়ী'
-    }
 
     for vol in vol_qs:
+        sub = vol.subscription_summary
+        has_pledge = (vol.contribution_frequency == 'monthly' and vol.contribution_amount and float(vol.contribution_amount) > 0)
         members.append({
             'member_id': vol.member_id or '',
             'name': vol.full_name,
@@ -169,9 +168,16 @@ def api_members_search(request):
             'email': vol.email or '',
             'photo_url': vol.image.url if vol.image else '',
             'is_team': False,
-            'frequency': vol.contribution_frequency if vol.contribution_frequency else 'monthly',
-            'frequency_display': freq_dict.get(vol.contribution_frequency, 'মাসিক'),
-            'pledge_amount': float(vol.contribution_amount) if vol.contribution_amount else 100,
+            'frequency': 'monthly' if has_pledge else 'none',
+            'frequency_display': 'মাসিক চাঁদা' if has_pledge else 'ইচ্ছানুযায়ী',
+            'pledge_amount': sub['suggested_amount'],
+            'monthly_fee': sub['monthly_fee'],
+            'due_amount': sub['due_amount'],
+            'advance_amount': sub['advance_amount'],
+            'total_paid': sub['total_paid'],
+            'months_billed': sub['months_billed'],
+            'join_date_formatted': sub['join_date_formatted'],
+            'status_label': sub['status_label'],
         })
 
     return JsonResponse({'members': members, 'count': len(members)})
@@ -512,86 +518,13 @@ def process_successful_payment(donation, payment_data, request=None):
             note=trx_note
         )
 
-    # 3. Dispatch SMS receipt to donor (skip generic donation SMS if volunteer welcome SMS already sent)
-    if donation.donor_phone and not vol_obj:
+    # 3. Dispatch Notifications to Donor & Admin
+    if not vol_obj:
+        from donations.donation_notifications import send_donation_approval_notifications
         try:
-            donor_sms = (
-                f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
-                f"আপনার ৳{donation.amount:,.0f} অনুদান সফলভাবে অনুমোদিত হয়েছে। "
-                f"পেমেন্ট মেথড: {payment_method}, TrxID: {trx_id}। ধন্যবাদ। প্রয়োজনে: 01916314315"
-            )
-            send_sms(donation.donor_phone, donor_sms)
+            send_donation_approval_notifications(donation, request=request)
         except Exception as ex:
-            logger.error(f"[DONOR SMS ERROR] {ex}")
-
-    # 4. Dispatch Email receipt to donor
-    if donation.donor_email:
-        try:
-            send_system_email(
-                subject=f"🧾 অনুদান প্রাপ্তি রসিদ — হেল্পলাইন হ্যালো নওগাঁ (৳{donation.amount:,.0f})",
-                recipient_list=[donation.donor_email],
-                recipient_name=donation.donor_name,
-                greeting="শ্রদ্ধেয় দাতা,",
-                headline="অনলাইন অনুদান সফলভাবে সম্পন্ন হয়েছে",
-                message_paragraphs=[
-                    "হেল্পলাইন হ্যালো নওগাঁর মাধ্যমে মানবতার সেবায় আপনার অনুদানটি স্বয়ংক্রিয়ভাবে গৃহীত ও অনুমোদিত হয়েছে।",
-                    "আপনার এই মহতী সহায়তা অসহায় ও সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াতে আমাদের সহায়তা করবে। সংগঠনের পক্ষ থেকে আপনার প্রতি অশেষ কৃতজ্ঞতা ও শুভকামনা।"
-                ],
-                details=[
-                    {'label': 'দাতা / প্রেরকের নাম', 'value': donation.donor_name},
-                    {'label': 'অনুদানের পরিমাণ', 'value': f"৳ {donation.amount:,.2f}"},
-                    {'label': 'পেমেন্ট মাধ্যম', 'value': payment_method},
-                    {'label': 'ট্রানজেকশন আইডি (TrxID)', 'value': trx_id},
-                    {'label': 'গেটওয়ে ইনভয়েস নং', 'value': invoice_id or donation.tran_id},
-                    {'label': 'কার্যক্রম / খাত', 'value': donation.program.title if donation.program else 'সাধারণ তহবিল'},
-                ],
-                footer_note="যেকোনো তথ্যের প্রয়োজনে যোগাযোগ: 01916314315",
-                fail_silently=True,
-                request=request
-            )
-        except Exception as ex:
-            logger.error(f"[DONOR EMAIL ERROR] {ex}")
-
-    # 5. Dispatch Admin Alert SMS & Email
-    try:
-        admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
-        if admin_phone:
-            admin_sms = (
-                f"[Helpline Hello Naogaon] নতুন অনলাইন অনুদান! "
-                f"দাতা: {donation.donor_name}, পরিমাণ: ৳{donation.amount:,.0f}, "
-                f"মাধ্যম: {payment_method}, TrxID: {trx_id}। প্রয়োজনে: 01916314315"
-            )
-            send_sms(admin_phone, admin_sms)
-    except Exception as ex:
-        logger.error(f"[ADMIN SMS ALERT ERROR] {ex}")
-
-    try:
-        admin_emails = get_admin_notification_emails()
-        if admin_emails:
-            send_system_email(
-                subject=f"💰 নতুন অনলাইন অনুদান প্রাপ্তি — ৳{donation.amount:,.0f} ({donation.donor_name})",
-                recipient_list=admin_emails,
-                recipient_name="শ্রদ্ধেয় এডমিন",
-                greeting="আসসালামু আলাইকুম,",
-                headline="নতুন অনলাইন অনুদান জমা হয়েছে",
-                message_paragraphs=[
-                    "হেল্পলাইন হ্যালো নওগাঁর অনলাইন পেমেন্ট গেটওয়ের মাধ্যমে একটি নতুন সফল অনুদান সম্পন্ন হয়েছে।"
-                ],
-                details=[
-                    {'label': 'দাতার নাম', 'value': donation.donor_name},
-                    {'label': 'মোবাইল নম্বর', 'value': donation.donor_phone},
-                    {'label': 'অনুদানের পরিমাণ', 'value': f"৳ {donation.amount:,.2f}"},
-                    {'label': 'পেমেন্ট মাধ্যম', 'value': payment_method},
-                    {'label': 'ট্রানজেকশন আইডি (TrxID)', 'value': trx_id},
-                    {'label': 'গেটওয়ে ইনভয়েস নং', 'value': invoice_id or donation.tran_id},
-                    {'label': 'খাত / প্রজেক্ট', 'value': donation.program.title if donation.program else 'সাধারণ তহবিল'},
-                ],
-                footer_note="সিস্টেম স্বয়ংক্রিয় নোটিফিকেশন | হেল্পলাইন হ্যালো নওগাঁ",
-                fail_silently=True,
-                request=request
-            )
-    except Exception as ex:
-        logger.error(f"[ADMIN EMAIL ALERT ERROR] {ex}")
+            logger.error(f"[DONATION APPROVAL NOTIFICATIONS ERROR] {ex}")
 
     return donation
 

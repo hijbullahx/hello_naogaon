@@ -214,18 +214,18 @@
                                 <div class="member-select-item p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all"
                                      data-member-id="{{ vol.member_id|default:'' }}"
                                      data-member-name="{{ vol.full_name }}"
-                                     data-member-role="স্বেচ্ছাসেবক"
+                                     data-member-role="স্বেচ্ছাসেবক সদস্য"
                                      data-member-phone="{{ vol.phone|default:'' }}"
                                      data-member-email="{{ vol.email|default:'' }}"
-                                     data-monthly-fee="0"
-                                     data-due-amount="0"
-                                     data-advance-amount="0"
-                                     data-total-paid="{{ vol.total_paid|floatformat:0 }}"
-                                     data-total-billed="0"
-                                     data-months-billed="0"
-                                     data-join-date="{{ vol.application_date|date:'d-m-Y' }}"
-                                     data-status-label="ইচ্ছানুযায়ী সহায়তা"
-                                     data-suggested-amount="100"
+                                     data-monthly-fee="{{ vol.monthly_fee|floatformat:0 }}"
+                                     data-due-amount="{{ vol.subscription_summary.due_amount|floatformat:0 }}"
+                                     data-advance-amount="{{ vol.subscription_summary.advance_amount|floatformat:0 }}"
+                                     data-total-paid="{{ vol.subscription_summary.total_paid|floatformat:0 }}"
+                                     data-total-billed="{{ vol.subscription_summary.total_billed|floatformat:0 }}"
+                                     data-months-billed="{{ vol.subscription_summary.months_billed }}"
+                                     data-join-date="{{ vol.subscription_summary.join_date_formatted }}"
+                                     data-status-label="{{ vol.subscription_summary.status_label }}"
+                                     data-suggested-amount="{{ vol.subscription_summary.suggested_amount|floatformat:0 }}"
                                      onclick="selectModalMember(this)">
                                     <div class="d-flex align-items-center gap-3">
                                         {% if vol.image %}
@@ -974,7 +974,7 @@ function selectModalMember(elem) {
     var statusDisplay = document.getElementById('summaryStatusDisplay');
     if (statusBox && statusDisplay) {
         statusBox.className = 'p-2 rounded-3 border text-center ';
-        if (monthlyFee <= 0 || memberRole === 'স্বেচ্ছাসেবক') {
+        if (monthlyFee <= 0) {
             statusBox.className += 'bg-success-subtle border-success-subtle text-success';
             statusDisplay.innerHTML = '<i class="fas fa-heart me-1"></i>ইচ্ছানুযায়ী অনুদান';
         } else if (dueAmount > 0) {
@@ -993,7 +993,7 @@ function selectModalMember(elem) {
     var pillsContainer = document.getElementById('memberAmtPillsContainer');
     if (pillsContainer) {
         var pillsHtml = '';
-        if (monthlyFee <= 0 || memberRole === 'স্বেচ্ছাসেবক') {
+        if (monthlyFee <= 0) {
             pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill active" onclick="setMemberAmount(100)">৳১০০</button> ';
             pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(200)">৳২০০</button> ';
             pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(500)">৳৫০০</button> ';
@@ -1068,7 +1068,10 @@ function selectModalMember(elem) {
                     var sDisplay = document.getElementById('summaryStatusDisplay');
                     if (sBox && sDisplay) {
                         sBox.className = 'p-2 rounded-3 border text-center ';
-                        if (liveDue > 0) {
+                        if (liveFee <= 0) {
+                            sBox.className += 'bg-success-subtle border-success-subtle text-success';
+                            sDisplay.innerHTML = '<i class="fas fa-heart me-1"></i>ইচ্ছানুযায়ী অনুদান';
+                        } else if (liveDue > 0) {
                             sBox.className += 'bg-danger-subtle border-danger-subtle text-danger';
                             sDisplay.innerHTML = 'বকেয়া: ৳' + liveDue;
                         } else if (liveAdv > 0) {
@@ -1084,13 +1087,21 @@ function selectModalMember(elem) {
                     var pCont = document.getElementById('memberAmtPillsContainer');
                     if (pCont) {
                         var pHtml = '';
-                        if (liveDue > 0) {
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + liveDue + ')">৳' + liveDue + ' (বকেয়া পরিশোধ)</button> ';
+                        if (liveFee <= 0) {
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill active" onclick="setMemberAmount(100)">৳১০০</button> ';
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(200)">৳২০০</button> ';
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(500)">৳৫০০</button> ';
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(1000)">৳১০০০</button> ';
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(2000)">৳২০০০</button>';
+                        } else {
+                            if (liveDue > 0) {
+                                pHtml += '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + liveDue + ')">৳' + liveDue + ' (বকেয়া পরিশোধ)</button> ';
+                            }
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill ' + (liveDue <= 0 ? 'active' : '') + '" onclick="setMemberAmount(' + liveFee + ')">৳' + liveFee + ' (১ মাস)</button> ';
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 2) + ')">৳' + (liveFee * 2) + ' (২ মাস)</button> ';
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 3) + ')">৳' + (liveFee * 3) + ' (৩ মাস)</button> ';
+                            pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 6) + ')">৳' + (liveFee * 6) + ' (৬ মাস)</button>';
                         }
-                        pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill ' + (liveDue <= 0 ? 'active' : '') + '" onclick="setMemberAmount(' + liveFee + ')">৳' + liveFee + ' (১ মাস)</button> ';
-                        pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 2) + ')">৳' + (liveFee * 2) + ' (২ মাস)</button> ';
-                        pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 3) + ')">৳' + (liveFee * 3) + ' (৩ মাস)</button> ';
-                        pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 6) + ')">৳' + (liveFee * 6) + ' (৬ মাস)</button>';
                         pCont.innerHTML = pHtml;
                     }
 
