@@ -174,6 +174,7 @@ class FinancialTransaction(models.Model):
 
 class ProgramDonation(models.Model):
     DONATION_TYPE_CHOICES = [
+        ('volunteer_registration', _('সদস্য নিবন্ধন ফি')),
         ('volunteer', _('স্বেচ্ছাসেবক অনুদান / মাসিক চাঁদা')),
         ('general', _('সাধারণ আর্থিক সহায়তা')),
         ('program', _('কার্যক্রম ভিত্তিক সহায়তা')),

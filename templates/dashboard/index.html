@@ -1111,11 +1111,12 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>#</th>
-                                            <th>স্বেচ্ছাসেবকের নাম</th>
-                                            <th>ইমেইল</th>
-                                            <th>ফোন নম্বর</th>
-                                            <th>ঠিকানা</th>
-                                            <th>আবেদনের তারিখ</th>
+                                            <th>স্বেচ্ছাসেবকের নাম ও আইডি</th>
+                                            <th>ফোন ও ইমেইল</th>
+                                            <th>ঠিকানা ও রক্ত</th>
+                                            <th>নিবন্ধন ফি ও পেমেন্ট</th>
+                                            <th>স্ট্যাটাস</th>
+                                            <th>তারিখ</th>
                                             {% if can_edit_all %}<th>অ্যাকশন</th>{% endif %}
                                         </tr>
                                     </thead>
@@ -1123,13 +1124,54 @@
                                         {% for v in volunteers %}
                                         <tr>
                                             <td>{{ forloop.counter }}</td>
-                                            <td class="fw-bold">{{ v.full_name }}</td>
-                                            <td>{{ v.email|default:"-" }}</td>
-                                            <td><a href="tel:{{ v.phone }}" class="text-success fw-bold">{{ v.phone }}</a></td>
-                                            <td>{{ v.address|default:"-" }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    {% if v.image %}
+                                                    <img src="{{ v.image.url }}" class="rounded-circle border" style="width: 36px; height: 36px; object-fit: cover;">
+                                                    {% else %}
+                                                    <div class="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                                                        {{ v.full_name|slice:":1" }}
+                                                    </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="fw-bold text-dark">{{ v.full_name }}</div>
+                                                        {% if v.member_id %}
+                                                        <span class="badge bg-primary text-white" style="font-size: 0.72rem;"><i class="fas fa-id-card me-1"></i>{{ v.member_id }}</span>
+                                                        {% else %}
+                                                        <span class="badge bg-warning text-dark" style="font-size: 0.72rem;"><i class="fas fa-clock me-1"></i>আইডি বাকি</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="tel:{{ v.phone }}" class="text-success fw-bold d-block"><i class="fas fa-phone-alt me-1"></i>{{ v.phone }}</a>
+                                                {% if v.email %}<small class="text-muted d-block"><i class="fas fa-envelope me-1"></i>{{ v.email }}</small>{% endif %}
+                                            </td>
+                                            <td>
+                                                {% if v.blood_group %}<span class="badge bg-danger text-white mb-1">{{ v.blood_group }}</span><br>{% endif %}
+                                                <small class="text-secondary">{{ v.full_address|default:"-" }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success-subtle text-success border border-success fw-bold">৳ {{ v.registration_fee|default:100 }}</span>
+                                                <small class="d-block text-dark fw-semibold mt-1">{{ v.payment_method|default:'N/A' }}</small>
+                                                {% if v.sender_account %}<small class="d-block text-muted">প্রেরক: {{ v.sender_account }}</small>{% endif %}
+                                                {% if v.trx_id %}<small class="d-block font-monospace text-secondary">Trx: {{ v.trx_id }}</small>{% endif %}
+                                            </td>
+                                            <td>
+                                                {% if v.status == 'approved' %}
+                                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>অনুমোদিত</span>
+                                                {% else %}
+                                                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>যাচাই বাকি</span>
+                                                {% endif %}
+                                            </td>
                                             <td><small class="text-secondary">{{ v.application_date|date:"d M Y" }}</small></td>
                                             {% if can_edit_all %}
                                             <td>
+                                                {% if v.status != 'approved' %}
+                                                <a href="{% url 'core:approve_volunteer' v.id %}"
+                                                    onclick="return confirm('এই সদস্যের আবেদন ও ১০০ টাকা ফি অনুমোদন করতে চান? সদস্য আইডি তৈরি হয়ে তার মোবাইল ও ইমেইলে বার্তা চলে যাবে।');"
+                                                    class="btn btn-sm btn-success fw-bold me-1" title="অনুমোদন করুন"><i class="fas fa-check me-1"></i>অনুমোদন</a>
+                                                {% endif %}
                                                 <a href="{% url 'core:delete_volunteer' v.id %}"
                                                     onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');"
                                                     class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i
@@ -1139,8 +1181,7 @@
                                         </tr>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="7" class="text-center py-4 text-muted">কোনো স্বেচ্ছাসেবক তথ্য
-                                                পাওয়া যায়নি।</td>
+                                            <td colspan="8" class="text-center py-4 text-muted">কোনো স্বেচ্ছাসেবক তথ্য পাওয়া যায়নি।</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

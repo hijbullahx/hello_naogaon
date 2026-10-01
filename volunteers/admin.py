@@ -4,10 +4,57 @@ from core.email_utils import send_system_email
 
 @admin.register(Volunteer)
 class VolunteerAdmin(admin.ModelAdmin):
-    list_display = ('member_id', 'full_name', 'phone', 'blood_group', 'is_public_details', 'status', 'application_date')
-    list_filter = ('status', 'blood_group', 'is_public_details')
-    search_fields = ('member_id', 'full_name', 'email', 'phone', 'blood_group')
+    list_display = ('member_id', 'full_name', 'phone', 'blood_group', 'registration_fee', 'payment_status', 'payment_method', 'status', 'application_date')
+    list_filter = ('status', 'payment_status', 'blood_group', 'is_public_details')
+    search_fields = ('member_id', 'full_name', 'email', 'phone', 'sender_account', 'trx_id')
     list_per_page = 20
+    actions = ['approve_volunteers']
+
+    @admin.action(description="✅ নির্বাচিত সদস্যদের অনুমোদন করুন (Approve & Generate ID & Send SMS/Email)")
+    def approve_volunteers(self, request, queryset):
+        from .views import send_member_notifications
+        from .models import generate_unique_member_id
+        from donations.models import FinancialTransaction, ProgramDonation
+        from django.db.models import Q
+        from datetime import date
+
+        count = 0
+        for vol in queryset:
+            if vol.status != 'approved':
+                vol.status = 'approved'
+                vol.payment_status = 'paid'
+                if not vol.member_id:
+                    vol.member_id = generate_unique_member_id(prefix_str="")
+                vol.save()
+
+                linked_donation = ProgramDonation.objects.filter(
+                    Q(membership_id=f"NEW_VOL_{vol.id}") | Q(tran_id=vol.tran_id) | Q(donor_phone=vol.phone, donation_type='volunteer_registration')
+                ).first()
+                if linked_donation:
+                    linked_donation.status = 'approved'
+                    linked_donation.membership_id = vol.member_id
+                    linked_donation.save(update_fields=['status', 'membership_id'])
+
+                trx_id = vol.trx_id or (linked_donation.trx_id if linked_donation else None) or f"REG{vol.id}"
+                if not FinancialTransaction.objects.filter(trx_id=trx_id, transaction_type='income').exists():
+                    FinancialTransaction.objects.create(
+                        transaction_type='income',
+                        title=f"সদস্য নিবন্ধন ফি ({vol.full_name}) - আইডি: {vol.member_id}",
+                        category="সদস্য নিবন্ধন ফি",
+                        amount=vol.registration_fee or 100.00,
+                        payment_method=vol.payment_method or 'Manual',
+                        trx_id=trx_id,
+                        donor_name=vol.full_name,
+                        date=date.today(),
+                        note=f"সদস্য নিবন্ধন ফি | আইডি: {vol.member_id} | মোবাইল: {vol.phone}"
+                    )
+
+                try:
+                    send_member_notifications(vol)
+                except Exception:
+                    pass
+                count += 1
+        self.message_user(request, f"{count} জন সদস্য সফলভাবে অনুমোদিত হয়েছে এবং তাদের আইডি ও নোটিফিকেশন পাঠানো হয়েছে।")
 
     def save_model(self, request, obj, form, change):
         is_new = obj.pk is None

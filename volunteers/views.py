@@ -241,36 +241,126 @@ def apply_volunteer(request):
             except ValueError:
                 contribution_amount_val = 0
 
+        payment_mode = request.POST.get('payment_mode', 'gateway').strip()
+        manual_channel = request.POST.get('manual_channel', 'bKash').strip()
+        sender_account = request.POST.get('sender_account', '').strip()
+        trx_id = request.POST.get('trx_id', '').strip()
+
+        if payment_mode == 'manual' and not sender_account:
+            messages.error(request, 'ম্যানুয়াল পেমেন্টের ক্ষেত্রে প্রেরকের মোবাইল নম্বর / অ্যাকাউন্ট নম্বর প্রদান করা আবশ্যক।')
+            return redirect(next_url if next_url else 'volunteers:apply')
+
         if full_name and phone:
-            try:
-                vol = Volunteer.objects.create(
-                    full_name=full_name,
-                    email=email if email else None,
-                    phone=phone,
-                    blood_group=blood_group if blood_group else None,
-                    occupation=occupation if occupation else None,
-                    division=division,
-                    district=district,
-                    upazila=upazila,
-                    address=address if address else None,
-                    last_donated=last_donated_val,
-                    contribution_frequency=contribution_frequency,
-                    contribution_amount=contribution_amount_val,
-                    is_public_details=is_public_details,
-                    image=image,
-                    status='approved'
+            import random
+            from donations.models import ProgramDonation
+            from donations.gateway import initiate_active_gateway_session
+
+            if payment_mode == 'manual':
+                try:
+                    vol = Volunteer.objects.create(
+                        full_name=full_name,
+                        email=email if email else None,
+                        phone=phone,
+                        blood_group=blood_group if blood_group else None,
+                        occupation=occupation if occupation else None,
+                        division=division,
+                        district=district,
+                        upazila=upazila,
+                        address=address if address else None,
+                        last_donated=last_donated_val,
+                        contribution_frequency=contribution_frequency,
+                        contribution_amount=contribution_amount_val,
+                        is_public_details=is_public_details,
+                        image=image,
+                        registration_fee=100.00,
+                        payment_status='pending',
+                        payment_method=f"Manual ({manual_channel})",
+                        sender_account=sender_account,
+                        trx_id=trx_id,
+                        status='pending'
+                    )
+                except ValueError as e:
+                    messages.error(request, str(e))
+                    return redirect(next_url if next_url else 'volunteers:apply')
+
+                # Create corresponding ProgramDonation record for tracking in financial ledger
+                ProgramDonation.objects.create(
+                    donation_type='volunteer_registration',
+                    donor_name=full_name,
+                    donor_phone=phone,
+                    donor_email=email or '',
+                    amount=100.00,
+                    payment_method=f"Manual ({manual_channel})",
+                    sender_account=sender_account,
+                    trx_id=trx_id,
+                    status='pending',
+                    membership_id=f"NEW_VOL_{vol.id}",
+                    note=f"নতুন সদস্য নিবন্ধন ফি (ম্যানুয়াল যাচাই বাকি) - {full_name} ({phone})"
                 )
-            except ValueError as e:
-                messages.error(request, str(e))
+
+                # Send Alert to Admin for Manual Verification
+                admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
+                if admin_phone:
+                    try:
+                        admin_sms = f"[Helpline Hello Naogaon] নতুন সদস্য আবেদন জমা হয়েছে: {full_name}, ফোন: {phone}, মাধ্যম: {manual_channel}, প্রেরক নং: {sender_account}। এডমিন প্যানেল থেকে অনুমোদন করুন।"
+                        send_sms(admin_phone, admin_sms, is_alert=True)
+                    except Exception:
+                        pass
+
+                messages.success(
+                    request, 
+                    f'ধন্যবাদ {full_name}! আপনার সদস্য রেজিস্ট্রেশন আবেদন ও ১০০ টাকা ম্যানুয়াল পেমেন্ট তথ্য সফলভাবে জমা হয়েছে। অ্যাডমিন প্যানেল থেকে তথ্য যাচাই ও অনুমোদনের পর আপনার সদস্য আইডি প্রস্তুত হবে এবং আপনার মোবাইল ও ইমেইলে বার্তা পাঠানো হবে।'
+                )
                 return redirect(next_url if next_url else 'volunteers:apply')
 
-            send_member_notifications(vol)
+            else:
+                # Gateway / Automated Payment
+                gen_tran_id = f"REG_{int(datetime.now().timestamp())}_{random.randint(1000, 9999)}"
+                try:
+                    vol = Volunteer.objects.create(
+                        full_name=full_name,
+                        email=email if email else None,
+                        phone=phone,
+                        blood_group=blood_group if blood_group else None,
+                        occupation=occupation if occupation else None,
+                        division=division,
+                        district=district,
+                        upazila=upazila,
+                        address=address if address else None,
+                        last_donated=last_donated_val,
+                        contribution_frequency=contribution_frequency,
+                        contribution_amount=contribution_amount_val,
+                        is_public_details=is_public_details,
+                        image=image,
+                        registration_fee=100.00,
+                        payment_status='unpaid',
+                        payment_method='Online Gateway',
+                        tran_id=gen_tran_id,
+                        status='pending'
+                    )
+                except ValueError as e:
+                    messages.error(request, str(e))
+                    return redirect(next_url if next_url else 'volunteers:apply')
 
-            messages.success(
-                request, 
-                f'অভিনন্দন {full_name}! আপনার সদস্য নিবন্ধন সফলভাবে সম্পন্ন হয়েছে। আপনার সদস্য আইডি (Member ID): {vol.member_id}'
-            )
-            return redirect(next_url if next_url else 'volunteers:apply')
+                # Create initiated ProgramDonation for gateway checkout
+                donation = ProgramDonation.objects.create(
+                    donation_type='volunteer_registration',
+                    donor_name=full_name,
+                    donor_phone=phone,
+                    donor_email=email or '',
+                    amount=100.00,
+                    payment_method='Online Gateway',
+                    tran_id=gen_tran_id,
+                    status='initiated',
+                    membership_id=f"NEW_VOL_{vol.id}",
+                    note=f"নতুন সদস্য নিবন্ধন ফি (অনলাইন গেটওয়ে) - {full_name} ({phone})"
+                )
+
+                session_res = initiate_active_gateway_session(request, donation)
+                if session_res.get('success') and session_res.get('payment_url'):
+                    return redirect(session_res['payment_url'])
+                else:
+                    return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
         else:
             messages.error(request, 'দয়া করে আপনার নাম এবং মোবাইল নম্বর সঠিকভাবে লিখুন।')
 
@@ -281,7 +371,7 @@ def apply_volunteer(request):
     selected_district = request.GET.get('district', '').strip()
     selected_upazila = request.GET.get('upazila', '').strip()
 
-    volunteers_list = Volunteer.objects.all().order_by('-id')
+    volunteers_list = Volunteer.objects.filter(status='approved').order_by('-id')
 
     if search_query:
         norm_bg = normalize_blood_group(search_query)

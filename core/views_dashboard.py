@@ -1169,6 +1169,64 @@ def save_volunteer(request):
     return redirect('/dashboard/?tab=volunteers-section')
 
 @staff_member_required
+def approve_volunteer(request, pk):
+    """Approve a pending Volunteer application, generate Member ID, record registration fee and notify member"""
+    if not can_user_edit_general(request.user):
+        messages.warning(request, "এই তথ্য অনুমোদনের অনুমতি শুধুমাত্র প্রধান এডমিনের রয়েছে।")
+        return redirect("/dashboard/?tab=volunteers-section")
+
+    vol = Volunteer.objects.filter(pk=pk).first()
+    if not vol:
+        messages.warning(request, 'স্বেচ্ছাসেবকের তথ্য পাওয়া যায়নি।')
+        return redirect('/dashboard/?tab=volunteers-section')
+
+    if vol.status != 'approved':
+        from datetime import date
+        from volunteers.models import generate_unique_member_id
+        vol.status = 'approved'
+        vol.payment_status = 'paid'
+        if not vol.member_id:
+            vol.member_id = generate_unique_member_id(prefix_str="")
+        vol.save()
+
+        # Update linked ProgramDonation if exists
+        linked_donation = ProgramDonation.objects.filter(
+            Q(membership_id=f"NEW_VOL_{vol.id}") | Q(tran_id=vol.tran_id) | Q(donor_phone=vol.phone, donation_type='volunteer_registration')
+        ).first()
+        if linked_donation:
+            linked_donation.status = 'approved'
+            linked_donation.membership_id = vol.member_id
+            linked_donation.save(update_fields=['status', 'membership_id'])
+
+        # Record FinancialTransaction
+        trx_id = vol.trx_id or (linked_donation.trx_id if linked_donation else None) or f"REG{vol.id}"
+        if not FinancialTransaction.objects.filter(trx_id=trx_id, transaction_type='income').exists():
+            FinancialTransaction.objects.create(
+                transaction_type='income',
+                title=f"সদস্য নিবন্ধন ফি ({vol.full_name}) - আইডি: {vol.member_id}",
+                category="সদস্য নিবন্ধন ফি",
+                amount=vol.registration_fee or 100.00,
+                payment_method=vol.payment_method or 'Manual',
+                trx_id=trx_id,
+                donor_name=vol.full_name,
+                date=date.today(),
+                note=f"সদস্য নিবন্ধন ফি | আইডি: {vol.member_id} | মোবাইল: {vol.phone} | প্রেরক: {vol.sender_account or 'N/A'}"
+            )
+
+        # Dispatch Member Notifications (SMS & Email)
+        try:
+            from volunteers.views import send_member_notifications
+            send_member_notifications(vol)
+        except Exception as e:
+            logger.error(f"[VOLUNTEER APPROVE SMS/EMAIL ERROR] {e}")
+
+        messages.success(request, f'সদস্য "{vol.full_name}" সফলভাবে অনুমোদিত হয়েছে! সদস্য আইডি: {vol.member_id} ইস্যু করা হয়েছে এবং এসএমএস/ইমেইলে পাঠানো হয়েছে।')
+    else:
+        messages.info(request, f'সদস্য "{vol.full_name}" ইতিমধ্যে অনুমোদিত।')
+
+    return redirect('/dashboard/?tab=volunteers-section')
+
+@staff_member_required
 def delete_volunteer(request, pk):
     """Delete a Volunteer safely"""
     if not can_user_edit_general(request.user):
@@ -1665,6 +1723,36 @@ def approve_program_donation(request, pk):
             prog.save()
             category_name = f"কার্যক্রম: {prog.title}"
             title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
+        elif donation.donation_type == 'volunteer_registration' or (donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_')):
+            category_name = "সদস্য নিবন্ধন ফি"
+            title_name = f"সদস্য নিবন্ধন ফি ({donation.donor_name})"
+            # Auto-approve linked Volunteer if exists
+            from volunteers.models import Volunteer, generate_unique_member_id
+            from volunteers.views import send_member_notifications
+            vol = None
+            if donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_'):
+                try:
+                    vol_id = int(str(donation.membership_id).replace('NEW_VOL_', ''))
+                    vol = Volunteer.objects.filter(pk=vol_id).first()
+                except Exception:
+                    pass
+            if not vol and donation.tran_id:
+                vol = Volunteer.objects.filter(tran_id=donation.tran_id).first()
+            if not vol and donation.donor_phone:
+                vol = Volunteer.objects.filter(phone=donation.donor_phone, status='pending').first()
+
+            if vol and vol.status != 'approved':
+                vol.status = 'approved'
+                vol.payment_status = 'paid'
+                if not vol.member_id:
+                    vol.member_id = generate_unique_member_id(prefix_str="")
+                vol.save()
+                donation.membership_id = vol.member_id
+                donation.save(update_fields=['membership_id'])
+                try:
+                    send_member_notifications(vol)
+                except Exception as ex:
+                    print(f"[VOL NOTIFY ERROR ON DONATION APPROVE] {ex}")
         elif donation.donation_type == 'volunteer':
             category_name = "স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা"
             title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"

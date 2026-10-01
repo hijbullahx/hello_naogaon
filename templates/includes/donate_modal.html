@@ -217,15 +217,15 @@
                                      data-member-role="স্বেচ্ছাসেবক"
                                      data-member-phone="{{ vol.phone|default:'' }}"
                                      data-member-email="{{ vol.email|default:'' }}"
-                                     data-monthly-fee="{{ vol.contribution_amount|default:100 }}"
+                                     data-monthly-fee="0"
                                      data-due-amount="0"
                                      data-advance-amount="0"
                                      data-total-paid="{{ vol.total_paid|floatformat:0 }}"
-                                     data-total-billed="{{ vol.contribution_amount|default:100 }}"
-                                     data-months-billed="1"
+                                     data-total-billed="0"
+                                     data-months-billed="0"
                                      data-join-date="{{ vol.application_date|date:'d-m-Y' }}"
-                                     data-status-label="স্বেচ্ছাসেবক চাঁদা"
-                                     data-suggested-amount="{{ vol.contribution_amount|default:100 }}"
+                                     data-status-label="ইচ্ছানুযায়ী সহায়তা"
+                                     data-suggested-amount="100"
                                      onclick="selectModalMember(this)">
                                     <div class="d-flex align-items-center gap-3">
                                         {% if vol.image %}
@@ -958,11 +958,15 @@ function selectModalMember(elem) {
 
     // Subscription summary breakdown
     var feeDisp = document.getElementById('summaryMonthlyFeeDisplay');
-    if (feeDisp) feeDisp.innerText = '৳' + monthlyFee;
+    if (feeDisp) {
+        feeDisp.innerText = monthlyFee > 0 ? ('৳' + monthlyFee) : 'ইচ্ছানুযায়ী';
+    }
     var joinDisp = document.getElementById('summaryJoinDateDisplay');
     if (joinDisp) joinDisp.innerText = joinDate;
     var mBilledDisp = document.getElementById('summaryMonthsBilledDisplay');
-    if (mBilledDisp) mBilledDisp.innerText = '(' + monthsBilled + ' মাস প্রযোজ্য)';
+    if (mBilledDisp) {
+        mBilledDisp.innerText = monthlyFee > 0 ? ('(' + monthsBilled + ' মাস প্রযোজ্য)') : '(বাধ্যতামূলক নয়)';
+    }
     var paidDisp = document.getElementById('summaryTotalPaidDisplay');
     if (paidDisp) paidDisp.innerText = '৳' + totalPaid;
 
@@ -970,7 +974,10 @@ function selectModalMember(elem) {
     var statusDisplay = document.getElementById('summaryStatusDisplay');
     if (statusBox && statusDisplay) {
         statusBox.className = 'p-2 rounded-3 border text-center ';
-        if (dueAmount > 0) {
+        if (monthlyFee <= 0 || memberRole === 'স্বেচ্ছাসেবক') {
+            statusBox.className += 'bg-success-subtle border-success-subtle text-success';
+            statusDisplay.innerHTML = '<i class="fas fa-heart me-1"></i>ইচ্ছানুযায়ী অনুদান';
+        } else if (dueAmount > 0) {
             statusBox.className += 'bg-danger-subtle border-danger-subtle text-danger';
             statusDisplay.innerHTML = 'বকেয়া: ৳' + dueAmount;
         } else if (advanceAmount > 0) {
@@ -986,13 +993,21 @@ function selectModalMember(elem) {
     var pillsContainer = document.getElementById('memberAmtPillsContainer');
     if (pillsContainer) {
         var pillsHtml = '';
-        if (dueAmount > 0) {
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + dueAmount + ')">৳' + dueAmount + ' (বকেয়া পরিশোধ)</button> ';
+        if (monthlyFee <= 0 || memberRole === 'স্বেচ্ছাসেবক') {
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill active" onclick="setMemberAmount(100)">৳১০০</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(200)">৳২০০</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(500)">৳৫০০</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(1000)">৳১০০০</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(2000)">৳২০০০</button>';
+        } else {
+            if (dueAmount > 0) {
+                pillsHtml += '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + dueAmount + ')">৳' + dueAmount + ' (বকেয়া পরিশোধ)</button> ';
+            }
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill ' + (dueAmount <= 0 ? 'active' : '') + '" onclick="setMemberAmount(' + monthlyFee + ')">৳' + monthlyFee + ' (১ মাস)</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 2) + ')">৳' + (monthlyFee * 2) + ' (২ মাস)</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 3) + ')">৳' + (monthlyFee * 3) + ' (৩ মাস)</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 6) + ')">৳' + (monthlyFee * 6) + ' (৬ মাস)</button>';
         }
-        pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill ' + (dueAmount <= 0 ? 'active' : '') + '" onclick="setMemberAmount(' + monthlyFee + ')">৳' + monthlyFee + ' (১ মাস)</button> ';
-        pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 2) + ')">৳' + (monthlyFee * 2) + ' (২ মাস)</button> ';
-        pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 3) + ')">৳' + (monthlyFee * 3) + ' (৩ মাস)</button> ';
-        pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 6) + ')">৳' + (monthlyFee * 6) + ' (৬ মাস)</button>';
         pillsContainer.innerHTML = pillsHtml;
     }
 

@@ -46,7 +46,22 @@ class Volunteer(models.Model):
     contribution_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True, verbose_name="প্রতিশ্রুত আর্থিক পরিমাণ (টাকা)")
     is_public_details = models.BooleanField(default=True, verbose_name="মোবাইল নম্বর ও বিস্তারিত তথ্য সকলের জন্য প্রদর্শন করতে চান?")
     application_date = models.DateTimeField(auto_now_add=True, verbose_name="নিবন্ধনের তারিখ")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved')
+    registration_fee = models.DecimalField(max_digits=10, decimal_places=2, default=100.00, verbose_name="নিবন্ধন ফি (টাকা)")
+    payment_status = models.CharField(
+        max_length=20,
+        choices=(
+            ('unpaid', 'Unpaid (পরিশোধিত নয়)'),
+            ('pending', 'Pending (যাচাই বাকি)'),
+            ('paid', 'Paid (পরিশোধিত)'),
+        ),
+        default='paid',
+        verbose_name="পেমেন্ট স্ট্যাটাস"
+    )
+    payment_method = models.CharField(max_length=50, default='Free / Existing', blank=True, verbose_name="পেমেন্ট মেথড")
+    sender_account = models.CharField(max_length=100, blank=True, null=True, verbose_name="প্রেরক অ্যাকাউন্ট / মোবাইল নম্বর")
+    trx_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ট্রানজেকশন আইডি (TrxID)")
+    tran_id = models.CharField(max_length=100, unique=True, blank=True, null=True, verbose_name="গেটওয়ে ট্রানজেকশন আইডি")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
     class Meta:
         ordering = ['-application_date']
@@ -87,12 +102,13 @@ class Volunteer(models.Model):
         return float(qs.aggregate(t=Sum('amount'))['t'] or 0.0)
 
     def save(self, *args, **kwargs):
-        if not self.member_id:
+        if self.status == 'approved' and not self.member_id:
             self.member_id = generate_unique_member_id(prefix_str="")
         super().save(*args, **kwargs)
 
-        # Auto sync to BloodDonor database if blood_group is provided
-        sync_to_blood_donor(self, is_team=False)
+        # Auto sync to BloodDonor database if approved and blood_group is provided
+        if self.status == 'approved':
+            sync_to_blood_donor(self, is_team=False)
 
 class TeamMember(models.Model):
     ROLE_CHOICES = (

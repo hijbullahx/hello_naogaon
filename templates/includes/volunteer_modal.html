@@ -1,0 +1,364 @@
+<!-- Join Volunteer / Member Registration Popup Modal -->
+<div class="modal fade" id="joinVolunteerModal" tabindex="-1" aria-labelledby="joinVolunteerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="modal-header bg-success text-white py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="joinVolunteerModalLabel">
+                            স্বেচ্ছাসেবক / সদস্য হিসেবে রেজিস্ট্রেশন করুন
+                        </h5>
+                        <small class="text-white-50" style="font-size: 0.78rem;">হেল্পলাইন হ্যালো নওগাঁর পরিবারে আপনাকে স্বাগতম</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="{% url 'volunteers:apply' %}" method="post" enctype="multipart/form-data" autocomplete="off" id="volunteerApplyForm">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+
+                <div class="modal-body p-4 text-start">
+                    
+                    <!-- Mandatory Registration Fee Notice -->
+                    <div class="p-3 mb-4 rounded-3 border border-success-subtle bg-success-subtle bg-opacity-25 d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0 mt-1" style="width: 36px; height: 36px; font-size: 1.1rem;">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                <strong class="text-success fs-6"><i class="fas fa-check-circle me-1"></i>সদস্য নিবন্ধন ফি: ৳ ১০০ (এককালীন ও বাধ্যতামূলক)</strong>
+                                <span class="badge bg-success rounded-pill px-3 py-1">৳১০০ ফি</span>
+                            </div>
+                            <p class="small text-secondary mb-0" style="line-height: 1.5;">
+                                সংগঠনের সদস্য/স্বেচ্ছাসেবক হিসেবে নিবন্ধনের জন্য ১০০ টাকা ফি প্রযোজ্য। অনলাইনে স্বয়ংক্রিয় গেটওয়ের মাধ্যমে পরিশোধ করলে <strong>তাৎক্ষণিকভাবে মেম্বার আইডি</strong> তৈরি হয়ে যাবে। ম্যানুয়াল পেমেন্টে অ্যাডমিন যাচাই শেষে আইডি দেওয়া হবে। <strong>নিবন্ধনের পর কোনো বাধ্যতামূলক মাসিক চাঁদা নেই;</strong> পরবর্তীতে আপনি যখন খুশি 'সদস্য চাঁদা' তহবিল থেকে যেকোনো পরিমাণ অনুদান প্রদান করতে পারবেন।
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="row g-3">
+                        <!-- Full Name -->
+                        <div class="col-md-6">
+                            <label for="vol_full_name" class="form-label fw-bold small text-dark">আপনার পূর্ণ নাম <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" id="vol_full_name" name="full_name" required placeholder="যেমন: মো: আবদুর রহিম">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6">
+                            <label for="vol_phone" class="form-label fw-bold small text-dark">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control rounded-3" id="vol_phone" name="phone" required placeholder="017XXXXXXXX">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label for="vol_email" class="form-label fw-bold small text-dark">ইমেইল ঠিকানা <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                            <input type="email" class="form-control rounded-3" id="vol_email" name="email" placeholder="example@gmail.com">
+                        </div>
+
+                        <!-- Blood Group -->
+                        <div class="col-md-6">
+                            <label for="vol_blood_group" class="form-label fw-bold small text-dark">রক্তের গ্রুপ <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                            <select class="form-select rounded-3" id="vol_blood_group" name="blood_group">
+                                <option value="">-- রক্তের গ্রুপ নির্বাচন করুন --</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+
+                        <!-- Last Donated Date Calendar -->
+                        <div class="col-md-6">
+                            <label for="vol_last_donated" class="form-label fw-bold small text-dark">সর্বশেষ রক্তদানের তারিখ <small class="text-muted fw-normal">(ঐচ্ছিক - রক্তদাতা হলে)</small></label>
+                            <input type="date" class="form-control rounded-3 past-date-picker" id="vol_last_donated" name="last_donated">
+                        </div>
+
+                        <!-- Occupation -->
+                        <div class="col-md-6">
+                            <label for="vol_occupation" class="form-label fw-bold small text-dark">পেশা <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                            <input type="text" class="form-control rounded-3" id="vol_occupation" name="occupation" placeholder="যেমন: ছাত্র, শিক্ষক, ব্যবসায়ী">
+                        </div>
+
+                        <!-- Profile Image with 500KB limit & free resizer link -->
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="vol_image" class="form-label fw-bold small text-dark mb-0">
+                                    ছবি আপলোড করুন <small class="text-secondary fw-normal">(সর্বোচ্চ 500 KB)</small>
+                                </label>
+                                <a href="https://www.resizepixel.com" target="_blank" rel="noopener noreferrer" class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
+                                </a>
+                            </div>
+                            <input type="file" class="form-control rounded-3" id="vol_image" name="image" accept="image/*" onchange="validateVolunteerModalImageSize(this)">
+                            <div id="volImageSizeError" class="form-text text-danger d-none fw-bold mt-1">
+                                <i class="fas fa-exclamation-triangle me-1"></i>ছবির সাইজ ৫০০ KB এর বেশি! অনুগ্রহ করে <a href="https://www.resizepixel.com" target="_blank" class="text-danger text-decoration-underline fw-bold">ResizePixel (resizepixel.com)</a> থেকে সাইজ কমিয়ে আপলোড করুন।
+                            </div>
+                        </div>
+
+                        <!-- Structured Address Section -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-light p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-2 small">
+                                    <i class="fas fa-map-marker-alt me-1"></i>ঠিকানা (Address)
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="vol_division" class="form-label small fw-bold">বিভাগ</label>
+                                        <select class="form-select form-select-sm division-select" id="vol_division" name="division" data-district-target="vol_district" data-upazila-target="vol_upazila">
+                                            <!-- Populated dynamically via JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="vol_district" class="form-label small fw-bold">জেলা</label>
+                                        <select class="form-select form-select-sm district-select" id="vol_district" name="district" data-upazila-target="vol_upazila">
+                                            <!-- Populated dynamically via JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="vol_upazila" class="form-label small fw-bold">উপজেলা / থানা</label>
+                                        <select class="form-select form-select-sm upazila-select" id="vol_upazila" name="upazila">
+                                            <!-- Populated dynamically via JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label for="vol_address" class="form-label small fw-bold">বিস্তারিত / স্থানীয় ঠিকানা (গ্রাম, মহল্লা, রোড, ইত্যাদি)</label>
+                                        <input type="text" class="form-control form-control-sm" id="vol_address" name="address" placeholder="গ্রাম/মহল্লা, ডাকঘর, বাড়ি নং">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Voluntary Financial Commitment (Optional) -->
+                        <div class="col-12">
+                            <div class="card border border-success-subtle bg-light p-3 rounded-3">
+                                <h6 class="fw-bold text-success mb-1 small">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>স্বেচ্ছাসেবী আর্থিক সহায়তার প্রতিশ্রুতি <small class="text-muted fw-normal">(ঐচ্ছিক)</small>
+                                </h6>
+                                <p class="text-secondary small mb-2" style="font-size: 0.78rem;">
+                                    কোনো বাধ্যবাধকতা নেই। আপনি চাইলে পরবর্তীতে নিজ ইচ্ছানুযায়ী যেকোনো সময় সদস্য চাঁদা ফান্ডে সহায়তা করতে পারেন।
+                                </p>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="vol_contribution_frequency" class="form-label small fw-bold">সহায়তার পর্যায়কাল / ধরন</label>
+                                        <select class="form-select form-select-sm" id="vol_contribution_frequency" name="contribution_frequency">
+                                            <option value="none">কোনো নির্দিষ্ট প্রতিশ্রুতি নেই / ইচ্ছানুযায়ী</option>
+                                            <option value="monthly">মাসিক (প্রতি মাসে)</option>
+                                            <option value="weekly">সাপ্তাহিক (প্রতি সপ্তাহে)</option>
+                                            <option value="yearly">বাৎসরিক (প্রতি বছরে)</option>
+                                            <option value="one_time">এককালীন</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="vol_contribution_amount" class="form-label small fw-bold">প্রতিশ্রুত পরিমাণ (BDT)</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white">৳</span>
+                                            <input type="number" class="form-control" id="vol_contribution_amount" name="contribution_amount" placeholder="যেমন: 100, 200, 500">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Choice Checkbox -->
+                        <div class="col-md-12">
+                            <div class="form-check form-switch bg-light p-2 rounded border ps-5">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="vol_is_public_details" name="is_public_details" checked>
+                                <label class="form-check-label fw-bold small text-dark" for="vol_is_public_details">
+                                    <i class="fas fa-shield-alt text-success me-1"></i>আপনার মোবাইল নম্বর এবং বিস্তারিত তথ্য সদস্য তালিকায় প্রদর্শন করতে চান?
+                                </label>
+                                <div class="form-text text-muted small">টিক তুলে দিলে তালিকায় শুধুমাত্র ছবি, নাম ও আইডি থাকবে, মোবাইল নম্বর গোপন থাকবে।</div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- REGISTRATION PAYMENT METHOD SELECTION     -->
+                        <!-- ========================================== -->
+                        <div class="col-12 mt-4 pt-3 border-top">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-credit-card text-success me-1"></i>নিবন্ধন ফি পরিশোধের মাধ্যম <span class="text-danger">*</span>
+                                </h6>
+                                <span class="badge bg-success-subtle text-success border border-success fw-bold px-2 py-1">
+                                    নিবন্ধন ফি: ৳ ১০০
+                                </span>
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <!-- Option A: Automated Gateway -->
+                                <div class="col-md-6">
+                                    <div class="p-3 border rounded-3 cursor-pointer vol-pay-mode-card border-success bg-success-subtle bg-opacity-25 h-100 transition-all" 
+                                         id="volCardModeGateway" onclick="selectVolunteerPayMode('gateway')">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="radio" name="payment_mode" value="gateway" id="volRadioGateway" class="form-check-input m-0" checked>
+                                                <label class="fw-bold text-dark small mb-0 cursor-pointer" for="volRadioGateway">অনলাইন পেমেন্ট গেটওয়ে</label>
+                                            </div>
+                                            <span class="badge bg-success text-white py-1 px-2" style="font-size: 0.68rem;">তাৎক্ষণিক আইডি</span>
+                                        </div>
+                                        <p class="text-secondary small mb-0" style="font-size: 0.76rem;">
+                                            বিকাশ, নগদ, রকেট, উপায় ও কার্ডের মাধ্যমে সরাসরি পেমেন্ট করুন। সফল পেমেন্টে সাথে সাথে আইডি পাবেন।
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Option B: Manual Payment -->
+                                <div class="col-md-6">
+                                    <div class="p-3 border rounded-3 cursor-pointer vol-pay-mode-card bg-white h-100 transition-all" 
+                                         id="volCardModeManual" onclick="selectVolunteerPayMode('manual')">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="radio" name="payment_mode" value="manual" id="volRadioManual" class="form-check-input m-0">
+                                                <label class="fw-bold text-dark small mb-0 cursor-pointer" for="volRadioManual">ম্যানুয়াল পেমেন্ট (সেন্ড মানি)</label>
+                                            </div>
+                                            <span class="badge bg-warning text-dark py-1 px-2" style="font-size: 0.68rem;">অ্যাডমিন যাচাই</span>
+                                        </div>
+                                        <p class="text-secondary small mb-0" style="font-size: 0.76rem;">
+                                            আমাদের একাউন্টে ১০০ টাকা পাঠিয়ে প্রেরক নম্বর দিন। অ্যাডমিন যাচাই করে আপনার সদস্যপদ অনুমোদন করবেন।
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Manual Payment Details Box (Hidden by default, shown when manual is selected) -->
+                            <div id="volManualDetailsBox" class="p-3 bg-light rounded-3 border border-warning-subtle d-none">
+                                <h6 class="fw-bold text-dark small mb-2">
+                                    <i class="fas fa-university text-success me-1"></i>আমাদের অফিশিয়াল অ্যাকাউন্টসমূহ (১০০ টাকা পাঠান):
+                                </h6>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-12 col-md-7">
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark" style="background-color: #fdf2f7; font-size: 0.78rem;">
+                                                <strong class="text-danger">bKash:</strong> <span class="font-monospace">01748-470965</span>
+                                                <button type="button" class="btn btn-sm p-0 ms-1 text-danger" onclick="copyVolunteerNumber('01748470965', 'বিকাশ নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
+                                            </span>
+                                            <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark bg-warning-subtle" style="font-size: 0.78rem;">
+                                                <strong class="text-warning-emphasis">Nagad:</strong> <span class="font-monospace">01748-470965</span>
+                                                <button type="button" class="btn btn-sm p-0 ms-1 text-dark" onclick="copyVolunteerNumber('01748470965', 'নগদ নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
+                                            </span>
+                                            <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark bg-primary-subtle" style="font-size: 0.78rem;">
+                                                <strong class="text-primary">Rocket:</strong> <span class="font-monospace">01748-470965-7</span>
+                                                <button type="button" class="btn btn-sm p-0 ms-1 text-primary" onclick="copyVolunteerNumber('017484709657', 'রকেট নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-5">
+                                        <div class="p-2 border rounded-2 bg-white small" style="font-size: 0.75rem;">
+                                            <div class="fw-bold text-success">Dutch-Bangla Bank (নওগাঁ শাখা)</div>
+                                            <div>হিসাব: <span class="font-monospace fw-bold">1234567890</span> | রাউটিং: <span class="font-monospace">0902600925</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-2 bg-white rounded-3 border">
+                                    <div class="fw-bold text-dark small mb-2"><i class="fas fa-receipt text-success me-1"></i>টাকা পাঠানোর পর নিচের তথ্য পূরণ করুন:</div>
+                                    <div class="row g-2">
+                                        <div class="col-sm-4">
+                                            <label class="form-label small fw-semibold mb-1">পেমেন্ট মাধ্যম</label>
+                                            <select name="manual_channel" id="volManualChannel" class="form-select form-select-sm">
+                                                <option value="bKash">bKash (বিকাশ)</option>
+                                                <option value="Nagad">Nagad (নগদ)</option>
+                                                <option value="Rocket">Rocket (রকেট)</option>
+                                                <option value="Bank">ব্যাংক ডিপোজিট</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <label class="form-label small fw-semibold mb-1">প্রেরকের নম্বর / A/C <span class="text-danger">*</span></label>
+                                            <input type="text" name="sender_account" id="volSenderAccount" class="form-control form-control-sm font-monospace" placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন">
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <label class="form-label small fw-semibold mb-1">TrxID / স্লিপ নম্বর <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                            <input type="text" name="trx_id" id="volTrxId" class="form-control form-control-sm font-monospace" placeholder="যেমন: BLM3984829">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted mt-1 d-block" style="font-size: 0.72rem;">* টাকা পাঠিয়ে তথ্য জমা দিলে তা অ্যাডমিনের কাছে যাবে এবং যাচাই শেষে আপনাকে এসএমএস ও ইমেইলে সদস্য আইডি পাঠানো হবে।</small>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="submit" id="volSubmitBtn" class="btn btn-success fw-bold px-4 rounded-pill shadow-sm">
+                        <i class="fas fa-lock me-1"></i> ৳১০০ ফি দিয়ে রেজিস্ট্রেশন সম্পন্ন করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Volunteer Modal Specific JavaScript -->
+<script>
+function selectVolunteerPayMode(mode) {
+    var cardGateway = document.getElementById('volCardModeGateway');
+    var cardManual = document.getElementById('volCardModeManual');
+    var radioGateway = document.getElementById('volRadioGateway');
+    var radioManual = document.getElementById('volRadioManual');
+    var manualBox = document.getElementById('volManualDetailsBox');
+    var submitBtn = document.getElementById('volSubmitBtn');
+    var senderInput = document.getElementById('volSenderAccount');
+
+    if (mode === 'manual') {
+        if (radioManual) radioManual.checked = true;
+        if (cardManual) cardManual.className = 'p-3 border rounded-3 cursor-pointer vol-pay-mode-card border-success bg-success-subtle bg-opacity-25 h-100 transition-all';
+        if (cardGateway) cardGateway.className = 'p-3 border rounded-3 cursor-pointer vol-pay-mode-card bg-white h-100 transition-all';
+        if (manualBox) manualBox.classList.remove('d-none');
+        if (senderInput) senderInput.setAttribute('required', 'required');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> আবেদন ও পেমেন্ট তথ্য জমা দিন';
+        }
+    } else {
+        if (radioGateway) radioGateway.checked = true;
+        if (cardGateway) cardGateway.className = 'p-3 border rounded-3 cursor-pointer vol-pay-mode-card border-success bg-success-subtle bg-opacity-25 h-100 transition-all';
+        if (cardManual) cardManual.className = 'p-3 border rounded-3 cursor-pointer vol-pay-mode-card bg-white h-100 transition-all';
+        if (manualBox) manualBox.classList.add('d-none');
+        if (senderInput) senderInput.removeAttribute('required');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fas fa-lock me-1"></i> ৳১০০ ফি দিয়ে রেজিস্ট্রেশন সম্পন্ন করুন';
+        }
+    }
+}
+
+function copyVolunteerNumber(num, msg) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(num).then(function() {
+            alert(msg || 'নম্বর কপি হয়েছে!');
+        });
+    } else {
+        var tempInput = document.createElement("input");
+        tempInput.value = num;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        alert(msg || 'নম্বর কপি হয়েছে!');
+    }
+}
+
+function validateVolunteerModalImageSize(input) {
+    var errorDiv = document.getElementById('volImageSizeError');
+    if (input.files && input.files[0]) {
+        var fileSize = input.files[0].size; // size in bytes
+        var maxBytes = 500 * 1024; // 500 KB
+        if (fileSize > maxBytes) {
+            if (errorDiv) errorDiv.classList.remove('d-none');
+            input.value = ''; // Reset file selection
+            alert('ছবির সাইজ সর্বোচ্চ 500 KB হতে পারবে। অনুগ্রহ করে রিসাইজ করে পুনরায় আপলোড করুন।');
+        } else {
+            if (errorDiv) errorDiv.classList.add('d-none');
+        }
+    }
+}
+</script>

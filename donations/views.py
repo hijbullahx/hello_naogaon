@@ -446,12 +446,48 @@ def process_successful_payment(donation, payment_data, request=None):
         prog.save()
         category_name = f"কার্যক্রম: {prog.title}"
         title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
+    elif donation.donation_type == 'volunteer_registration' or (donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_')):
+        category_name = 'সদস্য নিবন্ধন ফি'
+        title_name = f"সদস্য নিবন্ধন ফি ({donation.donor_name})"
     elif donation.donation_type == 'volunteer':
         category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা'
         title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
     else:
         category_name = 'সাধারণ আর্থিক সহায়তা'
         title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
+
+    # Handle Volunteer registration approval & notification if applicable
+    is_vol_reg = donation.donation_type == 'volunteer_registration' or (donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_'))
+    vol_obj = None
+    if is_vol_reg:
+        from volunteers.models import Volunteer, generate_unique_member_id
+        from volunteers.views import send_member_notifications
+        
+        if donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_'):
+            try:
+                vid = int(str(donation.membership_id).replace('NEW_VOL_', ''))
+                vol_obj = Volunteer.objects.filter(pk=vid).first()
+            except (ValueError, TypeError):
+                pass
+        if not vol_obj and donation.tran_id:
+            vol_obj = Volunteer.objects.filter(tran_id=donation.tran_id).first()
+        if not vol_obj and donation.donor_phone:
+            vol_obj = Volunteer.objects.filter(phone=donation.donor_phone, status='pending').first()
+
+        if vol_obj:
+            vol_obj.status = 'approved'
+            vol_obj.payment_status = 'paid'
+            vol_obj.payment_method = payment_method
+            vol_obj.trx_id = trx_id
+            if not vol_obj.member_id:
+                vol_obj.member_id = generate_unique_member_id(prefix_str="")
+            vol_obj.save()
+            donation.membership_id = vol_obj.member_id
+            donation.save(update_fields=['membership_id'])
+            try:
+                send_member_notifications(vol_obj)
+            except Exception as ex:
+                logger.error(f"[VOL NOTIFY ERROR ON PAYMENT PROCESS] {ex}")
 
     trx_note = f"পেমেন্ট মাধ্যম: {payment_method} | TrxID: {trx_id} | ইনভয়েস: {invoice_id} | মোবাইল: {donation.donor_phone}"
     if donation.membership_id:
@@ -476,8 +512,8 @@ def process_successful_payment(donation, payment_data, request=None):
             note=trx_note
         )
 
-    # 3. Dispatch SMS receipt to donor
-    if donation.donor_phone:
+    # 3. Dispatch SMS receipt to donor (skip generic donation SMS if volunteer welcome SMS already sent)
+    if donation.donor_phone and not vol_obj:
         try:
             donor_sms = (
                 f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
@@ -587,11 +623,17 @@ def payment_success(request):
                         'amount': ps_data.get('payment_amount') or donation.amount
                     }
                     process_successful_payment(donation, payment_data, request=request)
-                    member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
-                    messages.success(
-                        request, 
-                        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
-                    )
+                    if donation.donation_type == 'volunteer_registration':
+                        messages.success(
+                            request,
+                            f'অভিনন্দন {donation.donor_name}! আপনার ১০০ টাকা সদস্য নিবন্ধন ফি সফলভাবে পরিশোধ হয়েছে এবং সদস্য আইডি: {donation.membership_id} ইস্যু করা হয়েছে। আপনার মোবাইল ও ইমেইলে বার্তা পাঠানো হয়েছে।'
+                        )
+                    else:
+                        member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
+                        messages.success(
+                            request, 
+                            f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
+                        )
                     return redirect('donations:receipt', donation_id=donation.id)
 
     # 2. Paymently Verification
@@ -611,11 +653,17 @@ def payment_success(request):
 
             if donation:
                 process_successful_payment(donation, verification_res, request=request)
-                member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
-                messages.success(
-                    request, 
-                    f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
-                )
+                if donation.donation_type == 'volunteer_registration':
+                    messages.success(
+                        request,
+                        f'অভিনন্দন {donation.donor_name}! আপনার ১০০ টাকা সদস্য নিবন্ধন ফি সফলভাবে পরিশোধ হয়েছে এবং সদস্য আইডি: {donation.membership_id} ইস্যু করা হয়েছে। আপনার মোবাইল ও ইমেইলে বার্তা পাঠানো হয়েছে।'
+                    )
+                else:
+                    member_txt = f" (সদস্য আইডি: {donation.membership_id})" if donation.membership_id else ""
+                    messages.success(
+                        request, 
+                        f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
+                    )
                 return redirect('donations:receipt', donation_id=donation.id)
             else:
                 logger.error(f"Donation record not found for verified invoice {invoice_id}")
