@@ -389,7 +389,7 @@
                                                 <input type="text" name="sender_account" id="memSenderAccount" class="form-control form-control-sm font-monospace" placeholder="পুরো নম্বর বা শেষ ৪ ডিজিট">
                                             </div>
                                             <div class="col-sm-4">
-                                                <label class="form-label small fw-semibold mb-1">TrxID / স্লিপ নম্বর <span class="text-danger">*</span></label>
+                                                <label class="form-label small fw-semibold mb-1">TrxID / স্লিপ নম্বর <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
                                                 <input type="text" name="trx_id" id="memTrxId" class="form-control form-control-sm font-monospace" placeholder="যেমন: BLM3984829">
                                             </div>
                                         </div>
@@ -531,7 +531,7 @@
                                             <input type="text" name="sender_account" id="genSenderAccount" class="form-control form-control-sm font-monospace" placeholder="পুরো নম্বর বা শেষ ৪ ডিজিট">
                                         </div>
                                         <div class="col-sm-4">
-                                            <label class="form-label small fw-semibold mb-1">TrxID / স্লিপ নম্বর <span class="text-danger">*</span></label>
+                                            <label class="form-label small fw-semibold mb-1">TrxID / স্লিপ নম্বর <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
                                             <input type="text" name="trx_id" id="genTrxId" class="form-control form-control-sm font-monospace" placeholder="যেমন: BLM3984829">
                                         </div>
                                     </div>
@@ -742,7 +742,7 @@
                                             <input type="text" name="sender_account" id="progSenderAccount" class="form-control form-control-sm font-monospace" placeholder="পুরো নম্বর বা শেষ ৪ ডিজিট">
                                         </div>
                                         <div class="col-sm-4">
-                                            <label class="form-label small fw-semibold mb-1">TrxID / স্লিপ নম্বর <span class="text-danger">*</span></label>
+                                            <label class="form-label small fw-semibold mb-1">TrxID / স্লিপ নম্বর <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
                                             <input type="text" name="trx_id" id="progTrxId" class="form-control form-control-sm font-monospace" placeholder="যেমন: BLM3984829">
                                         </div>
                                     </div>
@@ -1208,7 +1208,7 @@ function selectPaymentMode(prefix, mode) {
         if (radioGw) radioGw.checked = false;
         if (boxMan) boxMan.classList.remove('d-none');
         if (senderInput) senderInput.setAttribute('required', 'required');
-        if (trxInput) trxInput.setAttribute('required', 'required');
+        if (trxInput) trxInput.removeAttribute('required');
         
         if (prefix === 'mem') {
             var selectedId = document.getElementById('mem_form_membership_id').value;

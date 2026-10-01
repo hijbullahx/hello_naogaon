@@ -188,6 +188,7 @@ class ProgramDonation(models.Model):
     ]
 
     STATUS_CHOICES = [
+        ('initiated', _('প্রক্রিয়াধীন / শুরু হয়েছে (Initiated)')),
         ('pending', _('অপেক্ষমাণ (Pending)')),
         ('approved', _('সফল / অনুমোদিত (Approved)')),
         ('rejected', _('বাতিল / প্রত্যাখ্যাত (Rejected)')),

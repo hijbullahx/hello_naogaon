@@ -336,8 +336,12 @@ def dashboard_home(request):
         'impacts': impacts,
         'faqs': faqs,
         'transactions': transactions,
-        'program_donations': ProgramDonation.objects.all().order_by('-created_at'),
-        'total_program_donations': ProgramDonation.objects.aggregate(Sum('amount'))['amount__sum'] or 0,
+        'program_donations': ProgramDonation.objects.filter(
+            Q(status='approved') | 
+            Q(status='rejected') | 
+            Q(status='pending', payment_method__startswith='Manual')
+        ).order_by('-created_at'),
+        'total_program_donations': ProgramDonation.objects.filter(status='approved').aggregate(Sum('amount'))['amount__sum'] or 0,
         'total_income': total_income,
         'total_expense': total_expense,
         'net_balance': net_balance,

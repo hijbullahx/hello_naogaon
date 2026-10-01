@@ -263,8 +263,8 @@ def initiate_payment(request):
 
     # Manual Send-Money / Bank Deposit workflow
     if payment_mode == 'manual':
-        if not sender_account and not trx_id:
-            messages.error(request, "ম্যানুয়াল পেমেন্ট সম্পন্ন করতে আপনার প্রেরক অ্যাকাউন্ট নম্বর বা ট্রানজেকশন আইডি (TrxID) প্রদান করুন।")
+        if not sender_account:
+            messages.error(request, "ম্যানুয়াল পেমেন্ট সম্পন্ন করতে আপনার প্রেরক অ্যাকাউন্ট বা মোবাইল নম্বর প্রদান করুন।")
             return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
 
         donation = ProgramDonation.objects.create(
@@ -309,7 +309,7 @@ def initiate_payment(request):
         payment_method='Online Gateway',
         tran_id=tran_id,
         note=note,
-        status='pending'
+        status='initiated'
     )
 
     # Initiate automated checkout session (PayStation Direct OTP/PIN or Paymently)
