@@ -143,8 +143,16 @@
                     </li>
                 </ul>
 
+                <!-- Quick Donate Modal Trigger Button -->
+                <button type="button" class="btn btn-sm text-white rounded-pill px-3 py-1 fw-bold ms-lg-2 shadow-sm d-inline-flex align-items-center gap-1 border-0" 
+                        data-bs-toggle="modal" data-bs-target="#directDonateModal" 
+                        style="background: linear-gradient(135deg, #e2136e 0%, #b80d57 100%);">
+                    <i class="fas fa-hand-holding-heart text-warning"></i>
+                    <span>দান করুন</span>
+                </button>
+
                 <!-- Language Toggle Button -->
-                <button id="hn-lang-toggle" onclick="HN_I18N.toggle()" class="ms-lg-3" title="Switch Language / ভাষা পরিবর্তন">
+                <button id="hn-lang-toggle" onclick="HN_I18N.toggle()" class="ms-lg-2" title="Switch Language / ভাষা পরিবর্তন">
                     <i class="fas fa-language"></i>
                     <span class="hn-lang-active">বাং</span>
                     <span class="hn-lang-divider">|</span>
@@ -649,6 +657,7 @@
     {% endif %}
 
     {% include 'includes/program_donation_modal.html' %}
+    {% include 'includes/donate_modal.html' %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>

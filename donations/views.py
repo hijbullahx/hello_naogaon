@@ -133,11 +133,66 @@ def member_pledge_lookup(request):
     return JsonResponse({'found': False})
 
 
+def api_members_search(request):
+    """API endpoint to search and retrieve registered members (Team Members and Volunteers)"""
+    from django.db.models import Q
+    q = request.GET.get('q', '').strip()
+    members = []
+
+    # 1. Team Members
+    tm_qs = TeamMember.objects.all().order_by('order', 'name')
+    if q:
+        tm_qs = tm_qs.filter(Q(name__icontains=q) | Q(member_id__icontains=q) | Q(phone__icontains=q))
+    
+    for tm in tm_qs:
+        members.append({
+            'member_id': tm.member_id or '',
+            'name': tm.name,
+            'role': tm.effective_role or 'পরিচালনা পরিষদ',
+            'phone': tm.phone or '',
+            'email': tm.email or '',
+            'photo_url': tm.image.url if tm.image else '',
+            'is_team': True,
+            'frequency': 'monthly',
+            'frequency_display': 'মাসিক',
+            'pledge_amount': 500,
+        })
+
+    # 2. Approved Volunteers
+    vol_qs = Volunteer.objects.filter(status='approved').order_by('full_name')
+    if q:
+        vol_qs = vol_qs.filter(Q(full_name__icontains=q) | Q(member_id__icontains=q) | Q(phone__icontains=q))
+    
+    freq_dict = {
+        'monthly': 'মাসিক',
+        'weekly': 'সাপ্তাহিক',
+        'yearly': 'বাৎসরিক',
+        'one_time': 'এককালীন',
+        'none': 'ইচ্ছানুযায়ী'
+    }
+
+    for vol in vol_qs:
+        members.append({
+            'member_id': vol.member_id or '',
+            'name': vol.full_name,
+            'role': 'স্বেচ্ছাসেবক সদস্য',
+            'phone': vol.phone or '',
+            'email': vol.email or '',
+            'photo_url': vol.image.url if vol.image else '',
+            'is_team': False,
+            'frequency': vol.contribution_frequency if vol.contribution_frequency else 'monthly',
+            'frequency_display': freq_dict.get(vol.contribution_frequency, 'মাসিক'),
+            'pledge_amount': float(vol.contribution_amount) if vol.contribution_amount else 500,
+        })
+
+    return JsonResponse({'members': members, 'count': len(members)})
+
+
 @require_POST
 def initiate_payment(request):
     """
     Automated official payment gateway initiation.
-    Redirects user directly to the official Payment Gateway (SSLCommerz) hosted page.
+    Redirects user directly to the official Payment Gateway (PayStation / Paymently) hosted page.
     """
     donor_identity_type = request.POST.get('donor_identity_type', 'general').strip()
     membership_id = request.POST.get('membership_id', '').strip()
@@ -154,7 +209,22 @@ def initiate_payment(request):
         prog = Program.objects.filter(pk=program_id).first()
 
     # Determine donation type & fetch member info if applicable
-    if donor_identity_type == 'member' or membership_id:
+    if prog:
+        donation_type = 'program'
+        frequency = 'one_time'
+        if membership_id:
+            vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
+            if vol:
+                donor_name = vol.full_name
+                donor_phone = vol.phone
+                donor_email = vol.email or donor_email
+            else:
+                tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
+                if tm:
+                    donor_name = tm.name
+                    donor_phone = tm.phone or donor_phone
+                    donor_email = tm.email or donor_email
+    elif donor_identity_type == 'member' or membership_id:
         vol = Volunteer.objects.filter(member_id__iexact=membership_id).first() if membership_id else None
         if vol:
             donation_type = 'volunteer'
@@ -177,10 +247,6 @@ def initiate_payment(request):
             else:
                 donation_type = 'general'
                 membership_id = None
-    elif prog:
-        donation_type = 'program'
-        membership_id = None
-        frequency = 'one_time'
     else:
         donation_type = 'general'
         membership_id = None
