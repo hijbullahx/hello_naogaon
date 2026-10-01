@@ -132,6 +132,18 @@ class TeamMember(models.Model):
             return self.custom_role
         return self.role or ''
 
+    @property
+    def monthly_fee(self):
+        """Fixed monthly fee: 500 for leadership/admin, 100 for council members"""
+        from .subscription_services import get_member_monthly_fee
+        return get_member_monthly_fee(self)
+
+    @property
+    def subscription_summary(self):
+        """Returns the full subscription and due calculation summary"""
+        from .subscription_services import get_member_subscription_summary
+        return get_member_subscription_summary(self)
+
     def clean(self):
         from django.core.exceptions import ValidationError
         # Role quota limits

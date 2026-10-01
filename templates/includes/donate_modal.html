@@ -6,7 +6,7 @@
             <!-- Modal Header -->
             <div class="modal-header border-0 text-white px-4 py-3" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%);">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-20 text-warning" style="width: 46px; height: 46px; font-size: 1.3rem;">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-20 text-warning" style="width: 44px; height: 44px; font-size: 1.25rem;">
                         <i class="fas fa-hand-holding-heart"></i>
                     </div>
                     <div>
@@ -17,390 +17,515 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <!-- Modal Nav Tabs (3 Clean Options) -->
-            <div class="bg-light border-bottom px-4 pt-3">
-                <ul class="nav nav-pills nav-fill gap-2" id="donateModalTabs" role="tablist">
-                    <!-- Option 1: Member Payment -->
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-bold py-2 rounded-3 text-start d-flex align-items-center gap-2" id="tab-member-btn" data-bs-toggle="pill" data-bs-target="#tab-member-pane" type="button" role="tab" aria-selected="true">
-                            <i class="fas fa-id-card text-success fs-5"></i>
-                            <div>
-                                <div class="lh-1">সদস্য চাঁদা / পেমেন্ট</div>
-                                <small class="text-muted fw-normal" style="font-size: 0.72rem;">তালিকা থেকে নাম/আইডি নির্বাচন</small>
-                            </div>
-                        </button>
-                    </li>
-                    <!-- Option 2: General / Random Donation -->
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold py-2 rounded-3 text-start d-flex align-items-center gap-2" id="tab-general-btn" data-bs-toggle="pill" data-bs-target="#tab-general-pane" type="button" role="tab" aria-selected="false">
-                            <i class="fas fa-heart text-danger fs-5"></i>
-                            <div>
-                                <div class="lh-1">সাধারণ অনুদান</div>
-                                <small class="text-muted fw-normal" style="font-size: 0.72rem;">যেকোনো শুভাকাঙ্ক্ষীর জন্য</small>
-                            </div>
-                        </button>
-                    </li>
-                    <!-- Option 3: Program Donation -->
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold py-2 rounded-3 text-start d-flex align-items-center gap-2" id="tab-program-btn" data-bs-toggle="pill" data-bs-target="#tab-program-pane" type="button" role="tab" aria-selected="false">
-                            <i class="fas fa-hands-helping text-primary fs-5"></i>
-                            <div>
-                                <div class="lh-1">কার্যক্রমভিত্তিক অনুদান</div>
-                                <small class="text-muted fw-normal" style="font-size: 0.72rem;">নির্দিষ্ট ফান্ড বা প্রজেক্টে</small>
-                            </div>
-                        </button>
-                    </li>
-                </ul>
-            </div>
+            <!-- Modal Body -->
+            <div class="modal-body p-4 bg-white position-relative" style="min-height: 380px;">
 
-            <!-- Modal Body: Tab Contents -->
-            <div class="modal-body p-4 bg-white">
-                <div class="tab-content" id="donateModalTabContent">
-                    
-                    <!-- ========================================== -->
-                    <!-- TAB 1: MEMBER PAYMENT (সদস্য চাঁদা)       -->
-                    <!-- ========================================== -->
-                    <div class="tab-pane fade show active" id="tab-member-pane" role="tabpanel">
-                        <form action="{% url 'donations:initiate_payment' %}" method="POST" id="memberPaymentForm">
-                            {% csrf_token %}
-                            <input type="hidden" name="donor_identity_type" value="member">
-                            <input type="hidden" name="membership_id" id="mem_form_membership_id" value="">
-                            <input type="hidden" name="donor_name" id="mem_form_donor_name" value="">
-                            <input type="hidden" name="donor_phone" id="mem_form_donor_phone" value="">
-                            <input type="hidden" name="donor_email" id="mem_form_donor_email" value="">
-
-                            <!-- Search Box -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-secondary">
-                                    <i class="fas fa-search text-success me-1"></i>আপনার নাম বা সদস্য আইডি দিয়ে খুঁজুন
-                                </label>
-                                <div class="input-group shadow-sm rounded-pill overflow-hidden border">
-                                    <span class="input-group-text bg-white border-0 text-success ps-3">
-                                        <i class="fas fa-search"></i>
-                                    </span>
-                                    <input type="text" class="form-control border-0 py-2" id="memberSearchInput" 
-                                           placeholder="সদস্যের নাম, আইডি (যেমন 26082301) বা ফোন লিখুন..." 
-                                           oninput="filterModalMembers(this.value)">
-                                    <button class="btn btn-light border-0 text-muted px-3" type="button" onclick="clearModalMemberSearch()">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Scrollable Member List -->
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="small text-muted fw-bold">সদস্য নির্বাচন করুন:</span>
-                                    <span class="badge bg-light text-secondary border" id="memberListCount">মোট সদস্য</span>
-                                </div>
-                                <div class="border rounded-3 p-2 bg-light overflow-auto member-list-container" id="memberCardsList" style="max-height: 230px;">
-                                    
-                                    <!-- Team Members -->
-                                    {% for tm in global_team_members %}
-                                    <div class="member-select-item p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all"
-                                         data-member-id="{{ tm.member_id|default:'' }}"
-                                         data-member-name="{{ tm.name }}"
-                                         data-member-role="{{ tm.effective_role }}"
-                                         data-member-phone="{{ tm.phone|default:'' }}"
-                                         data-member-email="{{ tm.email|default:'' }}"
-                                         data-pledge-amount="500"
-                                         data-pledge-frequency="monthly"
-                                         onclick="selectModalMember(this)">
-                                        <div class="d-flex align-items-center gap-3">
-                                            {% if tm.image %}
-                                            <img src="{{ tm.image.url }}" alt="{{ tm.name }}" class="rounded-circle object-fit-cover border" style="width: 42px; height: 42px;">
-                                            {% else %}
-                                            <div class="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 0.9rem;">
-                                                {{ tm.name|slice:":1" }}
-                                            </div>
-                                            {% endif %}
-                                            <div>
-                                                <div class="fw-bold text-dark lh-sm member-name-text">{{ tm.name }}</div>
-                                                <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                                                    <span class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2" style="font-size: 0.72rem;">{{ tm.effective_role }}</span>
-                                                    <span class="badge bg-light text-muted border py-0 px-2 member-id-text" style="font-size: 0.72rem;">ID: {{ tm.member_id|default:'N/A' }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <span class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 select-btn-badge">
-                                                সিলেক্ট <i class="fas fa-check-circle ms-1"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-
-                                    <!-- Approved Volunteers -->
-                                    {% for vol in global_volunteers %}
-                                    <div class="member-select-item p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all"
-                                         data-member-id="{{ vol.member_id|default:'' }}"
-                                         data-member-name="{{ vol.full_name }}"
-                                         data-member-role="স্বেচ্ছাসেবক"
-                                         data-member-phone="{{ vol.phone|default:'' }}"
-                                         data-member-email="{{ vol.email|default:'' }}"
-                                         data-pledge-amount="{{ vol.contribution_amount|default:500 }}"
-                                         data-pledge-frequency="{{ vol.contribution_frequency|default:'monthly' }}"
-                                         onclick="selectModalMember(this)">
-                                        <div class="d-flex align-items-center gap-3">
-                                            {% if vol.image %}
-                                            <img src="{{ vol.image.url }}" alt="{{ vol.full_name }}" class="rounded-circle object-fit-cover border" style="width: 42px; height: 42px;">
-                                            {% else %}
-                                            <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 0.9rem;">
-                                                {{ vol.full_name|slice:":1" }}
-                                            </div>
-                                            {% endif %}
-                                            <div>
-                                                <div class="fw-bold text-dark lh-sm member-name-text">{{ vol.full_name }}</div>
-                                                <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-0 px-2" style="font-size: 0.72rem;">স্বেচ্ছাসেবক সদস্য</span>
-                                                    <span class="badge bg-light text-muted border py-0 px-2 member-id-text" style="font-size: 0.72rem;">ID: {{ vol.member_id|default:'N/A' }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <span class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 select-btn-badge">
-                                                সিলেক্ট <i class="fas fa-check-circle ms-1"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-
-                                    <div id="noMemberFoundAlert" class="text-center py-4 text-muted d-none">
-                                        <i class="fas fa-user-slash fs-2 mb-2 text-secondary"></i>
-                                        <div>কোনো সদস্য পাওয়া যায়নি। সঠিক নাম বা আইডি লিখে চেষ্টা করুন।</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Selected Member Details & Amount (Appears once a member is clicked) -->
-                            <div id="selectedMemberSection" class="p-3 bg-success-subtle bg-opacity-25 rounded-3 border border-success-subtle mb-3 d-none">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fas fa-check-circle text-success fs-5"></i>
-                                        <div class="fw-bold text-dark">
-                                            <span id="selectedMemberNameDisplay">--</span>
-                                            <span class="badge bg-success ms-1" id="selectedMemberIdDisplay">ID: --</span>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" onclick="resetModalMemberSelection()">
-                                        <i class="fas fa-times me-1"></i>পরিবর্তন
-                                    </button>
-                                </div>
-                                <div class="small text-muted mb-3">
-                                    <i class="fas fa-phone-alt me-1 text-success"></i>মোবাইল: <strong id="selectedMemberPhoneDisplay" class="text-dark">--</strong>
-                                    <span class="ms-3"><i class="fas fa-tag me-1 text-success"></i>পদবী: <strong id="selectedMemberRoleDisplay" class="text-dark">--</strong></span>
-                                </div>
-
-                                <!-- Amount Selection -->
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-sm-7">
-                                        <label class="form-label fw-bold text-dark small mb-1">চাঁদার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
-                                        <div class="d-flex flex-wrap gap-1 mb-2">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(200)">৳২০০</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill active" onclick="setMemberAmount(500)">৳৫০০</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(1000)">৳১,০০০</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(2000)">৳২,০০০</button>
-                                        </div>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-white fw-bold text-success">৳</span>
-                                            <input type="number" name="amount" id="memberPayAmountInput" value="500" min="10" step="any" required class="form-control fw-bold text-success fs-5">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-5">
-                                        <label class="form-label fw-bold text-dark small mb-1">চাঁদার ধরন</label>
-                                        <select name="frequency" id="memberPayFrequency" class="form-select">
-                                            <option value="monthly" selected>মাসিক চাঁদা</option>
-                                            <option value="one_time">এককালীন প্রদান</option>
-                                            <option value="yearly">বাৎসরিক চাঁদা</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Submit Button -->
-                            <div class="d-grid mt-3">
-                                <button type="submit" id="memberPaySubmitBtn" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm" disabled>
-                                    <i class="fas fa-lock me-2"></i><span id="memberBtnText">উপরে আপনার নাম সিলেক্ট করুন</span>
-                                </button>
-                            </div>
-                        </form>
+                <!-- ============================================================== -->
+                <!-- SCREEN 1: INITIAL 3-OPTION SELECTION (শুধুমাত্র ৩টি অপশন)      -->
+                <!-- ============================================================== -->
+                <div id="modalStep1Choices" class="py-2">
+                    <div class="text-center mb-4">
+                        <h6 class="fw-bold text-dark mb-1 fs-5">অনুগ্রহ করে অনুদানের ধরন নির্বাচন করুন</h6>
+                        <p class="text-muted small mb-0">আপনি কীভাবে সহযোগিতা বা পেমেন্ট করতে চান তা বেছে নিন</p>
                     </div>
 
-                    <!-- ========================================== -->
-                    <!-- TAB 2: GENERAL DONATION (সাধারণ অনুদান)   -->
-                    <!-- ========================================== -->
-                    <div class="tab-pane fade" id="tab-general-pane" role="tabpanel">
-                        <form action="{% url 'donations:initiate_payment' %}" method="POST" id="generalDonationForm">
-                            {% csrf_token %}
-                            <input type="hidden" name="donor_identity_type" value="general">
-
-                            <!-- Amount Selection -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-dark small mb-1">আর্থিক সহায়তার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
-                                <div class="d-flex flex-wrap gap-1 mb-2">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(100)">৳১০০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(250)">৳২৫০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill active" onclick="setGeneralAmount(500)">৳৫০০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(1000)">৳১,০০০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(2000)">৳২,০০০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(5000)">৳৫,০০০</button>
+                    <div class="row g-3 justify-content-center">
+                        <!-- Option 1: Member Payment -->
+                        <div class="col-12">
+                            <div class="option-picker-card p-3 rounded-4 border border-2 d-flex align-items-center justify-content-between cursor-pointer transition-all"
+                                 onclick="goToDonateFlow('member')"
+                                 style="background: #fbfdfc; border-color: #a3e635; hover: border-color: #16a34a;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm flex-shrink-0"
+                                         style="width: 52px; height: 52px; font-size: 1.4rem; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);">
+                                        <i class="fas fa-id-card"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1 fs-6">
+                                            সদস্য চাঁদা / পেমেন্ট
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-2 py-0 px-2" style="font-size: 0.72rem;">মেম্বারদের জন্য</span>
+                                        </h6>
+                                        <div class="text-secondary small">
+                                            সার্চ বক্স বা তালিকা থেকে নিজের নাম/আইডি সিলেক্ট করে মাসিক বা এককালীন চাঁদা পরিশোধ করুন।
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
-                                    <input type="number" name="amount" id="generalAmountInput" value="500" min="10" step="any" required class="form-control fw-bold fs-4 text-success" placeholder="টাকার পরিমাণ লিখুন">
+                                <div class="ps-2">
+                                    <span class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold text-nowrap">
+                                        নির্বাচন করুন <i class="fas fa-arrow-right ms-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 2: General / Random Donation -->
+                        <div class="col-12">
+                            <div class="option-picker-card p-3 rounded-4 border border-2 d-flex align-items-center justify-content-between cursor-pointer transition-all"
+                                 onclick="goToDonateFlow('general')"
+                                 style="background: #fffbfa; border-color: #fecdd3;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm flex-shrink-0"
+                                         style="width: 52px; height: 52px; font-size: 1.4rem; background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1 fs-6">
+                                            সাধারণ অনুদান
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2 py-0 px-2" style="font-size: 0.72rem;">যেকোনো শুভাকাঙ্ক্ষী</span>
+                                        </h6>
+                                        <div class="text-secondary small">
+                                            কোনো সদস্য একাউন্ট ছাড়াই সরাসরি নাম, ফোন নম্বর ও ঐচ্ছিক মন্তব্য লিখে দান করুন।
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ps-2">
+                                    <span class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold text-nowrap">
+                                        নির্বাচন করুন <i class="fas fa-arrow-right ms-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 3: Program-based Donation -->
+                        <div class="col-12">
+                            <div class="option-picker-card p-3 rounded-4 border border-2 d-flex align-items-center justify-content-between cursor-pointer transition-all"
+                                 onclick="goToDonateFlow('program')"
+                                 style="background: #f8fafc; border-color: #bae6fd;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm flex-shrink-0"
+                                         style="width: 52px; height: 52px; font-size: 1.4rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                                        <i class="fas fa-hands-helping"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1 fs-6">
+                                            কার্যক্রমভিত্তিক অনুদান
+                                            <span class="badge bg-info-subtle text-primary border border-info-subtle ms-2 py-0 px-2" style="font-size: 0.72rem;">নির্দিষ্ট প্রকল্প</span>
+                                        </h6>
+                                        <div class="text-secondary small">
+                                            চলমান মানবিক প্রকল্পের লক্ষ্যমাত্রা ও প্রয়োজন অনুযায়ী ফান্ডে সরাসরি অনুদান দিন।
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ps-2">
+                                    <span class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold text-nowrap">
+                                        নির্বাচন করুন <i class="fas fa-arrow-right ms-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ============================================================== -->
+                <!-- SCREEN 2: MEMBER PAYMENT FLOW (সদস্য চাঁদা / পেমেন্ট)          -->
+                <!-- ============================================================== -->
+                <div id="modalStepMemberFlow" class="d-none">
+                    <!-- Top Back Bar -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-secondary" onclick="backToStep1()">
+                            <i class="fas fa-arrow-left me-1"></i> অপশন পরিবর্তন করুন
+                        </button>
+                        <span class="badge bg-success py-1 px-3 rounded-pill fw-bold">
+                            <i class="fas fa-id-card me-1"></i> সদস্য চাঁদা / পেমেন্ট
+                        </span>
+                    </div>
+
+                    <form action="{% url 'donations:initiate_payment' %}" method="POST" id="memberPaymentForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="donor_identity_type" value="member">
+                        <input type="hidden" name="membership_id" id="mem_form_membership_id" value="">
+                        <input type="hidden" name="donor_name" id="mem_form_donor_name" value="">
+                        <input type="hidden" name="donor_phone" id="mem_form_donor_phone" value="">
+                        <input type="hidden" name="donor_email" id="mem_form_donor_email" value="">
+
+                        <!-- Search Box -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-secondary">
+                                <i class="fas fa-search text-success me-1"></i>আপনার নাম বা সদস্য আইডি দিয়ে খুঁজুন
+                            </label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+                                <span class="input-group-text bg-white border-0 text-success ps-3">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control border-0 py-2" id="memberSearchInput" 
+                                       placeholder="সদস্যের নাম, আইডি (যেমন 26082301) বা ফোন লিখুন..." 
+                                       oninput="filterModalMembers(this.value)">
+                                <button class="btn btn-light border-0 text-muted px-3" type="button" onclick="clearModalMemberSearch()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Scrollable Member List -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted fw-bold">সদস্য নির্বাচন করুন:</span>
+                                <span class="badge bg-light text-secondary border" id="memberListCount">মোট সদস্য</span>
+                            </div>
+                            <div class="border rounded-3 p-2 bg-light overflow-auto member-list-container" id="memberCardsList" style="max-height: 220px;">
+                                
+                                <!-- Team Members (Core Leadership & Council) -->
+                                {% for tm in global_team_members %}
+                                <div class="member-select-item p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all"
+                                     data-member-id="{{ tm.member_id|default:'' }}"
+                                     data-member-name="{{ tm.name }}"
+                                     data-member-role="{{ tm.effective_role }}"
+                                     data-member-phone="{{ tm.phone|default:'' }}"
+                                     data-member-email="{{ tm.email|default:'' }}"
+                                     data-monthly-fee="{{ tm.monthly_fee|floatformat:0 }}"
+                                     data-due-amount="{{ tm.subscription_summary.due_amount|floatformat:0 }}"
+                                     data-advance-amount="{{ tm.subscription_summary.advance_amount|floatformat:0 }}"
+                                     data-total-paid="{{ tm.subscription_summary.total_paid|floatformat:0 }}"
+                                     data-total-billed="{{ tm.subscription_summary.total_billed|floatformat:0 }}"
+                                     data-months-billed="{{ tm.subscription_summary.months_billed }}"
+                                     data-join-date="{{ tm.subscription_summary.join_date_formatted }}"
+                                     data-status-label="{{ tm.subscription_summary.status_label }}"
+                                     data-suggested-amount="{{ tm.subscription_summary.suggested_amount|floatformat:0 }}"
+                                     onclick="selectModalMember(this)">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if tm.image %}
+                                        <img src="{{ tm.image.url }}" alt="{{ tm.name }}" class="rounded-circle object-fit-cover border" style="width: 42px; height: 42px;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 0.9rem;">
+                                            {{ tm.name|slice:":1" }}
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold text-dark lh-sm member-name-text">{{ tm.name }}</div>
+                                            <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2" style="font-size: 0.72rem;">{{ tm.effective_role }}</span>
+                                                <span class="badge bg-light text-muted border py-0 px-2 member-id-text" style="font-size: 0.72rem;">ID: {{ tm.member_id|default:'N/A' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 select-btn-badge">
+                                            সিলেক্ট <i class="fas fa-check-circle ms-1"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                                <!-- Approved Volunteers -->
+                                {% for vol in global_volunteers %}
+                                <div class="member-select-item p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all"
+                                     data-member-id="{{ vol.member_id|default:'' }}"
+                                     data-member-name="{{ vol.full_name }}"
+                                     data-member-role="স্বেচ্ছাসেবক"
+                                     data-member-phone="{{ vol.phone|default:'' }}"
+                                     data-member-email="{{ vol.email|default:'' }}"
+                                     data-monthly-fee="{{ vol.contribution_amount|default:100 }}"
+                                     data-due-amount="0"
+                                     data-advance-amount="0"
+                                     data-total-paid="0"
+                                     data-total-billed="{{ vol.contribution_amount|default:100 }}"
+                                     data-months-billed="1"
+                                     data-join-date="{{ vol.application_date|date:'d-m-Y' }}"
+                                     data-status-label="স্বেচ্ছাসেবক চাঁদা"
+                                     data-suggested-amount="{{ vol.contribution_amount|default:100 }}"
+                                     onclick="selectModalMember(this)">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if vol.image %}
+                                        <img src="{{ vol.image.url }}" alt="{{ vol.full_name }}" class="rounded-circle object-fit-cover border" style="width: 42px; height: 42px;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 0.9rem;">
+                                            {{ vol.full_name|slice:":1" }}
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold text-dark lh-sm member-name-text">{{ vol.full_name }}</div>
+                                            <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-0 px-2" style="font-size: 0.72rem;">স্বেচ্ছাসেবক সদস্য</span>
+                                                <span class="badge bg-light text-muted border py-0 px-2 member-id-text" style="font-size: 0.72rem;">ID: {{ vol.member_id|default:'N/A' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 select-btn-badge">
+                                            সিলেক্ট <i class="fas fa-check-circle ms-1"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                                <div id="noMemberFoundAlert" class="text-center py-4 text-muted d-none">
+                                    <i class="fas fa-user-slash fs-2 mb-2 text-secondary"></i>
+                                    <div>কোনো সদস্য পাওয়া যায়নি। সঠিক নাম বা আইডি লিখে চেষ্টা করুন।</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Member Details & Subscription Summary -->
+                        <div id="selectedMemberSection" class="p-3 bg-light rounded-4 border border-success-subtle mb-3 d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <i class="fas fa-user-check text-success fs-5"></i>
+                                    <span class="fw-bold text-dark fs-6" id="selectedMemberNameDisplay">--</span>
+                                    <span class="badge bg-success" id="selectedMemberIdDisplay">ID: --</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" id="selectedMemberRoleDisplay">--</span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0" onclick="resetModalMemberSelection()">
+                                    <i class="fas fa-times me-1"></i>পরিবর্তন
+                                </button>
+                            </div>
+
+                            <!-- Live Subscription Financial Breakdown Cards -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6 col-sm-3">
+                                    <div class="p-2 bg-white rounded-3 border text-center">
+                                        <small class="text-muted d-block" style="font-size: 0.72rem;">নির্ধারিত মাসিক চাঁদা</small>
+                                        <strong class="text-dark fs-6" id="summaryMonthlyFeeDisplay">৳--</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="p-2 bg-white rounded-3 border text-center">
+                                        <small class="text-muted d-block" style="font-size: 0.72rem;">অন্তর্ভুক্তি তারিখ</small>
+                                        <strong class="text-dark" style="font-size: 0.85rem;" id="summaryJoinDateDisplay">--</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.68rem;" id="summaryMonthsBilledDisplay">(১ মাস)</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="p-2 bg-white rounded-3 border text-center">
+                                        <small class="text-muted d-block" style="font-size: 0.72rem;">মোট পরিশোধিত</small>
+                                        <strong class="text-success fs-6" id="summaryTotalPaidDisplay">৳০</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="p-2 rounded-3 border text-center" id="summaryStatusBox">
+                                        <small class="text-muted d-block" style="font-size: 0.72rem;">বর্তমান অবস্থা</small>
+                                        <strong class="fs-6" id="summaryStatusDisplay">বকেয়া: ৳০</strong>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Donor Details -->
-                            <div class="row g-2 mb-3">
+                            <!-- Amount Selection & Custom Input -->
+                            <input type="hidden" name="frequency" id="memberPayFrequency" value="monthly">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">প্রদেয় চাঁদার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
+                                    <div class="d-flex flex-wrap gap-1 mb-2" id="memberAmtPillsContainer">
+                                        <!-- Dynamically generated pills -->
+                                    </div>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white fw-bold text-success fs-5">৳</span>
+                                        <input type="number" name="amount" id="memberPayAmountInput" value="100" min="10" step="any" required class="form-control fw-bold text-success fs-5" placeholder="টাকার পরিমাণ লিখুন">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Custom Pay Policy Note -->
+                            <div class="alert alert-warning-subtle border border-warning-subtle p-2 rounded-3 small mt-3 mb-0">
+                                <i class="fas fa-info-circle text-warning me-1"></i>
+                                <strong>কাস্টম পেমেন্ট নিয়ম:</strong> আপনি যেকোনো পরিমাণ টাকা লিখতে পারেন। কম পরিশোধ করলে বাকি টাকা বকেয়া থাকবে, আর বেশি পরিশোধ করলে তা স্বয়ংক্রিয়ভাবে পরবর্তী মাসের চাঁদা হিসেবে অগ্রিম (Advance) জমা থাকবে।
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mt-3">
+                            <button type="submit" id="memberPaySubmitBtn" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm" disabled>
+                                <i class="fas fa-lock me-2"></i><span id="memberBtnText">উপরে আপনার নাম সিলেক্ট করুন</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <!-- ============================================================== -->
+                <!-- SCREEN 3: GENERAL DONATION FLOW (সাধারণ অনুদান)                -->
+                <!-- ============================================================== -->
+                <div id="modalStepGeneralFlow" class="d-none">
+                    <!-- Top Back Bar -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-secondary" onclick="backToStep1()">
+                            <i class="fas fa-arrow-left me-1"></i> অপশন পরিবর্তন করুন
+                        </button>
+                        <span class="badge bg-danger py-1 px-3 rounded-pill fw-bold">
+                            <i class="fas fa-heart me-1"></i> সাধারণ অনুদান
+                        </span>
+                    </div>
+
+                    <form action="{% url 'donations:initiate_payment' %}" method="POST" id="generalDonationForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="donor_identity_type" value="general">
+
+                        <!-- Amount Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark small mb-1">আর্থিক সহায়তার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(100)">৳১০০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(250)">৳২৫০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill active" onclick="setGeneralAmount(500)">৳৫০০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(1000)">৳১,০০০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(2000)">৳২,০০০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill gen-amt-pill" onclick="setGeneralAmount(5000)">৳৫,০০০</button>
+                            </div>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
+                                <input type="number" name="amount" id="generalAmountInput" value="500" min="10" step="any" required class="form-control fw-bold fs-4 text-success" placeholder="টাকার পরিমাণ">
+                            </div>
+                        </div>
+
+                        <!-- Donor Details -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-bold small">আপনার নাম <span class="text-danger">*</span></label>
+                                <input type="text" name="donor_name" class="form-control" placeholder="আপনার পূর্ণ নাম" required>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-bold small">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                                <input type="tel" name="donor_phone" class="form-control" placeholder="০১XXXXXXXXX" required>
+                            </div>
+                        </div>
+
+                        <!-- Optional Comment -->
+                        <div class="mb-3">
+                            <label class="form-label small text-secondary">মন্তব্য বা দোয়া (ঐচ্ছিক)</label>
+                            <input type="text" name="note" class="form-control" placeholder="আপনার কোনো বিশেষ উদ্দেশ্য বা দোয়া থাকলে লিখুন">
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
+                                <i class="fas fa-lock me-2"></i>নিরাপদে পেমেন্টে এগিয়ে যান &rarr;
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <!-- ============================================================== -->
+                <!-- SCREEN 4: PROGRAM DONATION FLOW (কার্যক্রমভিত্তিক অনুদান)       -->
+                <!-- ============================================================== -->
+                <div id="modalStepProgramFlow" class="d-none">
+                    <!-- Top Back Bar -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-secondary" onclick="backToStep1()">
+                            <i class="fas fa-arrow-left me-1"></i> অপশন পরিবর্তন করুন
+                        </button>
+                        <span class="badge bg-primary py-1 px-3 rounded-pill fw-bold">
+                            <i class="fas fa-hands-helping me-1"></i> কার্যক্রমভিত্তিক অনুদান
+                        </span>
+                    </div>
+
+                    <form action="{% url 'donations:initiate_payment' %}" method="POST" id="programPaymentForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="donor_identity_type" value="program">
+
+                        <!-- Program Selection List -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-secondary">
+                                <i class="fas fa-tasks text-primary me-1"></i>কার্যক্রম নির্বাচন করুন <span class="text-danger">*</span>
+                            </label>
+                            <div class="border rounded-3 p-2 bg-light overflow-auto" style="max-height: 180px;">
+                                {% if global_programs %}
+                                {% for p in global_programs %}
+                                <div class="program-choice-card p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all {% if forloop.first %}selected-program border-success bg-success-subtle bg-opacity-25{% endif %}"
+                                     data-prog-id="{{ p.id }}"
+                                     data-prog-title="{{ p.title }}"
+                                     data-prog-target="{{ p.target_amount|default:0 }}"
+                                     onclick="selectModalProgram(this)">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input class="form-check-input mt-0 program-radio-input" type="radio" name="program_id" value="{{ p.id }}" {% if forloop.first %}checked{% endif %}>
+                                        <div>
+                                            <div class="fw-bold text-dark lh-sm">{{ p.title }}</div>
+                                            <div class="d-flex align-items-center gap-2 mt-1">
+                                                {% if p.target_amount %}
+                                                <span class="badge bg-warning-subtle text-dark border border-warning py-0 px-2" style="font-size: 0.72rem;">
+                                                    লক্ষ্য: ৳{{ p.target_amount|floatformat:0 }}
+                                                </span>
+                                                <span class="small text-muted" style="font-size: 0.72rem;">
+                                                    সংগৃহীত: ৳{{ p.raised_amount|floatformat:0 }}
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-success-subtle text-success py-0 px-2" style="font-size: 0.72rem;">চলমান কর্মসূচি</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if p.target_amount %}
+                                    <div class="text-end d-none d-sm-block" style="min-width: 90px;">
+                                        <div class="small fw-bold text-success">{{ p.progress_percent }}% পূরণ</div>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar bg-success" style="width: {{ p.progress_percent }}%;"></div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="p-3 text-center text-muted">কোনো নির্দিষ্ট কার্যক্রম পাওয়া যায়নি।</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Amount Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark small mb-1">কার্যক্রমের জন্য অনুদানের পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(250)">৳২৫০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill active" onclick="setProgramAmount(500)">৳৫০০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(1000)">৳১,০০০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(2000)">৳২,০০০</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(5000)">৳৫,০০০</button>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white fw-bold text-success">৳</span>
+                                <input type="number" name="amount" id="programAmountInput" value="500" min="10" step="any" required class="form-control fw-bold text-success fs-5" placeholder="টাকার পরিমাণ">
+                            </div>
+                        </div>
+
+                        <!-- Donor Identity Type (General vs Member) -->
+                        <div class="p-3 rounded-3 bg-light border mb-3">
+                            <div class="d-flex gap-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_gen" value="general" checked onchange="toggleProgDonorKind('general')">
+                                    <label class="form-check-label fw-bold text-dark small" for="prog_kind_gen">সাধারণ শুভাকাঙ্ক্ষী</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_mem" value="member" onchange="toggleProgDonorKind('member')">
+                                    <label class="form-check-label fw-bold text-success small" for="prog_kind_mem">সংস্থার সদস্য (Member)</label>
+                                </div>
+                            </div>
+
+                            <!-- Member Lookup Field -->
+                            <div id="progMemberLookupBox" class="mb-2 d-none">
+                                <label class="form-label fw-bold small text-dark">সদস্য আইডি (Member ID)</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white text-success"><i class="fas fa-id-badge"></i></span>
+                                    <input type="text" class="form-control fw-bold" name="membership_id" id="progMembershipId" placeholder="সদস্য আইডি লিখুন (যেমন: 26082301)" oninput="lookupProgramMember(this.value)">
+                                </div>
+                                <div id="progMemberLookupFeedback" class="form-text small mt-1 text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</div>
+                            </div>
+
+                            <!-- Name & Phone -->
+                            <div class="row g-2">
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold small">আপনার নাম <span class="text-danger">*</span></label>
-                                    <input type="text" name="donor_name" class="form-control" placeholder="আপনার পূর্ণ নাম" required>
+                                    <input type="text" name="donor_name" id="progDonorName" class="form-control form-control-sm" placeholder="পূর্ণ নাম" required>
                                 </div>
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold small">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                    <input type="tel" name="donor_phone" class="form-control" placeholder="০১XXXXXXXXX" required>
+                                    <input type="tel" name="donor_phone" id="progDonorPhone" class="form-control form-control-sm" placeholder="০১XXXXXXXXX" required>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Optional Comment -->
-                            <div class="mb-3">
-                                <label class="form-label small text-secondary">মন্তব্য বা দোয়া (ঐচ্ছিক)</label>
-                                <input type="text" name="note" class="form-control" placeholder="আপনার কোনো বিশেষ উদ্দেশ্য বা দোয়া থাকলে লিখুন">
-                            </div>
+                        <!-- Optional Note -->
+                        <div class="mb-3">
+                            <label class="form-label small text-secondary">কার্যক্রমের জন্য কোনো বার্তা বা শুভকামনা (ঐচ্ছিক)</label>
+                            <input type="text" name="note" class="form-control form-control-sm" placeholder="বিশেষ মন্তব্য লিখুন">
+                        </div>
 
-                            <!-- Submit Button -->
-                            <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
-                                    <i class="fas fa-lock me-2"></i>পেমেন্টে এগিয়ে যান (PayStation Direct OTP/PIN) &rarr;
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- ========================================== -->
-                    <!-- TAB 3: PROGRAM DONATION (কার্যক্রম ভিত্তিক)-->
-                    <!-- ========================================== -->
-                    <div class="tab-pane fade" id="tab-program-pane" role="tabpanel">
-                        <form action="{% url 'donations:initiate_payment' %}" method="POST" id="programPaymentForm">
-                            {% csrf_token %}
-                            <input type="hidden" name="donor_identity_type" value="program">
-
-                            <!-- Program Selection List -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-secondary">
-                                    <i class="fas fa-tasks text-primary me-1"></i>কার্যক্রম নির্বাচন করুন <span class="text-danger">*</span>
-                                </label>
-                                <div class="border rounded-3 p-2 bg-light overflow-auto" style="max-height: 200px;">
-                                    {% if global_programs %}
-                                    {% for p in global_programs %}
-                                    <div class="program-choice-card p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all {% if forloop.first %}selected-program border-success bg-success-subtle bg-opacity-25{% endif %}"
-                                         data-prog-id="{{ p.id }}"
-                                         data-prog-title="{{ p.title }}"
-                                         data-prog-target="{{ p.target_amount|default:0 }}"
-                                         onclick="selectModalProgram(this)">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <input class="form-check-input mt-0 program-radio-input" type="radio" name="program_id" value="{{ p.id }}" {% if forloop.first %}checked{% endif %}>
-                                            <div>
-                                                <div class="fw-bold text-dark lh-sm">{{ p.title }}</div>
-                                                <div class="d-flex align-items-center gap-2 mt-1">
-                                                    {% if p.target_amount %}
-                                                    <span class="badge bg-warning-subtle text-dark border border-warning py-0 px-2" style="font-size: 0.72rem;">
-                                                        লক্ষ্য: ৳{{ p.target_amount|floatformat:0 }}
-                                                    </span>
-                                                    <span class="small text-muted" style="font-size: 0.72rem;">
-                                                        সংগৃহীত: ৳{{ p.raised_amount|floatformat:0 }}
-                                                    </span>
-                                                    {% else %}
-                                                    <span class="badge bg-success-subtle text-success py-0 px-2" style="font-size: 0.72rem;">চলমান কর্মসূচি</span>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% if p.target_amount %}
-                                        <div class="text-end d-none d-sm-block" style="min-width: 90px;">
-                                            <div class="small fw-bold text-success">{{ p.progress_percent }}% পূরণ</div>
-                                            <div class="progress" style="height: 5px;">
-                                                <div class="progress-bar bg-success" style="width: {{ p.progress_percent }}%;"></div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    {% endfor %}
-                                    {% else %}
-                                    <div class="p-3 text-center text-muted">কোনো নির্দিষ্ট কার্যক্রম পাওয়া যায়নি।</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Amount Selection -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-dark small mb-1">কার্যক্রমের জন্য অনুদানের পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
-                                <div class="d-flex flex-wrap gap-1 mb-2">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(250)">৳২৫০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill active" onclick="setProgramAmount(500)">৳৫০০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(1000)">৳১,০০০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(2000)">৳২,০০০</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(5000)">৳৫,০০০</button>
-                                </div>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white fw-bold text-success">৳</span>
-                                    <input type="number" name="amount" id="programAmountInput" value="500" min="10" step="any" required class="form-control fw-bold text-success fs-5" placeholder="টাকার পরিমাণ">
-                                </div>
-                            </div>
-
-                            <!-- Donor Identity Type (General vs Member) -->
-                            <div class="p-3 rounded-3 bg-light border mb-3">
-                                <div class="d-flex gap-3 mb-2">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_gen" value="general" checked onchange="toggleProgDonorKind('general')">
-                                        <label class="form-check-label fw-bold text-dark small" for="prog_kind_gen">সাধারণ শুভাকাঙ্ক্ষী</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_mem" value="member" onchange="toggleProgDonorKind('member')">
-                                        <label class="form-check-label fw-bold text-success small" for="prog_kind_mem">সংস্থার সদস্য (Member)</label>
-                                    </div>
-                                </div>
-
-                                <!-- Member Lookup Field (Shows only if Member selected) -->
-                                <div id="progMemberLookupBox" class="mb-2 d-none">
-                                    <label class="form-label fw-bold small text-dark">সদস্য আইডি (Member ID)</label>
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-white text-success"><i class="fas fa-id-badge"></i></span>
-                                        <input type="text" class="form-control fw-bold" name="membership_id" id="progMembershipId" placeholder="সদস্য আইডি লিখুন (যেমন: 26082301)" oninput="lookupProgramMember(this.value)">
-                                    </div>
-                                    <div id="progMemberLookupFeedback" class="form-text small mt-1 text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</div>
-                                </div>
-
-                                <!-- Name & Phone -->
-                                <div class="row g-2">
-                                    <div class="col-sm-6">
-                                        <label class="form-label fw-bold small">আপনার নাম <span class="text-danger">*</span></label>
-                                        <input type="text" name="donor_name" id="progDonorName" class="form-control form-control-sm" placeholder="পূর্ণ নাম" required>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="form-label fw-bold small">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                        <input type="tel" name="donor_phone" id="progDonorPhone" class="form-control form-control-sm" placeholder="০১XXXXXXXXX" required>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Optional Note -->
-                            <div class="mb-3">
-                                <label class="form-label small text-secondary">কার্যক্রমের জন্য কোনো বার্তা বা শুভকামনা (ঐচ্ছিক)</label>
-                                <input type="text" name="note" class="form-control form-control-sm" placeholder="বিশেষ মন্তব্য লিখুন">
-                            </div>
-
-                            <!-- Submit Button -->
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
-                                    <i class="fas fa-lock me-2"></i>কার্যক্রমের তহবিলে পেমেন্ট করুন &rarr;
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
+                                <i class="fas fa-lock me-2"></i>কার্যক্রমের তহবিলে পেমেন্ট করুন &rarr;
+                            </button>
+                        </div>
+                    </form>
                 </div>
+
             </div>
 
             <!-- Modal Footer: Quiet Collapsible for Manual / Bank Details -->
@@ -458,8 +583,78 @@
     </div>
 </div>
 
+<style>
+.option-picker-card {
+    transition: all 0.22s ease-in-out;
+    cursor: pointer;
+}
+.option-picker-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+</style>
+
 <!-- Modal Interactive JavaScript Scripts -->
 <script>
+// Screen navigation functions
+function goToDonateFlow(flow) {
+    var step1 = document.getElementById('modalStep1Choices');
+    var memFlow = document.getElementById('modalStepMemberFlow');
+    var genFlow = document.getElementById('modalStepGeneralFlow');
+    var progFlow = document.getElementById('modalStepProgramFlow');
+
+    if (step1) step1.classList.add('d-none');
+    if (memFlow) memFlow.classList.add('d-none');
+    if (genFlow) genFlow.classList.add('d-none');
+    if (progFlow) progFlow.classList.add('d-none');
+
+    if (flow === 'member' && memFlow) {
+        memFlow.classList.remove('d-none');
+        // Auto focus search input after a brief delay
+        setTimeout(function() {
+            var inp = document.getElementById('memberSearchInput');
+            if (inp) inp.focus();
+        }, 150);
+    } else if (flow === 'general' && genFlow) {
+        genFlow.classList.remove('d-none');
+    } else if (flow === 'program' && progFlow) {
+        progFlow.classList.remove('d-none');
+    }
+}
+
+function backToStep1() {
+    var step1 = document.getElementById('modalStep1Choices');
+    var memFlow = document.getElementById('modalStepMemberFlow');
+    var genFlow = document.getElementById('modalStepGeneralFlow');
+    var progFlow = document.getElementById('modalStepProgramFlow');
+
+    if (step1) step1.classList.remove('d-none');
+    if (memFlow) memFlow.classList.add('d-none');
+    if (genFlow) genFlow.classList.add('d-none');
+    if (progFlow) progFlow.classList.add('d-none');
+}
+
+// Reset modal to Step 1 whenever modal is closed
+document.addEventListener('DOMContentLoaded', function() {
+    var modalElem = document.getElementById('directDonateModal');
+    if (modalElem) {
+        modalElem.addEventListener('hidden.bs.modal', function() {
+            backToStep1();
+            clearModalMemberSearch();
+            resetModalMemberSelection();
+        });
+    }
+
+    var items = document.querySelectorAll('#memberCardsList .member-select-item');
+    var countBadge = document.getElementById('memberListCount');
+    if (countBadge) {
+        countBadge.innerText = items.length + ' জন সদস্য';
+    }
+});
+
 // Filter Members in Modal Search Box
 function filterModalMembers(val) {
     val = (val || '').toLowerCase().trim();
@@ -505,7 +700,6 @@ function clearModalMemberSearch() {
 
 // Select a member in Member Tab
 function selectModalMember(elem) {
-    // Remove previous selection styling
     document.querySelectorAll('#memberCardsList .member-select-item').forEach(function(item) {
         item.classList.remove('border-success', 'bg-success-subtle', 'bg-opacity-25');
         var btn = item.querySelector('.select-btn-badge');
@@ -515,7 +709,6 @@ function selectModalMember(elem) {
         }
     });
 
-    // Mark current item selected
     elem.classList.add('border-success', 'bg-success-subtle', 'bg-opacity-25');
     var currentBtn = elem.querySelector('.select-btn-badge');
     if (currentBtn) {
@@ -528,32 +721,73 @@ function selectModalMember(elem) {
     var memberPhone = elem.getAttribute('data-member-phone') || '';
     var memberEmail = elem.getAttribute('data-member-email') || '';
     var memberRole = elem.getAttribute('data-member-role') || '';
-    var pledgeAmount = elem.getAttribute('data-pledge-amount') || '500';
-    var pledgeFreq = elem.getAttribute('data-pledge-frequency') || 'monthly';
+    var monthlyFee = parseFloat(elem.getAttribute('data-monthly-fee') || '100');
+    var dueAmount = parseFloat(elem.getAttribute('data-due-amount') || '0');
+    var advanceAmount = parseFloat(elem.getAttribute('data-advance-amount') || '0');
+    var totalPaid = parseFloat(elem.getAttribute('data-total-paid') || '0');
+    var monthsBilled = elem.getAttribute('data-months-billed') || '1';
+    var joinDate = elem.getAttribute('data-join-date') || '';
+    var suggestedAmount = parseFloat(elem.getAttribute('data-suggested-amount') || monthlyFee);
 
-    // Populate hidden inputs
     document.getElementById('mem_form_membership_id').value = memberId;
     document.getElementById('mem_form_donor_name').value = memberName;
     document.getElementById('mem_form_donor_phone').value = memberPhone;
     document.getElementById('mem_form_donor_email').value = memberEmail;
 
-    // Populate Selected Member Section Display
     document.getElementById('selectedMemberNameDisplay').innerText = memberName;
     document.getElementById('selectedMemberIdDisplay').innerText = 'ID: ' + (memberId || 'N/A');
-    document.getElementById('selectedMemberPhoneDisplay').innerText = memberPhone || 'ফোন নম্বর নেই';
     document.getElementById('selectedMemberRoleDisplay').innerText = memberRole;
 
-    // Populate amount and frequency
-    var amtInput = document.getElementById('memberPayAmountInput');
-    if (amtInput && pledgeAmount) {
-        amtInput.value = parseFloat(pledgeAmount) || 500;
-    }
-    var freqSelect = document.getElementById('memberPayFrequency');
-    if (freqSelect && pledgeFreq && pledgeFreq !== 'none') {
-        freqSelect.value = pledgeFreq;
+    // Subscription summary breakdown
+    var feeDisp = document.getElementById('summaryMonthlyFeeDisplay');
+    if (feeDisp) feeDisp.innerText = '৳' + monthlyFee;
+    var joinDisp = document.getElementById('summaryJoinDateDisplay');
+    if (joinDisp) joinDisp.innerText = joinDate;
+    var mBilledDisp = document.getElementById('summaryMonthsBilledDisplay');
+    if (mBilledDisp) mBilledDisp.innerText = '(' + monthsBilled + ' মাস প্রযোজ্য)';
+    var paidDisp = document.getElementById('summaryTotalPaidDisplay');
+    if (paidDisp) paidDisp.innerText = '৳' + totalPaid;
+
+    var statusBox = document.getElementById('summaryStatusBox');
+    var statusDisplay = document.getElementById('summaryStatusDisplay');
+    if (statusBox && statusDisplay) {
+        statusBox.className = 'p-2 rounded-3 border text-center ';
+        if (dueAmount > 0) {
+            statusBox.className += 'bg-danger-subtle border-danger-subtle text-danger';
+            statusDisplay.innerHTML = 'বকেয়া: ৳' + dueAmount;
+        } else if (advanceAmount > 0) {
+            statusBox.className += 'bg-primary-subtle border-primary-subtle text-primary';
+            statusDisplay.innerHTML = 'অগ্রিম: ৳' + advanceAmount;
+        } else {
+            statusBox.className += 'bg-success-subtle border-success-subtle text-success';
+            statusDisplay.innerHTML = 'পরিশোধিত';
+        }
     }
 
-    // Show section and enable submit
+    // Dynamic quick pills
+    var pillsContainer = document.getElementById('memberAmtPillsContainer');
+    if (pillsContainer) {
+        var pillsHtml = '';
+        if (dueAmount > 0) {
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + dueAmount + ')">৳' + dueAmount + ' (বকেয়া পরিশোধ)</button> ';
+        }
+        pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill ' + (dueAmount <= 0 ? 'active' : '') + '" onclick="setMemberAmount(' + monthlyFee + ')">৳' + monthlyFee + ' (১ মাস)</button> ';
+        pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 2) + ')">৳' + (monthlyFee * 2) + ' (২ মাস)</button> ';
+        pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 3) + ')">৳' + (monthlyFee * 3) + ' (৩ মাস)</button> ';
+        pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 6) + ')">৳' + (monthlyFee * 6) + ' (৬ মাস)</button>';
+        pillsContainer.innerHTML = pillsHtml;
+    }
+
+    var amtInput = document.getElementById('memberPayAmountInput');
+    if (amtInput) {
+        amtInput.value = suggestedAmount;
+    }
+
+    var freqSelect = document.getElementById('memberPayFrequency');
+    if (freqSelect) {
+        freqSelect.value = 'monthly';
+    }
+
     var sec = document.getElementById('selectedMemberSection');
     if (sec) sec.classList.remove('d-none');
 
@@ -676,13 +910,4 @@ function copyModalOffline(text, msg) {
         prompt('নম্বরটি কপি করুন:', text);
     });
 }
-
-// Initialize count on load
-document.addEventListener('DOMContentLoaded', function() {
-    var items = document.querySelectorAll('#memberCardsList .member-select-item');
-    var countBadge = document.getElementById('memberListCount');
-    if (countBadge) {
-        countBadge.innerText = items.length + ' জন সদস্য';
-    }
-});
 </script>

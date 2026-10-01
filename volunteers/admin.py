@@ -43,33 +43,11 @@ class TeamMemberAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         is_new = obj.pk is None
         super().save_model(request, obj, form, change)
-        if is_new and obj.email:
+        if is_new:
             try:
-                subject = f"Hello Naogaon - পরিচালনা পর্ষদ / টিম মেম্বার হিসেবে আপনাকে স্বাগতম!"
-                paragraphs = [
-                    f"হ্যালো নওগাঁ (Hello Naogaon)-এর পরিচালনা পর্ষদ / টিম মেম্বার ({obj.effective_role}) হিসেবে যুক্ত হওয়ায় আপনাকে আন্তরিক মোবারকবাদ ও শুভেচ্ছা!",
-                    "সংগঠনকে সামনের দিকে এগিয়ে নিতে এবং মানবতার সেবায় কার্যকর ভূমিকা পালনে আপনার সক্রিয় সহযোগিতা আমাদের জন্য অত্যন্ত গর্বের।"
-                ]
-                login_info = None
-                if obj.user:
-                    login_info = {
-                        'username': obj.user.username,
-                        'role': obj.effective_role,
-                    }
-                send_system_email(
-                    subject=subject,
-                    recipient_list=[obj.email],
-                    recipient_name=obj.name,
-                    greeting="আসসালামু আলাইকুম",
-                    headline="পরিচালনা পর্ষদ ও টিম সদস্য নিবন্ধন",
-                    message_paragraphs=paragraphs,
-                    team_member=obj,
-                    login_info=login_info,
-                    request=request,
-                    footer_note="আপনার অ্যাকাউন্টের নিরাপত্তা রক্ষার্থে প্রথমবার লগইন করার পর পাসওয়ার্ড পরিবর্তন করে নিন।",
-                    fail_silently=True
-                )
-            except Exception:
+                from .subscription_services import send_member_registration_notification
+                send_member_registration_notification(obj)
+            except Exception as e:
                 pass
 
 @admin.register(BloodDonor)

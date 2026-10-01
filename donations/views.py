@@ -116,6 +116,8 @@ def member_pledge_lookup(request):
     
     tm = TeamMember.objects.filter(member_id__iexact=member_id).first()
     if tm:
+        from volunteers.subscription_services import get_member_subscription_summary
+        sub = get_member_subscription_summary(tm)
         return JsonResponse({
             'found': True,
             'is_team_member': True,
@@ -124,10 +126,20 @@ def member_pledge_lookup(request):
             'role': tm.effective_role,
             'phone': tm.phone or '',
             'email': tm.email or '',
-            'has_pledge': False,
-            'frequency': 'one_time',
-            'frequency_display': f'পরিচালনা পর্ষদ সদস্য ({tm.effective_role})',
-            'amount': 0,
+            'has_pledge': True,
+            'frequency': 'monthly',
+            'frequency_display': 'মাসিক চাঁদা',
+            'amount': sub['suggested_amount'],
+            'monthly_fee': sub['monthly_fee'],
+            'due_amount': sub['due_amount'],
+            'advance_amount': sub['advance_amount'],
+            'total_paid': sub['total_paid'],
+            'total_billed': sub['total_billed'],
+            'months_billed': sub['months_billed'],
+            'join_date_formatted': sub['join_date_formatted'],
+            'billing_day': sub['billing_day'],
+            'status_label': sub['status_label'],
+            'next_billing_date': sub['next_billing_date_formatted'],
         })
 
     return JsonResponse({'found': False})
@@ -136,15 +148,17 @@ def member_pledge_lookup(request):
 def api_members_search(request):
     """API endpoint to search and retrieve registered members (Team Members and Volunteers)"""
     from django.db.models import Q
+    from volunteers.subscription_services import get_member_subscription_summary
     q = request.GET.get('q', '').strip()
     members = []
 
-    # 1. Team Members
+    # 1. Team Members (Core Leadership & Council Members)
     tm_qs = TeamMember.objects.all().order_by('order', 'name')
     if q:
         tm_qs = tm_qs.filter(Q(name__icontains=q) | Q(member_id__icontains=q) | Q(phone__icontains=q))
     
     for tm in tm_qs:
+        sub = get_member_subscription_summary(tm)
         members.append({
             'member_id': tm.member_id or '',
             'name': tm.name,
@@ -154,8 +168,15 @@ def api_members_search(request):
             'photo_url': tm.image.url if tm.image else '',
             'is_team': True,
             'frequency': 'monthly',
-            'frequency_display': 'মাসিক',
-            'pledge_amount': 500,
+            'frequency_display': 'মাসিক চাঁদা',
+            'pledge_amount': sub['suggested_amount'],
+            'monthly_fee': sub['monthly_fee'],
+            'due_amount': sub['due_amount'],
+            'advance_amount': sub['advance_amount'],
+            'total_paid': sub['total_paid'],
+            'months_billed': sub['months_billed'],
+            'join_date_formatted': sub['join_date_formatted'],
+            'status_label': sub['status_label'],
         })
 
     # 2. Approved Volunteers
@@ -182,7 +203,7 @@ def api_members_search(request):
             'is_team': False,
             'frequency': vol.contribution_frequency if vol.contribution_frequency else 'monthly',
             'frequency_display': freq_dict.get(vol.contribution_frequency, 'মাসিক'),
-            'pledge_amount': float(vol.contribution_amount) if vol.contribution_amount else 500,
+            'pledge_amount': float(vol.contribution_amount) if vol.contribution_amount else 100,
         })
 
     return JsonResponse({'members': members, 'count': len(members)})
