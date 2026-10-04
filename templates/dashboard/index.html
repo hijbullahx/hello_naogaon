@@ -656,10 +656,10 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if prog.target_amount %}
+                                        {% if prog.status != 'completed' %}
                                         <a href="{% url 'core:broadcast_program_fund' prog.id %}"
-                                            onclick="return confirm('আপনি কি নিশ্চিত যে এই কার্যক্রমের বাজেট ও অনুদানের তথ্য সকল সদস্য ও স্বেচ্ছাসেবকদের SMS এবং Email এ পাঠাতে চান?');"
-                                            class="btn btn-sm btn-outline-info me-1" title="সদস্য ও স্বেচ্ছাসেবকদের SMS/Email পাঠান">
+                                            onclick="return confirm('আপনি কি নিশ্চিত যে এই কার্যক্রমের তথ্য সকল সদস্য ও স্বেচ্ছাসেবকদের SMS এবং Email এ পাঠাতে চান?');"
+                                            class="btn btn-sm btn-outline-info me-1" title="সদস্য ও স্বেচ্ছাসেবকদের SMS পাঠান">
                                             <i class="fas fa-bullhorn"></i>
                                         </a>
                                         {% endif %}
@@ -709,7 +709,7 @@
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
-                                                                <select name="status" class="form-select" required onchange="toggleProgramBudgetField(this, 'editProgramBudgetDiv_{{ prog.id }}', 'editProgramBoardDiv_{{ prog.id }}')">
+                                                                <select name="status" class="form-select" required onchange="toggleProgramBudgetField(this, 'editProgramBudgetDiv_{{ prog.id }}', 'editProgramBoardDiv_{{ prog.id }}', 'editProgramSmsDiv_{{ prog.id }}')">
                                                                     <option value="ongoing" {% if prog.status == 'ongoing' %}selected{% endif %}>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
                                                                     <option value="upcoming" {% if prog.status == 'upcoming' %}selected{% endif %}>আসন্ন কার্যক্রম (Upcoming)</option>
                                                                     <option value="completed" {% if prog.status == 'completed' %}selected{% endif %}>সম্পন্ন কার্যক্রম (Completed)</option>
@@ -743,6 +743,20 @@
                                                                             </div>
                                                                         </label>
                                                                         <input class="form-check-input ms-3 fs-4 cursor-pointer" type="checkbox" role="switch" name="is_featured_board" id="editProgramIsBoard_{{ prog.id }}" value="1" {% if prog.is_featured_board %}checked{% endif %}>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-3 {% if prog.status == 'completed' %}d-none{% endif %}" id="editProgramSmsDiv_{{ prog.id }}">
+                                                                <div class="p-3 rounded-3 border border-warning-subtle" style="background-color: #fffbeb !important;">
+                                                                    <div class="form-check form-switch d-flex align-items-center justify-content-between p-0 m-0">
+                                                                        <label class="form-check-label fw-bold text-dark cursor-pointer d-flex align-items-center gap-2 mb-0" for="editProgramSendSms_{{ prog.id }}">
+                                                                            <i class="fas fa-sms text-warning fs-4"></i>
+                                                                            <div>
+                                                                                <span class="d-block text-dark">সদস্য ও স্বেচ্ছাসেবকদের SMS নোটিফিকেশন পাঠান</span>
+                                                                                <small class="text-muted fw-normal">সক্রিয় করলে এই কার্যক্রমটির তথ্য সকল সদস্য ও সক্রিয় স্বেচ্ছাসেবকদের মোবাইলে এসএমএস যাবে। (ডিফল্টভাবে বন্ধ থাকে)</small>
+                                                                            </div>
+                                                                        </label>
+                                                                        <input class="form-check-input ms-3 fs-4 cursor-pointer" type="checkbox" role="switch" name="send_sms_notification" id="editProgramSendSms_{{ prog.id }}" value="1">
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2620,7 +2634,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
-                        <select name="status" id="newProgramStatus" class="form-select" required onchange="toggleProgramBudgetField(this, 'newProgramBudgetDiv', 'newProgramBoardDiv')">
+                        <select name="status" id="newProgramStatus" class="form-select" required onchange="toggleProgramBudgetField(this, 'newProgramBudgetDiv', 'newProgramBoardDiv', 'newProgramSmsDiv')">
                             <option value="ongoing" selected>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
                             <option value="upcoming">আসন্ন কার্যক্রম (Upcoming)</option>
                             <option value="completed">সম্পন্ন কার্যক্রম (Completed)</option>
@@ -2647,6 +2661,20 @@
                                     </div>
                                 </label>
                                 <input class="form-check-input ms-3 fs-4 cursor-pointer" type="checkbox" role="switch" name="is_featured_board" id="newProgramIsBoard" value="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="newProgramSmsDiv">
+                        <div class="p-3 rounded-3 border border-warning-subtle" style="background-color: #fffbeb !important;">
+                            <div class="form-check form-switch d-flex align-items-center justify-content-between p-0 m-0">
+                                <label class="form-check-label fw-bold text-dark cursor-pointer d-flex align-items-center gap-2 mb-0" for="newProgramSendSms">
+                                    <i class="fas fa-sms text-warning fs-4"></i>
+                                    <div>
+                                        <span class="d-block text-dark">সদস্য ও স্বেচ্ছাসেবকদের SMS নোটিফিকেশন পাঠান</span>
+                                        <small class="text-muted fw-normal">সক্রিয় করলে এই কার্যক্রমটির তথ্য সকল সদস্য ও সক্রিয় স্বেচ্ছাসেবকদের মোবাইলে এসএমএস যাবে। (ডিফল্টভাবে বন্ধ থাকে)</small>
+                                    </div>
+                                </label>
+                                <input class="form-check-input ms-3 fs-4 cursor-pointer" type="checkbox" role="switch" name="send_sms_notification" id="newProgramSendSms" value="1">
                             </div>
                         </div>
                     </div>
@@ -3688,7 +3716,7 @@
         }
     }
 
-    function toggleProgramBudgetField(selectElem, targetDivId, boardDivId) {
+    function toggleProgramBudgetField(selectElem, targetDivId, boardDivId, smsDivId) {
         var budgetDiv = document.getElementById(targetDivId);
         var val = selectElem.value;
         if (budgetDiv) {
@@ -3708,6 +3736,16 @@
                 boardDiv.classList.add('d-none');
                 var sw = boardDiv.querySelector('input[type="checkbox"]');
                 if (sw) sw.checked = false;
+            }
+        }
+        var smsDiv = smsDivId ? document.getElementById(smsDivId) : null;
+        if (smsDiv) {
+            if (val === 'ongoing' || val === 'upcoming') {
+                smsDiv.classList.remove('d-none');
+            } else {
+                smsDiv.classList.add('d-none');
+                var smsSw = smsDiv.querySelector('input[type="checkbox"]');
+                if (smsSw) smsSw.checked = false;
             }
         }
     }

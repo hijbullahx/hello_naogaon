@@ -574,6 +574,7 @@ def save_program(request):
             return redirect('/dashboard/?tab=programs-section')
 
         is_featured_board = (status == 'ongoing') and (request.POST.get('is_featured_board') in ['1', 'on', 'true', True])
+        send_sms_notification = (status in ['ongoing', 'upcoming']) and (request.POST.get('send_sms_notification') in ['1', 'on', 'true', True])
 
         old_target = None
         if prog_id:
@@ -592,12 +593,11 @@ def save_program(request):
                     prog.image = image_file
                 prog.save()
 
-                # Trigger notification to volunteers and members if target_amount is newly set or changed
-                if target_amount and float(target_amount) > 0:
-                    if old_target is None or float(old_target) == 0 or float(old_target) != float(target_amount):
-                        from programs.program_notifications import notify_members_volunteers_program_fund
-                        notify_members_volunteers_program_fund(prog, request=request)
-                        messages.info(request, f'কার্যক্রমের বাজেট (৳{target_amount:,.0f}) নির্ধারণ বার্তা সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হয়েছে।')
+                # Trigger SMS notification only if explicitly checked by admin for ongoing/upcoming program
+                if send_sms_notification:
+                    from programs.program_notifications import notify_members_volunteers_program_fund
+                    notify_members_volunteers_program_fund(prog, request=request)
+                    messages.info(request, f'"{title}" কার্যক্রমের এসএমএস নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হচ্ছে।')
 
                 messages.success(request, f'কার্যক্রম "{title}" আপডেট হয়েছে!')
             else:
@@ -614,11 +614,11 @@ def save_program(request):
                 is_featured_board=is_featured_board,
                 image=image_file
             )
-            # Trigger notification if target_amount is set on creation
-            if target_amount and float(target_amount) > 0:
+            # Trigger SMS notification only if explicitly checked by admin for ongoing/upcoming program
+            if send_sms_notification:
                 from programs.program_notifications import notify_members_volunteers_program_fund
                 notify_members_volunteers_program_fund(prog, request=request)
-                messages.info(request, f'কার্যক্রমের বাজেট (৳{target_amount:,.0f}) নির্ধারণ বার্তা সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হয়েছে।')
+                messages.info(request, f'"{title}" কার্যক্রমের এসএমএস নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হচ্ছে।')
 
             messages.success(request, f'নতুন কার্যক্রম "{title}" যোগ করা হয়েছে!')
     return redirect('/dashboard/?tab=programs-section')
@@ -677,13 +677,12 @@ def broadcast_program_fund(request, pk):
         messages.error(request, "কার্যক্রমটি খুঁজে পাওয়া যায়নি।")
         return redirect("/dashboard/?tab=programs-section")
 
-    if not prog.target_amount or float(prog.target_amount) <= 0:
-        messages.warning(request, f'"{prog.title}" কার্যক্রমে কোনো বাজেট বা লক্ষ্যমাত্রা ধার্য করা নেই। আগে বাজেট সেট করুন।')
-        return redirect("/dashboard/?tab=programs-section")
-
     from programs.program_notifications import notify_members_volunteers_program_fund
     notify_members_volunteers_program_fund(prog, request=request)
-    messages.success(request, f'"{prog.title}" কার্যক্রমের বাজেট (৳{prog.target_amount:,.0f}) নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের পাঠানো হয়েছে!')
+    if prog.target_amount and float(prog.target_amount) > 0:
+        messages.success(request, f'"{prog.title}" কার্যক্রমের বাজেট (৳{prog.target_amount:,.0f}) নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের পাঠানো হয়েছে!')
+    else:
+        messages.success(request, f'"{prog.title}" কার্যক্রমের নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের পাঠানো হয়েছে!')
     return redirect("/dashboard/?tab=programs-section")
 
 @staff_member_required
