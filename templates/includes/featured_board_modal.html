@@ -1,0 +1,253 @@
+{% load static %}
+{% if featured_board_program %}
+<!-- ============================================================== -->
+<!-- FEATURED ONGOING PROGRAM BOARD / BANNER POPUP MODAL            -->
+<!-- ============================================================== -->
+<div class="modal fade" id="featuredBoardModal" tabindex="-1" aria-labelledby="featuredBoardModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden position-relative" style="box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);">
+            
+            <!-- 5-Second Smooth Countdown Progress Bar at Very Top -->
+            <div class="position-absolute top-0 start-0 w-100" style="height: 5px; z-index: 1060; background: rgba(0,0,0,0.08);">
+                <div id="boardCountdownBar" style="height: 100%; width: 100%; background: linear-gradient(90deg, #10b981 0%, #059669 100%); transition: width 0.1s linear;"></div>
+            </div>
+
+            <!-- Header Badge & Quick Close Bar -->
+            <div class="d-flex align-items-center justify-content-between px-3 pt-3 pb-2 bg-white">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-white d-inline-flex align-items-center gap-1 shadow-sm"
+                          style="background: linear-gradient(135deg, #059669 0%, #047857 100%); font-size: 0.82rem;">
+                        <i class="fas fa-bullhorn text-warning"></i> চলমান বিশেষ মানবিক কার্যক্রম
+                    </span>
+                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small d-none d-sm-inline-flex align-items-center gap-1" id="boardTimerBadge">
+                        <i class="fas fa-clock text-danger"></i> <span id="boardCountdownSec">৫</span> সেকেন্ডে স্বয়ংক্রিয় বন্ধ হবে
+                    </span>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close" title="বন্ধ করুন" onclick="dismissFeaturedBoardModal()"></button>
+            </div>
+
+            <!-- Program Banner Image (If Available) -->
+            {% if featured_board_program.image %}
+            <div class="position-relative overflow-hidden" style="max-height: 280px; background: #0f172a;">
+                <img src="{{ featured_board_program.image.url }}" alt="{{ featured_board_program.title }}" 
+                     class="w-100 h-100 object-fit-cover" style="min-height: 180px; max-height: 280px; filter: brightness(0.96);">
+                <div class="position-absolute bottom-0 start-0 end-0 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 65%, transparent 100%);">
+                    <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-pill mb-1">
+                        <i class="fas fa-fire me-1"></i> নওগাঁর জন্য বিশেষ উদ্যোগ
+                    </span>
+                    <h4 class="fw-bold text-white mb-0 text-shadow lh-sm">{{ featured_board_program.title }}</h4>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Modal Body -->
+            <div class="modal-body p-4 bg-white">
+                {% if not featured_board_program.image %}
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white" 
+                         style="width: 42px; height: 42px; background: linear-gradient(135deg, #10b981 0%, #047857 100%); font-size: 1.2rem;">
+                        <i class="{{ featured_board_program.icon_class|default:'fas fa-hands-helping' }}"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 lh-sm">{{ featured_board_program.title }}</h4>
+                        <small class="text-muted">হেল্পলাইন নওগাঁ - মানব সেবায় সবসময় পাশে</small>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Description / Details -->
+                <div class="text-secondary mb-3 overflow-auto custom-scrollbar" style="max-height: 150px; font-size: 0.95rem; line-height: 1.6;">
+                    {% if featured_board_program.short_description %}
+                    <p class="fw-semibold text-dark mb-2">{{ featured_board_program.short_description }}</p>
+                    {% endif %}
+                    {% if featured_board_program.description %}
+                    <p class="mb-0 text-muted" style="white-space: pre-line;">{{ featured_board_program.description }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Financial Target & Progress (If Donation is Required) -->
+                {% if featured_board_program.needs_funding %}
+                <div class="p-3 rounded-3 mb-3 border border-2 border-success-subtle" style="background: #f0fdf4;">
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                        <span class="small fw-bold text-secondary">
+                            <i class="fas fa-bullseye text-success me-1"></i>আর্থিক লক্ষ্যমাত্রা: <strong class="text-dark">৳{{ featured_board_program.target_amount|floatformat:0 }}</strong>
+                        </span>
+                        <span class="small fw-bold text-success">
+                            <i class="fas fa-check-circle me-1"></i>সংগৃহীত: ৳{{ featured_board_program.raised_amount|floatformat:0 }} ({{ featured_board_program.progress_percent }}%)
+                        </span>
+                    </div>
+                    <div class="progress rounded-pill shadow-inner overflow-hidden" style="height: 10px; background-color: #dcfce7;">
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" 
+                             style="width: {{ featured_board_program.progress_percent }}%; font-size: 0.65rem;" 
+                             aria-valuenow="{{ featured_board_program.progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
+                        <span>প্রয়োজন: <strong class="text-danger">৳{{ featured_board_program.target_amount|floatformat:0 }}</strong></span>
+                        <span class="text-success fw-bold">বাকি আছে ৳{{ featured_board_program.target_amount|add:featured_board_program.raised_amount|floatformat:0 }} এর অংশ</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
+                    <div>
+                        <a href="{% url 'programs:program_detail' featured_board_program.pk %}" 
+                           class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold btn-sm">
+                            <i class="fas fa-info-circle me-1"></i> বিস্তারিত পড়ুন &rarr;
+                        </a>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-light border rounded-pill px-3 py-2 fw-semibold text-secondary btn-sm" 
+                                data-bs-dismiss="modal" onclick="dismissFeaturedBoardModal()">
+                            বন্ধ করুন
+                        </button>
+                        {% if featured_board_program.needs_funding %}
+                        <button type="button" class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm d-inline-flex align-items-center gap-2"
+                                onclick="openDonateModalFromBoard({{ featured_board_program.id }})">
+                            <i class="fas fa-hand-holding-heart text-warning fs-5"></i>
+                            <span>অনুদানে অংশ নিন &rarr;</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+#featuredBoardModal .modal-content {
+    animation: boardModalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes boardModalPop {
+    0% { transform: scale(0.92) translateY(20px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+</style>
+
+<script>
+(function() {
+    var boardIntervalTimer = null;
+    var boardTotalMs = 5000;
+    var boardElapsedMs = 0;
+    var isDismissed = false;
+
+    function initFeaturedBoardModal() {
+        var modalEl = document.getElementById('featuredBoardModal');
+        if (!modalEl || typeof bootstrap === 'undefined') return;
+
+        // Do not auto-open if URL has donate params or hash which opens donate modal
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('donate') || urlParams.has('member_id') || window.location.hash === '#donate' || window.location.hash === '#directDonateModal') {
+                return;
+            }
+        } catch (e) {}
+
+        var boardModal = new bootstrap.Modal(modalEl);
+
+        // Show modal smoothly with a slight delay
+        setTimeout(function() {
+            if (isDismissed) return;
+            boardModal.show();
+            startBoardCountdown(modalEl, boardModal);
+        }, 600);
+
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            stopBoardCountdown();
+            isDismissed = true;
+        });
+    }
+
+    function startBoardCountdown(modalEl, boardModal) {
+        var bar = document.getElementById('boardCountdownBar');
+        var secDisplay = document.getElementById('boardCountdownSec');
+        var stepMs = 50;
+
+        boardIntervalTimer = setInterval(function() {
+            if (isDismissed) return;
+
+            boardElapsedMs += stepMs;
+            var remainingMs = Math.max(0, boardTotalMs - boardElapsedMs);
+            var remainingSec = Math.ceil(remainingMs / 1000);
+
+            if (secDisplay) {
+                secDisplay.innerText = remainingSec;
+            }
+
+            if (bar) {
+                var widthPct = (remainingMs / boardTotalMs) * 100;
+                bar.style.width = widthPct + '%';
+            }
+
+            if (remainingMs <= 0) {
+                stopBoardCountdown();
+                isDismissed = true;
+                try {
+                    boardModal.hide();
+                } catch (err) {}
+            }
+        }, stepMs);
+    }
+
+    function stopBoardCountdown() {
+        if (boardIntervalTimer) {
+            clearInterval(boardIntervalTimer);
+            boardIntervalTimer = null;
+        }
+    }
+
+    window.dismissFeaturedBoardModal = function() {
+        stopBoardCountdown();
+        isDismissed = true;
+    };
+
+    window.openDonateModalFromBoard = function(progId) {
+        stopBoardCountdown();
+        isDismissed = true;
+
+        var boardModalEl = document.getElementById('featuredBoardModal');
+        if (boardModalEl) {
+            var bm = bootstrap.Modal.getInstance(boardModalEl);
+            if (bm) bm.hide();
+        }
+
+        // Open unified direct donate modal for this program
+        setTimeout(function() {
+            var donateModalEl = document.getElementById('directDonateModal');
+            if (donateModalEl && typeof bootstrap !== 'undefined') {
+                var dm = bootstrap.Modal.getInstance(donateModalEl) || new bootstrap.Modal(donateModalEl);
+                dm.show();
+                if (typeof goToDonateFlow === 'function') {
+                    goToDonateFlow('program');
+                }
+                if (progId && typeof selectModalProgram === 'function') {
+                    var card = document.querySelector('.program-choice-card[data-prog-id="' + progId + '"]');
+                    if (card) {
+                        selectModalProgram(card);
+                    }
+                }
+            } else {
+                // Fallback to program specific modal if available
+                var progModalEl = document.getElementById('programDonateModal_' + progId);
+                if (progModalEl && typeof bootstrap !== 'undefined') {
+                    var pm = bootstrap.Modal.getInstance(progModalEl) || new bootstrap.Modal(progModalEl);
+                    pm.show();
+                }
+            }
+        }, 350);
+    };
+
+    document.addEventListener('DOMContentLoaded', initFeaturedBoardModal);
+})();
+</script>
+{% endif %}

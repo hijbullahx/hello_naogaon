@@ -602,6 +602,7 @@
                                     <th>সংক্ষিপ্ত বিবরণ</th>
                                     <th>আর্থিক লক্ষ্য ও প্রাপ্তি</th>
                                     <th>স্ট্যাটাস</th>
+                                    <th class="text-center" style="width: 140px;">হোম ব্যানার / বোর্ড</th>
                                     <th>অ্যাকশন</th>
                                 </tr>
                             </thead>
@@ -632,6 +633,28 @@
                                         {% endif %}
                                     </td>
                                     <td><span class="badge bg-success">{{ prog.status }}</span></td>
+                                    <td class="text-center">
+                                        {% if prog.status == 'ongoing' %}
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <div class="form-check form-switch m-0 p-0">
+                                                <input class="form-check-input fs-5 cursor-pointer prog-board-switch" 
+                                                       type="checkbox" 
+                                                       role="switch" 
+                                                       id="progBoardSwitch_{{ prog.id }}"
+                                                       data-prog-id="{{ prog.id }}"
+                                                       onchange="toggleProgramBoardAjax({{ prog.id }}, this)" 
+                                                       {% if prog.is_featured_board %}checked{% endif %} 
+                                                       title="হোম ব্যানার/বোর্ড পপআপ সক্রিয় বা নিষ্ক্রিয় করুন">
+                                            </div>
+                                            <small class="badge mt-1 {% if prog.is_featured_board %}bg-success text-white{% else %}bg-light text-muted border{% endif %}" 
+                                                   id="progBoardBadge_{{ prog.id }}" style="font-size: 0.68rem;">
+                                                {% if prog.is_featured_board %}সক্রিয় বোর্ড{% else %}নিষ্ক্রিয়{% endif %}
+                                            </small>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted small" title="শুধুমাত্র চলমান কার্যক্রমে প্রযোজ্য" style="font-size: 0.75rem;">চলমান নয়</span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if prog.target_amount %}
                                         <a href="{% url 'core:broadcast_program_fund' prog.id %}"
@@ -686,7 +709,7 @@
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
-                                                                <select name="status" class="form-select" required onchange="toggleProgramBudgetField(this, 'editProgramBudgetDiv_{{ prog.id }}')">
+                                                                <select name="status" class="form-select" required onchange="toggleProgramBudgetField(this, 'editProgramBudgetDiv_{{ prog.id }}', 'editProgramBoardDiv_{{ prog.id }}')">
                                                                     <option value="ongoing" {% if prog.status == 'ongoing' %}selected{% endif %}>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
                                                                     <option value="upcoming" {% if prog.status == 'upcoming' %}selected{% endif %}>আসন্ন কার্যক্রম (Upcoming)</option>
                                                                     <option value="completed" {% if prog.status == 'completed' %}selected{% endif %}>সম্পন্ন কার্যক্রম (Completed)</option>
@@ -708,6 +731,20 @@
                                                                 <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই
                                                                     প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান গ্রহণের বাটন
                                                                     দৃশ্যমান হবে।</small>
+                                                            </div>
+                                                            <div class="mb-3 {% if prog.status != 'ongoing' %}d-none{% endif %}" id="editProgramBoardDiv_{{ prog.id }}">
+                                                                <div class="p-3 bg-light rounded-3 border">
+                                                                    <div class="form-check form-switch d-flex align-items-center justify-content-between p-0 m-0">
+                                                                        <label class="form-check-label fw-bold text-dark cursor-pointer d-flex align-items-center gap-2 mb-0" for="editProgramIsBoard_{{ prog.id }}">
+                                                                            <i class="fas fa-bullhorn text-success fs-5"></i>
+                                                                            <div>
+                                                                                <span class="d-block">হোমপেজে প্রধান ব্যানার/বোর্ড পপআপ হিসেবে প্রদর্শন করুন</span>
+                                                                                <small class="text-muted fw-normal">হোমপেজে প্রবেশ করলে এই কার্যক্রমটি ৫ সেকেন্ডের স্বয়ংক্রিয় পপআপ আকারে সামনে প্রদর্শিত হবে।</small>
+                                                                            </div>
+                                                                        </label>
+                                                                        <input class="form-check-input ms-3 fs-4 cursor-pointer" type="checkbox" role="switch" name="is_featured_board" id="editProgramIsBoard_{{ prog.id }}" value="1" {% if prog.is_featured_board %}checked{% endif %}>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <div
@@ -752,7 +789,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">কোনো প্রোগ্রাম যোগ করা হয়নি।
+                                    <td colspan="7" class="text-center py-4 text-muted">কোনো প্রোগ্রাম যোগ করা হয়নি।
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -2583,7 +2620,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">কার্যক্রমের স্ট্যাটাস / অবস্থা (Status) *</label>
-                        <select name="status" id="newProgramStatus" class="form-select" required onchange="toggleProgramBudgetField(this, 'newProgramBudgetDiv')">
+                        <select name="status" id="newProgramStatus" class="form-select" required onchange="toggleProgramBudgetField(this, 'newProgramBudgetDiv', 'newProgramBoardDiv')">
                             <option value="ongoing" selected>চলমান কার্যক্রম (Ongoing - হোমপেজের চলমান বাটনে প্রদর্শিত হবে)</option>
                             <option value="upcoming">আসন্ন কার্যক্রম (Upcoming)</option>
                             <option value="completed">সম্পন্ন কার্যক্রম (Completed)</option>
@@ -2598,6 +2635,20 @@
                                 placeholder="যেমন: 50000 (প্রয়োজন না থাকলে খালি রাখুন)">
                         </div>
                         <small class="text-muted">টাকার পরিমাণ দিলে ওয়েবসাইটে এই প্রোগ্রামের কার্ডে সরাসরি আর্থিক অনুদান গ্রহণের বাটন দৃশ্যমান হবে।</small>
+                    </div>
+                    <div class="mb-3" id="newProgramBoardDiv">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="form-check form-switch d-flex align-items-center justify-content-between p-0 m-0">
+                                <label class="form-check-label fw-bold text-dark cursor-pointer d-flex align-items-center gap-2 mb-0" for="newProgramIsBoard">
+                                    <i class="fas fa-bullhorn text-success fs-5"></i>
+                                    <div>
+                                        <span class="d-block">হোমপেজে প্রধান ব্যানার/বোর্ড পপআপ হিসেবে প্রদর্শন করুন</span>
+                                        <small class="text-muted fw-normal">হোমপেজে প্রবেশ করলে এই কার্যক্রমটি ৫ সেকেন্ডের স্বয়ংক্রিয় পপআপ আকারে সামনে প্রদর্শিত হবে।</small>
+                                    </div>
+                                </label>
+                                <input class="form-check-input ms-3 fs-4 cursor-pointer" type="checkbox" role="switch" name="is_featured_board" id="newProgramIsBoard" value="1">
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
@@ -3637,17 +3688,84 @@
         }
     }
 
-    function toggleProgramBudgetField(selectElem, targetDivId) {
+    function toggleProgramBudgetField(selectElem, targetDivId, boardDivId) {
         var budgetDiv = document.getElementById(targetDivId);
-        if (!budgetDiv) return;
         var val = selectElem.value;
-        if (val === 'ongoing' || val === 'upcoming') {
-            budgetDiv.classList.remove('d-none');
-        } else {
-            budgetDiv.classList.add('d-none');
-            var input = budgetDiv.querySelector('input[name="target_amount"]');
-            if (input) input.value = '';
+        if (budgetDiv) {
+            if (val === 'ongoing' || val === 'upcoming') {
+                budgetDiv.classList.remove('d-none');
+            } else {
+                budgetDiv.classList.add('d-none');
+                var input = budgetDiv.querySelector('input[name="target_amount"]');
+                if (input) input.value = '';
+            }
         }
+        var boardDiv = boardDivId ? document.getElementById(boardDivId) : null;
+        if (boardDiv) {
+            if (val === 'ongoing') {
+                boardDiv.classList.remove('d-none');
+            } else {
+                boardDiv.classList.add('d-none');
+                var sw = boardDiv.querySelector('input[type="checkbox"]');
+                if (sw) sw.checked = false;
+            }
+        }
+    }
+
+    function toggleProgramBoardAjax(progId, switchElem) {
+        var isChecked = switchElem.checked;
+        var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]') ? document.querySelector('input[name="csrfmiddlewaretoken"]').value : '';
+        
+        switchElem.disabled = true;
+
+        fetch('/dashboard/toggle-program-board/' + progId + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            switchElem.disabled = false;
+            if (data && data.success) {
+                // If it was activated, uncheck all other switches and update their badges
+                if (data.is_featured_board) {
+                    document.querySelectorAll('.prog-board-switch').forEach(function(sw) {
+                        if (sw !== switchElem) {
+                            sw.checked = false;
+                            var otherId = sw.getAttribute('data-prog-id');
+                            var otherBadge = document.getElementById('progBoardBadge_' + otherId);
+                            if (otherBadge) {
+                                otherBadge.className = 'badge mt-1 bg-light text-muted border';
+                                otherBadge.innerText = 'নিষ্ক্রিয়';
+                            }
+                        }
+                    });
+                }
+                switchElem.checked = data.is_featured_board;
+                var badge = document.getElementById('progBoardBadge_' + progId);
+                if (badge) {
+                    if (data.is_featured_board) {
+                        badge.className = 'badge mt-1 bg-success text-white';
+                        badge.innerText = 'সক্রিয় বোর্ড';
+                    } else {
+                        badge.className = 'badge mt-1 bg-light text-muted border';
+                        badge.innerText = 'নিষ্ক্রিয়';
+                    }
+                }
+            } else {
+                switchElem.checked = !isChecked; // Revert switch state on error
+                alert((data && data.message) ? data.message : 'ত্রুটি ঘটেছে!');
+            }
+        })
+        .catch(function(err) {
+            switchElem.disabled = false;
+            switchElem.checked = !isChecked;
+            console.error(err);
+            alert('সার্ভারের সাথে যোগাযোগ করা সম্ভব হয়নি।');
+        });
     }
 </script>
 {% endblock %}

@@ -18,6 +18,11 @@ class Program(models.Model):
     target_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="প্রোগ্রামের জন্য প্রয়োজনীয় আর্থিক সহায়তার পরিমাণ (ঐচ্ছিক)")
     raised_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="সংগৃহীত অনুদানের পরিমাণ")
     order = models.IntegerField(default=0)
+    is_featured_board = models.BooleanField(
+        default=False, 
+        verbose_name="সামনে বোর্ড/ব্যানার পপআপ", 
+        help_text="চলমান কার্যক্রম হিসেবে হোমপেজে ৫ সেকেন্ডের পপআপ বোর্ড/ব্যানার আকারে প্রদর্শন করবে"
+    )
 
     class Meta:
         ordering = ['order', '-id']
@@ -34,6 +39,14 @@ class Program(models.Model):
             pct = (float(self.raised_amount or 0) / float(self.target_amount)) * 100
             return min(100, int(pct))
         return 0
+
+    def save(self, *args, **kwargs):
+        if self.status != 'ongoing':
+            self.is_featured_board = False
+        super().save(*args, **kwargs)
+        if self.is_featured_board and self.status == 'ongoing':
+            # Ensure only ONE program has is_featured_board=True
+            Program.objects.filter(is_featured_board=True).exclude(pk=self.pk).update(is_featured_board=False)
 
     def __str__(self):
         return self.title

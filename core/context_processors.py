@@ -25,6 +25,7 @@ def site_settings_context(request):
         global_qrcodes = QRCode.objects.filter(is_active=True).select_related('method')
         global_team_members = TeamMember.objects.all().order_by('order', 'name')
         global_volunteers = Volunteer.objects.filter(status='approved').order_by('full_name')
+        featured_board_program = Program.objects.filter(status='ongoing', is_featured_board=True).first()
     except Exception:
         global_programs = []
         global_banks = []
@@ -32,6 +33,7 @@ def site_settings_context(request):
         global_qrcodes = []
         global_team_members = []
         global_volunteers = []
+        featured_board_program = None
 
     return {
         'site_setting': setting,
@@ -41,6 +43,7 @@ def site_settings_context(request):
         'global_qrcodes': global_qrcodes,
         'global_team_members': global_team_members,
         'global_volunteers': global_volunteers,
+        'featured_board_program': featured_board_program,
     }
 
 def admin_dashboard_stats(request):

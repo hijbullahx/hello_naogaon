@@ -573,6 +573,8 @@ def save_program(request):
         if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='কার্যক্রমের ছবি'):
             return redirect('/dashboard/?tab=programs-section')
 
+        is_featured_board = (status == 'ongoing') and (request.POST.get('is_featured_board') in ['1', 'on', 'true', True])
+
         old_target = None
         if prog_id:
             prog = Program.objects.filter(pk=prog_id).first()
@@ -585,6 +587,7 @@ def save_program(request):
                 prog.icon_class = icon_class
                 prog.badge_color = badge_color
                 prog.target_amount = target_amount
+                prog.is_featured_board = is_featured_board
                 if image_file:
                     prog.image = image_file
                 prog.save()
@@ -608,6 +611,7 @@ def save_program(request):
                 icon_class=icon_class,
                 badge_color=badge_color,
                 target_amount=target_amount,
+                is_featured_board=is_featured_board,
                 image=image_file
             )
             # Trigger notification if target_amount is set on creation
@@ -618,6 +622,48 @@ def save_program(request):
 
             messages.success(request, f'নতুন কার্যক্রম "{title}" যোগ করা হয়েছে!')
     return redirect('/dashboard/?tab=programs-section')
+
+@staff_member_required
+def toggle_program_board(request, pk):
+    """Toggle whether an ongoing program is featured as the front board/banner popup on homepage"""
+    if not can_user_edit_general(request.user):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({'success': False, 'message': 'এই সুবিধা ব্যবহারের অনুমতি আপনার নেই।'}, status=403)
+        messages.warning(request, "এই সুবিধা ব্যবহারের অনুমতি শুধুমাত্র প্রধান এডমিনের রয়েছে।")
+        return redirect("/dashboard/?tab=programs-section")
+
+    prog = Program.objects.filter(pk=pk).first()
+    if not prog:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({'success': False, 'message': 'কার্যক্রমটি খুঁজে পাওয়া যায়নি।'}, status=404)
+        messages.error(request, "কার্যক্রমটি খুঁজে পাওয়া যায়নি।")
+        return redirect("/dashboard/?tab=programs-section")
+
+    if prog.status != 'ongoing':
+        msg = "শুধুমাত্র চলমান কার্যক্রমকে হোমপেজের বোর্ড/ব্যানার হিসেবে প্রদর্শন করা যায়।"
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({'success': False, 'message': msg}, status=400)
+        messages.warning(request, msg)
+        return redirect("/dashboard/?tab=programs-section")
+
+    # Toggle state
+    new_state = not prog.is_featured_board
+    if new_state:
+        # Deselect all other programs first
+        Program.objects.filter(is_featured_board=True).exclude(pk=prog.pk).update(is_featured_board=False)
+        prog.is_featured_board = True
+        prog.save()
+        msg = f'"{prog.title}" সফলভাবে হোমপেজের ব্যানার/বোর্ড পপআপ হিসেবে সক্রিয় করা হয়েছে।'
+    else:
+        prog.is_featured_board = False
+        prog.save()
+        msg = f'"{prog.title}" হোমপেজের ব্যানার/বোর্ড থেকে নিষ্ক্রিয় করা হয়েছে।'
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+        return JsonResponse({'success': True, 'is_featured_board': prog.is_featured_board, 'message': msg})
+
+    messages.success(request, msg)
+    return redirect("/dashboard/?tab=programs-section")
 
 @staff_member_required
 def broadcast_program_fund(request, pk):
