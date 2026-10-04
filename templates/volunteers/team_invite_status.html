@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ site_setting.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden text-center p-4 p-md-5 bg-white">
+                <div class="mb-4">
+                    {% if status == 'used' %}
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-warning bg-warning-subtle shadow-sm" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                        <i class="fas fa-link-slash"></i>
+                    </div>
+                    {% else %}
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-danger bg-danger-subtle shadow-sm" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <h3 class="fw-bold text-dark mb-3">{{ title }}</h3>
+                <p class="text-secondary fs-6 mb-4 leading-relaxed">{{ message }}</p>
+
+                {% if invitation and invitation.registered_member %}
+                <div class="p-3 bg-light rounded-3 border mb-4 text-start">
+                    <div class="d-flex align-items-center gap-3">
+                        {% if invitation.registered_member.image %}
+                        <img src="{{ invitation.registered_member.image.url }}" alt="{{ invitation.registered_member.name }}" class="rounded-circle border" style="width: 50px; height: 50px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <strong class="text-dark d-block">{{ invitation.registered_member.name }}</strong>
+                            <span class="badge bg-success rounded-pill">{{ invitation.effective_role }}</span>
+                            <small class="text-muted d-block mt-1">সদস্য আইডি: <strong>{{ invitation.registered_member.member_id }}</strong></small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'core:home' %}" class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm">
+                        <i class="fas fa-home me-1"></i> হোমপেজে ফিরে যান
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

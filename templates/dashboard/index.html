@@ -919,6 +919,9 @@
                                     <i class="fas fa-check-circle me-1"></i>ক্রম সফলভাবে সংরক্ষিত হয়েছে!
                                 </span>
                                 {% if can_edit_all %}
+                                <button class="btn btn-warning btn-sm fw-bold shadow-sm text-dark" data-bs-toggle="modal" data-bs-target="#teamInviteModal">
+                                    <i class="fas fa-link me-1"></i> ইনভাইটেশন লিংক তৈরি করুন
+                                </button>
                                 <button class="btn btn-light btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#teamMemberModal">
                                     <i class="fas fa-plus-circle me-1 text-success"></i> নতুন টিম মেম্বার যোগ করুন
                                 </button>
@@ -2745,6 +2748,179 @@
     </div>
 </div>
 
+<!-- ============================================================== -->
+<!-- ONE-TIME TEAM INVITATION LINK GENERATOR MODAL                  -->
+<!-- ============================================================== -->
+<div class="modal fade" id="teamInviteModal" tabindex="-1" aria-labelledby="teamInviteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-xl rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="teamInviteModalLabel">টিম মেম্বার ওয়ান-টাইম ইনভাইটেশন লিংক</h5>
+                        <small class="text-white-50">পদবি নির্ধারণ করে একটি নির্দিষ্ট ব্যক্তির জন্য একবার ব্যবহারযোগ্য লিংক তৈরি করুন</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 text-start">
+                
+                <!-- Notice Info -->
+                <div class="alert alert-info border-0 rounded-3 small d-flex align-items-start gap-2 mb-4" style="background: #e0f2fe;">
+                    <i class="fas fa-info-circle text-info fs-5 flex-shrink-0 mt-1"></i>
+                    <div>
+                        <strong>ওয়ান-টাইম লিংকের বৈশিষ্ট্য:</strong> এই লিংকের মাধ্যমে যে ব্যক্তি ফরম পূরণ করবেন তার পদবি নির্দিষ্ট থাকবে। একবার রেজিস্ট্রেশন সম্পন্ন হওয়া মাত্রই লিংকটি স্বয়ংক্রিয়ভাবে অকার্যকর (Expired) হয়ে যাবে এবং পুনরায় কেউ ব্যবহার করতে পারবে না।
+                    </div>
+                </div>
+
+                <!-- Link Generation Form -->
+                <form id="generateTeamInviteForm" onsubmit="handleGenerateTeamInvite(event)">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold text-dark">
+                                কার জন্য করতে চাচ্ছেন তার পদবি লিখুন <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="designation" id="inviteDesignationInput" required class="form-control rounded-3" 
+                                   list="teamRoleSuggestions" placeholder="যেমন: সহ-সভাপতি, যুগ্ম সম্পাদক, উপদেষ্টা...">
+                            <datalist id="teamRoleSuggestions">
+                                <option value="সহ-সভাপতি">
+                                <option value="সাধারণ সম্পাদক">
+                                <option value="কোষাধ্যক্ষ">
+                                <option value="যুগ্ম সাধারণ সম্পাদক">
+                                <option value="সাংগঠনিক সম্পাদক">
+                                <option value="প্রচার সম্পাদক">
+                                <option value="দপ্তর সম্পাদক">
+                                <option value="সমাজকল্যাণ সম্পাদক">
+                                <option value="উপদেষ্টা">
+                                <option value="নির্বাহী সদস্য">
+                                <option value="সাধারণ পরিষদ সদস্য">
+                                <option value="সদস্য">
+                            </datalist>
+                            <small class="text-muted">তালিকায় না থাকলে সরাসরি টাইপ করে যেকোনো পদবি লিখতে পারেন।</small>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold text-dark">
+                                যার জন্য তৈরি করছেন <small class="text-muted fw-normal">(নাম/নোট - ঐচ্ছিক)</small>
+                            </label>
+                            <input type="text" name="target_name" id="inviteTargetNameInput" class="form-control rounded-3" 
+                                   placeholder="যেমন: মো: একরামুল হক">
+                            <small class="text-muted">কার কাছে পাঠাচ্ছেন তা মনে রাখার জন্য।</small>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <button type="submit" id="generateInviteBtn" class="btn btn-warning fw-bold text-dark w-100 py-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                <i class="fas fa-magic"></i>
+                                <span>ওয়ান-টাইম রেজিস্ট্রেশন লিংক জেনারেট করুন</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Generated Link Display Container (Hidden until generated) -->
+                <div id="newGeneratedLinkBox" class="mt-4 p-3 rounded-3 border border-success d-none" style="background: #f0fdf4;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>লিংক সফলভাবে তৈরি হয়েছে!</span>
+                        <span class="small text-muted" id="generatedRoleBadge"></span>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="newGeneratedUrlInput" class="form-control font-monospace fw-bold text-dark bg-white" readonly>
+                        <button class="btn btn-success fw-bold px-3" type="button" onclick="copyNewGeneratedLink(this)">
+                            <i class="fas fa-copy me-1"></i> কপি করুন
+                        </button>
+                    </div>
+                    <div class="mt-2 text-muted small">
+                        <i class="fas fa-share-alt text-success me-1"></i>লিংকটি কপি করে হোয়াটসঅ্যাপ, মেসেঞ্জার বা এসএমএসে পাঠিয়ে দিন।
+                    </div>
+                </div>
+
+                <!-- Existing / Recent Links Table -->
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="fw-bold text-dark mb-3 d-flex align-items-center justify-content-between">
+                        <span><i class="fas fa-history me-1 text-secondary"></i>পূর্ববর্তী ইনভাইটেশন লিংকসমূহ</span>
+                        <span class="badge bg-light text-secondary border">{{ team_invitations.count }} টি</span>
+                    </h6>
+
+                    <div class="table-responsive rounded-3 border" style="max-height: 260px;">
+                        <table class="table table-hover table-sm align-middle mb-0 font-sans" style="font-size: 0.85rem;">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>পদবি</th>
+                                    <th>যার জন্য</th>
+                                    <th>তৈরির তারিখ</th>
+                                    <th>অবস্থা</th>
+                                    <th class="text-end">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teamInviteListBody">
+                                {% for inv in team_invitations %}
+                                <tr id="inviteRow_{{ inv.id }}">
+                                    <td>
+                                        <strong class="text-dark">{{ inv.effective_role }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if inv.target_name %}
+                                        <span class="text-dark">{{ inv.target_name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ inv.created_at|date:"d M Y, h:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if inv.is_used %}
+                                        <span class="badge bg-secondary text-white rounded-pill px-2 py-1">
+                                            <i class="fas fa-check-circle me-1"></i>ব্যবহৃত
+                                            {% if inv.registered_member %}({{ inv.registered_member.name|truncatechars:12 }}){% endif %}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-2 py-1">
+                                            <i class="fas fa-link me-1"></i>সক্রিয় (অব্যবহৃত)
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if not inv.is_used %}
+                                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" 
+                                                onclick="copySpecificInviteLink('{{ request.scheme }}://{{ request.get_host }}{% url 'volunteers:team_invite_register' inv.token %}', this)"
+                                                title="লিংক কপি করুন">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <a href="{% url 'core:delete_team_invite' inv.id %}" 
+                                           onclick="return confirm('আপনি কি এই অব্যবহৃত আমন্ত্রণ লিংকটি মুছে ফেলতে চান?');" 
+                                           class="btn btn-outline-danger btn-sm py-0 px-2 ms-1" title="মুছে ফেলুন">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted small">কার্যকরী নয়</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr id="noInviteRow">
+                                    <td colspan="5" class="text-center py-3 text-muted">কোনো ইনভাইটেশন লিংক তৈরি করা হয়নি।</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Team Member Modal -->
 <div class="modal fade" id="teamMemberModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -3803,6 +3979,131 @@
             switchElem.checked = !isChecked;
             console.error(err);
             alert('সার্ভারের সাথে যোগাযোগ করা সম্ভব হয়নি।');
+        });
+    }
+
+    function handleGenerateTeamInvite(event) {
+        event.preventDefault();
+        const form = document.getElementById('generateTeamInviteForm');
+        const btn = document.getElementById('generateInviteBtn');
+        const designation = document.getElementById('inviteDesignationInput').value.trim();
+        const targetName = document.getElementById('inviteTargetNameInput').value.trim();
+
+        if (!designation) {
+            alert('অনুগ্রহ করে পদবি লিখুন।');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> লিংক তৈরি হচ্ছে...';
+
+        const csrfEl = form.querySelector('[name=csrfmiddlewaretoken]');
+        const csrfToken = csrfEl ? csrfEl.value : '';
+
+        const formData = new URLSearchParams();
+        formData.append('designation', designation);
+        formData.append('target_name', targetName);
+
+        fetch("{% url 'core:generate_team_invite' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: formData.toString()
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> <span>ওয়ান-টাইম রেজিস্ট্রেশন লিংক জেনারেট করুন</span>';
+
+            if (data && data.success) {
+                const box = document.getElementById('newGeneratedLinkBox');
+                const input = document.getElementById('newGeneratedUrlInput');
+                const badge = document.getElementById('generatedRoleBadge');
+
+                input.value = data.invite_url;
+                if (badge) badge.innerText = 'পদবি: ' + data.role;
+                box.classList.remove('d-none');
+                input.select();
+
+                // Prepend to recent links table
+                const tbody = document.getElementById('teamInviteListBody');
+                const noRow = document.getElementById('noInviteRow');
+                if (noRow) noRow.remove();
+
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td><strong class="text-dark">${data.role}</strong></td>
+                    <td>${data.target_name ? `<span class="text-dark">${data.target_name}</span>` : '<span class="text-muted">-</span>'}</td>
+                    <td><small class="text-muted">${data.created_at || 'এইমাত্র'}</small></td>
+                    <td><span class="badge bg-success-subtle text-success border border-success rounded-pill px-2 py-1"><i class="fas fa-link me-1"></i>সক্রিয় (অব্যবহৃত)</span></td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" onclick="copySpecificInviteLink('${data.invite_url}', this)" title="লিংক কপি করুন">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </td>
+                `;
+                if (tbody) tbody.prepend(newRow);
+
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(data.invite_url).catch(function() {});
+                }
+            } else {
+                alert((data && data.message) ? data.message : 'লিংক তৈরিতে ব্যর্থ হয়েছে।');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> <span>ওয়ান-টাইম রেজিস্ট্রেশন লিংক জেনারেট করুন</span>';
+            console.error(err);
+            alert('সার্ভারের সাথে যোগাযোগ করা সম্ভব হয়নি।');
+        });
+    }
+
+    function copyNewGeneratedLink(btn) {
+        const input = document.getElementById('newGeneratedUrlInput');
+        if (!input || !input.value) return;
+
+        input.select();
+        input.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(input.value).then(() => {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i> কপি হয়েছে!';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-dark');
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('btn-dark');
+                btn.classList.add('btn-success');
+            }, 2000);
+        }).catch(() => {
+            document.execCommand('copy');
+            alert('লিংক কপি হয়েছে!');
+        });
+    }
+
+    function copySpecificInviteLink(url, btn) {
+        if (!url) return;
+        navigator.clipboard.writeText(url).then(() => {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        }).catch(() => {
+            const temp = document.createElement('input');
+            temp.value = url;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
         });
     }
 </script>

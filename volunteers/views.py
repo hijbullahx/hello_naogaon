@@ -434,3 +434,184 @@ def get_bd_geo_json(request):
         else:
             _BD_GEO_CACHE = {}
     return JsonResponse(_BD_GEO_CACHE)
+
+
+def team_invite_register(request, token):
+    """
+    Public registration page accessed via a single-use secret token.
+    Pre-fills and locks the designation (effective_role).
+    Upon successful registration, saves the TeamMember (without auth user account),
+    sends welcome SMS & email, and marks the invitation token as used so it cannot be used again.
+    """
+    from .models import TeamInvitation, TeamMember
+    from django.utils import timezone
+
+    invitation = TeamInvitation.objects.filter(token=token).first()
+    if not invitation:
+        return render(request, 'volunteers/team_invite_status.html', {
+            'status': 'invalid',
+            'title': 'অবৈধ বা অকার্যকর লিংক',
+            'message': 'দুঃখিত! এই আমন্ত্রণ লিংকটি খুঁজে পাওয়া যায়নি বা এটি ভুল। সঠিক লিংকের জন্য অনুগ্রহ করে প্রধান অ্যাডমিনের সাথে যোগাযোগ করুন।'
+        }, status=404)
+
+    if invitation.is_used:
+        registered_name = invitation.registered_member.name if invitation.registered_member else 'একজন সদস্য'
+        return render(request, 'volunteers/team_invite_status.html', {
+            'status': 'used',
+            'title': 'লিংকটি ইতিমধ্যে ব্যবহৃত হয়ে গেছে',
+            'message': f'এই ওয়ান-টাইম আমন্ত্রণ লিংকটি ব্যবহার করে ইতিমধ্যে {registered_name} টিম মেম্বার হিসেবে নিবন্ধন সম্পন্ন করেছেন। একটি লিংক শুধুমাত্র একবারই ব্যবহারযোগ্য।',
+            'invitation': invitation
+        })
+
+    if request.method == 'POST':
+        # Re-check in case of duplicate rapid submission
+        invitation.refresh_from_db()
+        if invitation.is_used:
+            messages.error(request, 'দুঃখিত! এই লিংকটি ইতিমধ্যে অন্য একজন ব্যবহার করে ফেলেছেন।')
+            return redirect('volunteers:team_invite_register', token=token)
+
+        name = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        email = request.POST.get('email', '').strip()
+        blood_group = request.POST.get('blood_group', '').strip()
+        last_donated_str = request.POST.get('last_donated', '').strip()
+        division = request.POST.get('division', 'রাজশাহী').strip()
+        district = request.POST.get('district', 'নওগাঁ').strip()
+        upazila = request.POST.get('upazila', '').strip()
+        address = request.POST.get('address', '').strip()
+        bio = request.POST.get('bio', '').strip()
+        is_public_details = request.POST.get('is_public_details') == 'on'
+        image_file = request.FILES.get('image')
+
+        if not name or not phone:
+            messages.error(request, 'অনুগ্রহ করে আপনার পূর্ণ নাম এবং মোবাইল নম্বর সঠিকভাবে প্রদান করুন।')
+            return render(request, 'volunteers/team_invite_register.html', {
+                'invitation': invitation,
+                'role': invitation.effective_role
+            })
+
+        # Image validation (max 500 KB)
+        if image_file and image_file.size > 500 * 1024:
+            size_kb = image_file.size / 1024
+            messages.error(request, f'ছবির সাইজ সর্বোচ্চ 500 KB হতে পারবে (আপনার ছবির সাইজ: {size_kb:.1f} KB)। অনুগ্রহ করে সাইজ কমিয়ে আপলোড করুন।')
+            return render(request, 'volunteers/team_invite_register.html', {
+                'invitation': invitation,
+                'role': invitation.effective_role
+            })
+
+        last_donated = None
+        if last_donated_str:
+            try:
+                from datetime import datetime
+                last_donated = datetime.strptime(last_donated_str, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                last_donated = None
+
+        try:
+            tm = TeamMember(
+                name=name,
+                role=invitation.role,
+                custom_role=invitation.custom_role,
+                phone=phone,
+                email=email or None,
+                blood_group=blood_group or None,
+                last_donated=last_donated,
+                is_public_details=is_public_details,
+                division=division or 'রাজশাহী',
+                district=district or 'নওগাঁ',
+                upazila=upazila,
+                address=address,
+                bio=bio,
+                user=None  # Explicitly no login user account needed
+            )
+            if image_file:
+                tm.image = image_file
+            tm.save()
+
+            # Mark invitation as permanently used
+            invitation.is_used = True
+            invitation.used_at = timezone.now()
+            invitation.registered_member = tm
+            invitation.save()
+
+            # 1. Send SMS to newly registered Team Member
+            if tm.phone:
+                sms_text = f"[Helpline Hello Naogaon] শ্রদ্ধেয় {tm.name}, টিম মেম্বার হিসেবে আপনার নিবন্ধন সফল হয়েছে। পদবি: {tm.effective_role}, সদস্য আইডি: {tm.member_id}। ধন্যবাদ।"
+                try:
+                    send_sms(tm.phone, sms_text)
+                except Exception as ex:
+                    print(f"[TEAM MEMBER SMS ERROR] {ex}")
+
+            # 2. Send Email to Member (if provided)
+            if tm.email:
+                try:
+                    send_system_email(
+                        subject=f"Helpline Hello Naogaon - টিম মেম্বার নিবন্ধন সম্পন্ন (আইডি: {tm.member_id})",
+                        recipient_list=[tm.email],
+                        recipient_name=tm.name,
+                        greeting="শ্রদ্ধেয়",
+                        headline="টিম মেম্বার হিসেবে স্বাগতম",
+                        message_paragraphs=[
+                            f"হেল্পলাইন হ্যালো নওগাঁর পরিচালনা পর্ষদ ও কার্যকরী টিমে '{tm.effective_role}' হিসেবে সফলভাবে নিবন্ধিত হওয়ায় আপনাকে আন্তরিক মোবারকবাদ ও উষ্ণ অভিনন্দন!",
+                            "মানবতার সেবায় আপনার আন্তরিক অংশগ্রহণ ও মূল্যবান পরামর্শ আমাদের সমাজসেবামূলক পথচলাকে আরও সমৃদ্ধ ও বেগবান করবে।"
+                        ],
+                        details=[
+                            {'label': 'সদস্যের নাম', 'value': tm.name},
+                            {'label': 'নির্ধারিত পদবি', 'value': tm.effective_role},
+                            {'label': 'সদস্য আইডি', 'value': tm.member_id},
+                            {'label': 'মোবাইল নম্বর', 'value': tm.phone},
+                        ],
+                        footer_note="সংগঠনের ওয়েবসাইট ও টিম তালিকায় আপনার পরিচিতি প্রদর্শিত হবে।",
+                        fail_silently=True
+                    )
+                except Exception as ex:
+                    print(f"[TEAM MEMBER EMAIL ERROR] {ex}")
+
+            # 3. Send Notification to Admin (SMS & Email)
+            admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
+            if admin_phone:
+                try:
+                    send_sms(admin_phone, f"[Helpline Hello Naogaon] নতুন টিম মেম্বার যুক্ত হয়েছেন: {tm.name}, পদবি: {tm.effective_role}, আইডি: {tm.member_id}, ফোন: {tm.phone}।", is_alert=True)
+                except Exception:
+                    pass
+
+            try:
+                admin_emails = get_admin_notification_emails()
+                if admin_emails:
+                    send_system_email(
+                        subject=f"👤 নতুন টিম মেম্বার নিবন্ধন — {tm.name} ({tm.effective_role})",
+                        recipient_list=admin_emails,
+                        headline="নতুন টিম মেম্বার নিবন্ধন সম্পন্ন",
+                        greeting="শ্রদ্ধেয় অ্যাডমিন,",
+                        message_paragraphs=[
+                            f"আমন্ত্রণ লিংকের মাধ্যমে একজন নতুন টিম মেম্বার সফলভাবে নিবন্ধন সম্পন্ন করেছেন। পদবি: {tm.effective_role}, সদস্য আইডি: #{tm.member_id}।"
+                        ],
+                        details=[
+                            {'label': 'নাম', 'value': tm.name},
+                            {'label': 'পদবি', 'value': tm.effective_role},
+                            {'label': 'সদস্য আইডি', 'value': tm.member_id},
+                            {'label': 'মোবাইল নম্বর', 'value': tm.phone},
+                            {'label': 'ইমেইল', 'value': tm.email or 'নেই'},
+                        ],
+                        footer_note="এডমিন ড্যাশবোর্ড থেকে এই সদস্যের তথ্য দেখতে ও পরিচালনা করতে পারবেন।",
+                        fail_silently=True
+                    )
+            except Exception:
+                pass
+
+            return render(request, 'volunteers/team_invite_success.html', {
+                'member': tm,
+                'role': tm.effective_role,
+            })
+
+        except Exception as e:
+            messages.error(request, f'নিবন্ধন সংরক্ষণে ত্রুটি দেখা দিয়েছে: {str(e)}')
+            return render(request, 'volunteers/team_invite_register.html', {
+                'invitation': invitation,
+                'role': invitation.effective_role
+            })
+
+    return render(request, 'volunteers/team_invite_register.html', {
+        'invitation': invitation,
+        'role': invitation.effective_role
+    })

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}টিম মেম্বার নিবন্ধন সম্পন্ন - {{ site_setting.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-3">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden text-center p-4 p-md-5 bg-white border-top border-5 border-success">
+                
+                <div class="mb-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white shadow-sm" 
+                         style="width: 86px; height: 86px; font-size: 2.8rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+
+                <span class="badge bg-success-subtle text-success border border-success fw-bold px-3 py-2 rounded-pill mb-2 d-inline-block">
+                    <i class="fas fa-user-check me-1"></i>নিবন্ধন সফলভাবে সম্পন্ন হয়েছে
+                </span>
+                
+                <h3 class="fw-bold text-dark mb-2">অভিনন্দন, {{ member.name }}!</h3>
+                <p class="text-secondary fs-6 mb-4">
+                    হেল্পলাইন হ্যালো নওগাঁর পরিচালনা পর্ষদ ও কার্যকরী টিমে <strong>"{{ role }}"</strong> হিসেবে আপনার অন্তর্ভুক্তি সফলভাবে সম্পন্ন হয়েছে। 
+                </p>
+
+                <!-- Member ID Card -->
+                <div class="p-4 rounded-4 mb-4 text-start shadow-sm border border-success-subtle" style="background: linear-gradient(145deg, #f0fdf4 0%, #e6f9ed 100%);">
+                    <div class="d-flex align-items-center gap-3 mb-3 border-bottom pb-3 border-success-subtle">
+                        {% if member.image %}
+                        <img src="{{ member.image.url }}" alt="{{ member.name }}" class="rounded-circle border border-2 border-success shadow-sm" style="width: 65px; height: 65px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 65px; height: 65px; font-size: 1.6rem;">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1">{{ member.name }}</h5>
+                            <span class="badge bg-success rounded-pill px-3 py-1">{{ role }}</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <span class="text-muted d-block">সদস্য আইডি:</span>
+                            <strong class="text-success fs-6 font-monospace">{{ member.member_id }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted d-block">মোবাইল নম্বর:</span>
+                            <strong class="text-dark">{{ member.phone }}</strong>
+                        </div>
+                        {% if member.blood_group %}
+                        <div class="col-6">
+                            <span class="text-muted d-block">রক্তের গ্রুপ:</span>
+                            <strong class="text-danger"><i class="fas fa-tint me-1"></i>{{ member.blood_group }}</strong>
+                        </div>
+                        {% endif %}
+                        {% if member.email %}
+                        <div class="col-6">
+                            <span class="text-muted d-block">ইমেইল:</span>
+                            <span class="text-dark text-break">{{ member.email }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="alert alert-warning border-0 small text-start rounded-3 d-flex align-items-start gap-2 mb-4" style="background: #fffbeb;">
+                    <i class="fas fa-info-circle text-warning fs-5 flex-shrink-0 mt-1"></i>
+                    <div>
+                        <strong>ওয়ান-টাইম লিংক সমাপ্তি:</strong> আপনার নিবন্ধন সম্পন্ন হওয়ায় এই আমন্ত্রণ লিংকটি স্বয়ংক্রিয়ভাবে অকার্যকর (Expired) হয়ে গেছে। আপনার মোবাইলে ও ইমেইলে নিশ্চিতকরণ বার্তা পাঠানো হয়েছে।
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <a href="{% url 'core:home' %}" class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm">
+                        <i class="fas fa-home me-1"></i> হোমপেজে যান
+                    </a>
+                    <a href="{% url 'volunteers:apply' %}" class="btn btn-outline-secondary fw-semibold px-4 py-2 rounded-pill">
+                        <i class="fas fa-users me-1"></i> টিম তালিকা দেখুন
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

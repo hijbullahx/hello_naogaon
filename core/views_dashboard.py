@@ -13,7 +13,7 @@ from core.email_utils import send_system_email
 from core.models import SiteSetting, StatCounter, AboutImage, EmergencyCategory, EmergencyService
 from programs.models import Program, Event, SuccessStory
 from news.models import Article, Category
-from volunteers.models import BloodDonor, Volunteer, TeamMember
+from volunteers.models import BloodDonor, Volunteer, TeamMember, TeamInvitation
 from gallery.models import Photo, Album
 from donations.models import (
     Bank, QRCode, DonationMethod, FinancialTransaction,
@@ -363,6 +363,7 @@ def dashboard_home(request):
         'my_donation_count': my_donation_count,
         'emergency_categories': EmergencyCategory.objects.all().order_by('order', 'id'),
         'emergency_services': EmergencyService.objects.all().select_related('category').order_by('category__order', 'order', 'id'),
+        'team_invitations': TeamInvitation.objects.all().order_by('-created_at')[:30],
     }
     return render(request, 'dashboard/index.html', context)
 
@@ -1554,6 +1555,87 @@ def reorder_team_members(request):
             continue
 
     return JsonResponse({'success': True, 'message': 'সদস্যদের ক্রম সফলভাবে হালনাগাদ হয়েছে!'})
+
+@staff_member_required
+def generate_team_invite(request):
+    """
+    Generate a one-time invitation link for a prospective team member with a pre-set designation.
+    """
+    if not request.user.is_superuser and not can_user_edit_general(request.user):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({'success': False, 'message': 'এই সুবিধা ব্যবহারের অনুমতি শুধুমাত্র প্রধান এডমিনের রয়েছে।'}, status=403)
+        messages.warning(request, 'এই সুবিধা ব্যবহারের অনুমতি শুধুমাত্র প্রধান এডমিনের রয়েছে।')
+        return redirect('/dashboard/?tab=volunteers-section')
+
+    if request.method == 'POST':
+        import secrets
+        from volunteers.models import TeamInvitation, TeamMember
+
+        designation = request.POST.get('designation', '').strip()
+        target_name = request.POST.get('target_name', '').strip()
+
+        if not designation:
+            msg = 'অনুগ্রহ করে সদস্যের পদবি উল্লেখ করুন।'
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+                return JsonResponse({'success': False, 'message': msg}, status=400)
+            messages.error(request, msg)
+            return redirect('/dashboard/?tab=volunteers-section')
+
+        # Quota checks for single-seat roles
+        SINGLE_SEAT_ROLES = ['সভাপতি', 'সাধারণ সম্পাদক', 'কোষাধ্যক্ষ']
+        if designation in SINGLE_SEAT_ROLES:
+            existing = TeamMember.objects.filter(role=designation).first()
+            if existing:
+                msg = f'"{designation}" পদে ইতিমধ্যে একজন সদস্য ({existing.name}) নিযুক্ত রয়েছেন।'
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+                    return JsonResponse({'success': False, 'message': msg}, status=400)
+                messages.error(request, msg)
+                return redirect('/dashboard/?tab=volunteers-section')
+
+        role = designation if designation in ['সভাপতি', 'সাধারণ সম্পাদক', 'কোষাধ্যক্ষ', 'সাধারণ পরিষদ সদস্য'] else 'অন্যান্য'
+        custom_role = '' if role != 'অন্যান্য' else designation
+
+        token = secrets.token_urlsafe(24)
+        invitation = TeamInvitation.objects.create(
+            token=token,
+            role=role,
+            custom_role=custom_role,
+            target_name=target_name,
+            created_by=request.user
+        )
+
+        base_url = request.build_absolute_uri('/')[:-1]
+        invite_url = f"{base_url}/volunteers/team-invite/{token}/"
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({
+                'success': True,
+                'invite_url': invite_url,
+                'token': token,
+                'role': invitation.effective_role,
+                'target_name': target_name,
+                'created_at': invitation.created_at.strftime('%d %b, %Y %I:%M %p'),
+                'message': f'"{invitation.effective_role}" পদবির জন্য ওয়ান-টাইম ইনভাইটেশন লিংক তৈরি হয়েছে!'
+            })
+
+        messages.success(request, f'"{invitation.effective_role}" পদবির জন্য ওয়ান-টাইম ইনভাইটেশন লিংক তৈরি হয়েছে!')
+        return redirect('/dashboard/?tab=volunteers-section')
+
+    return redirect('/dashboard/?tab=volunteers-section')
+
+@staff_member_required
+def delete_team_invite(request, pk):
+    """Delete an unused team invitation link"""
+    if not request.user.is_superuser and not can_user_edit_general(request.user):
+        messages.warning(request, 'এই সুবিধা ব্যবহারের অনুমতি শুধুমাত্র প্রধান এডমিনের রয়েছে।')
+        return redirect('/dashboard/?tab=volunteers-section')
+
+    from volunteers.models import TeamInvitation
+    inv = TeamInvitation.objects.filter(pk=pk).first()
+    if inv:
+        inv.delete()
+        messages.success(request, 'ইনভাইটেশন লিংকটি মুছে ফেলা হয়েছে।')
+    return redirect('/dashboard/?tab=volunteers-section')
 
 @staff_member_required
 def save_financial_transaction(request):

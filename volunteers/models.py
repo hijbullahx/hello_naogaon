@@ -365,3 +365,34 @@ def sync_to_blood_donor(person, is_team=False):
         donor.save()
     else:
         BloodDonor.objects.create(**defaults)
+
+
+class TeamInvitation(models.Model):
+    token = models.CharField(max_length=64, unique=True, db_index=True, verbose_name="টোকেন")
+    role = models.CharField(max_length=100, verbose_name="পদবি")
+    custom_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="কাস্টম পদবি")
+    target_name = models.CharField(max_length=200, blank=True, null=True, verbose_name="যার জন্য তৈরি (ঐচ্ছিক)")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="তৈরি করেছেন")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="তৈরির তারিখ")
+    is_used = models.BooleanField(default=False, verbose_name="ব্যবহৃত হয়েছে")
+    used_at = models.DateTimeField(null=True, blank=True, verbose_name="ব্যবহারের সময়")
+    registered_member = models.ForeignKey(
+        'TeamMember', on_delete=models.SET_NULL, null=True, blank=True, related_name='invitations', verbose_name="নিবন্ধিত সদস্য"
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "টিম ইনভাইটেশন লিংক"
+        verbose_name_plural = "টিম ইনভাইটেশন লিংকসমূহ"
+
+    def __str__(self):
+        return f"{self.effective_role} - {self.token[:8]}... ({'ব্যবহৃত' if self.is_used else 'সক্রিয়'})"
+
+    @property
+    def effective_role(self):
+        if self.role == 'অন্যান্য' and self.custom_role:
+            return self.custom_role
+        return self.role or ''
+
+    def get_absolute_url(self):
+        return f"/volunteers/team-invite/{self.token}/"
