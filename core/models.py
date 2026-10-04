@@ -29,6 +29,12 @@ class SiteSetting(models.Model):
     youtube_url = models.URLField(blank=True, default='')
     whatsapp_number = models.CharField(max_length=50, blank=True, default='+880 1730-XXXXXX')
     footer_about = models.TextField(blank=True, default='Helpline Hello Naogaon একটি স্বেচ্ছাসেবী সংগঠন। আমাদের লক্ষ্য সমাজকে এগিয়ে নিয়ে যাওয়া এবং অসহায় মানুষের পাশে দাঁড়ানো।')
+    trade_license_number = models.CharField(
+        max_length=100, 
+        blank=True, 
+        default='TRAD/MDHP/002341/2024',
+        help_text="ট্রেড লাইসেন্স বা সরকারি নিবন্ধন নম্বর"
+    )
     google_map_embed_url = models.TextField(
         blank=True, 
         default='', 

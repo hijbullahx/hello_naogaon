@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}গোপনীয়তা নীতিমালা (Privacy Policy) - {{ site_setting.title|default:"Helpline Hello Naogaon" }}{% endblock %}
+
+{% block content %}
+<!-- Hero Header -->
+<div class="py-5 text-white position-relative" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%);">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2 text-white-50 small">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-white text-decoration-none"><i class="fas fa-home me-1"></i>হোম</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">গোপনীয়তা নীতি</li>
+                    </ol>
+                </nav>
+                <h1 class="fw-bold mb-2 display-6">গোপনীয়তা নীতিমালা (Privacy Policy)</h1>
+                <p class="lead mb-0 text-white-50" style="font-size: 1.05rem;">
+                    আপনার ব্যক্তিগত তথ্যের পূর্ণ সুরক্ষা ও পেমেন্ট নিরাপত্তার প্রতি আমাদের দৃঢ় অঙ্গীকার
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <span class="badge bg-white text-success px-3 py-2 fs-6 rounded-pill shadow-sm">
+                    <i class="fas fa-user-lock me-1"></i> ১০০% ডেটা নিরাপত্তা
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Main Document Body -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                
+                <!-- Notice Badge -->
+                <div class="alert alert-success-subtle border border-success-subtle d-flex align-items-center gap-3 p-3 rounded-3 mb-4">
+                    <i class="fas fa-shield-alt text-success fs-3 flex-shrink-0"></i>
+                    <div class="small">
+                        <strong>তথ্য সুরক্ষার প্রতিশ্রুতি:</strong> হেল্পলাইন হ্যালো নওগাঁ আপনার ব্যক্তিগত তথ্যের গোপনীয়তাকে সর্বোচ্চ অগ্রাধিকার দেয়। আমরা কখনোই কোনো ব্যবসায়িক স্বার্থে বা বাণিজ্যিক বিজ্ঞাপনের উদ্দেশ্যে আপনার তথ্য বিক্রি বা হস্তান্তর করি না।
+                    </div>
+                </div>
+
+                <!-- Section 1 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">১</span>
+                        আমরা কী কী তথ্য সংগ্রহ করি
+                    </h4>
+                    <p class="text-secondary leading-relaxed mb-2">
+                        আমাদের ওয়েবসাইট ব্রাউজ করতে সাধারণ ভিজিটরের কোনো ব্যক্তিগত তথ্য প্রদানের প্রয়োজন হয় না। তবে স্বেচ্ছাসেবী কার্যক্রম, অনুদান ও সদস্য পদ গ্রহণের সময় আমরা নিচের তথ্যগুলো সংগ্রহ করতে পারি:
+                    </p>
+                    <ul class="text-secondary ps-3 mb-0">
+                        <li class="mb-1"><strong>যোগাযোগের তথ্য:</strong> পূর্ণ নাম, মোবাইল নম্বর, ইমেইল ঠিকানা ও বর্তমান ঠিকানা।</li>
+                        <li class="mb-1"><strong>অনুদান ও লেনদেন সংক্রান্ত তথ্য:</strong> অনুদানের অঙ্ক (BDT / টাকা), ট্রানজেকশন আইডি (TrxID), পেমেন্টের তারিখ ও নির্বাচিত তহবিল/খাত।</li>
+                        <li class="mb-1"><strong>রক্তদাতা ও স্বেচ্ছাসেবকদের তথ্য:</strong> রক্তের গ্রুপ, বয়স, পেশা, ছবি (প্রযোজ্য ক্ষেত্রে) এবং জরুরি যোগাযোগের নম্বর।</li>
+                    </ul>
+                </section>
+
+                <!-- Section 2 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">২</span>
+                        পেমেন্ট ও আর্থিক তথ্যের নিরাপত্তা (Payment Gateway Security)
+                    </h4>
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <p class="text-secondary leading-relaxed mb-2">
+                            <i class="fas fa-lock text-success me-1"></i>
+                            <strong>আমরা কখনোই কার্ডের নম্বর, পিন বা ওটিপি সংরক্ষণ করি না:</strong> অনলাইন অনুদান ও সদস্য চাঁদা পরিশোধের ক্ষেত্রে সকল লেনদেন বাংলাদেশ ব্যাংক অনুমোদিত নিরাপদ পেমেন্ট গেটওয়ের (SSLCommerz, PayStation, bKash, ইত্যাদি) মাধ্যমে পরিচালিত হয়।
+                        </p>
+                        <p class="small text-muted mb-0">
+                            ক্রেডিট/ডেবিট কার্ড নম্বর, CVV/CVC, মোবাইল ব্যাংকিং পিন (PIN), অথবা ওয়ান টাইম পাসওয়ার্ড (OTP) সরাসরি পেমেন্ট গেটওয়ের এনক্রিপ্টেড (256-bit SSL / TLS & PCI-DSS Compliant) সার্ভারে প্রক্রিয়া হয়। হেল্পলাইন হ্যালো নওগাঁ সার্ভারে এগুলো দেখার বা সংরক্ষণ করার কোনো প্রযুক্তিগত সুযোগ নেই।
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Section 3 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৩</span>
+                        সংগৃহীত তথ্যের যথাযথ ব্যবহার
+                    </h4>
+                    <p class="text-secondary leading-relaxed mb-2">
+                        সংগৃহীত তথ্য কেবল নিচের কল্যাণমূলক ও প্রশাসনিক প্রয়োজনে ব্যবহৃত হয়:
+                    </p>
+                    <ul class="text-secondary ps-3 mb-0">
+                        <li class="mb-1">অনুদান সফল হলে দাতার মোবাইলে স্বয়ংক্রিয় এসএমএস ও ডিজিটাল মানি রিসিট প্রেরণ।</li>
+                        <li class="mb-1">সদস্যদের নিয়মিত মাসিক চাঁদার সঠিক হিসাব ও ডিজিটাল লেজার সংরক্ষণ।</li>
+                        <li class="mb-1">মুমূর্ষু রোগীর রক্তের প্রয়োজনে রক্তদাতার সম্মতি সাপেক্ষে রক্ত গ্রহীতার সাথে যোগাযোগ স্থাপন।</li>
+                        <li class="mb-1">সংগঠনের বাৎসরিক সমাজকল্যাণমূলক অডিট ও বার্ষিক হিসাব বিবরণী তৈরিতে স্বচ্ছতা বজায় রাখা।</li>
+                    </ul>
+                </section>
+
+                <!-- Section 4 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৪</span>
+                        তৃতীয় পক্ষের সাথে তথ্য প্রকাশের ব্যাপারে নীতি
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        আমরা কোনো তৃতীয় পক্ষের বাণিজ্যিক প্রতিষ্ঠান বা মার্কেটিং এজেন্সির কাছে ব্যবহারকারীর কোনো তথ্য বিক্রয়, ভাড়া বা হস্তান্তর করি না। কেবলমাত্র সরকারি আইনি নির্দেশিকা বা আদালতের আদেশ ছাড়া কোনো ব্যক্তিগত তথ্য প্রকাশ করা হয় না।
+                    </p>
+                </section>
+
+                <!-- Section 5 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৫</span>
+                        কুকিজ (Cookies) ও ওয়েব নিরাপত্তা
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        ওয়েবসাইটটি ব্রাউজিং অভিজ্ঞতা বৃদ্ধি, সেশন ম্যানেজমেন্ট ও সাইবার নিরাপত্তা পর্যবেক্ষণের জন্য কুকিজ ও স্ট্যান্ডার্ড সার্ভার লগ প্রযুক্তি ব্যবহার করে। আপনি চাইলে আপনার ব্রাউজারের সেটিংস থেকে কুকিজ নিষ্ক্রিয় করতে পারেন।
+                    </p>
+                </section>
+
+                <!-- Section 6 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৬</span>
+                        আপনার অধিকার ও তথ্য সংশোধন
+                    </h4>
+                    <p class="text-secondary leading-relaxed mb-0">
+                        যেকোনো রক্তদাতা বা দাতা যেকোনো সময় তাদের সংরক্ষিত তথ্য যাচাই, সংশোধন বা ডিরেক্টরি থেকে প্রত্যাহারের আবেদন করতে পারেন। এর জন্য আমাদের হেল্পলাইন বা ইমেইলে যোগাযোগ করাই যথেষ্ট।
+                    </p>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- Sidebar / Contact Box -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 100px;">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                    <i class="fas fa-lock text-success me-2"></i>গোপনীয়তা ও ডেটা সুরক্ষার তথ্য
+                </h5>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">প্রতিষ্ঠানের নাম:</small>
+                    <strong class="text-dark">{{ site_setting.title|default:"Helpline Hello Naogaon" }}</strong>
+                </div>
+
+                <div class="mb-3 p-3 bg-light rounded-3 border">
+                    <small class="text-muted d-block fw-semibold mb-1">
+                        <i class="fas fa-file-contract text-warning me-1"></i>ট্রেড লাইসেন্স / নিবন্ধন নং:
+                    </small>
+                    <span class="font-monospace fw-bold text-dark fs-6">{{ site_setting.trade_license_number|default:"TRAD/MDHP/002341/2024" }}</span>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">শারীরিক অফিসের ঠিকানা:</small>
+                    <div class="text-dark small">
+                        <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                        {{ site_setting.contact_address|default:"Helpline Hello Naogaon Public Library, মহাদেবপুর, নওগাঁ - ৬৬০০" }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">যোগাযোগ ও হেল্পলাইন:</small>
+                    <div class="text-dark fw-bold">
+                        <i class="fas fa-phone-alt text-success me-1"></i>
+                        <a href="tel:{{ site_setting.contact_phone }}" class="text-dark text-decoration-none">{{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</a>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <small class="text-muted d-block">অফিসিয়াল ইমেইল:</small>
+                    <div class="text-dark small">
+                        <i class="fas fa-envelope text-primary me-1"></i>
+                        <a href="mailto:{{ site_setting.contact_email }}" class="text-dark text-decoration-none">{{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</a>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark small mb-2 border-top pt-3">অন্যান্য প্রয়োজনীয় লিংক:</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-2"><a href="{% url 'core:terms' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>ব্যবহারের শর্তাবলী (Terms & Conditions)</a></li>
+                    <li class="mb-2"><a href="{% url 'core:refund_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>রিফান্ড নীতিমালা (Refund Policy)</a></li>
+                    <li class="mb-2"><a href="{% url 'core:delivery_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>সেবা ও ডেলিভারি নীতি (Delivery Policy)</a></li>
+                    <li><a href="{% url 'core:about' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>আমাদের সম্পর্কে (About Us)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

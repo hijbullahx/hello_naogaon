@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ব্যবহারের শর্তাবলী (Terms & Conditions) - {{ site_setting.title|default:"Helpline Hello Naogaon" }}{% endblock %}
+
+{% block content %}
+<!-- Hero Header -->
+<div class="py-5 text-white position-relative" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%);">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2 text-white-50 small">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-white text-decoration-none"><i class="fas fa-home me-1"></i>হোম</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">শর্তাবলী</li>
+                    </ol>
+                </nav>
+                <h1 class="fw-bold mb-2 display-6">ব্যবহারের শর্তাবলী (Terms & Conditions)</h1>
+                <p class="lead mb-0 text-white-50" style="font-size: 1.05rem;">
+                    হেল্পলাইন হ্যালো নওগাঁ প্ল্যাটফর্ম, ওয়েবসাইট এবং আর্থিক অনুদান ব্যবহারের নিয়মনীতি ও বাধ্যবাধকতা
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <span class="badge bg-white text-success px-3 py-2 fs-6 rounded-pill shadow-sm">
+                    <i class="fas fa-shield-alt me-1"></i> অফিসিয়াল নীতিমালা
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Main Document Body -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                
+                <!-- Notice Badge -->
+                <div class="alert alert-success-subtle border border-success-subtle d-flex align-items-center gap-3 p-3 rounded-3 mb-4">
+                    <i class="fas fa-info-circle text-success fs-3 flex-shrink-0"></i>
+                    <div class="small">
+                        <strong>সর্বশেষ পরিমার্জন:</strong> অক্টোবর ২০২৪ | এই ওয়েবসাইটটি ব্যবহারের মাধ্যমে অথবা আর্থিক সহায়তা প্রদানের মাধ্যমে আপনি নিচের শর্তাবলী মেনে নিতে সম্মত হচ্ছেন।
+                    </div>
+                </div>
+
+                <!-- Section 1 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">১</span>
+                        সংগঠনের পরিচিতি ও প্ল্যাটফর্মের উদ্দেশ্য
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        <strong>হেল্পলাইন হ্যালো নওগাঁ (Helpline Hello Naogaon)</strong> একটি অরাজনৈতিক, অলাভজনক ও মানবিক স্বেচ্ছাসেবী প্ল্যাটফর্ম। নওগাঁ জেলা ও এর পার্শ্ববর্তী অঞ্চলের অসহায়, দরিদ্র, সুবিধাবঞ্চিত মানুষের চিকিৎসা সহায়তা, জরুরি রক্তদান, শিক্ষা সহায়তা, দুর্যোগে ত্রাণ বিতরণ ও সামাজিক সচেতনতা বৃদ্ধির লক্ষ্যে এই প্ল্যাটফর্ম ও ওয়েবসাইট পরিচালিত হয়।
+                    </p>
+                </section>
+
+                <!-- Section 2 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">২</span>
+                        স্বেচ্ছাসেবী অনুদান ও সদস্য চাঁদা সংক্রান্ত নীতিমালা
+                    </h4>
+                    <ul class="text-secondary ps-3 mb-3">
+                        <li class="mb-2"><strong>স্বেচ্ছাপ্রণোদিত অনুদান:</strong> হেল্পলাইন হ্যালো নওগাঁর তহবিলে প্রদত্ত যেকোনো সাধারণ অনুদান বা কার্যক্রমে সহায়তা সম্পূর্ণ স্বেচ্ছাসেবী ও উপহারস্বরূপ।</li>
+                        <li class="mb-2"><strong>সদস্য চাঁদা (Membership Subscription):</strong> সংগঠনের টিম মেম্বার ও নিবন্ধিত স্বেচ্ছাসেবকগণ সংগঠনের গঠনতন্ত্র অনুযায়ী নির্ধারিত মাসিক চাঁদা বা এককালীন ফান্ড প্রদান করেন। এই চাঁদার সম্পূর্ণ হিসাব স্বচ্ছতার সাথে ডিজিটাল খতিয়ানে সংরক্ষিত হয়।</li>
+                        <li class="mb-2"><strong>মুদ্রা ও পেমেন্ট (BDT / টাকা):</strong> ওয়েবসাইটের সকল অনুদান, প্রকল্প তহবিল ও সেবার আর্থিক হিসাব কেবলমাত্র বাংলাদেশী মুদ্রা <strong>টাকা (BDT / ৳)</strong>-তে গৃহীত হয়।</li>
+                        <li class="mb-2"><strong>অনুমোদিত মাধ্যম:</strong> ডোনার বা সদস্যগণ অনুমোদিত অনলাইন পেমেন্ট গেটওয়ে (বিকাশ, নগদ, রকেট, কার্ড, ইন্টারনেট ব্যাংকিং) অথবা সরাসরি নির্ধারিত অফিশিয়াল একাউন্টে টাকা প্রদান করতে পারবেন।</li>
+                    </ul>
+                </section>
+
+                <!-- Section 3 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৩</span>
+                        তহবিল ব্যবহার ও আর্থিক স্বচ্ছতা
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        সংগৃহীত প্রতিটি টাকার পূর্ণ বিবরণ আমাদের কেন্দ্রীয় ড্যাশবোর্ড ও আর্থিক খতিয়ানে এন্ট্রি করা হয়। প্রাপ্ত অর্থ কোনো ব্যক্তি বা ব্যবসায়িক স্বার্থে ব্যবহার করা সম্পূর্ণ নিষিদ্ধ। এই তহবিল কেবল মানবিক উদ্যোগ, চিকিৎসা সামগ্রী, রোগীর ঔষধ, রক্তদান ক্যাম্পেইন, জরুরি খাদ্য সহায়তা ও সেবামূলক প্রশাসনিক কার্যক্রমে ব্যয় করা হয়।
+                    </p>
+                </section>
+
+                <!-- Section 4 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৪</span>
+                        ডিজিটাল রসিদ ও ডেলিভারি অঙ্গীকার
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        পেমেন্ট সফল হওয়ার সাথে সাথে ডোনারের মোবাইল নম্বরে স্বয়ংক্রিয় এসএমএস (SMS) ও ইমেইলের মাধ্যমে নিশ্চিতকরণ বার্তা ও ট্রানজেকশন ট্র্যাকিং নম্বর পৌঁছে যায়। ডোনার চাইলে ওয়েবসাইট থেকে যেকোনো সময় অনলাইন মানি রিসিট (PDF) ভেরিফাই ও ডাউনলোড করতে পারবেন। বিস্তারিত জানতে আমাদের <a href="{% url 'core:delivery_policy' %}" class="text-success fw-bold">সেবা ও ডেলিভারি নীতিমালা</a> দেখুন।
+                    </p>
+                </section>
+
+                <!-- Section 5 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৫</span>
+                        ব্যবহারকারীর আচরণ ও নিষিদ্ধ কার্যকলাপ
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        এই ওয়েবসাইটের কোনো সেবা, রক্তদাতার তথ্য, বা কন্টেন্ট কোনো ধরনের বাণিজ্যিক, জালিয়াতি, সাইবার আক্রমণ বা বেআইনি উদ্দেশ্যে ব্যবহার করা যাবে না। রক্তদাতার তথ্যের অপব্যবহার বা অসত্য আবেদন করলে তা বাংলাদেশের প্রচলিত সাইবার ও তথ্যপ্রযুক্তি আইনে দণ্ডনীয় অপরাধ বলে গণ্য হবে।
+                    </p>
+                </section>
+
+                <!-- Section 6 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৬</span>
+                        রিফান্ড ও বিরোধ নিষ্পত্তি
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        ভুলবশত একাধিকবার টাকা কর্তন বা অননুমোদিত লেনদেনের ক্ষেত্রে আমাদের ৭ দিনের মধ্যে অবহিত করলে যাচাই সাপেক্ষে রিফান্ড প্রদান করা হয়। বিস্তারিত নিয়মের জন্য অনুগ্রহ করে আমাদের <a href="{% url 'core:refund_policy' %}" class="text-success fw-bold">রিফান্ড নীতিমালা (Refund Policy)</a> দেখুন।
+                    </p>
+                </section>
+
+                <!-- Section 7 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৭</span>
+                        শর্তাবলীর পরিবর্তন ও পরিমার্জন
+                    </h4>
+                    <p class="text-secondary leading-relaxed mb-0">
+                        হেল্পলাইন হ্যালো নওগাঁ পরিচালনা পর্ষদ যেকোনো সময় আইনানুগ প্রয়োজনেই শর্তাবলীতে প্রয়োজনীয় পরিবর্তন বা পরিমার্জনের অধিকার সংরক্ষণ করে। যেকোনো পরিবর্তন ওয়েবসাইটে প্রকাশিত হওয়ার সাথে সাথেই কার্যকর হবে।
+                    </p>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- Sidebar / Contact & Licensing Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 100px;">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                    <i class="fas fa-building text-success me-2"></i>অফিশিয়াল তথ্য ও নিবন্ধন
+                </h5>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">প্রতিষ্ঠানের নাম:</small>
+                    <strong class="text-dark">{{ site_setting.title|default:"Helpline Hello Naogaon" }}</strong>
+                </div>
+
+                <div class="mb-3 p-3 bg-light rounded-3 border">
+                    <small class="text-muted d-block fw-semibold mb-1">
+                        <i class="fas fa-file-contract text-warning me-1"></i>ট্রেড লাইসেন্স / নিবন্ধন নং:
+                    </small>
+                    <span class="font-monospace fw-bold text-dark fs-6">{{ site_setting.trade_license_number|default:"TRAD/MDHP/002341/2024" }}</span>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">শারীরিক অফিসের ঠিকানা:</small>
+                    <div class="text-dark small">
+                        <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                        {{ site_setting.contact_address|default:"Helpline Hello Naogaon Public Library, মহাদেবপুর, নওগাঁ - ৬৬০০" }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">হটলাইন ও যোগাযোগ নম্বর:</small>
+                    <div class="text-dark fw-bold">
+                        <i class="fas fa-phone-alt text-success me-1"></i>
+                        <a href="tel:{{ site_setting.contact_phone }}" class="text-dark text-decoration-none">{{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</a>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <small class="text-muted d-block">অফিসিয়াল ইমেইল:</small>
+                    <div class="text-dark small">
+                        <i class="fas fa-envelope text-primary me-1"></i>
+                        <a href="mailto:{{ site_setting.contact_email }}" class="text-dark text-decoration-none">{{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</a>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark small mb-2 border-top pt-3">অন্যান্য প্রয়োজনীয় নীতিমালা:</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-2"><a href="{% url 'core:privacy_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>গোপনীয়তা নীতিমালা (Privacy Policy)</a></li>
+                    <li class="mb-2"><a href="{% url 'core:refund_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>ফেরত ও রিফান্ড নীতি (Refund Policy)</a></li>
+                    <li class="mb-2"><a href="{% url 'core:delivery_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>সেবা ও ডেলিভারি নীতি (Delivery Policy)</a></li>
+                    <li><a href="{% url 'core:about' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>আমাদের সম্পর্কে (About Us)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ফেরত ও রিফান্ড নীতিমালা (Return & Refund Policy) - {{ site_setting.title|default:"Helpline Hello Naogaon" }}{% endblock %}
+
+{% block content %}
+<!-- Hero Header -->
+<div class="py-5 text-white position-relative" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%);">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2 text-white-50 small">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-white text-decoration-none"><i class="fas fa-home me-1"></i>হোম</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">রিফান্ড নীতিমালা</li>
+                    </ol>
+                </nav>
+                <h1 class="fw-bold mb-2 display-6">ফেরত ও রিফান্ড নীতিমালা (Return & Refund Policy)</h1>
+                <p class="lead mb-0 text-white-50" style="font-size: 1.05rem;">
+                    হেল্পলাইন হ্যালো নওগাঁ-তে প্রদত্ত অনুদান, চাঁদা ও পেমেন্টের স্বচ্ছ রিফান্ড ও বিরোধ নিষ্পত্তি নির্দেশিকা
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <span class="badge bg-white text-success px-3 py-2 fs-6 rounded-pill shadow-sm">
+                    <i class="fas fa-undo-alt me-1"></i> স্বচ্ছ লেনদেন নীতি
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Document Body -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                
+                <!-- Notice Banner -->
+                <div class="alert alert-warning-subtle border border-warning-subtle d-flex align-items-center gap-3 p-3 rounded-3 mb-4">
+                    <i class="fas fa-exclamation-triangle text-warning-emphasis fs-3 flex-shrink-0"></i>
+                    <div class="small">
+                        <strong>গুরুত্বপূর্ণ নোটিশ:</strong> হেল্পলাইন হ্যালো নওগাঁ একটি অলাভজনক স্বেচ্ছাসেবী সংগঠন। এখানে সকল সাধারণ অনুদান মানুষের কল্যানে ব্যয় করা হয়। তবে প্রযুক্তিগত বিভ্রাট বা ভুলবশত অতিরিক্ত লেনদেনের ক্ষেত্রে আমরা দ্রুততম সময়ে রিফান্ড নিশ্চিত করি।
+                    </div>
+                </div>
+
+                <!-- Section 1 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">১</span>
+                        অনুদান ও আর্থিক সহায়তার সাধারণ স্বরূপ
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        হেল্পলাইন হ্যালো নওগাঁ-র তহবিলে প্রদত্ত সকল অনুদান ও সহায়তা সম্পূর্ণ স্বেচ্ছাপ্রণোদিত এবং দাতব্য উদ্দেশ্যে প্রদত্ত উপহারস্বরূপ। সাধারণত সফলভাবে সম্পন্ন হওয়া এবং মাঠপর্যায়ে সেবামূলক কার্যক্রমে ব্যয়িত অনুদান ফেরতযোগ্য নয়। তবে ভুলবশত বা অনাকাঙ্ক্ষিত পরিস্থিতিতে যাতে কোনো দাতা ক্ষতিগ্রস্ত না হন, তার জন্য সুনির্দিষ্ট রিফান্ড নীতিমালা কার্যকর রয়েছে।
+                    </p>
+                </section>
+
+                <!-- Section 2 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">২</span>
+                        যেসব ক্ষেত্রে রিফান্ড প্রদান করা হবে
+                    </h4>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light h-100">
+                                <h6 class="fw-bold text-dark mb-1"><i class="fas fa-sync-alt text-primary me-2"></i>একাধিকবার টাকা কর্তন (Duplicate Debit)</h6>
+                                <p class="small text-muted mb-0">নেটওয়ার্ক বা পেমেন্ট গেটওয়ের ত্রুটির কারণে একই অনুদানের বিপরীতে যদি দাতার ব্যাংক বা মোবাইল ওয়ালেট (বিকাশ/নগদ/রকেট) থেকে একাধিকবার টাকা কেটে নেওয়া হয়।</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light h-100">
+                                <h6 class="fw-bold text-dark mb-1"><i class="fas fa-calculator text-danger me-2"></i>ভুল অঙ্কের লেনদেন (Technical Error)</h6>
+                                <p class="small text-muted mb-0">দাতা অনিচ্ছাকৃতভাবে অতিরিক্ত অঙ্কের টাইপ বা সিস্টেমের ত্রুটিতে অতিরিক্ত পরিমাণ অর্থ ডেবিট হলে তাৎক্ষণিক আবেদন সাপেক্ষে অতিরিক্ত অর্থ ফেরত দেওয়া হবে।</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light h-100">
+                                <h6 class="fw-bold text-dark mb-1"><i class="fas fa-user-shield text-warning-emphasis me-2"></i>অননুমোদিত বা জালিয়াতি লেনদেন</h6>
+                                <p class="small text-muted mb-0">দাতার সম্মতি ছাড়া তার কার্ড বা মোবাইল ব্যাংকিং ব্যবহার করে কোনো অননুমোদিত লেনদেন হলে যথাযথ প্রমাণ সাপেক্ষে বিরোধ নিষ্পত্তি ও রিফান্ড প্রযোজ্য হবে।</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light h-100">
+                                <h6 class="fw-bold text-dark mb-1"><i class="fas fa-ban text-secondary me-2"></i>কার্যক্রম বাতিল বা লক্ষ্য পূরণ</h6>
+                                <p class="small text-muted mb-0">কোনো বিশেষ তহবিল গঠনের আগেই যদি নির্ধারিত লক্ষ্য পূরণ হয়ে যায় বা কার্যক্রম স্থগিত হয় এবং দাতা অর্থ ফেরত চান।</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৩</span>
+                        রিফান্ডের আবেদন পদ্ধতি ও সময়সীমা
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        অনাকাঙ্ক্ষিত লেনদেন সংঘটিত হওয়ার <strong>৭ (সাত) থেকে ১৪ (চৌদ্দ) কার্যদিবসের</strong> মধ্যে আমাদের হেল্পলাইন নম্বরে কল করে অথবা অফিসিয়াল ইমেইলে লিখিতভাবে রিফান্ডের আবেদন জানাতে হবে।
+                    </p>
+                    <div class="bg-light p-3 rounded-3 border">
+                        <div class="fw-bold text-dark small mb-2"><i class="fas fa-file-invoice text-success me-1"></i>আবেদনের সাথে যে তথ্যগুলো প্রদান করতে হবে:</div>
+                        <ul class="text-secondary small mb-0 ps-3">
+                            <li>দাতার পূর্ণ নাম ও যোগাযোগের মোবাইল নম্বর</li>
+                            <li>লেনদেনের তারিখ ও সময়</li>
+                            <li>ট্রানজেকশন আইডি (TrxID) / পেমেন্ট রেফারেন্স নম্বর</li>
+                            <li>টাকার পরিমাণ (BDT) ও পেমেন্টের মাধ্যম (বিকাশ, নগদ, রকেট, কার্ড বা ব্যাংক)</li>
+                            <li>টাকা কর্তনের এসএমএস বা ডিজিটাল রসিদের স্ক্রিনশট</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Section 4 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৪</span>
+                        রিফান্ড নিষ্পত্তির মাধ্যম ও সময়কাল
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        আবেদন প্রাপ্তির <strong>২৪ থেকে ৪৮ ঘণ্টার মধ্যে</strong> আমাদের অর্থ ও অডিট বিভাগ লেনদেনটি যাচাই করবে। আবেদন অনুমোদিত হলে পরবর্তী <strong>৭ থেকে ১০ কর্মদিবসের মধ্যে</strong> যে মাধ্যম থেকে টাকা পাঠানো হয়েছিল (Original Payment Channel — সংশ্লিষ্ট ব্যাংক অ্যাকাউন্ট বা মোবাইল ওয়ালেট), সেই মাধ্যমেই সরাসরি টাকা ফেরত পাঠিয়ে দেওয়া হবে। কোনো প্রকার ক্যাশ বা ভিন্ন অ্যাকাউন্টে রিফান্ড দেওয়া হবে না।
+                    </p>
+                    <small class="text-muted d-block">
+                        * দ্রষ্টব্য: পেমেন্ট গেটওয়ে প্রোভাইডার বা সংশ্লিষ্ট ব্যাংকের পলিসি অনুযায়ী তাদের স্বাভাবিক প্রসেসিং চার্জ প্রযোজ্য হতে পারে।
+                    </small>
+                </section>
+
+                <!-- Section 5 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৫</span>
+                        রিফান্ড ও বিরোধ নিষ্পত্তি সহায়তা কেন্দ্র
+                    </h4>
+                    <p class="text-secondary leading-relaxed mb-0">
+                        রিফান্ড সংক্রান্ত যেকোনো জিজ্ঞাসা বা বিরোধ নিষ্পত্তির জন্য সরাসরি আমাদের যোগাযোগ হেল্পডেস্কে ফোন করুন অথবা ইমেইল পাঠান। আমাদের টিম সর্বদা আপনার পাশে রয়েছে।
+                    </p>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- Sidebar / Contact Box -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 100px;">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                    <i class="fas fa-headset text-success me-2"></i>রিফান্ড হেল্পডেস্ক
+                </h5>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">সংগঠন / প্রতিষ্ঠান:</small>
+                    <strong class="text-dark">{{ site_setting.title|default:"Helpline Hello Naogaon" }}</strong>
+                </div>
+
+                <div class="mb-3 p-3 bg-light rounded-3 border">
+                    <small class="text-muted d-block fw-semibold mb-1">
+                        <i class="fas fa-file-contract text-warning me-1"></i>ট্রেড লাইসেন্স / নিবন্ধন নং:
+                    </small>
+                    <span class="font-monospace fw-bold text-dark fs-6">{{ site_setting.trade_license_number|default:"TRAD/MDHP/002341/2024" }}</span>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">শারীরিক অফিসের ঠিকানা:</small>
+                    <div class="text-dark small">
+                        <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                        {{ site_setting.contact_address|default:"Helpline Hello Naogaon Public Library, মহাদেবপুর, নওগাঁ - ৬৬০০" }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">রিফান্ড হেল্পলাইন:</small>
+                    <div class="text-dark fw-bold">
+                        <i class="fas fa-phone-alt text-success me-1"></i>
+                        <a href="tel:{{ site_setting.contact_phone }}" class="text-dark text-decoration-none">{{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</a>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <small class="text-muted d-block">রিফান্ড আবেদন ইমেইল:</small>
+                    <div class="text-dark small">
+                        <i class="fas fa-envelope text-primary me-1"></i>
+                        <a href="mailto:{{ site_setting.contact_email }}" class="text-dark text-decoration-none">{{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</a>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark small mb-2 border-top pt-3">অন্যান্য প্রয়োজনীয় লিংক:</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-2"><a href="{% url 'core:terms' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>ব্যবহারের শর্তাবলী (Terms & Conditions)</a></li>
+                    <li class="mb-2"><a href="{% url 'core:privacy_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>গোপনীয়তা নীতিমালা (Privacy Policy)</a></li>
+                    <li class="mb-2"><a href="{% url 'core:delivery_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>সেবা ও ডেলিভারি নীতি (Delivery Policy)</a></li>
+                    <li><a href="{% url 'core:about' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>আমাদের সম্পর্কে (About Us)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

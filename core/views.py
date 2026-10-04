@@ -220,3 +220,27 @@ def submit_complaint(request):
     messages.success(request, success_msg)
     return redirect('core:home')
 
+
+def terms_view(request):
+    """Terms & Conditions compliance page"""
+    site_setting = SiteSetting.objects.first()
+    return render(request, 'core/terms.html', {'site_setting': site_setting})
+
+
+def privacy_policy_view(request):
+    """Privacy Policy compliance page"""
+    site_setting = SiteSetting.objects.first()
+    return render(request, 'core/privacy_policy.html', {'site_setting': site_setting})
+
+
+def refund_policy_view(request):
+    """Return & Refund Policy compliance page"""
+    site_setting = SiteSetting.objects.first()
+    return render(request, 'core/refund_policy.html', {'site_setting': site_setting})
+
+
+def delivery_policy_view(request):
+    """Delivery & Service Fulfillment Policy compliance page"""
+    site_setting = SiteSetting.objects.first()
+    return render(request, 'core/delivery_policy.html', {'site_setting': site_setting})
+

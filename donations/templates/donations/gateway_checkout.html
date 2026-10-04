@@ -22,8 +22,8 @@
                             </div>
                         </div>
                         <div class="text-end">
-                            <div class="text-white-50 small">প্রদেয় মোট পরিমাণ</div>
-                            <h3 class="fw-bold text-warning mb-0">৳{{ donation.amount|floatformat:2 }}</h3>
+                            <div class="text-white-50 small">প্রদেয় মোট পরিমাণ (BDT)</div>
+                            <h3 class="fw-bold text-warning mb-0">৳{{ donation.amount|floatformat:2 }} <span class="fs-6 text-white-50">BDT</span></h3>
                         </div>
                     </div>
 
@@ -64,11 +64,23 @@
                                 <span class="badge bg-white text-dark border px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-credit-card text-primary me-1"></i>Visa / Mastercard</span>
                             </div>
 
+                            <!-- Compliance Terms Acceptance Checkbox -->
+                            <div class="col-md-10 mx-auto text-start mb-3">
+                                <div class="form-check p-2 rounded bg-light border">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="acceptTermsGateway" required checked onchange="toggleGatewayPayBtn(this.checked)">
+                                    <label class="form-check-label small text-secondary" for="acceptTermsGateway" style="font-size: 0.8rem;">
+                                        আমি হেল্পলাইন হ্যালো নওগাঁর <a href="{% url 'core:terms' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">ব্যবহারের শর্তাবলী (T&C)</a>, 
+                                        <a href="{% url 'core:refund_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">রিফান্ড নীতি (Refund Policy)</a> এবং 
+                                        <a href="{% url 'core:privacy_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">গোপনীয়তা নীতিমালা (Privacy Policy)</a> পড়েছি এবং তাতে সম্মতি জানাচ্ছি।
+                                    </label>
+                                </div>
+                            </div>
+
                             <!-- Primary CTA Button to Paymently -->
                             <div class="d-grid gap-2 col-md-10 mx-auto">
                                 <a href="{% url 'donations:start_checkout_payment' donation.tran_id %}" id="directPayBtn" class="btn btn-success btn-lg fw-bold py-3 rounded-pill shadow-lg d-flex align-items-center justify-content-center gap-2" onclick="handlePayClick(this)">
                                     <i class="fas fa-lock fa-lg text-warning"></i>
-                                    <span class="fs-5">সরাসরি অনলাইন পেমেন্ট করুন (৳{{ donation.amount|floatformat:0 }})</span>
+                                    <span class="fs-5">সরাসরি অনলাইন পেমেন্ট করুন (৳{{ donation.amount|floatformat:0 }} BDT)</span>
                                     <i class="fas fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
@@ -131,6 +143,14 @@
                                                     <label class="form-label small fw-bold">ট্রানজেকশন আইডি (Trx ID) <span class="text-danger">*</span>:</label>
                                                     <input type="text" name="trx_id" class="form-control font-monospace" placeholder="যেমন: BLM3984829" required>
                                                 </div>
+                                                <div class="col-12 text-start">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="acceptTermsManual" required checked>
+                                                        <label class="form-check-label small text-muted" for="acceptTermsManual" style="font-size: 0.78rem;">
+                                                            আমি সংগঠনের <a href="{% url 'core:terms' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">শর্তাবলী</a>, <a href="{% url 'core:refund_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">রিফান্ড নীতি</a> ও <a href="{% url 'core:privacy_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">গোপনীয়তা নীতি</a> মেনে তথ্য জমা দিচ্ছি।
+                                                        </label>
+                                                    </div>
+                                                </div>
                                                 <div class="col-12 text-end">
                                                     <button type="submit" class="btn btn-outline-success fw-bold px-4 rounded-pill">
                                                         <i class="fas fa-check me-1"></i>TrxID সাবমিট করুন
@@ -164,6 +184,19 @@
 </div>
 
 <script>
+function toggleGatewayPayBtn(checked) {
+    const btn = document.getElementById('directPayBtn');
+    if (btn) {
+        if (checked) {
+            btn.classList.remove('disabled', 'opacity-50');
+            btn.style.pointerEvents = 'auto';
+        } else {
+            btn.classList.add('disabled', 'opacity-50');
+            btn.style.pointerEvents = 'none';
+        }
+    }
+}
+
 function handlePayClick(btn) {
     btn.classList.add('disabled');
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>গেটওয়েতে নিয়ে যাওয়া হচ্ছে...';

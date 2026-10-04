@@ -16,6 +16,14 @@ urlpatterns = [
     path('emergency/', views.emergency_services, name='emergency_services'),
     path('submit-complaint/', views.submit_complaint, name='submit_complaint'),
 
+    # Compliance & Gateway Verification Pages
+    path('terms-and-conditions/', views.terms_view, name='terms'),
+    path('terms/', views.terms_view, name='terms_short'),
+    path('privacy-policy/', views.privacy_policy_view, name='privacy_policy'),
+    path('refund-policy/', views.refund_policy_view, name='refund_policy'),
+    path('refund/', views.refund_policy_view, name='refund_short'),
+    path('delivery-policy/', views.delivery_policy_view, name='delivery_policy'),
+
     
     # Custom Section-by-Section Card Control Admin Dashboard
     path('dashboard/', views_dashboard.dashboard_home, name='dashboard'),

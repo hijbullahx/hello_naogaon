@@ -232,67 +232,89 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="footer-logo mb-3">
                         <h4 class="fw-bold text-success mb-1">
-                            <i class="fas fa-hands-helping me-2"></i>{{ site_setting.site_name|default:"হেল্পলাইন হ্যালো নওগাঁ" }}
+                            <i class="fas fa-hands-helping me-2"></i>{{ site_setting.title|default:"হেল্পলাইন হ্যালো নওগাঁ" }}
                         </h4>
                         <p class="text-white-50 small mb-0">{{ site_setting.tagline|default:"মানবতার সেবায় আমরা আছি আপনার পাশে" }}</p>
                     </div>
                     <p class="text-white-50 small mb-3">
-                        {{ site_setting.about_text|default:"নওগাঁ জেলার অসহায়, দরিদ্র ও সুবিধা বঞ্চিত মানুষের সার্বিক সহায়তা এবং সামাজিক উন্নয়নে নিবেদিত একটি স্বেচ্ছাসেবী প্রতিষ্ঠান।"|truncatewords:25 }}
+                        {{ site_setting.about_text|default:"নওগাঁ জেলার অসহায়, দরিদ্র ও সুবিধা বঞ্চিত মানুষের সার্বিক সহায়তা এবং সামাজিক উন্নয়নে নিবেদিত একটি স্বেচ্ছাসেবী প্রতিষ্ঠান।"|truncatewords:25 }}
                     </p>
+
+                    <!-- Trade License / Reg Display -->
+                    <div class="p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10 mb-3 small d-inline-block">
+                        <i class="fas fa-file-contract text-warning me-1"></i>
+                        <span class="text-white-50">ট্রেড লাইসেন্স / রেজি নং:</span>
+                        <strong class="text-white font-monospace ms-1">{{ site_setting.trade_license_number|default:"TRAD/MDHP/002341/2024" }}</strong>
+                    </div>
+
                     <div class="footer-social d-flex gap-2">
-                        {% if site_setting.facebook_url %}<a href="{{ site_setting.facebook_url }}" target="_blank" class="social-icon"><i class="fab fa-facebook-f"></i></a>{% endif %}
-                        {% if site_setting.youtube_url %}<a href="{{ site_setting.youtube_url }}" target="_blank" class="social-icon"><i class="fab fa-youtube"></i></a>{% endif %}
-                        {% if site_setting.twitter_url %}<a href="{{ site_setting.twitter_url }}" target="_blank" class="social-icon"><i class="fab fa-twitter"></i></a>{% endif %}
-                        {% if site_setting.instagram_url %}<a href="{{ site_setting.instagram_url }}" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>{% endif %}
+                        {% if site_setting.facebook_url %}<a href="{{ site_setting.facebook_url }}" target="_blank" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>{% endif %}
+                        {% if site_setting.youtube_url %}<a href="{{ site_setting.youtube_url }}" target="_blank" class="social-icon" title="YouTube"><i class="fab fa-youtube"></i></a>{% endif %}
+                        {% if site_setting.twitter_url %}<a href="{{ site_setting.twitter_url }}" target="_blank" class="social-icon" title="Twitter"><i class="fab fa-twitter"></i></a>{% endif %}
+                        {% if site_setting.instagram_url %}<a href="{{ site_setting.instagram_url }}" target="_blank" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>{% endif %}
                     </div>
                 </div>
 
                 <!-- Col 2: Quick Links -->
                 <div class="col-lg-2 col-md-6">
-                    <h5 data-i18n="footer.quick_links">দ্রুত লিঙ্ক</h5>
-                    <ul class="list-unstyled footer-links">
-                        <li><a href="{% url 'core:home' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.home">হোম</span></a></li>
-                        <li><a href="{% url 'core:about' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.about">আমাদের সম্পর্কে</span></a></li>
-                        <li><a href="{% url 'core:emergency_services' %}"><i class="fas fa-angle-right me-1 text-danger"></i> <span class="text-white fw-bold">জরুরি সেবা ডিরেক্টরি</span></a></li>
-                        <li><a href="{% url 'programs:program_list' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.programs">কার্যক্রম</span></a></li>
-                        <li><a href="{% url 'volunteers:blood_donors' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.blood_donors">রক্তদাতা</span></a></li>
-                        <li><a href="{% url 'volunteers:apply' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.volunteers">স্বেচ্ছাসেবক</span></a></li>
-                        <li><a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#directDonateModal"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.donate">আর্থিক সহায়তা</span></a></li>
+                    <h5 class="fw-bold mb-3" data-i18n="footer.quick_links">দ্রুত লিঙ্ক</h5>
+                    <ul class="list-unstyled footer-links small">
+                        <li class="mb-2"><a href="{% url 'core:home' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.home">হোম</span></a></li>
+                        <li class="mb-2"><a href="{% url 'core:about' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.about">আমাদের সম্পর্কে</span></a></li>
+                        <li class="mb-2"><a href="{% url 'core:emergency_services' %}"><i class="fas fa-angle-right me-1 text-danger"></i> <span class="text-white fw-bold">জরুরি সেবা</span></a></li>
+                        <li class="mb-2"><a href="{% url 'programs:program_list' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.programs">কার্যক্রম</span></a></li>
+                        <li class="mb-2"><a href="{% url 'volunteers:blood_donors' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.blood_donors">রক্তদাতা</span></a></li>
+                        <li class="mb-2"><a href="{% url 'volunteers:apply' %}"><i class="fas fa-angle-right me-1 text-success"></i> <span data-i18n="footer.volunteers">স্বেচ্ছাসেবক</span></a></li>
+                        <li class="mb-2"><a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#directDonateModal"><i class="fas fa-angle-right me-1 text-warning"></i> <span data-i18n="footer.donate" class="fw-bold text-warning">আর্থিক সহায়তা</span></a></li>
                     </ul>
                 </div>
 
-                <!-- Col 3: Contact Info -->
+                <!-- Col 3: Compliance & Legal Policies -->
                 <div class="col-lg-3 col-md-6">
-                    <h5 data-i18n="footer.contact">যোগাযোগ</h5>
-                    <ul class="list-unstyled footer-contact text-white-50 small">
-                        <li class="d-flex align-items-center gap-2 mb-2">
-                            <i class="fas fa-map-marker-alt text-success"></i>
-                            <span>{{ site_setting.contact_address|default:"নওগাঁ সদর, নওগাঁ" }}</span>
+                    <h5 class="fw-bold mb-3 text-white"><i class="fas fa-shield-alt text-success me-1"></i>নীতিমালা ও শর্তাবলী</h5>
+                    <ul class="list-unstyled footer-links small mb-3">
+                        <li class="mb-2"><a href="{% url 'core:terms' %}"><i class="fas fa-angle-right me-1 text-success"></i> ব্যবহারের শর্তাবলী (Terms)</a></li>
+                        <li class="mb-2"><a href="{% url 'core:privacy_policy' %}"><i class="fas fa-angle-right me-1 text-success"></i> গোপনীয়তা নীতি (Privacy Policy)</a></li>
+                        <li class="mb-2"><a href="{% url 'core:refund_policy' %}"><i class="fas fa-angle-right me-1 text-success"></i> রিফান্ড নীতিমালা (Refund Policy)</a></li>
+                        <li class="mb-2"><a href="{% url 'core:delivery_policy' %}"><i class="fas fa-angle-right me-1 text-success"></i> সেবা ও ডেলিভারি নীতি (Delivery)</a></li>
+                        <li class="mb-2"><a href="{% url 'core:submit_complaint' %}"><i class="fas fa-angle-right me-1 text-info"></i> নাগরিক অভিযোগ ও মতামত</a></li>
+                    </ul>
+                    <div class="p-2 rounded bg-white bg-opacity-10 small text-white-50 border border-white border-opacity-10">
+                        <div class="text-white fw-semibold mb-1"><i class="fas fa-lock text-success me-1"></i>১০০% নিরাপদ লেনদেন</div>
+                        <div>সকল অনুদান ও সেবা বাংলাদেশী মুদ্রা <strong>টাকা (BDT / ৳)</strong> তে পরিচালিত।</div>
+                    </div>
+                </div>
+
+                <!-- Col 4: Physical Address & Map -->
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="fw-bold mb-3" data-i18n="footer.contact">অফিস ও যোগাযোগ</h5>
+                    <ul class="list-unstyled footer-contact text-white-50 small mb-2">
+                        <li class="d-flex align-items-start gap-2 mb-2">
+                            <i class="fas fa-map-marker-alt text-danger mt-1"></i>
+                            <span>{{ site_setting.contact_address|default:"Helpline Hello Naogaon Public Library, মহাদেবপুর, নওগাঁ - ৬৬০০" }}</span>
                         </li>
                         <li class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-phone-alt text-success"></i>
-                            <span>{{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</span>
+                            <a href="tel:{{ site_setting.contact_phone }}" class="text-white text-decoration-none fw-semibold">{{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</a>
                         </li>
-                        <li class="d-flex align-items-center gap-2 mb-2">
-                            <i class="fas fa-envelope text-success"></i>
-                            <span>{{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</span>
+                        <li class="d-flex align-items-center gap-2 mb-3">
+                            <i class="fas fa-envelope text-primary"></i>
+                            <a href="mailto:{{ site_setting.contact_email }}" class="text-white-50 text-decoration-none">{{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</a>
                         </li>
                     </ul>
-                </div>
-
-                <!-- Col 4: Location Map -->
-                <div class="col-lg-3 col-md-6">
-                    <h5 data-i18n="footer.location">আমাদের অবস্থান</h5>
-                    <div class="rounded overflow-hidden shadow-sm" style="height: 150px; width: 100%;">
+                    <div class="rounded overflow-hidden shadow-sm" style="height: 120px; width: 100%;">
                         {{ site_setting.google_map_embed_html|safe }}
                     </div>
                 </div>
             </div>
 
             <!-- Bottom Copyright Bar -->
-            <div class="footer-bottom-bar text-center py-3 border-top border-secondary-subtle mt-4">
-                <div class="small">
-                    &copy; {% now "Y" %} Helpline Hello Naogaon — All Rights Reserved | Developed by 
+            <div class="footer-bottom-bar text-center py-3 border-top border-secondary-subtle mt-3">
+                <div class="small text-white-50 mb-1">
+                    &copy; {% now "Y" %} Helpline Hello Naogaon — All Rights Reserved | একটি অরাজনৈতিক ও অলাভজনক স্বেচ্ছাসেবী সংগঠন
+                </div>
+                <div class="small text-white-50">
+                    Developed by 
                     <a href="https://hijbullah.me/" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none fw-bold">Md. Taher Bin Omar Hijbullah</a>
                 </div>
             </div>

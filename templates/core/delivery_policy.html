@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}সেবা ও ডেলিভারি নীতিমালা (Delivery & Fulfillment Policy) - {{ site_setting.title|default:"Helpline Hello Naogaon" }}{% endblock %}
+
+{% block content %}
+<!-- Hero Header -->
+<div class="py-5 text-white position-relative" style="background: linear-gradient(135deg, #004d34 0%, #006a4e 100%);">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2 text-white-50 small">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-white text-decoration-none"><i class="fas fa-home me-1"></i>হোম</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">ডেলিভারি নীতিমালা</li>
+                    </ol>
+                </nav>
+                <h1 class="fw-bold mb-2 display-6">সেবা ও ডেলিভারি নীতিমালা (Delivery Policy)</h1>
+                <p class="lead mb-0 text-white-50" style="font-size: 1.05rem;">
+                    ডিজিটাল রসিদ প্রদান, জরুরি সহায়তা ও মানবিক সেবাসমূহ পৌঁছানোর নীতিমালা
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <span class="badge bg-white text-success px-3 py-2 fs-6 rounded-pill shadow-sm">
+                    <i class="fas fa-shipping-fast me-1"></i> তাৎক্ষণিক ডিজিটাল সার্ভিস
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Main Document Body -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                
+                <!-- Notice Badge -->
+                <div class="alert alert-success-subtle border border-success-subtle d-flex align-items-center gap-3 p-3 rounded-3 mb-4">
+                    <i class="fas fa-receipt text-success fs-3 flex-shrink-0"></i>
+                    <div class="small">
+                        <strong>অলাভজনক সেবার প্রেক্ষাপট:</strong> হেল্পলাইন হ্যালো নওগাঁ কোনো বাণিজ্যিক পণ্য বিক্রয় করে না। এটি একটি স্বেচ্ছাসেবী উদ্যোগ। এখানে "ডেলিভারি" বলতে ডিজিটাল অনুদানের রসিদ প্রদান ও মানবকল্যাণে সেবা প্রদানকে বোঝানো হয়।
+                    </div>
+                </div>
+
+                <!-- Section 1 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">১</span>
+                        ডিজিটাল রসিদ ও নিশ্চিতকরণ তাৎক্ষণিক ডেলিভারি (Instant Digital Delivery)
+                    </h4>
+                    <p class="text-secondary leading-relaxed mb-3">
+                        ওয়েবসাইটের অনলাইন পেমেন্ট গেটওয়ের মাধ্যমে যখন কোনো সাধারণ অনুদান বা সদস্য চাঁদা সফলভাবে পরিশোধ করা হয়, তখন তা নিচের নিয়মে তাৎক্ষণিকভাবে ডিজিটাল ডেলিভারি সম্পন্ন হয়:
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light h-100">
+                                <h6 class="fw-bold text-dark mb-1"><i class="fas fa-sms text-success me-2"></i>এসএমএস ডেলিভারি (SMS Confirmation)</h6>
+                                <p class="small text-muted mb-0">পেমেন্ট সফল হওয়ার সাথে সাথে ১ থেকে ৫ মিনিটের মধ্যে দাতার মোবাইল নম্বরে ট্রানজেকশন আইডি (TrxID) ও পরিমাণের অফিসিয়াল নিশ্চয়তা এসএমএস চলে যায়।</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light h-100">
+                                <h6 class="fw-bold text-dark mb-1"><i class="fas fa-envelope text-primary me-2"></i>ইমেইল রসিদ ডেলিভারি (Email Receipt)</h6>
+                                <p class="small text-muted mb-0">দাতার দেওয়া ইমেইলে স্বয়ংক্রিয়ভাবে বিস্তারিত ডিজিটাল ভাউচার ও মানি রিসিট তাৎক্ষণিকভাবে সেন্ট্রাল সার্ভার থেকে পৌঁছে যায়।</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <h6 class="fw-bold text-dark mb-1"><i class="fas fa-file-pdf text-danger me-2"></i>অনলাইন মানি রিসিট ডাউনলোড (Online PDF Receipt)</h6>
+                                <p class="small text-muted mb-0">পেমেন্ট শেষে স্ক্রিনেই মানি রিসিট প্রদর্শিত হয় এবং ট্রানজেকশন ট্র্যাকিং পেজ থেকে দাতা যেকোনো সময় পিডিএফ বা প্রিন্ট কপি ডাউনলোড করে সংরক্ষণ করতে পারেন।</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">২</span>
+                        রক্তদান ও জরুরি সেবার ডেলিভারি সময়সীমা
+                    </h4>
+                    <p class="text-secondary leading-relaxed">
+                        জরুরি চিকিৎসা ও রক্তের প্রয়োজনে আমাদের রক্তদাতা ডিরেক্টরি এবং হটলাইন ২৪/৭ সচল থাকে। রক্তদাতার সাথে সরাসরি যোগাযোগ করে অথবা আমাদের ভলান্টিয়ার টিমের মাধ্যমে যত দ্রুত সম্ভব (সাধারণত ৩০ মিনিট থেকে ২ ঘণ্টার মধ্যে) রক্তদাতা সমন্বয় করে রোগীর পাশে পৌঁছানোর চেষ্টা করা হয়।
+                    </p>
+                </section>
+
+                <!-- Section 3 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৩</span>
+                        ত্রাণ ও সামাজিক উন্নয়ন কর্মসূচি বাস্তবায়ন
+                    </h4>
+                    <p class="text-secondary leading-relaxed mb-2">
+                        বিশেষ কোনো কার্যক্রমের (যেমন: বন্যাদুর্গতদের খাদ্য সহায়তা, শীতার্তদের কম্বল বিতরণ, দরিদ্র শিক্ষার্থীদের বই ও শিক্ষা সামগ্রী বিতরণ) জন্য সংগৃহীত তহবিল নিচের ধাপে মাঠপর্যায়ে পৌঁছে দেওয়া হয়:
+                    </p>
+                    <ul class="text-secondary ps-3 mb-0">
+                        <li class="mb-1">তহবিল সংগ্রহ সম্পন্ন বা লক্ষ্যমাত্রার প্রাথমিক অংশ পূরণ হওয়ার সাথে সাথে মাঠপর্যায়ের কার্যক্রম শুরু হয়।</li>
+                        <li class="mb-1">আমাদের বিশ্বস্ত স্বেচ্ছাসেবক দল সরাসরি সুবিধাভোগীদের বাড়ি বাড়ি গিয়ে বা কেন্দ্রীয় বিতরণ কেন্দ্রে মালামাল হস্তান্তর করে।</li>
+                        <li class="mb-1">বিতরণ সম্পন্ন হওয়ার পর যাবতীয় হিসাব, ছবি ও ভিডিও ওয়েবসাইটের কার্যক্রম (Programs) সেকশন এবং সোশ্যাল মিডিয়ায় জনসাধারণের অবগতির জন্য প্রকাশ করা হয়।</li>
+                    </ul>
+                </section>
+
+                <!-- Section 4 -->
+                <section class="mb-4">
+                    <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success rounded-circle" style="width: 28px; height: 28px; font-size: 0.85rem; line-height: 18px;">৪</span>
+                        ডেলিভারি সংক্রান্ত বিলম্ব বা অভিযোগ
+                    </h4>
+                    <p class="text-secondary leading-relaxed mb-0">
+                        টেলিকম অপারেটরের নেটওয়ার্ক ত্রুটির কারণে যদি ১০ মিনিটের মধ্যে কনফার্মেশন এসএমএস না পৌঁছায়, তবে দাতা আমাদের হটলাইন নম্বরে ট্রানজেকশন আইডি দিয়ে যোগাযোগ করলে সঙ্গে সঙ্গে ম্যানুয়ালি তথ্য যাচাই করে রসিদ সরবরাহ করা হয়।
+                    </p>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- Sidebar / Contact Box -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 100px;">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                    <i class="fas fa-truck-loading text-success me-2"></i>সেবা ও ডেলিভারি হেল্পডেস্ক
+                </h5>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">প্রতিষ্ঠানের নাম:</small>
+                    <strong class="text-dark">{{ site_setting.title|default:"Helpline Hello Naogaon" }}</strong>
+                </div>
+
+                <div class="mb-3 p-3 bg-light rounded-3 border">
+                    <small class="text-muted d-block fw-semibold mb-1">
+                        <i class="fas fa-file-contract text-warning me-1"></i>ট্রেড লাইসেন্স / নিবন্ধন নং:
+                    </small>
+                    <span class="font-monospace fw-bold text-dark fs-6">{{ site_setting.trade_license_number|default:"TRAD/MDHP/002341/2024" }}</span>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">শারীরিক অফিসের ঠিকানা:</small>
+                    <div class="text-dark small">
+                        <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                        {{ site_setting.contact_address|default:"Helpline Hello Naogaon Public Library, মহাদেবপুর, নওগাঁ - ৬৬০০" }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">সার্ভিস হেল্পলাইন:</small>
+                    <div class="text-dark fw-bold">
+                        <i class="fas fa-phone-alt text-success me-1"></i>
+                        <a href="tel:{{ site_setting.contact_phone }}" class="text-dark text-decoration-none">{{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</a>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <small class="text-muted d-block">অফিসিয়াল ইমেইল:</small>
+                    <div class="text-dark small">
+                        <i class="fas fa-envelope text-primary me-1"></i>
+                        <a href="mailto:{{ site_setting.contact_email }}" class="text-dark text-decoration-none">{{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</a>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark small mb-2 border-top pt-3">অন্যান্য প্রয়োজনীয় লিংক:</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-2"><a href="{% url 'core:terms' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>ব্যবহারের শর্তাবলী (Terms & Conditions)</a></li>
+                    <li class="mb-2"><a href="{% url 'core:privacy_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>গোপনীয়তা নীতিমালা (Privacy Policy)</a></li>
+                    <li class="mb-2"><a href="{% url 'core:refund_policy' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>রিফান্ড নীতিমালা (Refund Policy)</a></li>
+                    <li><a href="{% url 'core:about' %}" class="text-success text-decoration-none"><i class="fas fa-angle-right me-1"></i>আমাদের সম্পর্কে (About Us)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

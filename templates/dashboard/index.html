@@ -532,6 +532,15 @@
                                             value="{{ site_setting.contact_email }}" class="form-control"
                                             placeholder="hello.naogaon@gmail.com">
                                     </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-file-contract text-warning me-1"></i>ট্রেড লাইসেন্স / সরকারি নিবন্ধন নম্বর (Trade License / Registration No)
+                                        </label>
+                                        <input type="text" name="trade_license_number"
+                                            value="{{ site_setting.trade_license_number|default:'' }}" class="form-control"
+                                            placeholder="যেমন: TRAD/MDHP/002341/2024">
+                                        <div class="form-text small text-muted">পেমেন্ট গেটওয়ে ভেরিফিকেশন ও ওয়েবসাইটের ফুটারের জন্য এই নম্বরটি প্রদর্শিত হবে।</div>
+                                    </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">ফুটার টেক্সট (About Footer)</label>
                                         <textarea name="footer_about" rows="3"

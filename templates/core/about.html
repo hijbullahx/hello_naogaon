@@ -27,6 +27,56 @@
         </div>
     </div>
 
+    <!-- Official Registration, Physical Address & Compliance Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mt-5 bg-white border-start border-4 border-success">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+                <h4 class="fw-bold text-dark mb-2">
+                    <i class="fas fa-building text-success me-2"></i>অফিশিয়াল পরিচিতি ও আইনি তথ্য
+                </h4>
+                <p class="text-secondary small mb-3">
+                    <strong>হেল্পলাইন হ্যালো নওগাঁ</strong> সম্পূর্ণ নিজস্ব গঠনতন্ত্র ও স্থানীয় সামাজিক স্বেচ্ছাসেবকদের পরিচালনায় পরিচালিত একটি মানবিক সংগঠন।
+                </p>
+                <div class="row g-2 small">
+                    <div class="col-md-6">
+                        <div class="p-2 bg-light rounded border">
+                            <span class="text-muted d-block"><i class="fas fa-file-contract text-warning me-1"></i>ট্রেড লাইসেন্স / সরকারি নিবন্ধন নং:</span>
+                            <strong class="text-dark font-monospace">{{ site_setting.trade_license_number|default:"TRAD/MDHP/002341/2024" }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2 bg-light rounded border">
+                            <span class="text-muted d-block"><i class="fas fa-phone-alt text-success me-1"></i>হটলাইন ও যোগাযোগ:</span>
+                            <a href="tel:{{ site_setting.contact_phone }}" class="text-dark fw-bold text-decoration-none">{{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</a>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="p-2 bg-light rounded border">
+                            <span class="text-muted d-block"><i class="fas fa-map-marker-alt text-danger me-1"></i>শারীরিক অফিসের ঠিকানা:</span>
+                            <span class="text-dark fw-semibold">{{ site_setting.contact_address|default:"Helpline Hello Naogaon Public Library, মহাদেবপুর, নওগাঁ - ৬৬০০" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex flex-column gap-2">
+                    <a href="{% url 'core:terms' %}" class="btn btn-sm btn-outline-success rounded-pill fw-bold text-start text-lg-center">
+                        <i class="fas fa-file-alt me-1"></i> ব্যবহারের শর্তাবলী (Terms)
+                    </a>
+                    <a href="{% url 'core:privacy_policy' %}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold text-start text-lg-center">
+                        <i class="fas fa-user-lock me-1"></i> গোপনীয়তা নীতি (Privacy)
+                    </a>
+                    <a href="{% url 'core:refund_policy' %}" class="btn btn-sm btn-outline-danger rounded-pill fw-bold text-start text-lg-center">
+                        <i class="fas fa-undo me-1"></i> রিফান্ড নীতি (Refund)
+                    </a>
+                    <a href="{% url 'core:delivery_policy' %}" class="btn btn-sm btn-outline-primary rounded-pill fw-bold text-start text-lg-center">
+                        <i class="fas fa-shipping-fast me-1"></i> ডেলিভারি নীতি (Delivery)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Team Section -->
     <div class="mt-5 pt-4">
         <h2 class="fw-bold border-bottom border-success border-3 pb-2 d-inline-block mb-4" data-i18n="about.team">আমাদের দল</h2>

@@ -2126,6 +2126,7 @@ def update_footer_section(request):
         setting.contact_address = request.POST.get('contact_address', setting.contact_address)
         setting.contact_phone = request.POST.get('contact_phone', setting.contact_phone)
         setting.contact_email = request.POST.get('contact_email', setting.contact_email)
+        setting.trade_license_number = request.POST.get('trade_license_number', setting.trade_license_number)
         setting.google_map_embed_url = request.POST.get('google_map_embed_url', setting.google_map_embed_url)
         setting.save()
         messages.success(request, 'ফুটার ও যোগাযোগের তথ্য আপডেট হয়েছে!')

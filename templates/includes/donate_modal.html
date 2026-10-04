@@ -310,7 +310,7 @@
                                         <!-- Dynamically generated pills -->
                                     </div>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-white fw-bold text-success fs-5">৳</span>
+                                        <span class="input-group-text bg-white fw-bold text-success fs-5">৳ BDT</span>
                                         <input type="number" name="amount" id="memberPayAmountInput" value="100" min="10" step="any" required class="form-control fw-bold text-success fs-5" placeholder="টাকার পরিমাণ লিখুন">
                                     </div>
                                 </div>
@@ -401,8 +401,18 @@
                             </div>
                         </div>
 
+                        <!-- Compliance Policies Acceptance Checkbox -->
+                        <div class="form-check mt-3 mb-2 text-start">
+                            <input class="form-check-input" type="checkbox" id="acceptTermsMember" required checked>
+                            <label class="form-check-label small text-muted" for="acceptTermsMember" style="font-size: 0.78rem;">
+                                আমি হেল্পলাইন হ্যালো নওগাঁর <a href="{% url 'core:terms' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">শর্তাবলী</a>, 
+                                <a href="{% url 'core:refund_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">রিফান্ড নীতি</a> এবং 
+                                <a href="{% url 'core:privacy_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">গোপনীয়তা নীতিমালা</a> পড়েছি এবং তাতে সম্মতি জানাচ্ছি।
+                            </label>
+                        </div>
+
                         <!-- Submit Button -->
-                        <div class="d-grid mt-3">
+                        <div class="d-grid mt-2">
                             <button type="submit" id="memberPaySubmitBtn" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm" disabled>
                                 <i class="fas fa-lock me-2"></i><span id="memberBtnText">উপরে আপনার নাম সিলেক্ট করুন</span>
                             </button>
@@ -609,8 +619,18 @@
                             </div>
                         </div>
 
+                        <!-- Compliance Policies Acceptance Checkbox -->
+                        <div class="form-check mt-3 mb-2 text-start">
+                            <input class="form-check-input" type="checkbox" id="acceptTermsGeneral" required checked>
+                            <label class="form-check-label small text-muted" for="acceptTermsGeneral" style="font-size: 0.78rem;">
+                                আমি হেল্পলাইন হ্যালো নওগাঁর <a href="{% url 'core:terms' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">শর্তাবলী</a>, 
+                                <a href="{% url 'core:refund_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">রিফান্ড নীতি</a> এবং 
+                                <a href="{% url 'core:privacy_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">গোপনীয়তা নীতিমালা</a> পড়েছি এবং তাতে সম্মতি জানাচ্ছি।
+                            </label>
+                        </div>
+
                         <!-- Submit Button -->
-                        <div class="d-grid mt-4">
+                        <div class="d-grid mt-2">
                             <button type="submit" id="genPaySubmitBtn" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
                                 <i class="fas fa-lock me-2"></i>নিরাপদে পেমেন্টে এগিয়ে যান &rarr;
                             </button>
@@ -693,7 +713,7 @@
                                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill prog-amt-pill" onclick="setProgramAmount(5000)">৳৫,০০০</button>
                             </div>
                             <div class="input-group">
-                                <span class="input-group-text bg-white fw-bold text-success">৳</span>
+                                <span class="input-group-text bg-white fw-bold text-success">৳ BDT</span>
                                 <input type="number" name="amount" id="programAmountInput" value="500" min="10" step="any" required class="form-control fw-bold text-success fs-5" placeholder="টাকার পরিমাণ">
                             </div>
                         </div>
@@ -818,8 +838,18 @@
                             </div>
                         </div>
 
+                        <!-- Compliance Policies Acceptance Checkbox -->
+                        <div class="form-check mt-3 mb-2 text-start">
+                            <input class="form-check-input" type="checkbox" id="acceptTermsProgram" required checked>
+                            <label class="form-check-label small text-muted" for="acceptTermsProgram" style="font-size: 0.78rem;">
+                                আমি হেল্পলাইন হ্যালো নওগাঁর <a href="{% url 'core:terms' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">শর্তাবলী</a>, 
+                                <a href="{% url 'core:refund_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">রিফান্ড নীতি</a> এবং 
+                                <a href="{% url 'core:privacy_policy' %}" target="_blank" class="text-success text-decoration-underline fw-semibold">গোপনীয়তা নীতিমালা</a> পড়েছি এবং তাতে সম্মতি জানাচ্ছি।
+                            </label>
+                        </div>
+
                         <!-- Submit Button -->
-                        <div class="d-grid">
+                        <div class="d-grid mt-2">
                             <button type="submit" id="progPaySubmitBtn" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm" {% if not global_programs %}disabled{% endif %}>
                                 {% if global_programs %}
                                 <i class="fas fa-lock me-2"></i>কার্যক্রমের তহবিলে পেমেন্ট করুন &rarr;
