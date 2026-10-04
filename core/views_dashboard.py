@@ -20,6 +20,7 @@ from donations.models import (
     DonationPageContent, Campaign, ProgramDonation, EmergencyAppeal, DonationImpact, FAQ
 )
 from django.db.models import Q, Sum
+from decimal import Decimal
 
 User = get_user_model()
 
@@ -317,6 +318,65 @@ def dashboard_home(request):
         if sms_balance is not None:
             sms_remaining_count = max(0, int(sms_balance / 0.26))
 
+    # Member Subscription Dues & Overview (Finance Section)
+    from volunteers.subscription_services import get_member_subscription_summary
+    member_subscription_list = []
+    total_subscription_collected = 0.0
+    total_subscription_dues = 0.0
+    subscription_due_members_count = 0
+
+    # 1. Team Members
+    for tm in team_members:
+        sub = get_member_subscription_summary(tm)
+        member_subscription_list.append({
+            'member_id': tm.member_id or '',
+            'name': tm.name,
+            'role': tm.effective_role or 'পরিচালনা পরিষদ',
+            'phone': tm.phone or '',
+            'email': tm.email or '',
+            'photo_url': tm.image.url if tm.image else '',
+            'is_team': True,
+            'monthly_fee': sub['monthly_fee'],
+            'months_billed': sub['months_billed'],
+            'total_billed': sub['total_billed'],
+            'total_paid': sub['total_paid'],
+            'due_amount': sub['due_amount'],
+            'advance_amount': sub['advance_amount'],
+            'status_label': sub['status_label'],
+            'join_date': sub['join_date_formatted'],
+            'suggested_amount': sub['suggested_amount'],
+        })
+        total_subscription_collected += sub['total_paid']
+        if sub['due_amount'] > 0:
+            total_subscription_dues += sub['due_amount']
+            subscription_due_members_count += 1
+
+    # 2. Approved Volunteers
+    for vol in volunteers.filter(status='approved').order_by('full_name'):
+        sub = vol.subscription_summary
+        member_subscription_list.append({
+            'member_id': vol.member_id or '',
+            'name': vol.full_name,
+            'role': 'স্বেচ্ছাসেবক সদস্য',
+            'phone': vol.phone or '',
+            'email': vol.email or '',
+            'photo_url': vol.image.url if vol.image else '',
+            'is_team': False,
+            'monthly_fee': sub['monthly_fee'],
+            'months_billed': sub['months_billed'],
+            'total_billed': sub['total_billed'],
+            'total_paid': sub['total_paid'],
+            'due_amount': sub['due_amount'],
+            'advance_amount': sub['advance_amount'],
+            'status_label': sub['status_label'],
+            'join_date': sub['join_date_formatted'],
+            'suggested_amount': sub['suggested_amount'],
+        })
+        total_subscription_collected += sub['total_paid']
+        if sub['due_amount'] > 0:
+            total_subscription_dues += sub['due_amount']
+            subscription_due_members_count += 1
+
     context = {
         'site_setting': site_setting,
         'stat_counters': stat_counters,
@@ -364,6 +424,11 @@ def dashboard_home(request):
         'emergency_categories': EmergencyCategory.objects.all().order_by('order', 'id'),
         'emergency_services': EmergencyService.objects.all().select_related('category').order_by('category__order', 'order', 'id'),
         'team_invitations': TeamInvitation.objects.all().order_by('-created_at')[:30],
+        'member_subscription_list': member_subscription_list,
+        'total_subscription_collected': total_subscription_collected,
+        'total_subscription_dues': total_subscription_dues,
+        'subscription_due_members_count': subscription_due_members_count,
+        'total_subscription_members_count': len(member_subscription_list),
     }
     return render(request, 'dashboard/index.html', context)
 
@@ -1712,6 +1777,315 @@ def delete_financial_transaction(request, pk):
         messages.success(request, 'আর্থিক লেনদেন মুছে ফেলা হয়েছে!')
     else:
         messages.warning(request, 'লেনদেনটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
+    return redirect('/dashboard/?tab=finance-section')
+
+@staff_member_required
+def ajax_get_member_subscription_ledger(request):
+    """Return detailed subscription ledger and payment history for a member"""
+    member_id = request.GET.get('member_id', '').strip()
+    if not member_id:
+        return JsonResponse({'success': False, 'message': 'মেম্বার আইডি প্রদান করা হয়নি।'}, status=400)
+
+    from volunteers.models import TeamMember, Volunteer
+    from volunteers.subscription_services import get_member_subscription_summary
+    from donations.models import ProgramDonation
+
+    member = TeamMember.objects.filter(member_id__iexact=member_id).first()
+    is_team = True
+    if not member:
+        member = Volunteer.objects.filter(member_id__iexact=member_id).first()
+        is_team = False
+
+    if not member:
+        return JsonResponse({'success': False, 'message': 'সদস্য খুঁজে পাওয়া যায়নি।'}, status=404)
+
+    sub = get_member_subscription_summary(member)
+    member_name = getattr(member, 'name', getattr(member, 'full_name', ''))
+    member_phone = getattr(member, 'phone', '') or ''
+    member_email = getattr(member, 'email', '') or ''
+    member_photo = member.image.url if getattr(member, 'image', None) else ''
+    effective_role = getattr(member, 'effective_role', 'সদস্য')
+
+    # Query all donations for this member
+    q_filter = Q(membership_id__iexact=member_id)
+    if member_phone:
+        q_filter |= Q(donor_phone=member_phone)
+    if member_email:
+        q_filter |= Q(donor_email__iexact=member_email)
+
+    donations_qs = ProgramDonation.objects.filter(q_filter).distinct().order_by('-created_at')
+
+    total_approved_all = 0.0
+    total_subscription_approved = 0.0
+    total_other_approved = 0.0
+    payments = []
+
+    for pd in donations_qs:
+        is_approved = pd.status in ['approved', 'completed']
+        amt = float(pd.amount)
+        if is_approved:
+            total_approved_all += amt
+            if pd.donation_type not in ['volunteer_registration', 'general'] or pd.donation_type == 'volunteer':
+                total_subscription_approved += amt
+            else:
+                total_other_approved += amt
+
+        is_cash = 'Cash' in (pd.payment_method or '') or 'নগদ' in (pd.payment_method or '')
+        is_auto = bool(pd.tran_id or pd.card_type or not is_cash)
+
+        category_display = "সদস্য মাসিক চাঁদা"
+        if pd.donation_type == 'volunteer_registration':
+            category_display = "সদস্য নিবন্ধন ফি"
+        elif pd.donation_type == 'general':
+            category_display = "সাধারণ আর্থিক সহায়তা"
+        elif pd.donation_type == 'program':
+            category_display = f"কার্যক্রম: {pd.program.title}" if pd.program else "কার্যক্রম অনুদান"
+        elif pd.donation_type == 'emergency':
+            category_display = "জরুরি ত্রাণ তহবিল"
+
+        payments.append({
+            'id': pd.id,
+            'date': pd.created_at.strftime('%d %b %Y, %I:%M %p'),
+            'raw_date': pd.created_at.strftime('%Y-%m-%d'),
+            'amount': amt,
+            'payment_method': pd.payment_method or 'Manual',
+            'trx_id': pd.trx_id or pd.tran_id or '-',
+            'category': category_display,
+            'donation_type': pd.donation_type,
+            'status': pd.status,
+            'status_display': pd.get_status_display(),
+            'is_cash': is_cash,
+            'is_auto': is_auto,
+            'can_delete': is_cash and is_approved,
+            'note': pd.note or '',
+        })
+
+    return JsonResponse({
+        'success': True,
+        'member': {
+            'name': member_name,
+            'member_id': member.member_id,
+            'role': effective_role,
+            'phone': member_phone,
+            'email': member_email,
+            'photo_url': member_photo,
+            'is_team': is_team,
+        },
+        'summary': {
+            'monthly_fee': sub['monthly_fee'],
+            'months_billed': sub['months_billed'],
+            'total_billed': sub['total_billed'],
+            'total_paid': sub['total_paid'],
+            'due_amount': sub['due_amount'],
+            'advance_amount': sub['advance_amount'],
+            'balance': sub['balance'],
+            'status_label': sub['status_label'],
+            'join_date': sub['join_date_formatted'],
+            'next_billing_date': sub.get('next_billing_date_formatted', ''),
+            'suggested_amount': sub['suggested_amount'],
+        },
+        'other_donations_total': total_other_approved,
+        'grand_total_paid': total_approved_all,
+        'payments': payments,
+    })
+
+@staff_member_required
+def save_member_cash_payment(request):
+    """
+    Record direct cash payment given in hand to admin/treasurer.
+    Updates ProgramDonation, FinancialTransaction, and member's dues ledger in full sync.
+    """
+    if not can_user_edit_finance(request.user):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({'success': False, 'message': 'আর্থিক হিসাব পরিবর্তনের অনুমতি আপনার নেই।'}, status=403)
+        messages.error(request, 'আর্থিক হিসাব পরিবর্তনের অনুমতি আপনার নেই।')
+        return redirect('/dashboard/?tab=finance-section')
+
+    if request.method == 'POST':
+        member_id = request.POST.get('member_id', '').strip()
+        amount_str = request.POST.get('amount', '').strip()
+        payment_date_str = request.POST.get('payment_date', '').strip()
+        month_or_purpose = request.POST.get('month_or_purpose', '').strip() or 'সদস্য চাঁদা'
+        category_type = request.POST.get('category_type', 'subscription').strip()
+        receipt_no = request.POST.get('receipt_no', '').strip()
+        note = request.POST.get('note', '').strip()
+        send_sms_flag = request.POST.get('send_sms') in ['1', 'true', 'on', True]
+
+        if not member_id:
+            return JsonResponse({'success': False, 'message': 'দয়া করে সদস্য নির্বাচন করুন।'}, status=400)
+
+        try:
+            amount = Decimal(amount_str)
+            if amount <= 0:
+                raise ValueError()
+        except Exception:
+            return JsonResponse({'success': False, 'message': 'সঠিক টাকার পরিমাণ লিখুন (০-এর বেশি হতে হবে)।'}, status=400)
+
+        from volunteers.models import TeamMember, Volunteer
+        from volunteers.subscription_services import get_member_subscription_summary
+        from donations.models import ProgramDonation, FinancialTransaction
+        import time
+        from django.utils import timezone
+        from datetime import datetime, date
+
+        member = TeamMember.objects.filter(member_id__iexact=member_id).first()
+        if not member:
+            member = Volunteer.objects.filter(member_id__iexact=member_id).first()
+
+        if not member:
+            return JsonResponse({'success': False, 'message': 'সদস্য খুঁজে পাওয়া যায়নি।'}, status=404)
+
+        member_name = getattr(member, 'name', getattr(member, 'full_name', ''))
+        member_phone = getattr(member, 'phone', '') or ''
+        member_email = getattr(member, 'email', '') or ''
+
+        try:
+            pay_date = datetime.strptime(payment_date_str, '%Y-%m-%d').date() if payment_date_str else date.today()
+        except Exception:
+            pay_date = date.today()
+
+        trx_id = receipt_no if receipt_no else f"HN-CASH-{int(time.time())}"
+
+        if category_type == 'other':
+            donation_type = 'general'
+            cat_name = 'সাধারণ অনুদান / সদস্য বিশেষ সহায়তা'
+            title_name = f"সদস্য আর্থিক সহায়তা - {member_name} ({month_or_purpose})"
+        else:
+            donation_type = 'volunteer'
+            cat_name = 'সদস্য চাঁদা'
+            title_name = f"সদস্য চাঁদা - {member_name} ({month_or_purpose})"
+
+        detailed_note = f"[হাতে নগদ গ্রহণ] বাবদ: {month_or_purpose}"
+        if receipt_no:
+            detailed_note += f" | রশিদ/মেমো: {receipt_no}"
+        if note:
+            detailed_note += f" | নোট: {note}"
+
+        # 1. Create ProgramDonation (approved)
+        donation = ProgramDonation.objects.create(
+            donor_name=member_name,
+            donor_phone=member_phone,
+            donor_email=member_email,
+            membership_id=member.member_id,
+            amount=amount,
+            donation_type=donation_type,
+            frequency='monthly' if category_type == 'subscription' else 'one_time',
+            payment_method='Cash (হাতে নগদ)',
+            trx_id=trx_id,
+            note=detailed_note,
+            status='approved'
+        )
+        # Align creation date
+        aware_datetime = timezone.make_aware(datetime.combine(pay_date, datetime.min.time()))
+        ProgramDonation.objects.filter(pk=donation.pk).update(created_at=aware_datetime)
+
+        # 2. Create FinancialTransaction (income)
+        FinancialTransaction.objects.create(
+            transaction_type='income',
+            title=title_name,
+            category=cat_name,
+            amount=amount,
+            payment_method='Cash (হাতে নগদ)',
+            trx_id=trx_id,
+            donor_name=member_name,
+            date=pay_date,
+            note=f"মেম্বার আইডি: {member.member_id} | {detailed_note}"
+        )
+
+        # 3. Optional SMS confirmation
+        sms_sent = False
+        if send_sms_flag and member_phone:
+            try:
+                from core.sms_utils import send_sms
+                sms_text = f"[Hello Naogaon] সম্মানিত {member_name}, আপনার {amount:.0f} টাকা ({month_or_purpose}) নগদ জমা হয়েছে। রশিদ নং: {trx_id}। ধন্যবাদ।"
+                send_sms(member_phone, sms_text)
+                sms_sent = True
+            except Exception as ex:
+                print(f"[CASH PAYMENT SMS FAILED] {ex}")
+
+        updated_summary = get_member_subscription_summary(member)
+        total_income = float(FinancialTransaction.objects.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0)
+        total_expense = float(FinancialTransaction.objects.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0)
+        net_balance = total_income - total_expense
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({
+                'success': True,
+                'message': f'{member_name}-এর ৳ {amount} টাকা নগদ জমা হয়েছে ও সম্পূর্ণ হিসাব সিঙ্ক হয়েছে!',
+                'member_id': member.member_id,
+                'summary': updated_summary,
+                'sms_sent': sms_sent,
+                'total_income': total_income,
+                'net_balance': net_balance,
+            })
+
+        messages.success(request, f'{member_name}-এর ৳ {amount} টাকা নগদ জমা হয়েছে ও হিসাব আপডেট হয়েছে!')
+        return redirect('/dashboard/?tab=finance-section')
+
+    return redirect('/dashboard/?tab=finance-section')
+
+@staff_member_required
+def delete_member_cash_payment(request, pk):
+    """
+    Delete an accidental direct cash entry.
+    Automated/gateway and manual online submissions cannot be deleted here!
+    """
+    if not can_user_edit_finance(request.user):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': 'অনুমতি নেই।'}, status=403)
+        messages.error(request, 'অনুমতি নেই।')
+        return redirect('/dashboard/?tab=finance-section')
+
+    from donations.models import ProgramDonation, FinancialTransaction
+    from volunteers.models import TeamMember, Volunteer
+    from volunteers.subscription_services import get_member_subscription_summary
+
+    donation = ProgramDonation.objects.filter(pk=pk).first()
+    if not donation:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': 'লেনদেন পাওয়া যায়নি।'}, status=404)
+        messages.warning(request, 'লেনদেন পাওয়া যায়নি।')
+        return redirect('/dashboard/?tab=finance-section')
+
+    # Protection: Only cash-in-hand entries can be removed
+    is_cash = 'Cash' in (donation.payment_method or '') or 'নগদ' in (donation.payment_method or '')
+    if not is_cash:
+        msg = 'শুধুমাত্র হাতে নগদ এন্ট্রিগুলো মোছা যাবে। অনলাইন গেটওয়ে বা ব্যাংকের লেনদেন অপরিবর্তনীয়।'
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': msg}, status=400)
+        messages.error(request, msg)
+        return redirect('/dashboard/?tab=finance-section')
+
+    member_id = donation.membership_id
+    trx_id = donation.trx_id
+
+    # Delete associated FinancialTransaction if exists
+    if trx_id:
+        FinancialTransaction.objects.filter(trx_id=trx_id).delete()
+    donation.delete()
+
+    # Recalculate summary if member_id exists
+    updated_summary = None
+    if member_id:
+        member = TeamMember.objects.filter(member_id__iexact=member_id).first() or Volunteer.objects.filter(member_id__iexact=member_id).first()
+        if member:
+            updated_summary = get_member_subscription_summary(member)
+
+    total_income = float(FinancialTransaction.objects.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0)
+    total_expense = float(FinancialTransaction.objects.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0)
+    net_balance = total_income - total_expense
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': 'নগদ এন্ট্রিটি সফলভাবে প্রত্যাহার করা হয়েছে ও হিসাব সিঙ্ক হয়েছে।',
+            'member_id': member_id,
+            'summary': updated_summary,
+            'total_income': total_income,
+            'net_balance': net_balance,
+        })
+
+    messages.success(request, 'নগদ এন্ট্রিটি সফলভাবে প্রত্যাহার করা হয়েছে ও হিসাব সিঙ্ক হয়েছে।')
     return redirect('/dashboard/?tab=finance-section')
 
 @staff_member_required

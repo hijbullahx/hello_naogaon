@@ -67,6 +67,9 @@ urlpatterns = [
     path('dashboard/update-profile/', update_profile, name='update_profile'),
     path('dashboard/delete-gallery-photo/<int:pk>/', delete_gallery_photo, name='delete_gallery_photo'),
     path('dashboard/ajax/refresh-sms-balance/', views_dashboard.ajax_refresh_sms_balance, name='ajax_refresh_sms_balance'),
+    path('dashboard/ajax/member-ledger/', views_dashboard.ajax_get_member_subscription_ledger, name='ajax_member_subscription_ledger'),
+    path('dashboard/save-member-cash-payment/', views_dashboard.save_member_cash_payment, name='save_member_cash_payment'),
+    path('dashboard/delete-member-cash-payment/<int:pk>/', views_dashboard.delete_member_cash_payment, name='delete_member_cash_payment'),
     path('api/sms/inbound/', views_sms.inbound_sms_webhook, name='sms_inbound_webhook'),
     path('api/sms/webhook/', views_sms.inbound_sms_webhook, name='sms_webhook_alias'),
 ]

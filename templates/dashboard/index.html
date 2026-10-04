@@ -1561,6 +1561,215 @@
                 }
             </script>
 
+            <!-- ================= MEMBER SUBSCRIPTION & DUES LEDGER SECTION (COLLAPSIBLE) ================= -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden border-start border-4 border-success bg-white" id="memberSubscriptionSection">
+                <div class="card-header bg-white py-3 px-3 px-md-4 border-0 d-flex justify-content-between align-items-center flex-wrap gap-2"
+                     style="cursor: pointer;"
+                     data-bs-toggle="collapse" 
+                     data-bs-target="#memberSubscriptionCollapse" 
+                     aria-expanded="false" 
+                     aria-controls="memberSubscriptionCollapse"
+                     id="memberSubToggleHeader">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center shadow-xs" style="width: 42px; height: 42px;">
+                            <i class="fas fa-id-card-alt fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <h5 class="card-title fw-bold mb-0 text-dark">
+                                    সদস্য চাঁদা ও বকেয়া লেজার <span class="text-secondary fw-normal fs-6 d-none d-sm-inline">(Member Subscriptions & Dues)</span>
+                                </h5>
+                                <span class="badge bg-light text-secondary border px-2 py-1" style="font-size: 0.72rem;">
+                                    <i class="fas fa-layer-group me-1"></i>খতিয়ান তালিকা
+                                </span>
+                            </div>
+                            <small class="text-muted d-block mt-1">টিম মেম্বার ও স্বেচ্ছাসেবকদের নির্ধারিত মাসিক চাঁদা, আদায় ও বকেয়ার সমন্বিত হিসাব দেখতে ক্লিক করুন</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap" onclick="event.stopPropagation();">
+                        <span class="badge bg-light text-dark border px-2 py-1 shadow-xs fw-semibold" title="মোট নিবন্ধিত সদস্য">
+                            <i class="fas fa-users text-primary me-1"></i>মোট সদস্য: {{ total_subscription_members_count }} জন
+                        </span>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 shadow-xs fw-bold" id="badgeTotalSubscriptionDues" title="মোট বকেয়া পরিমাণ">
+                            <i class="fas fa-exclamation-triangle me-1"></i>মোট বকেয়া: ৳ {{ total_subscription_dues|floatformat:0 }}
+                        </span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 shadow-xs fw-bold" id="badgeTotalSubscriptionPaid" title="সর্বমোট সংগৃহীত সদস্য চাঁদা">
+                            <i class="fas fa-check-circle me-1"></i>মোট আদায়: ৳ {{ total_subscription_collected|floatformat:0 }}
+                        </span>
+                        {% if can_edit_finance %}
+                        <button type="button" class="btn btn-warning text-dark fw-bold btn-sm shadow-xs px-3" onclick="openCashPaymentModal()">
+                            <i class="fas fa-hand-holding-usd me-1"></i> হাতে নগদ এন্ট্রি
+                        </button>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-bold px-2 py-1 d-flex align-items-center gap-1"
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#memberSubscriptionCollapse" 
+                                aria-expanded="false" 
+                                aria-controls="memberSubscriptionCollapse"
+                                id="memberSubToggleBtn"
+                                title="সেকশন খুলুন বা বন্ধ করুন">
+                            <span id="memberSubToggleBtnText">লেজার খুলুন</span>
+                            <i class="fas fa-chevron-down ms-1" id="memberSubToggleChevron"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Collapsible Body (Hidden by default to save space) -->
+                <div class="collapse" id="memberSubscriptionCollapse">
+                    <!-- Filter & Search Toolbar -->
+                <div class="card-body bg-light border-bottom py-3">
+                    <div class="row g-2 align-items-center justify-content-between">
+                        <div class="col-lg-7 d-flex gap-1 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-dark fw-bold member-filter-btn active" data-filter="all" onclick="filterMemberList('all', this)">
+                                সকল সদস্য ({{ total_subscription_members_count }})
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-dark fw-bold member-filter-btn" data-filter="team" onclick="filterMemberList('team', this)">
+                                পরিচালনা পর্ষদ
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-dark fw-bold member-filter-btn" data-filter="volunteer" onclick="filterMemberList('volunteer', this)">
+                                স্বেচ্ছাসেবক
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger fw-bold member-filter-btn" data-filter="due" onclick="filterMemberList('due', this)">
+                                <i class="fas fa-exclamation-circle me-1"></i>বকেয়া রয়েছে ({{ subscription_due_members_count }})
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success fw-bold member-filter-btn" data-filter="paid" onclick="filterMemberList('paid', this)">
+                                পরিশোধিত / অগ্রিম
+                            </button>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="input-group input-group-sm shadow-xs">
+                                <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-search"></i></span>
+                                <input type="text" id="memberSubscriptionSearchInput" class="form-control border-start-0" 
+                                       placeholder="সদস্যের নাম, আইডি (যেমন: HHN...) বা ফোন দিয়ে খুঁজুন..."
+                                       onkeyup="handleMemberSearch(this.value)">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearMemberSearch()" title="সার্চ রিসেট"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member Table -->
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0" id="memberSubscriptionTable">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 25%;">সদস্যের নাম ও পদবি</th>
+                                    <th style="width: 15%;">মেম্বারশিপ আইডি</th>
+                                    <th style="width: 17%;">যোগাযোগ</th>
+                                    <th style="width: 12%;" class="text-center">ধার্য মাসিক চাঁদা</th>
+                                    <th style="width: 13%;" class="text-center">মোট পরিশোধ</th>
+                                    <th style="width: 18%;" class="text-center">বকেয়া / অগ্রিম অবস্থা</th>
+                                    <th style="width: 15%;" class="text-end pe-3">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody id="memberSubscriptionTableBody">
+                                {% for m in member_subscription_list %}
+                                <tr class="member-sub-row" id="memberSubRow_{{ m.member_id }}"
+                                    data-member-id="{{ m.member_id|lower }}"
+                                    data-member-name="{{ m.name|lower }}"
+                                    data-member-phone="{{ m.phone|default:'' }}"
+                                    data-member-role="{{ m.role|lower }}"
+                                    data-is-team="{% if m.is_team %}true{% else %}false{% endif %}"
+                                    data-has-due="{% if m.due_amount > 0 %}true{% else %}false{% endif %}">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if m.photo_url %}
+                                            <img src="{{ m.photo_url }}" class="rounded-circle object-fit-cover shadow-xs border" style="width: 38px; height: 38px;" alt="{{ m.name }}">
+                                            {% else %}
+                                            <div class="rounded-circle bg-light text-secondary border d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; font-size: 1rem;">
+                                                <i class="fas {% if m.is_team %}fa-user-tie text-primary{% else %}fa-user text-secondary{% endif %}"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <a href="javascript:void(0)" onclick="openMemberLedgerModal('{{ m.member_id }}')" class="fw-bold text-dark text-decoration-none d-block lh-sm" title="হিসাব ও লেনদেন বিস্তারিত দেখতে ক্লিক করুন">
+                                                    {{ m.name }}
+                                                </a>
+                                                <span class="badge {% if m.is_team %}bg-primary-subtle text-primary border border-primary-subtle{% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %} mt-1" style="font-size: 0.72rem;">
+                                                    {{ m.role }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border font-monospace py-1 px-2">
+                                            <i class="fas fa-id-badge text-muted me-1"></i>{{ m.member_id }}
+                                        </span>
+                                        <div class="small text-muted mt-1" style="font-size: 0.73rem;">
+                                            {% if m.is_team %}<i class="fas fa-shield-alt text-primary me-1"></i>পরিচালনা পরিষদ{% else %}<i class="fas fa-hands-helping text-success me-1"></i>স্বেচ্ছাসেবক{% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-semibold text-dark">
+                                            <i class="fas fa-phone-alt me-1 text-success"></i>{{ m.phone|default:"-" }}
+                                        </div>
+                                        {% if m.email %}
+                                        <small class="text-muted d-block text-truncate" style="max-width: 160px;" title="{{ m.email }}">
+                                            <i class="fas fa-envelope me-1 text-muted"></i>{{ m.email }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if m.monthly_fee > 0 %}
+                                        <span class="fw-bold text-dark fs-6">৳ {{ m.monthly_fee|floatformat:0 }}</span>
+                                        <small class="text-muted d-block" style="font-size: 0.74rem;">প্রতি মাসে</small>
+                                        {% else %}
+                                        <span class="badge bg-light text-secondary border py-1 px-2">ইচ্ছানুযায়ী</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-success fs-6" id="cellPaid_{{ m.member_id }}">৳ {{ m.total_paid|floatformat:0 }}</span>
+                                        <small class="text-muted d-block" style="font-size: 0.74rem;">{{ m.months_billed }} মাস অতিক্রান্ত</small>
+                                    </td>
+                                    <td class="text-center" id="cellStatus_{{ m.member_id }}">
+                                        {% if m.due_amount > 0 %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle py-1 px-2 fw-bold">
+                                            <i class="fas fa-exclamation-circle me-1"></i>বকেয়া: ৳ {{ m.due_amount|floatformat:0 }}
+                                        </span>
+                                        {% elif m.advance_amount > 0 %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle py-1 px-2 fw-bold">
+                                            <i class="fas fa-check-double me-1"></i>অগ্রিম জমা: ৳ {{ m.advance_amount|floatformat:0 }}
+                                        </span>
+                                        {% elif m.monthly_fee > 0 %}
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle py-1 px-2 fw-bold">
+                                            <i class="fas fa-check-circle me-1"></i>পরিশোধিত
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-light text-muted border py-1 px-2">
+                                            <i class="fas fa-heart text-danger me-1"></i>স্বেচ্ছাসেবী
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-inline-flex gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-primary fw-bold py-1 px-2 shadow-xs" 
+                                                    onclick="openMemberLedgerModal('{{ m.member_id }}')" title="লেজার ও বিস্তারিত হিসাব দেখুন">
+                                                <i class="fas fa-file-invoice-dollar me-1"></i>লেজার
+                                            </button>
+                                            {% if can_edit_finance %}
+                                            <button type="button" class="btn btn-sm btn-success fw-bold py-1 px-2 shadow-xs" 
+                                                    onclick="openCashPaymentModal('{{ m.member_id }}', '{{ m.name|escapejs }}', '{{ m.suggested_amount|default:m.monthly_fee|default:100 }}')" 
+                                                    title="হাতে নগদ চাঁদা/টাকা এন্ট্রি করুন">
+                                                <i class="fas fa-plus me-1"></i>নগদ জমা
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        কোনো সদস্যের তথ্য পাওয়া যায়নি।
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                </div> <!-- End of #memberSubscriptionCollapse -->
+            </div> <!-- End of #memberSubscriptionSection -->
+
             <!-- Program Financial Contributions Section -->
             <div class="card border-0 shadow-sm rounded-3 mb-4">
                 <div
@@ -3273,6 +3482,331 @@
     </div>
 </div>
 
+<!-- ============================================================== -->
+<!-- MEMBER SUBSCRIPTION LEDGER & STATEMENT MODAL                 -->
+<!-- ============================================================== -->
+<div class="modal fade" id="memberSubscriptionLedgerModal" tabindex="-1" aria-labelledby="memberSubLedgerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="modal-header bg-gradient text-white py-3 px-4" 
+                 style="background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div id="modalMemberAvatarContainer">
+                        <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; font-size: 1.3rem;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <h5 class="modal-title fw-bold mb-0 text-white" id="modalMemberName">সদস্যের নাম লোড হচ্ছে...</h5>
+                            <span class="badge bg-warning text-dark font-monospace py-1 px-2" id="modalMemberIdBadge">ID: ...</span>
+                            <span class="badge bg-light text-success fw-bold" id="modalMemberRoleBadge">পদবি</span>
+                        </div>
+                        <div class="small text-white-50 mt-1 d-flex gap-3 flex-wrap">
+                            <span id="modalMemberPhone"><i class="fas fa-phone-alt me-1"></i>-</span>
+                            <span id="modalMemberEmail"><i class="fas fa-envelope me-1"></i>-</span>
+                            <span id="modalMemberJoinDate"><i class="fas fa-calendar-check me-1"></i>যোগদান: -</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 bg-light">
+                <!-- Loading State -->
+                <div id="memberLedgerLoading" class="text-center py-5">
+                    <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">লোড হচ্ছে...</span>
+                    </div>
+                    <p class="text-muted mt-2 fw-semibold">সদস্যের চাঁদা ও আর্থিক লেনদেনের খতিয়ান হিসাব করা হচ্ছে...</p>
+                </div>
+
+                <!-- Main Content (hidden while loading) -->
+                <div id="memberLedgerContent" class="d-none">
+                    
+                    <!-- 4 Summary Metric Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3 col-6">
+                            <div class="card border-0 rounded-3 shadow-xs bg-white p-3 h-100 border-start border-4 border-primary">
+                                <small class="text-muted fw-bold d-block">ধার্য মাসিক চাঁদা</small>
+                                <h4 class="fw-bold text-dark mb-0 mt-1" id="statModalMonthlyFee">৳ 0</h4>
+                                <small class="text-secondary mt-1 d-block" id="statModalMonthsBilled">০ মাস অতিক্রান্ত</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card border-0 rounded-3 shadow-xs bg-white p-3 h-100 border-start border-4 border-info">
+                                <small class="text-muted fw-bold d-block">মোট ধার্যকৃত চাঁদা</small>
+                                <h4 class="fw-bold text-dark mb-0 mt-1" id="statModalTotalBilled">৳ 0</h4>
+                                <small class="text-muted mt-1 d-block">নির্ধারিত মোট দাবি</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card border-0 rounded-3 shadow-xs bg-white p-3 h-100 border-start border-4 border-success">
+                                <small class="text-muted fw-bold d-block">মোট চাঁদা পরিশোধিত</small>
+                                <h4 class="fw-bold text-success mb-0 mt-1" id="statModalTotalPaid">৳ 0</h4>
+                                <small class="text-success mt-1 d-block"><i class="fas fa-check-circle me-1"></i>চাঁদা ফান্ডে জমা</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card border-0 rounded-3 shadow-xs bg-white p-3 h-100" id="statModalDueCard" style="border-left: 4px solid #dc3545;">
+                                <small class="text-muted fw-bold d-block" id="statModalStatusTitle">বর্তমান বকেয়া / অগ্রিম</small>
+                                <h4 class="fw-bold mb-0 mt-1" id="statModalStatusAmount">৳ 0</h4>
+                                <small class="fw-bold mt-1 d-block" id="statModalStatusLabel">-</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Contributions & Total Banner -->
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 p-3 bg-white rounded-3 shadow-xs mb-4 border">
+                        <div>
+                            <span class="text-muted small fw-bold">চাঁদা ব্যতিরেকে অন্যান্য সহায়তা:</span>
+                            <span class="fw-bold text-dark ms-1" id="statModalOtherDonations">৳ 0.00</span>
+                        </div>
+                        <div>
+                            <span class="text-muted small fw-bold">এই সদস্যের সর্বমোট আর্থিক সহায়তা (Grand Total):</span>
+                            <span class="fw-bold text-primary fs-5 ms-1" id="statModalGrandTotal">৳ 0.00</span>
+                        </div>
+                        {% if can_edit_finance %}
+                        <button type="button" class="btn btn-sm btn-outline-success fw-bold" onclick="toggleInlineCashForm()">
+                            <i class="fas fa-hand-holding-usd me-1"></i> <span id="inlineFormToggleText">হাতে নগদ জমা এন্ট্রি ফরম</span>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Inline Cash Payment Form (Collapsible) -->
+                    {% if can_edit_finance %}
+                    <div class="card border-0 shadow-sm rounded-3 mb-4 bg-white border-top border-4 border-success d-none" id="inlineCashFormCard">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold mb-0 text-success">
+                                <i class="fas fa-cash-register me-2"></i>হাতে নগদ চাঁদা / টাকা গ্রহণ এন্ট্রি ফরম
+                            </h6>
+                            <button type="button" class="btn-close" onclick="toggleInlineCashForm()"></button>
+                        </div>
+                        <div class="card-body p-3">
+                            <form id="inlineCashPaymentForm" onsubmit="handleSaveMemberCashPayment(event, this, true)">
+                                {% csrf_token %}
+                                <input type="hidden" name="member_id" id="inlineFormMemberId" value="">
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-dark">টাকার পরিমাণ (BDT) *</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light fw-bold">৳</span>
+                                            <input type="number" step="1" min="1" name="amount" id="inlineFormAmount" required class="form-control fw-bold text-success fs-6" placeholder="500">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-dark">পেমেন্টের তারিখ *</label>
+                                        <input type="date" name="payment_date" id="inlineFormDate" required class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-dark">কোন মাসের চাঁদা / কিসের টাকা *</label>
+                                        <input type="text" name="month_or_purpose" id="inlineFormPurpose" required list="subscriptionPurposeList" class="form-control form-control-sm" placeholder="যেমন: অক্টোবর ২০২৬ চাঁদা">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-dark">খাতের ধরন *</label>
+                                        <select name="category_type" id="inlineFormCategoryType" class="form-select form-select-sm">
+                                            <option value="subscription" selected>সদস্য মাসিক চাঁদা (বকেয়া কমবে)</option>
+                                            <option value="other">চাঁদা ছাড়া অন্য অনুদান / সহায়তা</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-dark">রশিদ / ভাউচার / মেমো নম্বর (ঐচ্ছিক)</label>
+                                        <input type="text" name="receipt_no" class="form-control form-control-sm" placeholder="যেমন: MEMO-1024">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-dark">অতিরিক্ত মন্তব্য / নোট (ঐচ্ছিক)</label>
+                                        <input type="text" name="note" class="form-control form-control-sm" placeholder="কার কাছে জমা দিয়েছেন বা অন্য কোনো তথ্য...">
+                                    </div>
+                                    <div class="col-md-3 d-flex align-items-center pt-3">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" name="send_sms" id="inlineFormSendSms" value="1">
+                                            <label class="form-check-label small fw-bold text-dark" for="inlineFormSendSms">
+                                                <i class="fas fa-sms text-info me-1"></i>এসএমএস রসিদ পাঠান
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3 text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="toggleInlineCashForm()">বাতিল</button>
+                                    <button type="submit" class="btn btn-sm btn-success fw-bold px-4" id="inlineFormSubmitBtn">
+                                        <i class="fas fa-check-circle me-1"></i>জমা নিশ্চিত করুন ও লেজারে যুক্ত করুন
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Payment History Statement Table -->
+                    <div class="card border-0 shadow-sm rounded-3 overflow-hidden bg-white">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">
+                                    <i class="fas fa-history me-1 text-primary"></i>পরিশোধের ইতিহাস ও লেনদেন বিবরণী (Payment Ledger)
+                                </h6>
+                                <small class="text-muted">স্বয়ংক্রিয় গেটওয়ে ও ম্যানুয়াল অনলাইন ভেরিফায়েড লেনদেনগুলো সুরক্ষিত ও অপরিবর্তনীয়</small>
+                            </div>
+                            <span class="badge bg-light text-dark border fw-normal" id="modalPaymentCountBadge">মোট লেনদেন: ০টি</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>তারিখ ও সময়</th>
+                                            <th>বিবরণ ও উদ্দেশ্য (মাস/খাত)</th>
+                                            <th>খাতের ধরন</th>
+                                            <th>পেমেন্ট মাধ্যম & Trx ID</th>
+                                            <th>পরিমাণ (টাকা)</th>
+                                            <th>স্ট্যাটাস</th>
+                                            <th class="text-end pe-3">উৎস & অ্যাকশন</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modalPaymentsTableBody">
+                                        <!-- Rendered by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer bg-white py-2 px-4 border-top">
+                <button type="button" class="btn btn-secondary btn-sm fw-bold" data-bs-dismiss="modal">বন্ধ করুন</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- UNIVERSAL DIRECT CASH PAYMENT MODAL                             -->
+<!-- ============================================================== -->
+<div class="modal fade" id="directCashPaymentModal" tabindex="-1" aria-labelledby="directCashPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-xl rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px;">
+                        <i class="fas fa-hand-holding-usd fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="directCashPaymentModalLabel">হাতে নগদ চাঁদা / টাকা এন্ট্রি করুন</h5>
+                        <small class="text-white-50">সদস্যের থেকে সরাসরি হাতে পাওয়া টাকা এন্ট্রি করে আর্থিক খতিয়ান ও বকেয়ার সাথে সমন্বয় করুন</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="universalCashPaymentForm" onsubmit="handleSaveMemberCashPayment(event, this, false)">
+                {% csrf_token %}
+                <div class="modal-body p-4 bg-light">
+                    <!-- Notice -->
+                    <div class="alert alert-success border-0 rounded-3 small d-flex align-items-start gap-2 mb-3 bg-white shadow-xs">
+                        <i class="fas fa-sync-alt text-success fs-5 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong>সম্পূর্ণ অটো-সিঙ্ক ব্যবস্থা:</strong> হাতে পাওয়া নগদ টাকা এন্ট্রি করার সাথে সাথে সদস্যের বকেয়া হিসাব কমবে, তহবিল লেজারে "আয় (Income)" যোগ হবে এবং বর্তমান ব্যালেন্স স্বয়ংক্রিয়ভাবে আপডেট হয়ে যাবে।
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-3 shadow-xs border mb-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">
+                                কোন সদস্য টাকা দিয়েছেন? (সদস্য নির্বাচন করুন) <span class="text-danger">*</span>
+                            </label>
+                            <select name="member_id" id="directCashMemberSelect" required class="form-select" onchange="handleDirectCashMemberSelectChange(this.value)">
+                                <option value="">-- সদস্য নির্বাচন করুন (নাম, পদবি বা আইডি) --</option>
+                                {% for m in member_subscription_list %}
+                                <option value="{{ m.member_id }}" 
+                                        data-monthly-fee="{{ m.monthly_fee }}"
+                                        data-due-amount="{{ m.due_amount }}"
+                                        data-suggested="{{ m.suggested_amount|default:m.monthly_fee|default:100 }}"
+                                        data-name="{{ m.name|escapejs }}"
+                                        data-role="{{ m.role|escapejs }}"
+                                        data-phone="{{ m.phone|default:'' }}">
+                                    {{ m.name }} — {{ m.role }} [ID: {{ m.member_id }}] {% if m.due_amount > 0 %}(বকেয়া: ৳ {{ m.due_amount|floatformat:0 }}){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="small text-muted mt-1" id="directCashMemberInfoBadge">সদস্য নির্বাচন করলে তার বকেয়া ও নির্ধারিত চাঁদা স্বয়ংক্রিয়ভাবে প্রদর্শিত হবে।</div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">টাকার পরিমাণ (BDT) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light fw-bold fs-5">৳</span>
+                                    <input type="number" step="1" min="1" name="amount" id="directCashAmountInput" required class="form-control form-control-lg fw-bold text-success" placeholder="500">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">পেমেন্ট গ্রহণের তারিখ <span class="text-danger">*</span></label>
+                                <input type="date" name="payment_date" id="directCashDateInput" required class="form-control form-control-lg">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">কোন মাসের চাঁদা বা কিসের টাকা? <span class="text-danger">*</span></label>
+                                <input type="text" name="month_or_purpose" id="directCashPurposeInput" required list="subscriptionPurposeList" class="form-control" placeholder="যেমন: অক্টোবর ২০২৬ চাঁদা / সাধারণ অনুদান">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">খাতের ধরন <span class="text-danger">*</span></label>
+                                <select name="category_type" id="directCashCategoryType" class="form-select">
+                                    <option value="subscription" selected>সদস্য মাসিক চাঁদা (বকেয়া লেজার থেকে বাদ যাবে)</option>
+                                    <option value="other">চাঁদা ছাড়া অন্য অনুদান / সহায়তা (সাধারণ আয় হিসেবে জমা হবে)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">রশিদ / মেমো / মানি রিসিট নম্বর (ঐচ্ছিক)</label>
+                                <input type="text" name="receipt_no" class="form-control" placeholder="যেমন: MR-501">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">অতিরিক্ত মন্তব্য / নোট (ঐচ্ছিক)</label>
+                                <input type="text" name="note" class="form-control" placeholder="টাকা কার হাতে জমা হয়েছে বা প্রাসঙ্গিক বিবরণ...">
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch pt-2 border-top">
+                            <input class="form-check-input" type="checkbox" name="send_sms" id="directCashSendSms" value="1">
+                            <label class="form-check-label fw-bold text-dark" for="directCashSendSms">
+                                <i class="fas fa-sms text-info me-1"></i>সদস্যের মোবাইলে এসএমএস রসিদ ও নিশ্চিতকরণ বার্তা পাঠান
+                            </label>
+                            <small class="text-muted d-block ms-4" style="font-size: 0.76rem;">টিক দিলে সদস্যের ফোনে প্রাপ্ত টাকার পরিমাণ ও মেমোসহ তাৎক্ষণিক এসএমএস চলে যাবে।</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-white py-3 px-4">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4" id="directCashSubmitBtn">
+                        <i class="fas fa-check-circle me-1"></i>নগদ জমা নিশ্চিত করুন ও সেভ করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Datalist for Month/Purpose across all modals -->
+<datalist id="subscriptionPurposeList">
+    <option value="অক্টোবর ২০২৬ চাঁদা">
+    <option value="নভেম্বর ২০২৬ চাঁদা">
+    <option value="ডিসেম্বর ২০২৬ চাঁদা">
+    <option value="বিগত মাসের বকেয়া চাঁদা">
+    <option value="অগ্রিম চাঁদা">
+    <option value="বিশেষ এককালীন চাঁদা">
+    <option value="সাধারণ আর্থিক সহায়তা">
+    <option value="জরুরি তহবিল সহায়তা">
+    <option value="কার্যক্রম অনুদান">
+</datalist>
+
 <!-- Campaign Modal -->
 <div class="modal fade" id="campaignModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -4106,5 +4640,527 @@
             }, 2000);
         });
     }
+
+    // ==============================================================
+    // MEMBER SUBSCRIPTION & DUES LEDGER JAVASCRIPT
+    // ==============================================================
+
+    function filterMemberList(filterType, btnElem) {
+        // Toggle active button style
+        document.querySelectorAll('.member-filter-btn').forEach(btn => {
+            btn.classList.remove('active', 'btn-dark', 'btn-danger', 'btn-success');
+            if (btn.dataset.filter === 'due') {
+                btn.classList.add('btn-outline-danger');
+            } else if (btn.dataset.filter === 'paid') {
+                btn.classList.add('btn-outline-success');
+            } else {
+                btn.classList.add('btn-outline-dark');
+            }
+        });
+
+        btnElem.classList.remove('btn-outline-dark', 'btn-outline-danger', 'btn-outline-success');
+        if (filterType === 'due') {
+            btnElem.classList.add('active', 'btn-danger');
+        } else if (filterType === 'paid') {
+            btnElem.classList.add('active', 'btn-success');
+        } else {
+            btnElem.classList.add('active', 'btn-dark');
+        }
+
+        const rows = document.querySelectorAll('.member-sub-row');
+        rows.forEach(row => {
+            let match = false;
+            if (filterType === 'all') {
+                match = true;
+            } else if (filterType === 'team') {
+                match = (row.dataset.isTeam === 'true');
+            } else if (filterType === 'volunteer') {
+                match = (row.dataset.isTeam === 'false');
+            } else if (filterType === 'due') {
+                match = (row.dataset.hasDue === 'true');
+            } else if (filterType === 'paid') {
+                match = (row.dataset.hasDue === 'false');
+            }
+            row.style.display = match ? '' : 'none';
+        });
+    }
+
+    function handleMemberSearch(query) {
+        const q = (query || '').toLowerCase().trim();
+        const rows = document.querySelectorAll('.member-sub-row');
+        rows.forEach(row => {
+            if (!q) {
+                row.style.display = '';
+                return;
+            }
+            const name = row.dataset.memberName || '';
+            const id = row.dataset.memberId || '';
+            const phone = row.dataset.memberPhone || '';
+            const role = row.dataset.memberRole || '';
+            const match = name.includes(q) || id.includes(q) || phone.includes(q) || role.includes(q);
+            row.style.display = match ? '' : 'none';
+        });
+    }
+
+    function clearMemberSearch() {
+        const input = document.getElementById('memberSubscriptionSearchInput');
+        if (input) input.value = '';
+        handleMemberSearch('');
+    }
+
+    let currentLedgerMemberId = null;
+
+    function openMemberLedgerModal(memberId) {
+        if (!memberId) return;
+        currentLedgerMemberId = memberId;
+
+        const modalEl = document.getElementById('memberSubscriptionLedgerModal');
+        if (!modalEl) return;
+
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.show();
+
+        const loadingDiv = document.getElementById('memberLedgerLoading');
+        const contentDiv = document.getElementById('memberLedgerContent');
+        if (loadingDiv) loadingDiv.classList.remove('d-none');
+        if (contentDiv) contentDiv.classList.add('d-none');
+
+        // Hide inline form by default
+        const inlineFormCard = document.getElementById('inlineCashFormCard');
+        if (inlineFormCard) inlineFormCard.classList.add('d-none');
+        const toggleText = document.getElementById('inlineFormToggleText');
+        if (toggleText) toggleText.innerText = 'হাতে নগদ জমা এন্ট্রি ফরম';
+
+        fetch('/dashboard/ajax/member-ledger/?member_id=' + encodeURIComponent(memberId), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || 'ডাটা লোড করতে ব্যর্থ হয়েছে।');
+                modal.hide();
+                return;
+            }
+
+            renderMemberLedgerData(data);
+
+            if (loadingDiv) loadingDiv.classList.add('d-none');
+            if (contentDiv) contentDiv.classList.remove('d-none');
+        })
+        .catch(err => {
+            console.error('Error fetching member ledger:', err);
+            alert('সার্ভারের সাথে যোগাযোগ করা সম্ভব হয়নি।');
+            modal.hide();
+        });
+    }
+
+    function renderMemberLedgerData(data) {
+        const m = data.member;
+        const s = data.summary;
+
+        // Header info
+        document.getElementById('modalMemberName').innerText = m.name;
+        document.getElementById('modalMemberIdBadge').innerText = 'ID: ' + m.member_id;
+        document.getElementById('modalMemberRoleBadge').innerText = m.role;
+        document.getElementById('modalMemberPhone').innerHTML = '<i class="fas fa-phone-alt me-1"></i>' + (m.phone || 'ফোন নেই');
+        document.getElementById('modalMemberEmail').innerHTML = '<i class="fas fa-envelope me-1"></i>' + (m.email || 'ইমেইল নেই');
+        document.getElementById('modalMemberJoinDate').innerHTML = '<i class="fas fa-calendar-check me-1"></i>নিবন্ধন: ' + (s.join_date || '-');
+
+        // Avatar
+        const avatarContainer = document.getElementById('modalMemberAvatarContainer');
+        if (avatarContainer) {
+            if (m.photo_url) {
+                avatarContainer.innerHTML = '<img src="' + m.photo_url + '" class="rounded-circle object-fit-cover shadow-sm border border-2 border-white" style="width: 48px; height: 48px;" alt="' + m.name + '">';
+            } else {
+                avatarContainer.innerHTML = '<div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; font-size: 1.3rem;"><i class="fas fa-user"></i></div>';
+            }
+        }
+
+        // Metrics
+        document.getElementById('statModalMonthlyFee').innerText = '৳ ' + Math.round(s.monthly_fee || 0);
+        document.getElementById('statModalMonthsBilled').innerText = (s.months_billed || 0) + ' মাস অতিক্রান্ত';
+        document.getElementById('statModalTotalBilled').innerText = '৳ ' + Math.round(s.total_billed || 0);
+        document.getElementById('statModalTotalPaid').innerText = '৳ ' + Math.round(s.total_paid || 0);
+
+        // Due / Advance status card
+        const dueCard = document.getElementById('statModalDueCard');
+        const statusAmount = document.getElementById('statModalStatusAmount');
+        const statusLabel = document.getElementById('statModalStatusLabel');
+        const statusTitle = document.getElementById('statModalStatusTitle');
+
+        if (s.due_amount > 0) {
+            if (dueCard) dueCard.style.borderLeft = '4px solid #dc3545';
+            statusTitle.innerText = 'বর্তমান বকেয়া চাঁদা';
+            statusAmount.className = 'fw-bold text-danger mb-0 mt-1';
+            statusAmount.innerText = '৳ ' + Math.round(s.due_amount);
+            statusLabel.className = 'badge bg-danger text-white mt-1 d-inline-block';
+            statusLabel.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>বকেয়া রয়েছে';
+        } else if (s.advance_amount > 0) {
+            if (dueCard) dueCard.style.borderLeft = '4px solid #198754';
+            statusTitle.innerText = 'অগ্রিম জমা ফান্ড';
+            statusAmount.className = 'fw-bold text-success mb-0 mt-1';
+            statusAmount.innerText = '৳ ' + Math.round(s.advance_amount);
+            statusLabel.className = 'badge bg-success text-white mt-1 d-inline-block';
+            statusLabel.innerHTML = '<i class="fas fa-check-double me-1"></i>অগ্রিম জমা';
+        } else if (s.monthly_fee > 0) {
+            if (dueCard) dueCard.style.borderLeft = '4px solid #0dcaf0';
+            statusTitle.innerText = 'চাঁদা পরিশোধের অবস্থা';
+            statusAmount.className = 'fw-bold text-info mb-0 mt-1';
+            statusAmount.innerText = '৳ 0';
+            statusLabel.className = 'badge bg-info text-dark mt-1 d-inline-block';
+            statusLabel.innerHTML = '<i class="fas fa-check-circle me-1"></i>সম্পূর্ণ পরিশোধিত';
+        } else {
+            if (dueCard) dueCard.style.borderLeft = '4px solid #6c757d';
+            statusTitle.innerText = 'মাসিক চাঁদা প্রতিশ্রুতি';
+            statusAmount.className = 'fw-bold text-muted mb-0 mt-1';
+            statusAmount.innerText = 'ঐচ্ছিক';
+            statusLabel.className = 'badge bg-light text-dark border mt-1 d-inline-block';
+            statusLabel.innerText = 'স্বেচ্ছাসেবী অনুদান';
+        }
+
+        // Additional contributions and grand total
+        document.getElementById('statModalOtherDonations').innerText = '৳ ' + (data.other_donations_total || 0).toFixed(2);
+        document.getElementById('statModalGrandTotal').innerText = '৳ ' + (data.grand_total_paid || 0).toFixed(2);
+
+        // Pre-fill inline cash form
+        const inlineMemberIdInput = document.getElementById('inlineFormMemberId');
+        if (inlineMemberIdInput) inlineMemberIdInput.value = m.member_id;
+
+        const inlineAmountInput = document.getElementById('inlineFormAmount');
+        if (inlineAmountInput) {
+            const suggested = (s.due_amount > 0) ? Math.round(s.due_amount) : (s.monthly_fee > 0 ? Math.round(s.monthly_fee) : 500);
+            inlineAmountInput.value = suggested;
+        }
+
+        const inlineDateInput = document.getElementById('inlineFormDate');
+        if (inlineDateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            inlineDateInput.value = today;
+        }
+
+        const inlinePurposeInput = document.getElementById('inlineFormPurpose');
+        if (inlinePurposeInput) {
+            inlinePurposeInput.value = getDefaultMonthPurpose();
+        }
+
+        // Render payments table
+        const tbody = document.getElementById('modalPaymentsTableBody');
+        const countBadge = document.getElementById('modalPaymentCountBadge');
+        if (countBadge) countBadge.innerText = 'মোট লেনদেন: ' + (data.payments ? data.payments.length : 0) + 'টি';
+
+        if (!data.payments || data.payments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fas fa-receipt me-1"></i>এখনো কোনো পেমেন্ট বা চাঁদা জমা হয়নি।</td></tr>';
+            return;
+        }
+
+        let html = '';
+        data.payments.forEach(p => {
+            let badgeClass = 'bg-secondary';
+            if (p.status === 'approved') badgeClass = 'bg-success';
+            else if (p.status === 'rejected') badgeClass = 'bg-danger';
+            else if (p.status === 'pending') badgeClass = 'bg-warning text-dark';
+
+            let typeBadge = '<span class="badge bg-light text-dark border">' + p.category + '</span>';
+            if (p.donation_type === 'volunteer') {
+                typeBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle">মাসিক চাঁদা</span>';
+            } else if (p.donation_type === 'general') {
+                typeBadge = '<span class="badge bg-info-subtle text-dark border border-info-subtle">সাধারণ অনুদান</span>';
+            }
+
+            let sourceCol = '';
+            if (p.is_cash) {
+                sourceCol = '<div class="d-flex align-items-center justify-content-end gap-1">' +
+                            '<span class="badge bg-success text-white py-1 px-2" style="font-size: 0.72rem;"><i class="fas fa-money-bill-wave me-1"></i>হাতে নগদ</span>';
+                if (p.can_delete) {
+                    sourceCol += '<button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" onclick="handleDeleteMemberCashPayment(' + p.id + ', \'' + m.member_id + '\')" title="ভুল এন্ট্রি হলে মুছুন">' +
+                                 '<i class="fas fa-trash-alt"></i></button>';
+                }
+                sourceCol += '</div>';
+            } else {
+                sourceCol = '<div class="text-end">' +
+                            '<span class="badge bg-light text-secondary border py-1 px-2" style="font-size: 0.72rem;" title="অনলাইন গেটওয়ে বা ব্যাংকের মাধ্যমে স্বয়ংক্রিয় এন্ট্রি যা অপরিবর্তনীয়">' +
+                            '<i class="fas fa-lock text-muted me-1"></i>অনলাইন ভেরিফায়েড</span>' +
+                            '</div>';
+            }
+
+            html += '<tr>' +
+                    '<td><small class="fw-bold text-secondary">' + p.date + '</small></td>' +
+                    '<td><div class="fw-bold text-dark">' + (p.note || p.category) + '</div></td>' +
+                    '<td>' + typeBadge + '</td>' +
+                    '<td><span class="badge bg-info text-dark">' + p.payment_method + '</span>' + 
+                    (p.trx_id && p.trx_id !== '-' ? '<small class="text-secondary d-block font-monospace mt-1">ID: ' + p.trx_id + '</small>' : '') + '</td>' +
+                    '<td><span class="fw-bold text-success fs-6">+ ৳ ' + p.amount.toFixed(2) + '</span></td>' +
+                    '<td><span class="badge ' + badgeClass + '">' + p.status_display + '</span></td>' +
+                    '<td>' + sourceCol + '</td>' +
+                    '</tr>';
+        });
+        tbody.innerHTML = html;
+    }
+
+    function toggleInlineCashForm() {
+        const card = document.getElementById('inlineCashFormCard');
+        const text = document.getElementById('inlineFormToggleText');
+        if (!card) return;
+        if (card.classList.contains('d-none')) {
+            card.classList.remove('d-none');
+            if (text) text.innerText = 'হাতে নগদ ফরম বন্ধ করুন';
+            const amtInput = document.getElementById('inlineFormAmount');
+            if (amtInput) amtInput.focus();
+        } else {
+            card.classList.add('d-none');
+            if (text) text.innerText = 'হাতে নগদ জমা এন্ট্রি ফরম';
+        }
+    }
+
+    function getDefaultMonthPurpose() {
+        const months = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+        const now = new Date();
+        const mName = months[now.getMonth()];
+        const yName = now.getFullYear();
+        return mName + ' ' + yName + ' চাঁদা';
+    }
+
+    function openCashPaymentModal(memberId, memberName, suggestedAmount) {
+        const modalEl = document.getElementById('directCashPaymentModal');
+        if (!modalEl) return;
+
+        const select = document.getElementById('directCashMemberSelect');
+        const amountInput = document.getElementById('directCashAmountInput');
+        const dateInput = document.getElementById('directCashDateInput');
+        const purposeInput = document.getElementById('directCashPurposeInput');
+
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
+        if (purposeInput) {
+            purposeInput.value = getDefaultMonthPurpose();
+        }
+
+        if (memberId && select) {
+            select.value = memberId;
+            handleDirectCashMemberSelectChange(memberId);
+        } else if (select) {
+            select.value = '';
+            const infoBadge = document.getElementById('directCashMemberInfoBadge');
+            if (infoBadge) infoBadge.innerText = 'সদস্য নির্বাচন করলে তার বকেয়া ও নির্ধারিত চাঁদা স্বয়ংক্রিয়ভাবে প্রদর্শিত হবে।';
+        }
+
+        if (suggestedAmount && amountInput) {
+            amountInput.value = Math.round(suggestedAmount);
+        }
+
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    function handleDirectCashMemberSelectChange(memberId) {
+        const select = document.getElementById('directCashMemberSelect');
+        const badge = document.getElementById('directCashMemberInfoBadge');
+        const amountInput = document.getElementById('directCashAmountInput');
+        if (!select) return;
+
+        const selectedOption = select.options[select.selectedIndex];
+        if (!selectedOption || !memberId) {
+            if (badge) badge.innerText = 'সদস্য নির্বাচন করলে তার বকেয়া ও নির্ধারিত চাঁদা স্বয়ংক্রিয়ভাবে প্রদর্শিত হবে।';
+            return;
+        }
+
+        const monthlyFee = parseFloat(selectedOption.dataset.monthlyFee || 0);
+        const dueAmount = parseFloat(selectedOption.dataset.dueAmount || 0);
+        const suggested = parseFloat(selectedOption.dataset.suggested || (dueAmount > 0 ? dueAmount : monthlyFee));
+
+        if (badge) {
+            let msg = 'নির্ধারিত মাসিক চাঁদা: ৳ ' + Math.round(monthlyFee);
+            if (dueAmount > 0) {
+                msg += ' | <span class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-1"></i>বকেয়া: ৳ ' + Math.round(dueAmount) + '</span>';
+            } else {
+                msg += ' | <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>কোনো বকেয়া নেই</span>';
+            }
+            badge.innerHTML = msg;
+        }
+
+        if (amountInput) {
+            amountInput.value = Math.round(suggested > 0 ? suggested : (monthlyFee > 0 ? monthlyFee : 500));
+        }
+    }
+
+    function handleSaveMemberCashPayment(e, formElem, isInsideLedger) {
+        e.preventDefault();
+        const submitBtn = formElem.querySelector('button[type="submit"]');
+        const originalBtnHTML = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>প্রক্রিয়াধীন...';
+        }
+
+        const formData = new FormData(formElem);
+
+        fetch('/dashboard/save-member-cash-payment/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHTML;
+            }
+
+            if (!data.success) {
+                alert(data.message || 'নগদ জমা সংরক্ষণে ত্রুটি হয়েছে।');
+                return;
+            }
+
+            alert(data.message);
+
+            // Update main table row for this member
+            updateMainTableMemberRow(data.member_id, data.summary);
+
+            // Update top dashboard metrics
+            updateTopFinancialCounters(data.total_income, data.net_balance);
+
+            if (isInsideLedger) {
+                // Reload ledger data inside modal
+                openMemberLedgerModal(data.member_id);
+            } else {
+                // Close direct cash modal
+                const directModalEl = document.getElementById('directCashPaymentModal');
+                if (directModalEl) {
+                    const modal = bootstrap.Modal.getInstance(directModalEl);
+                    if (modal) modal.hide();
+                }
+                formElem.reset();
+            }
+        })
+        .catch(err => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHTML;
+            }
+            console.error('Error saving cash payment:', err);
+            alert('সার্ভারের সাথে যোগাযোগে ত্রুটি হয়েছে।');
+        });
+    }
+
+    function handleDeleteMemberCashPayment(paymentId, memberId) {
+        if (!confirm('আপনি কি নিশ্চিতভাবে এই নগদ জমার এন্ট্রিটি মুছে ফেলতে চান? এটি আর্থিক খতিয়ান ও সদস্যের বকেয়া হিসাব থেকে সমন্বয় হয়ে যাবে।')) {
+            return;
+        }
+
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]') ? document.querySelector('input[name="csrfmiddlewaretoken"]').value : '';
+
+        fetch('/dashboard/delete-member-cash-payment/' + paymentId + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || 'মুছে ফেলতে ব্যর্থ হয়েছে।');
+                return;
+            }
+
+            alert(data.message);
+
+            // Update main table row if summary returned
+            if (data.summary && memberId) {
+                updateMainTableMemberRow(memberId, data.summary);
+            }
+
+            // Update top dashboard counters
+            if (data.total_income !== undefined) {
+                updateTopFinancialCounters(data.total_income, data.net_balance);
+            }
+
+            // Reload ledger modal
+            if (memberId) {
+                openMemberLedgerModal(memberId);
+            }
+        })
+        .catch(err => {
+            console.error('Error deleting cash payment:', err);
+            alert('সার্ভারে যোগাযোগ সম্ভব হয়নি।');
+        });
+    }
+
+    function updateMainTableMemberRow(memberId, summary) {
+        if (!memberId || !summary) return;
+        const row = document.getElementById('memberSubRow_' + memberId);
+        if (!row) return;
+
+        // Update dataset
+        row.dataset.hasDue = (summary.due_amount > 0) ? 'true' : 'false';
+
+        // Update Paid Cell
+        const paidCell = document.getElementById('cellPaid_' + memberId);
+        if (paidCell) {
+            paidCell.innerText = '৳ ' + Math.round(summary.total_paid || 0);
+        }
+
+        // Update Status Cell
+        const statusCell = document.getElementById('cellStatus_' + memberId);
+        if (statusCell) {
+            if (summary.due_amount > 0) {
+                statusCell.innerHTML = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle py-1 px-2 fw-bold"><i class="fas fa-exclamation-circle me-1"></i>বকেয়া: ৳ ' + Math.round(summary.due_amount) + '</span>';
+            } else if (summary.advance_amount > 0) {
+                statusCell.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle py-1 px-2 fw-bold"><i class="fas fa-check-double me-1"></i>অগ্রিম জমা: ৳ ' + Math.round(summary.advance_amount) + '</span>';
+            } else if (summary.monthly_fee > 0) {
+                statusCell.innerHTML = '<span class="badge bg-info-subtle text-info border border-info-subtle py-1 px-2 fw-bold"><i class="fas fa-check-circle me-1"></i>পরিশোধিত</span>';
+            } else {
+                statusCell.innerHTML = '<span class="badge bg-light text-muted border py-1 px-2"><i class="fas fa-heart text-danger me-1"></i>স্বেচ্ছাসেবী</span>';
+            }
+        }
+    }
+
+    function updateTopFinancialCounters(totalIncome, netBalance) {
+        if (totalIncome !== undefined) {
+            document.querySelectorAll('h3.fw-bold.mb-0.mt-1').forEach(el => {
+                const parent = el.closest('.card');
+                if (parent && parent.classList.contains('bg-success')) {
+                    el.innerText = '৳ ' + parseFloat(totalIncome).toFixed(2);
+                } else if (parent && parent.classList.contains('bg-primary')) {
+                    if (netBalance !== undefined) {
+                        el.innerText = '৳ ' + parseFloat(netBalance).toFixed(2);
+                    }
+                }
+            });
+        }
+    }
+
+    // Toggle button state listener for Member Subscription Ledger Collapse
+    document.addEventListener('DOMContentLoaded', function() {
+        const subCollapse = document.getElementById('memberSubscriptionCollapse');
+        if (subCollapse) {
+            subCollapse.addEventListener('show.bs.collapse', function() {
+                const btnText = document.getElementById('memberSubToggleBtnText');
+                const chevron = document.getElementById('memberSubToggleChevron');
+                if (btnText) btnText.innerText = 'লেজার বন্ধ করুন';
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+            });
+            subCollapse.addEventListener('hide.bs.collapse', function() {
+                const btnText = document.getElementById('memberSubToggleBtnText');
+                const chevron = document.getElementById('memberSubToggleChevron');
+                if (btnText) btnText.innerText = 'লেজার খুলুন';
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}
