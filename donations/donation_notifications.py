@@ -2,19 +2,21 @@ import logging
 from datetime import datetime
 from django.conf import settings
 from core.email_utils import send_system_email, get_base_url, get_admin_notification_emails
-from core.sms_utils import send_sms
+from core.sms_utils import send_sms, get_admin_phone
 from core.models import SiteSetting
 
 logger = logging.getLogger(__name__)
 
 def get_admin_contact_info():
     """Returns primary helpline phone and email from SiteSetting or fallback"""
-    phone = '01748470965'
-    email = 'helplinehellonaogaon@gmail.com'
+    phone = get_admin_phone()
+    email = 'hello.naogaon@gmail.com'
     try:
         setting = SiteSetting.objects.first()
         if setting:
-            if setting.contact_phone:
+            if setting.admin_phone:
+                phone = setting.admin_phone
+            elif setting.contact_phone:
                 phone = setting.contact_phone
             if setting.contact_email:
                 email = setting.contact_email
@@ -28,7 +30,7 @@ def notify_admin_new_manual_donation(donation, request=None):
     Dispatches instant SMS and Email notifications to Admin(s)
     whenever a user/member submits a manual donation (bKash/Nagad/Rocket/Bank) for approval.
     """
-    admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', None) or '01748470965'
+    admin_phone = get_admin_phone()
     base_url = get_base_url(request)
     contact_phone, _ = get_admin_contact_info()
 

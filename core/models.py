@@ -23,7 +23,13 @@ class SiteSetting(models.Model):
 
     # Contact & Social Media
     contact_email = models.EmailField(blank=True, default='hello.naogaon@gmail.com')
-    contact_phone = models.CharField(max_length=50, blank=True, default='+880 1730-XXXXXX')
+    contact_phone = models.CharField(max_length=50, blank=True, default='01916314315')
+    admin_phone = models.CharField(
+        max_length=50, 
+        blank=True, 
+        default='01916314315',
+        help_text="প্রধান অফিশিয়াল অ্যাডমিন নম্বর (সকল অ্যালার্ট SMS, ফিরতি মেসেজ ও ওয়েবসাইটে সিঙ্ক থাকবে)"
+    )
     contact_address = models.TextField(blank=True, default='Helpline Hello Naogaon Public Library, মহাদেবপুর, নওগাঁ - ৬৬০০')
     facebook_url = models.URLField(blank=True, default='https://facebook.com/hello.naogaon')
     youtube_url = models.URLField(blank=True, default='')

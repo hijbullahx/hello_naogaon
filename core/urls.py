@@ -69,6 +69,7 @@ urlpatterns = [
     path('dashboard/print-statement/', views_dashboard.print_financial_statement, name='print_statement'),
     path('dashboard/save-gallery/', views_dashboard.save_gallery_photo, name='save_gallery'),
     path('dashboard/update-footer/', views_dashboard.update_footer_section, name='update_footer'),
+    path('dashboard/update-master-admin-phone/', views_dashboard.update_master_admin_phone, name='update_master_admin_phone'),
     path('dashboard/approve-donation/<int:pk>/', views_dashboard.approve_program_donation, name='approve_donation'),
     path('dashboard/reject-donation/<int:pk>/', views_dashboard.reject_program_donation, name='reject_donation'),
     path('dashboard/delete-donation/<int:pk>/', views_dashboard.delete_program_donation, name='delete_donation'),

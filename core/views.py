@@ -192,15 +192,17 @@ def submit_complaint(request):
     except Exception:
         pass
 
+    from core.sms_utils import send_sms, get_admin_phone
+    admin_phone = get_admin_phone()
+
     # Dispatch SMS to Complainant
-    sms_text = f"[Helpline Hello Naogaon] আপনার তথ্য/আবেদন সফলভাবে গৃহীত হয়েছে। ট্র্যাকিং নং: {complaint_no}। তথ্যের গোপনীয়তা রক্ষা করা হবে। প্রয়োজনে: 01916314315"
+    sms_text = f"[Helpline Hello Naogaon] আপনার তথ্য/আবেদন সফলভাবে গৃহীত হয়েছে। ট্র্যাকিং নং: {complaint_no}। তথ্যের গোপনীয়তা রক্ষা করা হবে। প্রয়োজনে: {admin_phone}"
     try:
         send_sms(phone, sms_text)
     except Exception:
         pass
 
     # Dispatch Notification SMS to Admin SIM
-    admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
     if admin_phone:
         try:
             admin_sms = f"[Helpline Hello Naogaon] নতুন নাগরিক বার্তা! বিষয়: {subject_type}। ট্র্যাকিং: {complaint_no}। প্রেরক: {phone}। ইমেইল চেক করুন।"

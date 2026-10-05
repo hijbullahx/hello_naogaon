@@ -48,20 +48,38 @@ def clean_bd_phone_number(phone_number, with_country_code=False):
     
     return digits
 
+def get_admin_phone():
+    """
+    Returns the master admin/helpline phone number configured in SiteSetting.
+    Falls back to settings.SMS_ADMIN_ALERT_PHONE or '01916314315'.
+    """
+    try:
+        from core.models import SiteSetting
+        setting = SiteSetting.objects.first()
+        if setting:
+            if setting.admin_phone and setting.admin_phone.strip():
+                return clean_bd_phone_number(setting.admin_phone.strip())
+            if setting.contact_phone and setting.contact_phone.strip():
+                return clean_bd_phone_number(setting.contact_phone.strip())
+    except Exception:
+        pass
+    fallback = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', os.environ.get('SMS_ADMIN_ALERT_PHONE', '01916314315'))
+    return clean_bd_phone_number(fallback) if fallback else '01916314315'
+
+
 ALERT_TIERS = [10.0, 8.0, 5.0, 4.0, 3.0, 2.0, 1.0]
 
 def evaluate_low_balance_alert(balance_val):
     """
     Checks if balance has dropped below warning tiers (10, 8, 5, 4, 3, etc.).
-    Sends an alert SMS to admin phone (01916314315) without spamming repeatedly
-    for the same tier.
+    Sends an alert SMS to admin phone without spamming repeatedly for the same tier.
     """
     try:
         current_bal = float(balance_val)
     except (TypeError, ValueError):
         return
 
-    admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', os.environ.get('SMS_ADMIN_ALERT_PHONE', '01916314315'))
+    admin_phone = get_admin_phone()
     if not admin_phone:
         return
 

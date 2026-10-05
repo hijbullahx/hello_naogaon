@@ -3,7 +3,7 @@ import json
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from core.sms_utils import send_sms, clean_bd_phone_number
+from core.sms_utils import send_sms, clean_bd_phone_number, get_admin_phone
 from core.email_utils import send_system_email, get_admin_notification_emails
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ def inbound_sms_webhook(request):
 
     sender = sender or 'Unknown'
     clean_sender = clean_bd_phone_number(sender) or sender
-    admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
+    admin_phone = get_admin_phone()
 
     logger.info(f"[INBOUND SMS RECEIVED] From: {clean_sender} | Content: {message}")
 

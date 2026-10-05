@@ -1,6 +1,9 @@
 import os
+import logging
 from datetime import date, datetime
 from django.shortcuts import render, redirect, get_object_or_404
+
+logger = logging.getLogger(__name__)
 from django.http import JsonResponse, HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -446,11 +449,13 @@ def update_hero_section(request):
         setting.hero_subtitle = request.POST.get('hero_subtitle', setting.hero_subtitle)
         setting.title = request.POST.get('title', setting.title)
         setting.tagline = request.POST.get('tagline', setting.tagline)
-        setting.contact_phone = request.POST.get('contact_phone', setting.contact_phone)
+        if 'contact_phone' in request.POST and request.POST.get('contact_phone', '').strip():
+            setting.contact_phone = request.POST.get('contact_phone').strip()
         setting.contact_email = request.POST.get('contact_email', setting.contact_email)
         setting.facebook_url = request.POST.get('facebook_url', setting.facebook_url)
         setting.youtube_url = request.POST.get('youtube_url', setting.youtube_url)
-        setting.whatsapp_number = request.POST.get('whatsapp_number', setting.whatsapp_number)
+        if 'whatsapp_number' in request.POST and request.POST.get('whatsapp_number', '').strip():
+            setting.whatsapp_number = request.POST.get('whatsapp_number').strip()
 
         if 'logo' in request.FILES:
             if not validate_image_size(request, request.FILES['logo'], max_kb=300, field_name='লোগো ছবি'):
@@ -2124,13 +2129,77 @@ def update_footer_section(request):
         setting, _ = SiteSetting.objects.get_or_create(pk=1)
         setting.footer_about = request.POST.get('footer_about', setting.footer_about)
         setting.contact_address = request.POST.get('contact_address', setting.contact_address)
-        setting.contact_phone = request.POST.get('contact_phone', setting.contact_phone)
+        if 'contact_phone' in request.POST and request.POST.get('contact_phone', '').strip():
+            setting.contact_phone = request.POST.get('contact_phone').strip()
         setting.contact_email = request.POST.get('contact_email', setting.contact_email)
         setting.trade_license_number = request.POST.get('trade_license_number', setting.trade_license_number)
         setting.google_map_embed_url = request.POST.get('google_map_embed_url', setting.google_map_embed_url)
         setting.save()
         messages.success(request, 'ফুটার ও যোগাযোগের তথ্য আপডেট হয়েছে!')
     return redirect('/dashboard/?tab=home-section')
+
+
+@staff_member_required
+def update_master_admin_phone(request):
+    """
+    Updates the master admin & hotline phone number from the top of the admin panel.
+    Synchronizes across SiteSetting (admin_phone, contact_phone, whatsapp_number),
+    ensuring all admin alert SMS, return messages, home page, navbar, and footer sync to this number.
+    Sends a 1-line confirmation SMS to the newly added admin phone number.
+    """
+    if not can_user_edit_general(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': 'এই নম্বর পরিবর্তনের অনুমতি শুধুমাত্র অনুমোদিত অ্যাডমিনের রয়েছে।'}, status=403)
+        messages.warning(request, "এই নম্বর পরিবর্তনের অনুমতি শুধুমাত্র অনুমোদিত অ্যাডমিনের রয়েছে।")
+        return redirect("/dashboard/")
+
+    if request.method == 'POST':
+        raw_phone = request.POST.get('admin_phone', '').strip()
+        if not raw_phone:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'সঠিক মোবাইল নম্বর লিখুন।'}, status=400)
+            messages.error(request, 'সঠিক মোবাইল নম্বর লিখুন।')
+            return redirect("/dashboard/")
+
+        from core.sms_utils import clean_bd_phone_number, send_sms
+        clean_phone = clean_bd_phone_number(raw_phone)
+        if not clean_phone or len(clean_phone) < 11:
+            clean_phone = raw_phone
+
+        setting, _ = SiteSetting.objects.get_or_create(pk=1)
+        setting.admin_phone = clean_phone
+        setting.contact_phone = clean_phone
+        if len(clean_phone) == 11 and clean_phone.startswith('01'):
+            setting.whatsapp_number = clean_phone
+        setting.save()
+
+        # Send short one-line confirmation SMS to the newly set admin number
+        sms_sent = False
+        try:
+            sms_text = f"[Helpline Hello Naogaon] এই নম্বরটি হেল্পলাইন হ্যালো নওগাঁর প্রধান অফিশিয়াল অ্যাডমিন নম্বর হিসেবে যুক্ত করা হলো।"
+            sms_sent = send_sms(clean_phone, sms_text, is_alert=True)
+        except Exception as e:
+            logger.error(f"[MASTER ADMIN SMS ERROR] {e}")
+
+        success_msg = f"প্রধান অ্যাডমিন ও হটলাইন নম্বর সফলভাবে আপডেট হয়েছে ({clean_phone}) এবং ওয়েবসাইটে সিঙ্ক করা হয়েছে।"
+        if sms_sent:
+            success_msg += " উক্ত নম্বরে নিশ্চিতকরণ এসএমএস পাঠানো হয়েছে।"
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({
+                'success': True,
+                'message': success_msg,
+                'admin_phone': clean_phone,
+                'phone': clean_phone,
+                'sms_sent': sms_sent
+            })
+
+        messages.success(request, success_msg)
+        return redirect("/dashboard/")
+
+    return redirect("/dashboard/")
+
+
 import openpyxl
 from django.http import HttpResponse
 

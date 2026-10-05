@@ -152,8 +152,9 @@ def forgot_password_view(request):
         user_phone = getattr(user, 'phone', None) or getattr(getattr(user, 'team_profile', None), 'phone', None) or getattr(getattr(user, 'volunteer_profile', None), 'phone', None)
         if user_phone:
             try:
-                from core.sms_utils import send_sms
-                otp_sms = f"[Helpline Hello Naogaon] আপনার পাসওয়ার্ড রিসেট ওটিপি কোড: {otp_code}। মেয়াদ ১০ মিনিট। কাউকে শেয়ার করবেন না। প্রয়োজনে: 01916314315"
+                from core.sms_utils import send_sms, get_admin_phone
+                admin_phone = get_admin_phone()
+                otp_sms = f"[Helpline Hello Naogaon] আপনার পাসওয়ার্ড রিসেট ওটিপি কোড: {otp_code}। মেয়াদ ১০ মিনিট। কাউকে শেয়ার করবেন না। প্রয়োজনে: {admin_phone}"
                 send_sms(user_phone, otp_sms)
             except Exception:
                 pass

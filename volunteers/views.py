@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.conf import settings
 from core.email_utils import send_system_email, get_admin_notification_emails
-from core.sms_utils import send_sms
+from core.sms_utils import send_sms, get_admin_phone
 from .models import Volunteer, TeamMember, BloodDonor
 
 def send_member_notifications(volunteer):
@@ -49,8 +49,9 @@ def send_member_notifications(volunteer):
             fail_silently=True,
         )
 
+    admin_phone = get_admin_phone()
     if volunteer.phone:
-        sms_text = f"[Helpline Hello Naogaon] {volunteer.full_name}, আপনার সদস্য নিবন্ধন সফল হয়েছে। সদস্য আইডি: {volunteer.member_id}{sms_contrib}। প্রয়োজনে: 01916314315"
+        sms_text = f"[Helpline Hello Naogaon] {volunteer.full_name}, আপনার সদস্য নিবন্ধন সফল হয়েছে। সদস্য আইডি: {volunteer.member_id}{sms_contrib}। প্রয়োজনে: {admin_phone}"
         try:
             send_sms(volunteer.phone, sms_text)
         except Exception as e:
@@ -76,7 +77,6 @@ def send_member_notifications(volunteer):
     except Exception as e:
         print(f"[ADMIN VOLUNTEER EMAIL NOTIFY ERROR] {e}")
 
-    admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
     if admin_phone:
         try:
             admin_sms = f"[Helpline Hello Naogaon] নতুন সদস্য যুক্ত হয়েছেন: {volunteer.full_name}, মোবাইল: {volunteer.phone}, রক্ত: {volunteer.blood_group}। আইডি: {volunteer.member_id}।"
@@ -299,7 +299,7 @@ def apply_volunteer(request):
                 )
 
                 # Send Alert to Admin for Manual Verification
-                admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
+                admin_phone = get_admin_phone()
                 if admin_phone:
                     try:
                         admin_sms = f"[Helpline Hello Naogaon] নতুন সদস্য আবেদন জমা হয়েছে: {full_name}, ফোন: {phone}, মাধ্যম: {manual_channel}, প্রেরক নং: {sender_account}। এডমিন প্যানেল থেকে অনুমোদন করুন।"
@@ -568,7 +568,7 @@ def team_invite_register(request, token):
                     print(f"[TEAM MEMBER EMAIL ERROR] {ex}")
 
             # 3. Send Notification to Admin (SMS & Email)
-            admin_phone = getattr(settings, 'SMS_ADMIN_ALERT_PHONE', '01916314315')
+            admin_phone = get_admin_phone()
             if admin_phone:
                 try:
                     send_sms(admin_phone, f"[Helpline Hello Naogaon] নতুন টিম মেম্বার যুক্ত হয়েছেন: {tm.name}, পদবি: {tm.effective_role}, আইডি: {tm.member_id}, ফোন: {tm.phone}।", is_alert=True)
