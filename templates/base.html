@@ -74,20 +74,30 @@
 
     <!-- Top Bar -->
     <div class="top-bar py-1">
-        <div class="container d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-3 align-items-center">
-                <span><i class="fas fa-phone-alt me-1"></i> {{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</span>
-                <span class="d-none d-sm-inline"><i class="fas fa-envelope me-1"></i> {{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</span>
-                <a href="{% url 'core:emergency_services' %}" class="badge bg-danger text-white text-decoration-none px-2 py-1 rounded-pill d-none d-md-inline-flex align-items-center gap-1 shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <!-- Left: Social Links, Contact & Emergency -->
+            <div class="d-flex gap-3 align-items-center flex-wrap">
+                <div class="social-links d-flex gap-2 align-items-center">
+                    {% if site_setting.facebook_url %}<a href="{{ site_setting.facebook_url }}" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>{% endif %}
+                    {% if site_setting.whatsapp_number %}<a href="https://wa.me/{{ site_setting.whatsapp_number }}" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>{% endif %}
+                    {% if site_setting.youtube_url %}<a href="{{ site_setting.youtube_url }}" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>{% endif %}
+                </div>
+                <span class="text-white-50 opacity-25 d-none d-sm-inline">|</span>
+                <span class="d-none d-sm-inline"><i class="fas fa-phone-alt me-1"></i> {{ site_setting.contact_phone|default:"+880 1730-XXXXXX" }}</span>
+                <span class="d-none d-md-inline"><i class="fas fa-envelope me-1"></i> {{ site_setting.contact_email|default:"hello.naogaon@gmail.com" }}</span>
+                <a href="{% url 'core:emergency_services' %}" class="badge bg-danger text-white text-decoration-none px-2 py-1 rounded-pill d-none d-lg-inline-flex align-items-center gap-1 shadow-sm">
                     <i class="fas fa-phone-volume"></i> <span>জাতীয় জরুরি সেবা (৯৯৯ / ৩৩৩)</span>
                 </a>
             </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="social-links d-flex gap-2">
-                    {% if site_setting.facebook_url %}<a href="{{ site_setting.facebook_url }}" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>{% endif %}
-                    {% if site_setting.youtube_url %}<a href="{{ site_setting.youtube_url }}" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>{% endif %}
-                    {% if site_setting.whatsapp_number %}<a href="https://wa.me/{{ site_setting.whatsapp_number }}" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>{% endif %}
-                </div>
+
+            <!-- Right: Developed by Credit -->
+            <div class="d-flex align-items-center">
+                <span class="d-inline-flex align-items-center gap-1 text-white-50" style="font-size: 0.8rem;">
+                    <span>Developed by</span>
+                    <a href="https://hijbullah.me/" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-bold" style="color: #6ee7b7;" title="Developer Portfolio">
+                        <i class="fas fa-code me-1 text-warning"></i>Md. Taher Bin Omar Hijbullah
+                    </a>
+                </span>
             </div>
         </div>
     </div>
@@ -203,6 +213,14 @@
                     <i class="fas fa-sign-in-alt me-1"></i> <span data-i18n="nav.login">লগইন</span>
                 </a>
                 {% endif %}
+
+                <!-- Mobile Navigation Developer Link -->
+                <div class="d-lg-none text-center pt-3 mt-3 border-top small text-muted w-100">
+                    Developed by 
+                    <a href="https://hijbullah.me/" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none fw-bold">
+                        <i class="fas fa-code me-1"></i>Md. Taher Bin Omar Hijbullah
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
