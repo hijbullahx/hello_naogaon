@@ -35,6 +35,7 @@ from .gateway import (
     verify_paymently_payment,
     get_paymently_config,
     get_paystation_config,
+    get_paystation_dashboard_data,
     initiate_payment_gateway_session,
     validate_gateway_payment
 )
@@ -827,3 +828,45 @@ def submit_program_donation(request):
     Handles financial contributions submitted for specific programs.
     """
     return initiate_payment(request)
+
+
+def api_paystation_dashboard(request):
+    """
+    AJAX endpoint for PayStation Merchant Gateway dashboard popup.
+    Provides live statistics, method breakdown, and recent transactions.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
+
+    try:
+        data = get_paystation_dashboard_data()
+        return JsonResponse({
+            'success': True,
+            'data': data
+        })
+    except Exception as e:
+        logger.error(f"Error fetching PayStation dashboard data: {e}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+def api_paystation_verify_trx(request):
+    """
+    AJAX endpoint to live-query PayStation Transaction Status API for a single invoice.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
+
+    invoice_number = request.GET.get('invoice_number', '').strip()
+    if not invoice_number:
+        return JsonResponse({'success': False, 'error': 'No invoice number provided'}, status=400)
+
+    try:
+        result = verify_paystation_payment(invoice_number)
+        return JsonResponse({
+            'success': True,
+            'result': result
+        })
+    except Exception as e:
+        logger.error(f"PayStation live verification error for {invoice_number}: {e}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+

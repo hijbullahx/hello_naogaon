@@ -385,6 +385,15 @@ def dashboard_home(request):
             total_subscription_dues += sub['due_amount']
             subscription_due_members_count += 1
 
+    # PayStation Merchant Gateway Dashboard Data
+    paystation_data = None
+    if can_edit_all or can_edit_finance:
+        try:
+            from donations.gateway import get_paystation_dashboard_data
+            paystation_data = get_paystation_dashboard_data()
+        except Exception as e:
+            logger.warning(f"Error loading PayStation dashboard data: {e}")
+
     context = {
         'site_setting': site_setting,
         'stat_counters': stat_counters,
@@ -404,6 +413,7 @@ def dashboard_home(request):
         'impacts': impacts,
         'faqs': faqs,
         'transactions': transactions,
+        'paystation_data': paystation_data,
         'program_donations': ProgramDonation.objects.filter(
             Q(status='approved') | 
             Q(status='rejected') | 

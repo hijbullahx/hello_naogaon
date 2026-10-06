@@ -19,4 +19,6 @@ urlpatterns = [
     path('program-donation/', views.submit_program_donation, name='program_donation'),
     path('api/member-pledge/', views.member_pledge_lookup, name='member_pledge_lookup'),
     path('api/members-search/', views.api_members_search, name='api_members_search'),
+    path('api/paystation-dashboard/', views.api_paystation_dashboard, name='api_paystation_dashboard'),
+    path('api/paystation-verify/', views.api_paystation_verify_trx, name='api_paystation_verify'),
 ]

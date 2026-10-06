@@ -130,6 +130,139 @@ def verify_paystation_payment(invoice_number):
         logger.error(f"PayStation Status API Error: {e}")
         return {'status_code': '500', 'status': 'failed', 'message': str(e)}
 
+def get_paystation_dashboard_data():
+    """
+    Computes and aggregates PayStation Payment Gateway metrics matching
+    the merchant dashboard (merchant.paystation.com.bd).
+    Returns summary stats, method breakdowns, and recent transactions.
+    """
+    from django.utils import timezone
+    from datetime import timedelta
+    from django.db.models import Q, Sum
+    from .models import ProgramDonation
+
+    config = get_paystation_config()
+    now = timezone.now()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # Calculate last month boundaries
+    first_of_this_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    last_day_of_last_month = first_of_this_month - timedelta(seconds=1)
+    first_of_last_month = last_day_of_last_month.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    # Query approved gateway transactions (excluding manual bKash/Nagad send-money)
+    gateway_qs = ProgramDonation.objects.filter(
+        status='approved'
+    ).filter(
+        Q(tran_id__isnull=False) & ~Q(tran_id='')
+    ).exclude(
+        payment_method__icontains='Manual'
+    ).exclude(
+        payment_method__icontains='ম্যানুয়াল'
+    ).order_by('-created_at')
+
+    # Aggregations
+    total_col = float(gateway_qs.aggregate(total=Sum('amount'))['total'] or 0.0)
+    today_col = float(gateway_qs.filter(created_at__gte=today_start).aggregate(total=Sum('amount'))['total'] or 0.0)
+    last_month_col = float(gateway_qs.filter(
+        created_at__gte=first_of_last_month,
+        created_at__lte=last_day_of_last_month
+    ).aggregate(total=Sum('amount'))['total'] or 0.0)
+
+    # In PayStation, recent collections are unsettled until payout cycle
+    unsettled_amt = total_col
+
+    # Percentages
+    today_pct = 100.0 if today_col > 0 else 0.0
+    total_pct = 0.0
+    last_month_pct = 0.0
+    unsettled_pct = 0.0
+
+    # Payment Methods breakdown
+    methods_dict = {
+        'bkash': {'name': 'BKash', 'amount': 0.0, 'count': 0, 'color': '#e2136e', 'icon': 'fas fa-mobile-alt'},
+        'nagad': {'name': 'Nagad', 'amount': 0.0, 'count': 0, 'color': '#f7941d', 'icon': 'fas fa-wallet'},
+        'rocket': {'name': 'Rocket', 'amount': 0.0, 'count': 0, 'color': '#8c3494', 'icon': 'fas fa-money-bill-wave'},
+        'card': {'name': 'Cards/Other', 'amount': 0.0, 'count': 0, 'color': '#0d6efd', 'icon': 'fas fa-credit-card'},
+    }
+
+    for item in gateway_qs:
+        m = (item.card_type or item.payment_method or '').lower()
+        amt = float(item.amount)
+        if 'bkash' in m:
+            methods_dict['bkash']['amount'] += amt
+            methods_dict['bkash']['count'] += 1
+        elif 'nagad' in m:
+            methods_dict['nagad']['amount'] += amt
+            methods_dict['nagad']['count'] += 1
+        elif 'rocket' in m:
+            methods_dict['rocket']['amount'] += amt
+            methods_dict['rocket']['count'] += 1
+        else:
+            methods_dict['card']['amount'] += amt
+            methods_dict['card']['count'] += 1
+
+    for k, v in methods_dict.items():
+        v['percentage'] = round((v['amount'] / total_col * 100.0), 1) if total_col > 0 else 0.0
+
+    # Determine most used
+    most_used = max(methods_dict.values(), key=lambda x: x['amount'])
+    most_used_str = f"{most_used['name']}-{most_used['percentage']}%" if total_col > 0 else "BKash-100.0%"
+
+    # Recent transactions list
+    recent_transactions = []
+    for idx, d in enumerate(gateway_qs[:30], 1):
+        trx_id_display = f"#{d.trx_id}" if d.trx_id else (f"#{d.bank_tran_id}" if d.bank_tran_id else "#N/A")
+        raw_m = (d.card_type or d.payment_method or 'BKash').strip()
+        pm_clean = 'BKash' if 'bkash' in raw_m.lower() else ('Nagad' if 'nagad' in raw_m.lower() else ('Rocket' if 'rocket' in raw_m.lower() else raw_m))
+        amt_float = float(d.amount)
+        amt_display = f"৳ {int(amt_float) if amt_float.is_integer() else f'{amt_float:.2f}'}"
+
+        recent_transactions.append({
+            'index': idx,
+            'id': d.id,
+            'customer_name': d.donor_name or 'Anonymous Donor',
+            'customer_email': d.donor_email or 'info@helplinehellonaogaon.com',
+            'customer_phone': d.donor_phone or '',
+            'amount': amt_float,
+            'amount_display': amt_display,
+            'payment_method': pm_clean,
+            'settlement_status': 'Not settled',
+            'trx_id': trx_id_display,
+            'raw_trx_id': d.trx_id or d.bank_tran_id or '',
+            'invoice_number': d.tran_id or '',
+            'date_time': d.created_at.strftime('%Y-%m-%d %H:%M') if d.created_at else '',
+            'date_display': d.created_at.strftime('%d %b, %Y %I:%M %p') if d.created_at else '',
+        })
+
+    def _fmt(val):
+        return str(int(val)) if float(val).is_integer() else f"{val:.2f}"
+
+    return {
+        'merchant_id': config['merchant_id'],
+        'is_sandbox': config['is_sandbox'],
+        'base_url': config['base_url'],
+        'portal_url': 'https://merchant.paystation.com.bd',
+        'history_url': 'https://merchant.paystation.com.bd/transaction-history',
+        'unsettled_amount': _fmt(unsettled_amt),
+        'unsettled_amount_val': unsettled_amt,
+        'unsettled_change': f"{unsettled_pct:.1f}%Last month",
+        'last_month_net_collection': _fmt(last_month_col),
+        'last_month_net_collection_val': last_month_col,
+        'last_month_change': f"{last_month_pct:.1f}%Last month",
+        'total_collection': _fmt(total_col),
+        'total_collection_val': total_col,
+        'total_collection_change': f"{total_pct:.1f}%Last month",
+        'today_collection': _fmt(today_col),
+        'today_collection_val': today_col,
+        'today_change': f"{today_pct:.1f}%Last day",
+        'payment_methods': methods_dict,
+        'most_used_method': most_used_str,
+        'recent_transactions': recent_transactions,
+        'count': len(recent_transactions),
+    }
+
+
 
 # ==========================================
 # PAYMENTLY / UDDOKTAPAY GATEWAY

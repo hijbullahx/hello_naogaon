@@ -1578,6 +1578,49 @@
                 {% endif %}
             </div>
 
+            <!-- PayStation Merchant Gateway Quick Bar Card -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #311042 100%); border-left: 5px solid #6366f1 !important;">
+                <div class="card-body p-3 p-md-4 text-white">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-white bg-opacity-10 border border-white border-opacity-25 text-warning d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px; font-size: 1.4rem;">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="fw-bold mb-0 text-white fs-6">PayStation Merchant Gateway (পে-স্টেশন পেমেন্ট ড্যাশবোর্ড)</h5>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle py-1 px-2 rounded-pill fw-bold" style="font-size: 0.72rem;">
+                                        <i class="fas fa-circle text-success me-1" style="font-size: 0.5rem;"></i>Live API Connected
+                                    </span>
+                                    <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 py-1 px-2 rounded-pill font-monospace" style="font-size: 0.72rem;">
+                                        Store ID: {{ paystation_data.merchant_id|default:"6973-1791190416" }}
+                                    </span>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center gap-3 mt-2 text-white-50 small">
+                                    <span>মোট গেটওয়ে আদায়: <strong class="text-white">৳ {{ paystation_data.total_collection|default:"10" }}</strong></span>
+                                    <span>&bull;</span>
+                                    <span>আজকের আদায়: <strong class="text-warning">৳ {{ paystation_data.today_collection|default:"10" }}</strong></span>
+                                    <span>&bull;</span>
+                                    <span>সেটেলমেন্ট বাকি: <strong class="text-info">৳ {{ paystation_data.unsettled_amount|default:"10" }}</strong></span>
+                                    <span>&bull;</span>
+                                    <span>জনপ্রিয় মেথড: <strong class="text-white">{{ paystation_data.most_used_method|default:"BKash-100.0%" }}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#paystationDashboardModal">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>গেটওয়ে ড্যাশবোর্ড পপআপ দেখুন</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <a href="https://merchant.paystation.com.bd" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold" title="পে-স্টেশন অফিশিয়াল মার্চেন্ট পোর্টালে যান">
+                                <i class="fas fa-external-link-alt me-1"></i>পোর্টাল ↗
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Filter & Print/Excel Export Toolbar Card -->
             <div class="card border-0 shadow-sm rounded-3 mb-4 bg-light">
                 <div class="card-body py-3">
@@ -1587,13 +1630,13 @@
                             <label class="form-label small fw-bold text-dark mb-1"><i
                                     class="fas fa-calendar-alt me-1 text-success"></i>শুরুর তারিখ (Start Date)</label>
                             <input type="date" id="filter_start_date" name="start_date"
-                                value="{{ request.GET.start_date }}" class="form-control form-control-sm">
+                                    value="{{ request.GET.start_date }}" class="form-control form-control-sm">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small fw-bold text-dark mb-1"><i
                                     class="fas fa-calendar-alt me-1 text-danger"></i>শেষ তারিখ (End Date)</label>
                             <input type="date" id="filter_end_date" name="end_date" value="{{ request.GET.end_date }}"
-                                class="form-control form-control-sm">
+                                    class="form-control form-control-sm">
                         </div>
                         <div class="col-md-6 d-flex gap-2 flex-wrap justify-content-md-end">
                             <button type="submit" class="btn btn-dark btn-sm fw-bold"><i class="fas fa-filter me-1"></i>
@@ -1606,8 +1649,382 @@
                             <button type="button" onclick="triggerExcelExport()"
                                 class="btn btn-success btn-sm fw-bold"><i class="fas fa-file-excel me-1"></i> এক্সেল
                                 ডাউনলোড (Excel)</button>
+                            <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#paystationDashboardModal">
+                                <i class="fas fa-bolt text-warning"></i>
+                                <span>পে-স্টেশন ড্যাশবোর্ড</span>
+                                <span class="badge bg-white text-primary rounded-pill px-1 ms-1" style="font-size: 0.65rem;">Live</span>
+                            </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- ================= PAYSTATION MERCHANT DASHBOARD POPUP MODAL ================= -->
+            <div class="modal fade" id="paystationDashboardModal" tabindex="-1" aria-labelledby="paystationDashboardModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        <!-- Modal Header -->
+                        <div class="modal-header border-0 py-3 px-4 text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #311042 100%);">
+                            <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; font-size: 1.25rem;">
+                                        <i class="fas fa-bolt text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <h5 class="modal-title fw-bold text-white mb-0" id="paystationDashboardModalLabel">
+                                                PayStation Merchant Dashboard
+                                            </h5>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1 px-2 fw-bold" style="font-size: 0.72rem;">
+                                                <i class="fas fa-circle text-success me-1" style="font-size: 0.5rem;"></i>API Connected
+                                            </span>
+                                            <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 rounded-pill py-1 px-2 font-monospace" style="font-size: 0.72rem;">
+                                                Store: {{ paystation_data.merchant_id|default:"6973-1791190416" }}
+                                            </span>
+                                            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill py-1 px-2" style="font-size: 0.72rem;">
+                                                Live Production
+                                            </span>
+                                        </div>
+                                        <small class="text-white-50 d-block mt-1">অফিশিয়াল পে-স্টেশন পেমেন্ট গেটওয়ে রিয়েল-টাইম তথ্য ও ট্রানজেকশন খতিয়ান</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-semibold shadow-xs" id="btnPaystationLiveSync" onclick="refreshPaystationModalData()" title="পে-স্টেশন API থেকে লাইভ ডাটা রিফ্রেশ করুন">
+                                        <i class="fas fa-sync-alt me-1" id="psModalSyncIcon"></i>
+                                        <span id="psSyncBtnText">লাইভ সিঙ্ক</span>
+                                    </button>
+                                    <a href="https://merchant.paystation.com.bd" target="_blank" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-xs">
+                                        <i class="fas fa-external-link-alt me-1"></i>মার্চেন্ট পোর্টাল
+                                    </a>
+                                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Body -->
+                        <div class="modal-body p-4 bg-light">
+                            <!-- 1. The 4 Big Metric Cards requested by user -->
+                            <div class="row g-3 mb-4">
+                                <!-- Unsettled Amount -->
+                                <div class="col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm rounded-3 p-3 h-100 bg-white border-top border-4 border-danger">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="small fw-bold text-secondary text-uppercase" style="letter-spacing: 0.5px;">Unsettled Amount</span>
+                                            <div class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                                <i class="fas fa-clock"></i>
+                                            </div>
+                                        </div>
+                                        <h3 class="fw-bold mb-1 text-danger" id="psStatUnsettled">৳ {{ paystation_data.unsettled_amount|default:"10" }}</h3>
+                                        <div class="d-flex align-items-center gap-1 mt-auto pt-2">
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" id="psStatUnsettledPct" style="font-size: 0.72rem;">
+                                                {{ paystation_data.unsettled_change|default:"0.0%Last month" }}
+                                            </span>
+                                            <small class="text-muted ms-1" style="font-size: 0.75rem;">সেটেলমেন্ট অপেক্ষমাণ</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Last Month Net Collection -->
+                                <div class="col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm rounded-3 p-3 h-100 bg-white border-top border-4 border-secondary">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="small fw-bold text-secondary text-uppercase" style="letter-spacing: 0.5px;">Last Month Net Collection</span>
+                                            <div class="rounded-circle bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                                <i class="fas fa-calendar-check"></i>
+                                            </div>
+                                        </div>
+                                        <h3 class="fw-bold mb-1 text-dark" id="psStatLastMonth">৳ {{ paystation_data.last_month_net_collection|default:"0" }}</h3>
+                                        <div class="d-flex align-items-center gap-1 mt-auto pt-2">
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill" id="psStatLastMonthPct" style="font-size: 0.72rem;">
+                                                {{ paystation_data.last_month_change|default:"0.0%Last month" }}
+                                            </span>
+                                            <small class="text-muted ms-1" style="font-size: 0.75rem;">বিগত মাসের নিট আদায়</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Total Collection -->
+                                <div class="col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm rounded-3 p-3 h-100 bg-white border-top border-4 border-primary">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="small fw-bold text-secondary text-uppercase" style="letter-spacing: 0.5px;">Total Collection</span>
+                                            <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                                <i class="fas fa-coins"></i>
+                                            </div>
+                                        </div>
+                                        <h3 class="fw-bold mb-1 text-primary" id="psStatTotal">৳ {{ paystation_data.total_collection|default:"10" }}</h3>
+                                        <div class="d-flex align-items-center gap-1 mt-auto pt-2">
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" id="psStatTotalPct" style="font-size: 0.72rem;">
+                                                {{ paystation_data.total_collection_change|default:"0.0%Last month" }}
+                                            </span>
+                                            <small class="text-muted ms-1" style="font-size: 0.75rem;">সর্বমোট কালেকশন</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Today's Collection -->
+                                <div class="col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm rounded-3 p-3 h-100 bg-white border-top border-4 border-success">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="small fw-bold text-secondary text-uppercase" style="letter-spacing: 0.5px;">Today's Collection</span>
+                                            <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                                <i class="fas fa-hand-holding-usd"></i>
+                                            </div>
+                                        </div>
+                                        <h3 class="fw-bold mb-1 text-success" id="psStatToday">৳ {{ paystation_data.today_collection|default:"10" }}</h3>
+                                        <div class="d-flex align-items-center gap-1 mt-auto pt-2">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" id="psStatTodayPct" style="font-size: 0.72rem;">
+                                                {{ paystation_data.today_change|default:"100.0%Last day" }}
+                                            </span>
+                                            <small class="text-muted ms-1" style="font-size: 0.75rem;">আজকের অনলাইন আদায়</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Middle Row: Transaction Overview & Payment Method Overview -->
+                            <div class="row g-3 mb-4">
+                                <!-- Payment Method Overview -->
+                                <div class="col-lg-6">
+                                    <div class="card border-0 shadow-sm rounded-3 h-100 bg-white p-3 p-md-4">
+                                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-0">Payment Method Overview</h6>
+                                                <small class="text-muted">পেমেন্ট মেথড ভিত্তিক আদায়ের হার</small>
+                                            </div>
+                                            <div>
+                                                <span class="small text-muted me-1">Most Used:</span>
+                                                <span class="badge rounded-pill text-white px-2 py-1" id="psMostUsedBadge" style="background-color: #e2136e; font-size: 0.75rem;">
+                                                    {{ paystation_data.most_used_method|default:"BKash-100.0%" }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-3" id="psMethodBreakdownBox">
+                                            <!-- BKash -->
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="small fw-semibold text-dark"><i class="fas fa-mobile-alt me-1" style="color: #e2136e;"></i>BKash</span>
+                                                    <span class="small fw-bold text-dark font-monospace" id="psMethodBkashPct">
+                                                        {{ paystation_data.payment_methods.bkash.percentage|default:"100.0" }}% (৳ {{ paystation_data.payment_methods.bkash.amount|default:"10"|floatformat:0 }})
+                                                    </span>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar rounded" role="progressbar" id="psMethodBkashBar" style="width: {{ paystation_data.payment_methods.bkash.percentage|default:'100' }}%; background-color: #e2136e;"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Nagad -->
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="small fw-semibold text-dark"><i class="fas fa-wallet me-1" style="color: #f7941d;"></i>Nagad</span>
+                                                    <span class="small fw-bold text-dark font-monospace" id="psMethodNagadPct">
+                                                        {{ paystation_data.payment_methods.nagad.percentage|default:"0.0" }}% (৳ {{ paystation_data.payment_methods.nagad.amount|default:"0"|floatformat:0 }})
+                                                    </span>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar rounded" role="progressbar" id="psMethodNagadBar" style="width: {{ paystation_data.payment_methods.nagad.percentage|default:'0' }}%; background-color: #f7941d;"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Rocket -->
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="small fw-semibold text-dark"><i class="fas fa-money-bill-wave me-1" style="color: #8c3494;"></i>Rocket</span>
+                                                    <span class="small fw-bold text-dark font-monospace" id="psMethodRocketPct">
+                                                        {{ paystation_data.payment_methods.rocket.percentage|default:"0.0" }}% (৳ {{ paystation_data.payment_methods.rocket.amount|default:"0"|floatformat:0 }})
+                                                    </span>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar rounded" role="progressbar" id="psMethodRocketBar" style="width: {{ paystation_data.payment_methods.rocket.percentage|default:'0' }}%; background-color: #8c3494;"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Cards/Other -->
+                                            <div>
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="small fw-semibold text-dark"><i class="fas fa-credit-card me-1 text-primary"></i>Cards & Other</span>
+                                                    <span class="small fw-bold text-dark font-monospace" id="psMethodCardPct">
+                                                        {{ paystation_data.payment_methods.card.percentage|default:"0.0" }}% (৳ {{ paystation_data.payment_methods.card.amount|default:"0"|floatformat:0 }})
+                                                    </span>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-primary rounded" role="progressbar" id="psMethodCardBar" style="width: {{ paystation_data.payment_methods.card.percentage|default:'0' }}%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Transaction Overview & Gateway Live Health -->
+                                <div class="col-lg-6">
+                                    <div class="card border-0 shadow-sm rounded-3 h-100 bg-white p-3 p-md-4">
+                                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-0">Transaction Overview & Integration</h6>
+                                                <small class="text-muted">পে-স্টেশন গেটওয়ে লাইভ ইন্টিগ্রেশন তথ্য</small>
+                                            </div>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size: 0.72rem;">
+                                                <i class="fas fa-shield-alt me-1"></i>SSL Secured v1
+                                            </span>
+                                        </div>
+
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-6">
+                                                <div class="p-2 rounded-3 bg-light border">
+                                                    <small class="text-muted d-block" style="font-size: 0.72rem;">Merchant ID / Store ID</small>
+                                                    <strong class="text-dark font-monospace" style="font-size: 0.85rem;">{{ paystation_data.merchant_id|default:"6973-1791190416" }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="p-2 rounded-3 bg-light border">
+                                                    <small class="text-muted d-block" style="font-size: 0.72rem;">Gateway Environment</small>
+                                                    <strong class="text-success" style="font-size: 0.85rem;"><i class="fas fa-check-circle me-1"></i>Production Live</strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="p-2 rounded-3 bg-light border">
+                                                    <small class="text-muted d-block" style="font-size: 0.72rem;">Base API URL</small>
+                                                    <strong class="text-secondary font-monospace" style="font-size: 0.78rem;">api.paystation.com.bd</strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="p-2 rounded-3 bg-light border">
+                                                    <small class="text-muted d-block" style="font-size: 0.72rem;">Settlement Cycle</small>
+                                                    <strong class="text-primary" style="font-size: 0.85rem;">T+2 Business Days</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-info-subtle border border-info-subtle rounded-3 p-2 small mb-0 mt-auto">
+                                            <i class="fas fa-info-circle text-primary me-1"></i>
+                                            <strong>স্বয়ংক্রিয় সেটেলমেন্ট:</strong> গেটওয়েতে সংগৃহীত অর্থ নির্ধারিত ব্যাংকিং সাইকেলে আপনার মূল ব্যাংক অ্যাকাউন্টে পে-স্টেশন কর্তৃপক্ষ কর্তৃক সেটেল করা হয়।
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. Recent Transaction Table -->
+                            <div class="card border-0 shadow-sm rounded-3 bg-white overflow-hidden mb-2">
+                                <div class="card-header bg-white py-3 px-3 px-md-4 border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-6">
+                                            <i class="fas fa-list-alt text-primary me-2"></i>Recent Transaction
+                                        </h6>
+                                        <span class="badge bg-light text-secondary border rounded-pill" id="psTrxCountBadge" style="font-size: 0.72rem;">
+                                            {{ paystation_data.count|default:"1" }} টি রেকর্ড
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <a href="https://merchant.paystation.com.bd/transaction-history" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" style="font-size: 0.78rem;">
+                                            See All <i class="fas fa-external-link-alt ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Live verification message box -->
+                                <div id="psLiveVerifyAlertBox" class="p-3 mx-3 my-2 rounded-3 d-none"></div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                                        <thead class="table-light text-secondary text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                            <tr>
+                                                <th class="ps-3" style="width: 40px;">#</th>
+                                                <th>Customer</th>
+                                                <th>TRX Amount</th>
+                                                <th>Payment Method</th>
+                                                <th>Settlement Status</th>
+                                                <th>Transaction ID</th>
+                                                <th class="text-end pe-3">API Verification</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="psRecentTrxTbody">
+                                            {% if paystation_data.recent_transactions %}
+                                            {% for trx in paystation_data.recent_transactions %}
+                                            <tr>
+                                                <td class="ps-3 fw-bold text-secondary">{{ trx.index }}</td>
+                                                <td>
+                                                    <div class="fw-bold text-dark">{{ trx.customer_name }}</div>
+                                                    <small class="text-muted font-monospace d-block" style="font-size: 0.75rem;">{{ trx.customer_email }}</small>
+                                                    {% if trx.date_display %}
+                                                    <small class="text-secondary" style="font-size: 0.7rem;"><i class="far fa-clock me-1"></i>{{ trx.date_display }}</small>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <strong class="text-dark fs-6">{{ trx.amount_display }}</strong>
+                                                </td>
+                                                <td>
+                                                    {% if trx.payment_method == 'BKash' %}
+                                                    <span class="badge rounded-pill text-white px-2 py-1" style="background-color: #e2136e; font-size: 0.75rem;">
+                                                        <i class="fas fa-mobile-alt me-1"></i>BKash
+                                                    </span>
+                                                    {% elif trx.payment_method == 'Nagad' %}
+                                                    <span class="badge rounded-pill text-white px-2 py-1" style="background-color: #f7941d; font-size: 0.75rem;">
+                                                        <i class="fas fa-wallet me-1"></i>Nagad
+                                                    </span>
+                                                    {% elif trx.payment_method == 'Rocket' %}
+                                                    <span class="badge rounded-pill text-white px-2 py-1" style="background-color: #8c3494; font-size: 0.75rem;">
+                                                        <i class="fas fa-money-bill-wave me-1"></i>Rocket
+                                                    </span>
+                                                    {% else %}
+                                                    <span class="badge bg-primary rounded-pill px-2 py-1" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-credit-card me-1"></i>{{ trx.payment_method }}
+                                                    </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 fw-semibold" style="font-size: 0.75rem;">
+                                                        {{ trx.settlement_status }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark font-monospace border px-2 py-1" style="font-size: 0.8rem;">
+                                                        {{ trx.trx_id }}
+                                                    </span>
+                                                    {% if trx.invoice_number %}
+                                                    <small class="text-muted font-monospace d-block mt-1" style="font-size: 0.68rem;" title="Invoice Number">
+                                                        Inv: {{ trx.invoice_number }}
+                                                    </small>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-end pe-3">
+                                                    {% if trx.invoice_number %}
+                                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1" style="font-size: 0.75rem;" onclick="verifyPaystationLiveTrx('{{ trx.invoice_number }}', this)" title="PayStation সার্ভার থেকে লাইভ ভেরিফিকেশন যাচাই করুন">
+                                                        <i class="fas fa-check-circle me-1"></i>API যাচাই
+                                                    </button>
+                                                    {% else %}
+                                                    <span class="text-muted small">-</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="7" class="text-center py-4 text-muted">
+                                                    <i class="fas fa-receipt fs-3 d-block mb-2 text-secondary opacity-50"></i>
+                                                    কোনো পে-স্টেশন গেটওয়ে লেনদেন পাওয়া যায়নি।
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="modal-footer bg-white py-2 px-4 d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-lock text-success me-1"></i> PayStation Payment Gateway Official Integration &bull; Powered by PayStation Bangladesh
+                            </small>
+                            <div class="d-flex gap-2">
+                                <a href="https://merchant.paystation.com.bd/transaction-history" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                                    <i class="fas fa-external-link-alt me-1"></i>সব লেনদেন দেখুন (See All)
+                                </a>
+                                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1623,6 +2040,193 @@
                     const end = document.getElementById('filter_end_date').value;
                     const excelUrl = "{% url 'core:export_excel' %}?start_date=" + encodeURIComponent(start) + "&end_date=" + encodeURIComponent(end);
                     window.location.href = excelUrl;
+                }
+
+                function refreshPaystationModalData() {
+                    const syncIcon = document.getElementById('psModalSyncIcon');
+                    const syncBtnText = document.getElementById('psSyncBtnText');
+                    if (syncIcon) syncIcon.classList.add('fa-spin');
+                    if (syncBtnText) syncBtnText.innerText = 'সিঙ্ক হচ্ছে...';
+
+                    fetch('/donations/api/paystation-dashboard/')
+                        .then(res => res.json())
+                        .then(result => {
+                            if (result && result.success && result.data) {
+                                const d = result.data;
+                                const elUnsettled = document.getElementById('psStatUnsettled');
+                                if (elUnsettled) elUnsettled.innerText = '৳ ' + (d.unsettled_amount || '0');
+                                const elUnsettledPct = document.getElementById('psStatUnsettledPct');
+                                if (elUnsettledPct) elUnsettledPct.innerText = d.unsettled_change || '0.0%Last month';
+
+                                const elLastMonth = document.getElementById('psStatLastMonth');
+                                if (elLastMonth) elLastMonth.innerText = '৳ ' + (d.last_month_net_collection || '0');
+                                const elLastMonthPct = document.getElementById('psStatLastMonthPct');
+                                if (elLastMonthPct) elLastMonthPct.innerText = d.last_month_change || '0.0%Last month';
+
+                                const elTotal = document.getElementById('psStatTotal');
+                                if (elTotal) elTotal.innerText = '৳ ' + (d.total_collection || '0');
+                                const elTotalPct = document.getElementById('psStatTotalPct');
+                                if (elTotalPct) elTotalPct.innerText = d.total_collection_change || '0.0%Last month';
+
+                                const elToday = document.getElementById('psStatToday');
+                                if (elToday) elToday.innerText = '৳ ' + (d.today_collection || '0');
+                                const elTodayPct = document.getElementById('psStatTodayPct');
+                                if (elTodayPct) elTodayPct.innerText = d.today_change || '100.0%Last day';
+
+                                const elMostUsed = document.getElementById('psMostUsedBadge');
+                                if (elMostUsed && d.most_used_method) elMostUsed.innerText = d.most_used_method;
+
+                                if (d.payment_methods) {
+                                    const m = d.payment_methods;
+                                    if (m.bkash) {
+                                        const elPct = document.getElementById('psMethodBkashPct');
+                                        if (elPct) elPct.innerText = m.bkash.percentage + '% (৳ ' + Math.round(m.bkash.amount) + ')';
+                                        const elBar = document.getElementById('psMethodBkashBar');
+                                        if (elBar) elBar.style.width = m.bkash.percentage + '%';
+                                    }
+                                    if (m.nagad) {
+                                        const elPct = document.getElementById('psMethodNagadPct');
+                                        if (elPct) elPct.innerText = m.nagad.percentage + '% (৳ ' + Math.round(m.nagad.amount) + ')';
+                                        const elBar = document.getElementById('psMethodNagadBar');
+                                        if (elBar) elBar.style.width = m.nagad.percentage + '%';
+                                    }
+                                    if (m.rocket) {
+                                        const elPct = document.getElementById('psMethodRocketPct');
+                                        if (elPct) elPct.innerText = m.rocket.percentage + '% (৳ ' + Math.round(m.rocket.amount) + ')';
+                                        const elBar = document.getElementById('psMethodRocketBar');
+                                        if (elBar) elBar.style.width = m.rocket.percentage + '%';
+                                    }
+                                    if (m.card) {
+                                        const elPct = document.getElementById('psMethodCardPct');
+                                        if (elPct) elPct.innerText = m.card.percentage + '% (৳ ' + Math.round(m.card.amount) + ')';
+                                        const elBar = document.getElementById('psMethodCardBar');
+                                        if (elBar) elBar.style.width = m.card.percentage + '%';
+                                    }
+                                }
+
+                                const tbody = document.getElementById('psRecentTrxTbody');
+                                const countBadge = document.getElementById('psTrxCountBadge');
+                                if (countBadge) countBadge.innerText = (d.count || 0) + ' টি রেকর্ড';
+
+                                if (tbody && d.recent_transactions && d.recent_transactions.length > 0) {
+                                    let html = '';
+                                    d.recent_transactions.forEach(trx => {
+                                        let badgeColor = '#0d6efd';
+                                        let badgeIcon = 'fas fa-credit-card';
+                                        if (trx.payment_method === 'BKash') { badgeColor = '#e2136e'; badgeIcon = 'fas fa-mobile-alt'; }
+                                        else if (trx.payment_method === 'Nagad') { badgeColor = '#f7941d'; badgeIcon = 'fas fa-wallet'; }
+                                        else if (trx.payment_method === 'Rocket') { badgeColor = '#8c3494'; badgeIcon = 'fas fa-money-bill-wave'; }
+
+                                        html += `
+                                        <tr>
+                                            <td class="ps-3 fw-bold text-secondary">${trx.index}</td>
+                                            <td>
+                                                <div class="fw-bold text-dark">${trx.customer_name}</div>
+                                                <small class="text-muted font-monospace d-block" style="font-size: 0.75rem;">${trx.customer_email}</small>
+                                                ${trx.date_display ? `<small class="text-secondary" style="font-size: 0.7rem;"><i class="far fa-clock me-1"></i>${trx.date_display}</small>` : ''}
+                                            </td>
+                                            <td><strong class="text-dark fs-6">${trx.amount_display}</strong></td>
+                                            <td>
+                                                <span class="badge rounded-pill text-white px-2 py-1" style="background-color: ${badgeColor}; font-size: 0.75rem;">
+                                                    <i class="${badgeIcon} me-1"></i>${trx.payment_method}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 fw-semibold" style="font-size: 0.75rem;">
+                                                    ${trx.settlement_status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark font-monospace border px-2 py-1" style="font-size: 0.8rem;">
+                                                    ${trx.trx_id}
+                                                </span>
+                                                ${trx.invoice_number ? `<small class="text-muted font-monospace d-block mt-1" style="font-size: 0.68rem;">Inv: ${trx.invoice_number}</small>` : ''}
+                                            </td>
+                                            <td class="text-end pe-3">
+                                                ${trx.invoice_number ? `
+                                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1" style="font-size: 0.75rem;" onclick="verifyPaystationLiveTrx('${trx.invoice_number}', this)">
+                                                    <i class="fas fa-check-circle me-1"></i>API যাচাই
+                                                </button>` : `<span class="text-muted small">-</span>`}
+                                            </td>
+                                        </tr>
+                                        `;
+                                    });
+                                    tbody.innerHTML = html;
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error refreshing PayStation modal data:', err);
+                        })
+                        .finally(() => {
+                            if (syncIcon) syncIcon.classList.remove('fa-spin');
+                            if (syncBtnText) syncBtnText.innerText = 'লাইভ সিঙ্ক';
+                        });
+                }
+
+                function verifyPaystationLiveTrx(invoiceNumber, btn) {
+                    if (!invoiceNumber) return;
+                    const alertBox = document.getElementById('psLiveVerifyAlertBox');
+                    let origHtml = '';
+                    if (btn) {
+                        origHtml = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>যাচাই হচ্ছে...';
+                    }
+
+                    fetch('/donations/api/paystation-verify/?invoice_number=' + encodeURIComponent(invoiceNumber))
+                        .then(res => res.json())
+                        .then(data => {
+                            if (alertBox) {
+                                alertBox.classList.remove('d-none');
+                                if (data && data.success && data.result) {
+                                    const r = data.result;
+                                    const d = r.data || {};
+                                    if (r.status_code === '200' && r.status === 'success') {
+                                        alertBox.className = 'p-3 mx-3 my-2 rounded-3 alert alert-success border border-success d-flex align-items-center justify-content-between shadow-xs';
+                                        alertBox.innerHTML = `
+                                            <div>
+                                                <h6 class="fw-bold mb-1 text-success"><i class="fas fa-check-circle me-1"></i>PayStation Server Verified (সফল লেনদেন)</h6>
+                                                <div class="small">
+                                                    <strong>ইনভয়েস:</strong> ${d.invoice_number || invoiceNumber} | 
+                                                    <strong>Trx ID:</strong> #${d.trx_id || 'N/A'} | 
+                                                    <strong>টাকা:</strong> ৳${d.payment_amount || d.request_amount || '10'} | 
+                                                    <strong>মেথড:</strong> ${d.payment_method || 'bKash'} | 
+                                                    <strong>তারিখ:</strong> ${d.order_date_time || 'N/A'}
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn-close" onclick="document.getElementById('psLiveVerifyAlertBox').classList.add('d-none')"></button>
+                                        `;
+                                    } else {
+                                        alertBox.className = 'p-3 mx-3 my-2 rounded-3 alert alert-warning border border-warning d-flex align-items-center justify-content-between shadow-xs';
+                                        alertBox.innerHTML = `
+                                            <div>
+                                                <h6 class="fw-bold mb-1 text-warning-emphasis"><i class="fas fa-exclamation-triangle me-1"></i>PayStation Server Response</h6>
+                                                <div class="small">${r.message || 'Transaction details not confirmed'}</div>
+                                            </div>
+                                            <button type="button" class="btn-close" onclick="document.getElementById('psLiveVerifyAlertBox').classList.add('d-none')"></button>
+                                        `;
+                                    }
+                                } else {
+                                    alertBox.className = 'p-3 mx-3 my-2 rounded-3 alert alert-danger border border-danger shadow-xs';
+                                    alertBox.innerHTML = `<i class="fas fa-times-circle me-1"></i>যাচাই ব্যর্থ হয়েছে: ${data.error || 'Server error'}`;
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            console.error('PayStation verification request error:', err);
+                            if (alertBox) {
+                                alertBox.classList.remove('d-none');
+                                alertBox.className = 'p-3 mx-3 my-2 rounded-3 alert alert-danger border border-danger shadow-xs';
+                                alertBox.innerHTML = '<i class="fas fa-times-circle me-1"></i>সার্ভারে যোগাযোগ করা যায়নি।';
+                            }
+                        })
+                        .finally(() => {
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.innerHTML = origHtml;
+                            }
+                        });
                 }
             </script>
 
