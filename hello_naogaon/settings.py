@@ -376,10 +376,10 @@ SMS_LOW_BALANCE_THRESHOLD = env.float('SMS_LOW_BALANCE_THRESHOLD', default=10.0)
 PAYMENTLY_API_KEY = env('PAYMENTLY_API_KEY', default='METB4CSw9c4KcIB7P5HejGqbCE8lNSYsAfmJWzTp')
 PAYMENTLY_API_URL = env('PAYMENTLY_API_URL', default='https://helplinehellonaogaon.paymently.io/api')
 
-# PayStation Payment Gateway Configuration (100% Direct OTP/PIN)
-PAYSTATION_MERCHANT_ID = env('PAYSTATION_MERCHANT_ID', default='104-1653730183')
-PAYSTATION_PASSWORD = env('PAYSTATION_PASSWORD', default='gamecoderstorepass')
-PAYSTATION_IS_SANDBOX = env.bool('PAYSTATION_IS_SANDBOX', default=True)
+# PayStation Payment Gateway Configuration (100% Direct OTP/PIN - LIVE Production)
+PAYSTATION_MERCHANT_ID = env('PAYSTATION_MERCHANT_ID', default='')
+PAYSTATION_PASSWORD = env('PAYSTATION_PASSWORD', default='')
+PAYSTATION_IS_SANDBOX = env.bool('PAYSTATION_IS_SANDBOX', default=False)
 
 # Active Payment Gateway: 'paystation' or 'paymently'
 ACTIVE_PAYMENT_GATEWAY = env('ACTIVE_PAYMENT_GATEWAY', default='paystation')

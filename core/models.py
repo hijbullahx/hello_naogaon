@@ -46,6 +46,12 @@ class SiteSetting(models.Model):
         default='', 
         help_text="Google Map Embed Code (<iframe...>) বা ম্যাপের লিঙ্ক দিন।"
     )
+    payment_banner = models.ImageField(
+        upload_to='site/',
+        blank=True,
+        null=True,
+        help_text="পেমেন্ট গেটওয়ে পার্টনার ব্যানার (PayStation / bKash / Nagad / Cards Banner)"
+    )
 
     @property
     def google_map_embed_html(self):

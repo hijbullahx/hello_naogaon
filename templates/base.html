@@ -308,6 +308,38 @@
                 </div>
             </div>
 
+            <!-- Official Payment Gateway & Security Partner Banner (PayStation) -->
+            <div class="row mt-4 pt-3 border-top border-white border-opacity-10">
+                <div class="col-12 text-center">
+                    {% if site_setting.payment_banner %}
+                    <div class="p-2 rounded bg-white bg-opacity-10 d-inline-block shadow-sm">
+                        <img src="{{ site_setting.payment_banner.url }}" alt="PayStation Payment Methods" class="img-fluid rounded" style="max-height: 75px;">
+                    </div>
+                    {% else %}
+                    <div class="payment-methods-banner p-3 rounded-4 bg-dark bg-opacity-50 border border-white border-opacity-10 shadow-sm d-inline-block w-100" style="max-width: 980px;">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 pb-2 border-bottom border-white border-opacity-10">
+                            <span class="small text-white-50 text-uppercase tracking-wider fw-semibold" style="font-size: 0.75rem;">
+                                <i class="fas fa-shield-alt text-success me-1"></i>অনুমোদিত পেমেন্ট পার্টনারসমূহ (Supported Payment Methods)
+                            </span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.72rem;">
+                                <i class="fas fa-lock me-1"></i>256-bit SSL Secured by PayStation
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 pt-1">
+                            <span class="badge bg-white text-dark py-2 px-3 rounded-pill fw-bold shadow-xs border"><span class="text-danger me-1">●</span>bKash</span>
+                            <span class="badge bg-white text-dark py-2 px-3 rounded-pill fw-bold shadow-xs border"><span class="text-warning me-1">●</span>Nagad</span>
+                            <span class="badge bg-white text-dark py-2 px-3 rounded-pill fw-bold shadow-xs border"><span class="text-purple me-1" style="color: #8a2be2;">●</span>Rocket</span>
+                            <span class="badge bg-white text-dark py-2 px-3 rounded-pill fw-bold shadow-xs border"><span class="text-info me-1">●</span>Upay</span>
+                            <span class="badge bg-white text-dark py-2 px-3 rounded-pill fw-bold shadow-xs border"><span class="text-primary me-1">●</span>VISA</span>
+                            <span class="badge bg-white text-dark py-2 px-3 rounded-pill fw-bold shadow-xs border"><span class="text-danger me-1">●</span>Mastercard</span>
+                            <span class="badge bg-white text-dark py-2 px-3 rounded-pill fw-bold shadow-xs border"><span class="text-secondary me-1">●</span>Internet Banking</span>
+                            <span class="badge bg-primary text-white py-2 px-3 rounded-pill fw-bold shadow-xs"><i class="fas fa-check-circle me-1"></i>PayStation</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Bottom Copyright Bar -->
             <div class="footer-bottom-bar text-center py-3 border-top border-secondary-subtle mt-3">
                 <div class="small text-white-50 mb-1">

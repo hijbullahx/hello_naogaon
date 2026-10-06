@@ -13,11 +13,23 @@ logger = logging.getLogger(__name__)
 def get_paystation_config():
     """
     Retrieves PayStation Payment Gateway configuration.
-    Defaults to sandbox test credentials provided by PayStation.
+    Priority: PaymentGatewaySetting (DB) -> settings / .env.
+    Defaults to live production credentials.
     """
-    merchant_id = getattr(settings, 'PAYSTATION_MERCHANT_ID', os.getenv('PAYSTATION_MERCHANT_ID', '104-1653730183')).strip()
-    password = getattr(settings, 'PAYSTATION_PASSWORD', os.getenv('PAYSTATION_PASSWORD', 'gamecoderstorepass')).strip()
-    is_sandbox = getattr(settings, 'PAYSTATION_IS_SANDBOX', os.getenv('PAYSTATION_IS_SANDBOX', 'True') == 'True')
+    merchant_id = getattr(settings, 'PAYSTATION_MERCHANT_ID', os.getenv('PAYSTATION_MERCHANT_ID', '')).strip()
+    password = getattr(settings, 'PAYSTATION_PASSWORD', os.getenv('PAYSTATION_PASSWORD', '')).strip()
+    is_sandbox = getattr(settings, 'PAYSTATION_IS_SANDBOX', os.getenv('PAYSTATION_IS_SANDBOX', 'False') == 'True')
+
+    try:
+        from .models import PaymentGatewaySetting
+        db_setting = PaymentGatewaySetting.objects.filter(is_active=True).first()
+        if db_setting and db_setting.store_id:
+            merchant_id = db_setting.store_id.strip()
+            if db_setting.store_password:
+                password = db_setting.store_password.strip()
+            is_sandbox = db_setting.is_sandbox
+    except Exception as e:
+        logger.warning(f"Could not load PaymentGatewaySetting from DB: {e}")
 
     base_url = 'https://sandbox.paystation.com.bd' if is_sandbox else 'https://api.paystation.com.bd'
 
@@ -39,12 +51,22 @@ def initiate_paystation_session(request, donation):
     domain = request.build_absolute_uri('/')[:-1]
     callback_url = f"{domain}{reverse('donations:payment_success')}"
 
+    # Format payment amount cleanly (integer if whole, float otherwise)
+    try:
+        amt_float = float(donation.amount)
+        if amt_float.is_integer():
+            amount_str = str(int(amt_float))
+        else:
+            amount_str = f"{amt_float:.2f}"
+    except Exception:
+        amount_str = str(donation.amount)
+
     payload = {
         'merchantId': config['merchant_id'],
         'password': config['password'],
         'invoice_number': donation.tran_id,
         'currency': 'BDT',
-        'payment_amount': f"{donation.amount:.2f}",
+        'payment_amount': amount_str,
         'pay_with_charge': '0',
         'reference': f"Helpline Hello Naogaon {donation.donation_type}",
         'cust_name': donation.donor_name or 'Donor',

@@ -227,15 +227,16 @@ class ProgramDonation(models.Model):
 
 class PaymentGatewaySetting(models.Model):
     GATEWAY_CHOICES = [
+        ('paystation', 'PayStation Payment Gateway (বিকাশ, নগদ, রকেট, উপায় ও সকল ব্যাংক কার্ড)'),
         ('sslcommerz', 'SSLCommerz (বিকাশ, নগদ, রকেট, উপায় ও সকল ব্যাংক কার্ড)'),
         ('shurjopay', 'ShurjoPay Payment Gateway'),
         ('aamarpay', 'AamarPay Payment Gateway'),
         ('bkash', 'bKash Direct Merchant PGW'),
     ]
-    provider = models.CharField(max_length=50, choices=GATEWAY_CHOICES, default='sslcommerz', verbose_name=_('পেমেন্ট গেটওয়ে প্রোভাইডার'))
-    store_id = models.CharField(max_length=150, blank=True, help_text=_('SSLCommerz Store ID / Merchant ID'), verbose_name=_('স্টোর আইডি / মার্চেন্ট আইডি'))
-    store_password = models.CharField(max_length=150, blank=True, help_text=_('SSLCommerz Store Password / API Secret'), verbose_name=_('স্টোর পাসওয়ার্ড / সিক্রেট কি'))
-    is_sandbox = models.BooleanField(default=True, help_text=_('স্যান্ডবক্স / টেস্ট মোড চালু রাখতে টিক দিন। লাইভ ট্রানজেকশনের জন্য টিক তুলে দিন।'), verbose_name=_('স্যান্ডবক্স (টেস্ট মোড)'))
+    provider = models.CharField(max_length=50, choices=GATEWAY_CHOICES, default='paystation', verbose_name=_('পেমেন্ট গেটওয়ে প্রোভাইডার'))
+    store_id = models.CharField(max_length=150, blank=True, help_text=_('PayStation / Gateway Store ID (e.g. 6973-XXXXXX)'), verbose_name=_('স্টোর আইডি / মার্চেন্ট আইডি'))
+    store_password = models.CharField(max_length=150, blank=True, help_text=_('PayStation / Gateway Password / Secret Key'), verbose_name=_('স্টোর পাসওয়ার্ড / সিক্রেট কি'))
+    is_sandbox = models.BooleanField(default=False, help_text=_('স্যান্ডবক্স / টেস্ট মোড চালু রাখতে টিক দিন। লাইভ ট্রানজেকশনের জন্য টিক তুলে দিন।'), verbose_name=_('স্যান্ডবক্স (টেস্ট মোড)'))
     is_active = models.BooleanField(default=True, verbose_name=_('সক্রিয়'))
     updated_at = models.DateTimeField(auto_now=True)
 

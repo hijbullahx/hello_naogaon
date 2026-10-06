@@ -548,7 +548,7 @@ def payment_success(request):
     Verifies transaction with PayStation or Paymently Verify API, updates donation,
     logs financial transaction, dispatches notifications, and shows official receipt.
     """
-    invoice_number = request.GET.get('invoice_number') or request.POST.get('invoice_number')
+    invoice_number = request.GET.get('invoice_number') or request.POST.get('invoice_number') or request.GET.get('invoice') or request.POST.get('invoice')
     invoice_id = request.GET.get('invoice_id') or request.POST.get('invoice_id')
     tran_id = request.GET.get('tran_id') or request.POST.get('tran_id') or invoice_number
 
@@ -558,7 +558,8 @@ def payment_success(request):
         ps_res = verify_paystation_payment(target_invoice)
         if str(ps_res.get('status_code')) == '200' and ps_res.get('data'):
             ps_data = ps_res['data']
-            if str(ps_data.get('trx_status', '')).lower() == 'success':
+            trx_st = str(ps_data.get('trx_status', '')).lower()
+            if trx_st == 'success':
                 donation = ProgramDonation.objects.filter(tran_id=target_invoice).first()
                 if donation:
                     payment_data = {
@@ -580,6 +581,13 @@ def payment_success(request):
                             f'ধন্যবাদ {donation.donor_name}{member_txt}! আপনার ৳{donation.amount:,.2f} অনলাইন অনুদান সফলভাবে গৃহীত হয়েছে।'
                         )
                     return redirect('donations:receipt', donation_id=donation.id)
+            elif trx_st in ['failed', 'fail', 'cancelled', 'cancel']:
+                donation = ProgramDonation.objects.filter(tran_id=target_invoice).first()
+                if donation and donation.status in ['initiated', 'pending']:
+                    donation.status = 'failed' if 'fail' in trx_st else 'cancelled'
+                    donation.save(update_fields=['status'])
+                messages.warning(request, f"অনলাইন পেমেন্ট সম্পন্ন হয়নি (স্ট্যাটাস: {ps_data.get('trx_status')})। আপনি পুনরায় চেষ্টা করতে পারেন।")
+                return redirect('donations:gateway_checkout', tran_id=target_invoice)
 
     # 2. Paymently Verification
     if invoice_id:
