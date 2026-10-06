@@ -800,50 +800,133 @@
                             </div>
                         </div>
 
-                        <!-- Donor Identity Type (General vs Member) -->
-                        <div class="p-3 rounded-3 bg-light border mb-3">
-                            <div class="d-flex gap-3 mb-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_gen" value="general" {% if not logged_in_member %}checked{% endif %} onchange="toggleProgDonorKind('general')">
-                                    <label class="form-check-label fw-bold text-dark small" for="prog_kind_gen">সাধারণ শুভাকাঙ্ক্ষী</label>
+                        <!-- Member Search Box (Same as regular team pay) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-secondary">
+                                <i class="fas fa-search text-success me-1"></i>আপনার নাম বা সদস্য আইডি দিয়ে খুঁজুন
+                            </label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+                                <span class="input-group-text bg-white border-0 text-success ps-3">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control border-0 py-2" id="progMemberSearchInput" 
+                                       placeholder="সদস্যের নাম, আইডি (যেমন 26082301) বা ফোন লিখুন..." 
+                                       oninput="filterProgModalMembers(this.value)">
+                                <button class="btn btn-light border-0 text-muted px-3" type="button" onclick="clearProgModalMemberSearch()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Scrollable Member List -->
+                        <div class="mb-3" id="progMemberListContainer">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted fw-bold">সদস্য নির্বাচন করুন (ঐচ্ছিক):</span>
+                                <span class="badge bg-light text-secondary border" id="progMemberListCount">মোট সদস্য</span>
+                            </div>
+                            <div class="border rounded-3 p-2 bg-light overflow-auto member-list-container" id="progMemberCardsList" style="max-height: 200px;">
+                                <!-- Team Members (Core Leadership & Council) -->
+                                {% for tm in global_team_members %}
+                                <div class="prog-member-select-item p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all"
+                                     data-member-id="{{ tm.member_id|default:'' }}"
+                                     data-member-name="{{ tm.name }}"
+                                     data-member-role="{{ tm.effective_role }}"
+                                     data-member-phone="{{ tm.phone|default:'' }}"
+                                     data-member-email="{{ tm.email|default:'' }}"
+                                     onclick="selectProgMember(this)">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if tm.image %}
+                                        <img src="{{ tm.image.url }}" alt="{{ tm.name }}" class="rounded-circle object-fit-cover border" style="width: 40px; height: 40px;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                            {{ tm.name|slice:":1" }}
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold text-dark lh-sm member-name-text">{{ tm.name }}</div>
+                                            <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2" style="font-size: 0.72rem;">{{ tm.effective_role }}</span>
+                                                <span class="badge bg-light text-muted border py-0 px-2 member-id-text" style="font-size: 0.72rem;">ID: {{ tm.member_id|default:'N/A' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 select-btn-badge">
+                                            সিলেক্ট <i class="fas fa-check-circle ms-1"></i>
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_mem" value="member" {% if logged_in_member %}checked{% endif %} onchange="toggleProgDonorKind('member')">
-                                    <label class="form-check-label fw-bold text-success small" for="prog_kind_mem"><i class="fas fa-id-badge me-1"></i>সংস্থার সদস্য (Member)</label>
+                                {% endfor %}
+
+                                <!-- Approved Volunteers -->
+                                {% for vol in global_volunteers %}
+                                <div class="prog-member-select-item p-2 mb-2 bg-white rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all"
+                                     data-member-id="{{ vol.member_id|default:'' }}"
+                                     data-member-name="{{ vol.full_name }}"
+                                     data-member-role="স্বেচ্ছাসেবক সদস্য"
+                                     data-member-phone="{{ vol.phone|default:'' }}"
+                                     data-member-email="{{ vol.email|default:'' }}"
+                                     onclick="selectProgMember(this)">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if vol.image %}
+                                        <img src="{{ vol.image.url }}" alt="{{ vol.full_name }}" class="rounded-circle object-fit-cover border" style="width: 40px; height: 40px;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                            {{ vol.full_name|slice:":1" }}
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold text-dark lh-sm member-name-text">{{ vol.full_name }}</div>
+                                            <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-0 px-2" style="font-size: 0.72rem;">স্বেচ্ছাসেবক সদস্য</span>
+                                                <span class="badge bg-light text-muted border py-0 px-2 member-id-text" style="font-size: 0.72rem;">ID: {{ vol.member_id|default:'N/A' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 select-btn-badge">
+                                            সিলেক্ট <i class="fas fa-check-circle ms-1"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                                <div id="progNoMemberFoundAlert" class="text-center py-4 text-muted d-none">
+                                    <i class="fas fa-user-slash fs-2 mb-2 text-secondary"></i>
+                                    <div>কোনো সদস্য পাওয়া যায়নি। সঠিক নাম বা আইডি লিখে চেষ্টা করুন।</div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Member Lookup Field -->
-                            <div id="progMemberLookupBox" class="mb-2 {% if not logged_in_member %}d-none{% endif %}">
-                                <label class="form-label fw-bold small text-dark">সদস্য আইডি (Member ID) <span class="text-danger">*</span></label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-white text-success"><i class="fas fa-id-badge"></i></span>
-                                    <input type="text" class="form-control fw-bold" name="membership_id" id="progMembershipId" 
-                                        value="{% if logged_in_member %}{{ logged_in_member.member_id }}{% endif %}" 
-                                        placeholder="সদস্য আইডি লিখুন (যেমন: 26082301)" oninput="lookupProgramMember(this.value)" {% if logged_in_member %}required{% endif %}>
+                        <!-- Selected Member Details Badge -->
+                        <div id="progSelectedMemberSection" class="p-3 bg-light rounded-4 border border-success-subtle mb-3 d-none">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <i class="fas fa-user-check text-success fs-5"></i>
+                                    <span class="fw-bold text-dark fs-6" id="progSelectedMemberNameDisplay">--</span>
+                                    <span class="badge bg-success" id="progSelectedMemberIdDisplay">ID: --</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" id="progSelectedMemberRoleDisplay">--</span>
                                 </div>
-                                <div id="progMemberLookupFeedback" class="form-text small mt-1">
-                                    {% if logged_in_member %}
-                                        <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>লগইনকৃত সদস্য: {{ logged_in_member.name }} ({{ logged_in_member.effective_role|default:"স্বেচ্ছাসেবক" }})</span>
-                                    {% else %}
-                                        <span class="text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</span>
-                                    {% endif %}
-                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1" onclick="resetProgMemberSelection()">
+                                    <i class="fas fa-times me-1"></i>পরিবর্তন
+                                </button>
                             </div>
+                        </div>
 
-                            <!-- Name & Phone -->
+                        <!-- Hidden Member Data Fields -->
+                        <input type="hidden" name="prog_donor_kind" id="prog_form_donor_kind" value="general">
+                        <input type="hidden" name="membership_id" id="prog_form_membership_id" value="">
+
+                        <!-- Donor Name & Phone -->
+                        <div class="p-3 bg-light rounded-3 border mb-3">
                             <div class="row g-2">
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold small">আপনার নাম <span class="text-danger">*</span></label>
-                                    <input type="text" name="donor_name" id="progDonorName" class="form-control form-control-sm" 
-                                        value="{% if logged_in_member %}{{ logged_in_member.name }}{% elif user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}" 
-                                        placeholder="পূর্ণ নাম" required>
+                                    <input type="text" name="donor_name" id="progDonorName" class="form-control" placeholder="আপনার পূর্ণ নাম" required>
                                 </div>
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold small">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                    <input type="tel" name="donor_phone" id="progDonorPhone" class="form-control form-control-sm" 
-                                        value="{% if logged_in_member %}{{ logged_in_member.phone|default:'' }}{% endif %}" 
-                                        placeholder="০১XXXXXXXXX" required>
+                                    <input type="tel" name="donor_phone" id="progDonorPhone" class="form-control" placeholder="০১XXXXXXXXX" required>
                                 </div>
                             </div>
                         </div>
@@ -1056,6 +1139,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof resetGeneralMemberSelection === 'function') {
                 resetGeneralMemberSelection();
             }
+            if (typeof resetProgMemberSelection === 'function') {
+                resetProgMemberSelection();
+            }
+            if (typeof clearProgModalMemberSearch === 'function') {
+                clearProgModalMemberSearch();
+            }
         });
     }
 
@@ -1063,6 +1152,12 @@ document.addEventListener('DOMContentLoaded', function() {
     var countBadge = document.getElementById('memberListCount');
     if (countBadge) {
         countBadge.innerText = items.length + ' জন সদস্য';
+    }
+
+    var progItems = document.querySelectorAll('#progMemberCardsList .prog-member-select-item');
+    var progCountBadge = document.getElementById('progMemberListCount');
+    if (progCountBadge) {
+        progCountBadge.innerText = progItems.length + ' জন সদস্য';
     }
 
     // Auto-open donate popup modal if redirected with ?donate=1 or ?member_id= or #donate
@@ -1452,44 +1547,114 @@ function setProgramAmount(val) {
     });
 }
 
-function toggleProgDonorKind(kind) {
-    var box = document.getElementById('progMemberLookupBox');
-    var idInput = document.getElementById('progMembershipId');
-    if (kind === 'member') {
-        if (box) box.classList.remove('d-none');
-        if (idInput) idInput.setAttribute('required', 'required');
-    } else {
-        if (box) box.classList.add('d-none');
-        if (idInput) {
-            idInput.removeAttribute('required');
-            idInput.value = '';
+// Filter Members in Program Donation Modal Search Box
+function filterProgModalMembers(val) {
+    val = (val || '').toLowerCase().trim();
+    var items = document.querySelectorAll('#progMemberCardsList .prog-member-select-item');
+    var visibleCount = 0;
+
+    items.forEach(function(item) {
+        var name = (item.getAttribute('data-member-name') || '').toLowerCase();
+        var id = (item.getAttribute('data-member-id') || '').toLowerCase();
+        var phone = (item.getAttribute('data-member-phone') || '').toLowerCase();
+        var role = (item.getAttribute('data-member-role') || '').toLowerCase();
+
+        if (!val || name.includes(val) || id.includes(val) || phone.includes(val) || role.includes(val)) {
+            item.classList.remove('d-none');
+            visibleCount++;
+        } else {
+            item.classList.add('d-none');
         }
-        var fb = document.getElementById('progMemberLookupFeedback');
-        if (fb) fb.innerHTML = 'আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।';
+    });
+
+    var noAlert = document.getElementById('progNoMemberFoundAlert');
+    if (noAlert) {
+        if (visibleCount === 0) {
+            noAlert.classList.remove('d-none');
+        } else {
+            noAlert.classList.add('d-none');
+        }
+    }
+
+    var countBadge = document.getElementById('progMemberListCount');
+    if (countBadge) {
+        countBadge.innerText = visibleCount + ' জন সদস্য';
     }
 }
 
-function lookupProgramMember(val) {
-    val = (val || '').trim();
-    var fb = document.getElementById('progMemberLookupFeedback');
-    if (!val) {
-        if (fb) fb.innerHTML = 'আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।';
-        return;
+function clearProgModalMemberSearch() {
+    var inp = document.getElementById('progMemberSearchInput');
+    if (inp) {
+        inp.value = '';
+        filterProgModalMembers('');
     }
-    fetch('/donations/api/member-pledge/?member_id=' + encodeURIComponent(val))
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.found) {
-                if (fb) fb.innerHTML = '<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>' + data.full_name + ' (' + data.phone + ')</span>';
-                var nameInput = document.getElementById('progDonorName');
-                var phoneInput = document.getElementById('progDonorPhone');
-                if (nameInput) nameInput.value = data.full_name;
-                if (phoneInput) phoneInput.value = data.phone;
-            } else {
-                if (fb) fb.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>সদস্য আইডি পাওয়া যায়নি</span>';
-            }
-        })
-        .catch(function(e) { console.error(e); });
+}
+
+function selectProgMember(elem) {
+    document.querySelectorAll('#progMemberCardsList .prog-member-select-item').forEach(function(item) {
+        item.classList.remove('border-success', 'bg-success-subtle', 'bg-opacity-25');
+        var btn = item.querySelector('.select-btn-badge');
+        if (btn) {
+            btn.className = 'btn btn-sm btn-outline-success rounded-pill px-3 py-1 select-btn-badge';
+            btn.innerHTML = 'সিলেক্ট <i class="fas fa-check-circle ms-1"></i>';
+        }
+    });
+
+    elem.classList.add('border-success', 'bg-success-subtle', 'bg-opacity-25');
+    var currentBtn = elem.querySelector('.select-btn-badge');
+    if (currentBtn) {
+        currentBtn.className = 'btn btn-sm btn-success rounded-pill px-3 py-1 select-btn-badge';
+        currentBtn.innerHTML = 'নির্বাচিত <i class="fas fa-check ms-1"></i>';
+    }
+
+    var memberId = elem.getAttribute('data-member-id') || '';
+    var memberName = elem.getAttribute('data-member-name') || '';
+    var memberPhone = elem.getAttribute('data-member-phone') || '';
+    var memberRole = elem.getAttribute('data-member-role') || '';
+
+    var idInput = document.getElementById('prog_form_membership_id');
+    if (idInput) idInput.value = memberId;
+
+    var kindInput = document.getElementById('prog_form_donor_kind');
+    if (kindInput) kindInput.value = 'member';
+
+    var nameInput = document.getElementById('progDonorName');
+    if (nameInput) nameInput.value = memberName;
+
+    var phoneInput = document.getElementById('progDonorPhone');
+    if (phoneInput && memberPhone) phoneInput.value = memberPhone;
+
+    var nameDisp = document.getElementById('progSelectedMemberNameDisplay');
+    if (nameDisp) nameDisp.innerText = memberName;
+
+    var idDisp = document.getElementById('progSelectedMemberIdDisplay');
+    if (idDisp) idDisp.innerText = 'ID: ' + (memberId || 'N/A');
+
+    var roleDisp = document.getElementById('progSelectedMemberRoleDisplay');
+    if (roleDisp) roleDisp.innerText = memberRole;
+
+    var sec = document.getElementById('progSelectedMemberSection');
+    if (sec) sec.classList.remove('d-none');
+}
+
+function resetProgMemberSelection() {
+    document.querySelectorAll('#progMemberCardsList .prog-member-select-item').forEach(function(item) {
+        item.classList.remove('border-success', 'bg-success-subtle', 'bg-opacity-25');
+        var btn = item.querySelector('.select-btn-badge');
+        if (btn) {
+            btn.className = 'btn btn-sm btn-outline-success rounded-pill px-3 py-1 select-btn-badge';
+            btn.innerHTML = 'সিলেক্ট <i class="fas fa-check-circle ms-1"></i>';
+        }
+    });
+
+    var sec = document.getElementById('progSelectedMemberSection');
+    if (sec) sec.classList.add('d-none');
+
+    var idInput = document.getElementById('prog_form_membership_id');
+    if (idInput) idInput.value = '';
+
+    var kindInput = document.getElementById('prog_form_donor_kind');
+    if (kindInput) kindInput.value = 'general';
 }
 
 // Payment Mode Toggle (Gateway vs Manual)
