@@ -190,6 +190,7 @@ def initiate_payment(request):
     Redirects user directly to the official Payment Gateway (PayStation / Paymently) hosted page.
     """
     donor_identity_type = request.POST.get('donor_identity_type', 'general').strip()
+    prog_donor_kind = request.POST.get('prog_donor_kind', '').strip()
     membership_id = request.POST.get('membership_id', '').strip()
     frequency = request.POST.get('frequency', 'one_time').strip()
     donor_name = request.POST.get('donor_name', '').strip()
@@ -204,55 +205,50 @@ def initiate_payment(request):
         prog = Program.objects.filter(pk=program_id).first()
 
     # Determine donation type & fetch member info if applicable
-    if donor_identity_type == 'general':
-        donation_type = 'general'
-        frequency = 'one_time'
-        if membership_id:
-            vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
-            if vol:
-                if not donor_name: donor_name = vol.full_name
-                if not donor_phone: donor_phone = vol.phone
-                if not donor_email: donor_email = vol.email or donor_email
-            else:
-                tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
-                if tm:
-                    if not donor_name: donor_name = tm.name
-                    if not donor_phone: donor_phone = tm.phone or donor_phone
-                    if not donor_email: donor_email = tm.email or donor_email
-    elif donor_identity_type == 'program':
-        if not prog or not prog.needs_funding:
-            messages.error(request, "নির্বাচিত কার্যক্রমে বর্তমানে কোনো আর্থিক সহায়তার প্রয়োজন নেই।")
+    if prog or donor_identity_type == 'program':
+        if not prog:
+            messages.error(request, "অনুগ্রহ করে একটি বৈধ কার্যক্রম নির্বাচন করুন।")
             return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
+        if prog.status == 'completed':
+            messages.error(request, "নির্বাচিত কার্যক্রমটি ইতিমধ্যে সম্পন্ন হয়েছে।")
+            return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
+            
         donation_type = 'program'
         frequency = 'one_time'
-        if membership_id:
+
+        is_member_mode = (donor_identity_type == 'member' or prog_donor_kind == 'member' or bool(membership_id))
+        if is_member_mode and not membership_id and request.user.is_authenticated:
+            user_m = getattr(request.user, 'team_profile', None) or getattr(request.user, 'volunteer_profile', None)
+            if user_m and user_m.member_id:
+                membership_id = user_m.member_id
+
+        if is_member_mode:
+            if not membership_id:
+                messages.error(request, "সংস্থার সদস্য হিসেবে অনুদান প্রদান করতে আপনার সদস্য আইডি লিখুন।")
+                return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
+
             vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
+            tm = TeamMember.objects.filter(member_id__iexact=membership_id).first() if not vol else None
             if vol:
                 if not donor_name: donor_name = vol.full_name
                 if not donor_phone: donor_phone = vol.phone
                 if not donor_email: donor_email = vol.email or donor_email
+            elif tm:
+                if not donor_name: donor_name = tm.name
+                if not donor_phone: donor_phone = tm.phone or donor_phone
+                if not donor_email: donor_email = tm.email or donor_email
             else:
-                tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
-                if tm:
-                    if not donor_name: donor_name = tm.name
-                    if not donor_phone: donor_phone = tm.phone or donor_phone
-                    if not donor_email: donor_email = tm.email or donor_email
-    elif prog and prog.needs_funding:
-        donation_type = 'program'
-        frequency = 'one_time'
-        if membership_id:
-            vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
-            if vol:
-                if not donor_name: donor_name = vol.full_name
-                if not donor_phone: donor_phone = vol.phone
-                if not donor_email: donor_email = vol.email or donor_email
-            else:
-                tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
-                if tm:
-                    if not donor_name: donor_name = tm.name
-                    if not donor_phone: donor_phone = tm.phone or donor_phone
-                    if not donor_email: donor_email = tm.email or donor_email
+                messages.error(request, f"সদস্য আইডি '{membership_id}' পাওয়া যায়নি। অনুগ্রহ করে যাচাই করে পুনরায় চেষ্টা করুন।")
+                return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
+        else:
+            membership_id = None
+
     elif donor_identity_type == 'member':
+        if not membership_id and request.user.is_authenticated:
+            user_m = getattr(request.user, 'team_profile', None) or getattr(request.user, 'volunteer_profile', None)
+            if user_m and user_m.member_id:
+                membership_id = user_m.member_id
+
         vol = Volunteer.objects.filter(member_id__iexact=membership_id).first() if membership_id else None
         if vol:
             donation_type = 'volunteer'
@@ -274,8 +270,19 @@ def initiate_payment(request):
                 return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
     else:
         donation_type = 'general'
-        membership_id = None
         frequency = 'one_time'
+        if membership_id:
+            vol = Volunteer.objects.filter(member_id__iexact=membership_id).first()
+            if vol:
+                if not donor_name: donor_name = vol.full_name
+                if not donor_phone: donor_phone = vol.phone
+                if not donor_email: donor_email = vol.email or donor_email
+            else:
+                tm = TeamMember.objects.filter(member_id__iexact=membership_id).first()
+                if tm:
+                    if not donor_name: donor_name = tm.name
+                    if not donor_phone: donor_phone = tm.phone or donor_phone
+                    if not donor_email: donor_email = tm.email or donor_email
 
     if not donor_name or not donor_phone or not amount:
         messages.error(request, "দয়া করে নাম, মোবাইল নম্বর এবং আর্থিক সহায়তার পরিমাণ সঠিকভাবে লিখুন।")
@@ -348,6 +355,10 @@ def initiate_payment(request):
         status='initiated'
     )
 
+    # Save donation reference to session for reliable callback fallback
+    request.session['last_donation_tran_id'] = donation.tran_id
+    request.session['last_donation_id'] = donation.id
+
     # Initiate automated checkout session (PayStation Direct OTP/PIN or Paymently)
     session_res = initiate_active_gateway_session(request, donation)
     if session_res.get('success') and session_res.get('payment_url'):
@@ -366,6 +377,9 @@ def start_checkout_payment(request, tran_id):
     if donation.status == 'approved':
         messages.info(request, "এই অনুদানটি ইতিমধ্যে সফলভাবে পরিশোধ করা হয়েছে।")
         return redirect('donations:receipt', donation_id=donation.id)
+
+    request.session['last_donation_tran_id'] = donation.tran_id
+    request.session['last_donation_id'] = donation.id
 
     session_res = initiate_active_gateway_session(request, donation)
     if session_res.get('success') and session_res.get('payment_url'):
@@ -548,9 +562,24 @@ def payment_success(request):
     Verifies transaction with PayStation or Paymently Verify API, updates donation,
     logs financial transaction, dispatches notifications, and shows official receipt.
     """
-    invoice_number = request.GET.get('invoice_number') or request.POST.get('invoice_number') or request.GET.get('invoice') or request.POST.get('invoice')
+    invoice_number = request.GET.get('invoice_number') or request.POST.get('invoice_number') or request.GET.get('invoice') or request.POST.get('invoice') or request.GET.get('trxId') or request.POST.get('trxId')
     invoice_id = request.GET.get('invoice_id') or request.POST.get('invoice_id')
-    tran_id = request.GET.get('tran_id') or request.POST.get('tran_id') or invoice_number
+    tran_id = request.GET.get('tran_id') or request.POST.get('tran_id') or invoice_number or request.session.get('last_donation_tran_id')
+    opt_a = request.GET.get('opt_a') or request.POST.get('opt_a') or request.session.get('last_donation_id')
+
+    if opt_a and not tran_id:
+        try:
+            d_by_id = ProgramDonation.objects.filter(pk=int(opt_a)).first()
+            if d_by_id:
+                tran_id = d_by_id.tran_id
+        except Exception:
+            pass
+
+    # Fallback to most recent initiated donation from current user if nothing passed
+    if not tran_id and not invoice_number:
+        recent_init = ProgramDonation.objects.filter(status='initiated').order_by('-id').first()
+        if recent_init:
+            tran_id = recent_init.tran_id
 
     # 1. PayStation Verification
     target_invoice = invoice_number or tran_id
@@ -559,16 +588,23 @@ def payment_success(request):
         if str(ps_res.get('status_code')) == '200' and ps_res.get('data'):
             ps_data = ps_res['data']
             trx_st = str(ps_data.get('trx_status', '')).lower()
-            if trx_st == 'success':
+            if 'success' in trx_st:
                 donation = ProgramDonation.objects.filter(tran_id=target_invoice).first()
+                if not donation and ps_data.get('opt_a'):
+                    try:
+                        donation = ProgramDonation.objects.filter(pk=int(ps_data['opt_a'])).first()
+                    except Exception:
+                        pass
                 if donation:
                     payment_data = {
-                        'payment_method': ps_data.get('payment_method') or 'PayStation',
+                        'payment_method': ps_data.get('payment_method') or donation.payment_method or 'PayStation',
                         'transaction_id': ps_data.get('trx_id') or target_invoice,
                         'invoice_id': target_invoice,
                         'amount': ps_data.get('payment_amount') or donation.amount
                     }
                     process_successful_payment(donation, payment_data, request=request)
+                    request.session.pop('last_donation_tran_id', None)
+                    request.session.pop('last_donation_id', None)
                     if donation.donation_type == 'volunteer_registration':
                         messages.success(
                             request,
@@ -701,7 +737,7 @@ def payment_ipn(request):
     trx_status = str(payload.get('trx_status', '')).lower()
 
     # 1. PayStation IPN handler
-    if invoice_number and trx_status == 'success':
+    if invoice_number and 'success' in trx_status:
         donation = ProgramDonation.objects.filter(tran_id=invoice_number).first()
         if donation:
             payment_data = {

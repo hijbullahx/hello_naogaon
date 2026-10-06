@@ -722,34 +722,46 @@
                         <div class="p-3 rounded-3 bg-light border mb-3">
                             <div class="d-flex gap-3 mb-2">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_gen" value="general" checked onchange="toggleProgDonorKind('general')">
+                                    <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_gen" value="general" {% if not logged_in_member %}checked{% endif %} onchange="toggleProgDonorKind('general')">
                                     <label class="form-check-label fw-bold text-dark small" for="prog_kind_gen">সাধারণ শুভাকাঙ্ক্ষী</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_mem" value="member" onchange="toggleProgDonorKind('member')">
-                                    <label class="form-check-label fw-bold text-success small" for="prog_kind_mem">সংস্থার সদস্য (Member)</label>
+                                    <input class="form-check-input" type="radio" name="prog_donor_kind" id="prog_kind_mem" value="member" {% if logged_in_member %}checked{% endif %} onchange="toggleProgDonorKind('member')">
+                                    <label class="form-check-label fw-bold text-success small" for="prog_kind_mem"><i class="fas fa-id-badge me-1"></i>সংস্থার সদস্য (Member)</label>
                                 </div>
                             </div>
 
                             <!-- Member Lookup Field -->
-                            <div id="progMemberLookupBox" class="mb-2 d-none">
-                                <label class="form-label fw-bold small text-dark">সদস্য আইডি (Member ID)</label>
+                            <div id="progMemberLookupBox" class="mb-2 {% if not logged_in_member %}d-none{% endif %}">
+                                <label class="form-label fw-bold small text-dark">সদস্য আইডি (Member ID) <span class="text-danger">*</span></label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-white text-success"><i class="fas fa-id-badge"></i></span>
-                                    <input type="text" class="form-control fw-bold" name="membership_id" id="progMembershipId" placeholder="সদস্য আইডি লিখুন (যেমন: 26082301)" oninput="lookupProgramMember(this.value)">
+                                    <input type="text" class="form-control fw-bold" name="membership_id" id="progMembershipId" 
+                                        value="{% if logged_in_member %}{{ logged_in_member.member_id }}{% endif %}" 
+                                        placeholder="সদস্য আইডি লিখুন (যেমন: 26082301)" oninput="lookupProgramMember(this.value)" {% if logged_in_member %}required{% endif %}>
                                 </div>
-                                <div id="progMemberLookupFeedback" class="form-text small mt-1 text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</div>
+                                <div id="progMemberLookupFeedback" class="form-text small mt-1">
+                                    {% if logged_in_member %}
+                                        <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>লগইনকৃত সদস্য: {{ logged_in_member.name }} ({{ logged_in_member.effective_role|default:"স্বেচ্ছাসেবক" }})</span>
+                                    {% else %}
+                                        <span class="text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</span>
+                                    {% endif %}
+                                </div>
                             </div>
 
                             <!-- Name & Phone -->
                             <div class="row g-2">
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold small">আপনার নাম <span class="text-danger">*</span></label>
-                                    <input type="text" name="donor_name" id="progDonorName" class="form-control form-control-sm" placeholder="পূর্ণ নাম" required>
+                                    <input type="text" name="donor_name" id="progDonorName" class="form-control form-control-sm" 
+                                        value="{% if logged_in_member %}{{ logged_in_member.name }}{% elif user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}" 
+                                        placeholder="পূর্ণ নাম" required>
                                 </div>
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold small">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                    <input type="tel" name="donor_phone" id="progDonorPhone" class="form-control form-control-sm" placeholder="০১XXXXXXXXX" required>
+                                    <input type="tel" name="donor_phone" id="progDonorPhone" class="form-control form-control-sm" 
+                                        value="{% if logged_in_member %}{{ logged_in_member.phone|default:'' }}{% endif %}" 
+                                        placeholder="০১XXXXXXXXX" required>
                                 </div>
                             </div>
                         </div>

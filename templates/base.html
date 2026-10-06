@@ -552,19 +552,48 @@
     </script>
     
     {% if user.is_authenticated %}
-    <!-- ── Profile Edit Modal (Root-level to prevent stacking context/backdrop click-lock) ── -->
+    <!-- ── Profile Edit & Donation History Modal ── -->
     <div class="modal fade" id="profileEditModal" tabindex="-1" aria-labelledby="profileEditModalLabel" aria-hidden="true" style="z-index: 1060;">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header bg-success text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold" id="profileEditModalLabel">
-                        <i class="fas fa-user-edit me-2"></i> আমার প্রোফাইল সম্পাদনা
-                    </h5>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-success text-white py-3 px-4">
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="profileEditModalLabel">
+                            <i class="fas fa-user-circle me-2"></i>আমার প্রোফাইল ও বিবরণী
+                        </h5>
+                        {% if logged_in_member %}
+                        <small class="text-white-50">
+                            সদস্য আইডি: <strong class="text-white font-monospace">{{ logged_in_member.member_id }}</strong> 
+                            {% if logged_in_member.effective_role %} | <span class="badge bg-white text-success fw-bold py-0 px-2">{{ logged_in_member.effective_role }}</span>{% endif %}
+                        </small>
+                        {% endif %}
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="{% url 'core:update_profile' %}" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="modal-body p-4">
+
+                <!-- Modal Tabs -->
+                <ul class="nav nav-tabs nav-fill bg-light px-3 pt-2 border-bottom" id="profileModalTabList" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold text-success py-2 border-bottom-0" id="profile-tab-edit-btn" data-bs-toggle="tab" data-bs-target="#profile-tab-edit" type="button" role="tab" aria-selected="true">
+                            <i class="fas fa-user-edit me-1"></i>প্রোফাইল তথ্য ও সম্পাদনা
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold text-dark py-2 border-bottom-0" id="profile-tab-donations-btn" data-bs-toggle="tab" data-bs-target="#profile-tab-donations" type="button" role="tab" aria-selected="false">
+                            <i class="fas fa-history me-1 text-danger"></i>আমার অনুদানের ইতিহাস
+                            {% if logged_in_donations %}
+                            <span class="badge bg-success ms-1">{{ logged_in_donations|length }}</span>
+                            {% endif %}
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="profileModalTabContent">
+                    <!-- Tab 1: Profile Edit Form -->
+                    <div class="tab-pane fade show active" id="profile-tab-edit" role="tabpanel">
+                        <form action="{% url 'core:update_profile' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="modal-body p-4">
 
                         {% if user.team_profile and user.team_profile.image %}
                         <div class="text-center mb-3">
@@ -704,11 +733,109 @@
                             <i class="fas fa-save me-1"></i> পরিবর্তন সংরক্ষণ করুন
                         </button>
                     </div>
-                </form>
+                    </form>
+                </div>
+
+                <!-- Tab 2: Donation & Contribution History -->
+                <div class="tab-pane fade" id="profile-tab-donations" role="tabpanel">
+                    <div class="p-4">
+                        <!-- Stats summary -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-4">
+                                <div class="p-3 rounded-3 bg-success-subtle border border-success text-center">
+                                    <small class="text-secondary d-block fw-semibold">মোট অনুদানের পরিমাণ</small>
+                                    <span class="fs-4 fw-bold text-success">৳{{ logged_in_total_donated|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="p-3 rounded-3 bg-primary-subtle border border-primary text-center">
+                                    <small class="text-secondary d-block fw-semibold">অনুমোদিত অনুদান</small>
+                                    <span class="fs-4 fw-bold text-primary">{{ logged_in_donations|length }} টি</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="p-3 rounded-3 bg-light border text-center">
+                                    <small class="text-secondary d-block fw-semibold">সদস্য আইডি</small>
+                                    <span class="fs-5 fw-bold text-dark font-monospace">{{ logged_in_member.member_id|default:"-" }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Donations Table -->
+                        <div class="table-responsive border rounded-3 overflow-hidden mb-3">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>তারিখ</th>
+                                        <th>খাত / কার্যক্রম</th>
+                                        <th>পরিমাণ</th>
+                                        <th>পেমেন্ট মাধ্যম</th>
+                                        <th>স্ট্যাটাস</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if logged_in_donations %}
+                                    {% for don in logged_in_donations %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            <div class="fw-bold text-dark">{{ don.created_at|date:"d M Y" }}</div>
+                                            <small class="text-muted">{{ don.created_at|date:"h:i A" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if don.program %}
+                                            <span class="badge bg-success text-white"><i class="fas fa-tasks me-1"></i>{{ don.program.title }}</span>
+                                            {% elif don.donation_type == 'volunteer' %}
+                                            <span class="badge bg-primary text-white"><i class="fas fa-hand-holding-usd me-1"></i>মাসিক চাঁদা</span>
+                                            {% elif don.donation_type == 'volunteer_registration' %}
+                                            <span class="badge bg-info text-dark"><i class="fas fa-id-card me-1"></i>নিবন্ধন ফি</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary text-white"><i class="fas fa-donate me-1"></i>সাধারণ অনুদান</span>
+                                            {% endif %}
+                                            {% if don.note %}<div class="text-muted small mt-1 font-italic">{{ don.note }}</div>{% endif %}
+                                        </td>
+                                        <td class="fw-bold text-success">৳{{ don.amount|floatformat:2 }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">{{ don.payment_method }}</span>
+                                            <div class="font-monospace small text-muted">{{ don.tran_id|default:don.trx_id|default:"-" }}</div>
+                                        </td>
+                                        <td>
+                                            {% if don.status == 'approved' or don.status == 'completed' %}
+                                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>অনুমোদিত</span>
+                                            {% elif don.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>অপেক্ষমাণ</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ don.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            <i class="fas fa-hand-holding-heart fa-2x mb-2 text-secondary opacity-50 d-block"></i>
+                                            কোনো অনুদানের তথ্য পাওয়া যায়নি। আপনি সংস্থার যেকোনো কার্যক্রমে বা সাধারণ তহবিলে সরাসরি সহায়তা করতে পারেন।
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted"><i class="fas fa-info-circle me-1"></i>অনুমোদিত সকল অনুদান আপনার মেম্বার লেজারে স্বয়ংক্রিয়ভাবে সংরক্ষিত থাকে।</small>
+                            <button type="button" class="btn btn-sm btn-success fw-bold rounded-pill px-3" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#directDonateModal">
+                                <i class="fas fa-plus-circle me-1"></i>নতুন অনুদান দিন
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    {% endif %}
+</div>
+{% endif %}
 
     {% include 'includes/program_donation_modal.html' %}
     {% include 'includes/donate_modal.html' %}

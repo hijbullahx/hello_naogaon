@@ -396,7 +396,10 @@
                             {% if prog.target_amount %}
                             <button type="button"
                                 class="btn btn-sm btn-danger fw-bold rounded-pill px-2 py-1 shadow-sm text-nowrap"
-                                data-bs-toggle="modal" data-bs-target="#programDonateModal_{{ prog.id }}"
+                                data-bs-toggle="modal" data-bs-target="#programDonationModal"
+                                data-program-id="{{ prog.id }}" data-program-title="{{ prog.title }}"
+                                data-target-amount="{{ prog.target_amount|default:0 }}" data-raised-amount="{{ prog.raised_amount|default:0 }}"
+                                data-progress-percent="{{ prog.progress_percent }}"
                                 title="এই কার্যক্রমে অনুদান দিন">
                                 <i class="fas fa-hand-holding-heart me-1"></i><span
                                     data-i18n="home.programs.donate_btn">সহায়তা দিন</span>
@@ -406,157 +409,6 @@
                     </div>
                 </div>
             </div>
-
-            {% if prog.target_amount %}
-            <!-- Program Donation Modal -->
-            <div class="modal fade text-start" id="programDonateModal_{{ prog.id }}" tabindex="-1"
-                aria-labelledby="programDonateModalLabel_{{ prog.id }}" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                        <div class="modal-header bg-success text-white py-3 px-4">
-                            <div>
-                                <h5 class="modal-title fw-bold text-white mb-0"
-                                    id="programDonateModalLabel_{{ prog.id }}">
-                                    <i class="fas fa-hand-holding-heart me-2"></i><span
-                                        data-i18n="modal.donate_title">আর্থিক সহায়তা প্রদান</span>
-                                </h5>
-                                <small class="text-white-50">{{ prog.title }}</small>
-                            </div>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
-                        </div>
-                        <form action="{% url 'donations:initiate_payment' %}" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="program_id" value="{{ prog.id }}">
-                            <div class="modal-body p-4">
-                                <!-- Progress Info -->
-                                <div class="alert alert-success-subtle border border-success p-3 rounded-3 mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="small text-secondary fw-semibold"><span
-                                                data-i18n="home.programs.target">লক্ষ্যমাত্রা:</span> <strong>৳{{ prog.target_amount|floatformat:0 }}</strong></span>
-                                        <span class="small fw-bold text-success"><span
-                                                data-i18n="home.programs.raised">সংগৃহীত:</span> ৳{{ prog.raised_amount|floatformat:0 }} ({{ prog.progress_percent }}%)</span>
-                                    </div>
-                                    <div class="progress" style="height: 6px;">
-                                        <div class="progress-bar bg-success"
-                                            style="width: {{ prog.progress_percent }};"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Donor Identity Type Selection -->
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold small text-secondary"><span
-                                            data-i18n="modal.identity_q">আপনি কীভাবে সহায়তা প্রদান করবেন?</span> <span
-                                            class="text-danger">*</span></label>
-                                    <div class="d-flex gap-3">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="donor_identity_type"
-                                                id="identity_gen_{{ prog.id }}" value="general" checked
-                                                onchange="toggleProgDonorType('{{ prog.id }}', 'general')">
-                                            <label class="form-check-label fw-bold text-dark"
-                                                for="identity_gen_{{ prog.id }}" data-i18n="modal.general_donor">
-                                                সাধারণ শুভাকাঙ্ক্ষী
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="donor_identity_type"
-                                                id="identity_mem_{{ prog.id }}" value="member"
-                                                onchange="toggleProgDonorType('{{ prog.id }}', 'member')">
-                                            <label class="form-check-label fw-bold text-success"
-                                                for="identity_mem_{{ prog.id }}" data-i18n="modal.member_donor">
-                                                সংস্থার সদস্য (Member)
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Member ID Field (Hidden by default) -->
-                                <div id="progMemberField_{{ prog.id }}" class="mb-3 d-none">
-                                    <label class="form-label fw-bold text-dark small"><span
-                                            data-i18n="modal.member_id">সদস্য আইডি (Member ID)</span> <span
-                                            class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light text-success fw-bold"><i
-                                                class="fas fa-id-badge"></i></span>
-                                        <input type="text" class="form-control fw-bold" name="membership_id"
-                                            id="progMemberId_{{ prog.id }}" data-i18n-attr="placeholder:modal.member_id"
-                                            placeholder="যেমন: 26082301"
-                                            oninput="lookupProgramMember('{{ prog.id }}', this.value)">
-                                        <button class="btn btn-success fw-bold" type="button"
-                                            onclick="lookupProgramMember('{{ prog.id }}', document.getElementById('progMemberId_{{ prog.id }}').value)"
-                                            data-i18n="modal.verify_btn">যাচাই</button>
-                                    </div>
-                                    <div id="progMemberFeedback_{{ prog.id }}" class="form-text small mt-1 text-muted"
-                                        data-i18n="modal.member_hint">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।
-                                    </div>
-                                </div>
-
-                                <!-- General Donor Fields -->
-                                <div id="progGeneralFields_{{ prog.id }}" class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <label class="form-label fw-bold small" data-i18n="modal.your_name">আপনার নাম
-                                            <span class="text-danger">*</span></label>
-                                        <input type="text" name="donor_name" id="progDonorName_{{ prog.id }}"
-                                            class="form-control" data-i18n-attr="placeholder:modal.your_name"
-                                            placeholder="নাম লিখুন" required>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label fw-bold small" data-i18n="modal.mobile">মোবাইল নম্বর
-                                            <span class="text-danger">*</span></label>
-                                        <input type="tel" name="donor_phone" id="progDonorPhone_{{ prog.id }}"
-                                            class="form-control" placeholder="01XXXXXXXXX" required>
-                                    </div>
-                                </div>
-
-                                <!-- Quick Amount Selection -->
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark small mb-1"
-                                        data-i18n="modal.amount">সহায়তার পরিমাণ (টাকা) <span
-                                            class="text-danger">*</span></label>
-                                    <div class="d-flex flex-wrap gap-1 mb-2">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
-                                            onclick="setProgModalAmount('{{ prog.id }}', 100)">৳১০০</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
-                                            onclick="setProgModalAmount('{{ prog.id }}', 250)">৳২৫০</button>
-                                        <button type="button"
-                                            class="btn btn-sm btn-outline-secondary rounded-pill active"
-                                            onclick="setProgModalAmount('{{ prog.id }}', 500)">৳৫০০</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
-                                            onclick="setProgModalAmount('{{ prog.id }}', 1000)">৳১,০০০</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
-                                            onclick="setProgModalAmount('{{ prog.id }}', 2000)">৳২,০০০</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
-                                            onclick="setProgModalAmount('{{ prog.id }}', 5000)">৳৫,০০০</button>
-                                    </div>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light fw-bold text-success">৳ BDT</span>
-                                        <input type="number" name="amount" id="progAmount_{{ prog.id }}" value="500"
-                                            min="10" required class="form-control fw-bold fs-5 text-success">
-                                    </div>
-                                </div>
-
-                                <!-- Note -->
-                                <div class="mb-2">
-                                    <label class="form-label small text-secondary" data-i18n="modal.note">মন্তব্য /
-                                        দোয়া (ঐচ্ছিক)</label>
-                                    <input type="text" name="note" class="form-control form-control-sm"
-                                        data-i18n-attr="placeholder:modal.note"
-                                        placeholder="প্রোগ্রামের জন্য আপনার কোনো বিশেষ বার্তা">
-                                </div>
-                            </div>
-                            <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
-                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
-                                    data-bs-dismiss="modal" data-i18n="modal.cancel">বাতিল</button>
-                                <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
-                                    <i class="fas fa-lock me-1"></i><span data-i18n="modal.pay_btn">পেমেন্টে এগিয়ে
-                                        যান</span> &rarr;
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
             {% endfor %}
             {% else %}
             <!-- Fallback matching exact reference image -->

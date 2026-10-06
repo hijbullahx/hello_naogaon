@@ -72,6 +72,10 @@ class Volunteer(models.Model):
         return f"{self.full_name} ({self.member_id or 'No ID'})"
 
     @property
+    def name(self):
+        return self.full_name
+
+    @property
     def full_address(self):
         if self.address and self.upazila and self.upazila in self.address:
             return self.address
@@ -165,6 +169,10 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.effective_role}) - {self.member_id or 'No ID'}"
+
+    @property
+    def full_name(self):
+        return self.name
 
     @property
     def full_address(self):

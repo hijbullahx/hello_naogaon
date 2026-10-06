@@ -2750,7 +2750,7 @@
                                 <div class="col-md-4">
                                     <div class="bg-white bg-opacity-10 p-3 rounded-3 text-center">
                                         <small class="text-white-50 d-block">ট্র্যাকিং মেম্বার আইডি</small>
-                                        <span class="text-white fs-4 fw-bold font-monospace">{{ my_tm.member_id|default:"-" }}</span>
+                                        <span class="text-white fs-4 fw-bold font-monospace">{{ my_member.member_id|default:my_tm.member_id|default:"-" }}</span>
                                     </div>
                                 </div>
                             </div>

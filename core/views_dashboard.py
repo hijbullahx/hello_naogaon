@@ -282,19 +282,24 @@ def dashboard_home(request):
     treasurer_count = TeamMember.objects.filter(role='কোষাধ্যক্ষ').count()
     council_count = TeamMember.objects.filter(role='সাধারণ পরিষদ সদস্য').count()
 
-    # Personal Donation history for logged-in Team Member
-    my_tm = user_role_info.get('team_member')
+    # Personal Donation history for logged-in Team Member or Volunteer
+    my_tm = user_role_info.get('team_member') or getattr(request.user, 'team_profile', None)
+    my_vp = getattr(request.user, 'volunteer_profile', None)
+    my_member = my_tm or my_vp
     my_donations = []
     my_total_donated = 0
     my_donation_count = 0
-    if my_tm:
+    if my_member:
         q_filter = Q()
-        if my_tm.member_id:
-            q_filter |= Q(membership_id=my_tm.member_id)
-        if my_tm.email:
-            q_filter |= Q(donor_email__iexact=my_tm.email)
-        if my_tm.phone:
-            q_filter |= Q(donor_phone__iexact=my_tm.phone)
+        m_id = getattr(my_member, 'member_id', None)
+        m_email = getattr(my_member, 'email', None)
+        m_phone = getattr(my_member, 'phone', None)
+        if m_id:
+            q_filter |= Q(membership_id__iexact=m_id)
+        if m_email:
+            q_filter |= Q(donor_email__iexact=m_email)
+        if m_phone:
+            q_filter |= Q(donor_phone__iexact=m_phone)
         if q_filter:
             my_donations = ProgramDonation.objects.filter(q_filter).order_by('-created_at')
             my_total_donated = my_donations.filter(status='approved').aggregate(Sum('amount'))['amount__sum'] or 0
@@ -421,6 +426,8 @@ def dashboard_home(request):
         'treasurer_count': treasurer_count,
         'council_count': council_count,
         'my_tm': my_tm,
+        'my_vp': my_vp,
+        'my_member': my_member,
         'my_donations': my_donations,
         'my_total_donated': my_total_donated,
         'my_donation_count': my_donation_count,

@@ -32,40 +32,52 @@
                         <label class="form-label fw-bold small text-secondary">আপনি কীভাবে অনুদান দিতে চান? <span class="text-danger">*</span></label>
                         <div class="d-flex gap-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="donor_identity_type" id="global_identity_gen" value="general" checked onchange="toggleProgGlobalDonorType('general')">
+                                <input class="form-check-input" type="radio" name="donor_identity_type" id="global_identity_gen" value="general" {% if not logged_in_member %}checked{% endif %} onchange="toggleProgGlobalDonorType('general')">
                                 <label class="form-check-label fw-bold text-dark" for="global_identity_gen">
                                     সাধারণ শুভাকাঙ্ক্ষী
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="donor_identity_type" id="global_identity_mem" value="member" onchange="toggleProgGlobalDonorType('member')">
+                                <input class="form-check-input" type="radio" name="donor_identity_type" id="global_identity_mem" value="member" {% if logged_in_member %}checked{% endif %} onchange="toggleProgGlobalDonorType('member')">
                                 <label class="form-check-label fw-bold text-success" for="global_identity_mem">
-                                    সংস্থার সদস্য (Member)
+                                    <i class="fas fa-id-badge me-1"></i>সংস্থার সদস্য (Member)
                                 </label>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Member ID Field (Hidden by default) -->
-                    <div id="progGlobalMemberField" class="mb-3 d-none">
+                    <!-- Member ID Field -->
+                    <div id="progGlobalMemberField" class="mb-3 {% if not logged_in_member %}d-none{% endif %}">
                         <label class="form-label fw-bold text-dark small">সদস্য আইডি (Member ID) <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text bg-light text-success fw-bold"><i class="fas fa-id-badge"></i></span>
-                            <input type="text" class="form-control fw-bold" name="membership_id" id="progGlobalMemberId" placeholder="যেমন: 26082301" oninput="lookupProgGlobalMember(this.value)">
+                            <input type="text" class="form-control fw-bold" name="membership_id" id="progGlobalMemberId" 
+                                value="{% if logged_in_member %}{{ logged_in_member.member_id }}{% endif %}"
+                                placeholder="যেমন: 26082301" oninput="lookupProgGlobalMember(this.value)" {% if logged_in_member %}required{% endif %}>
                             <button class="btn btn-success fw-bold" type="button" onclick="lookupProgGlobalMember(document.getElementById('progGlobalMemberId').value)">যাচাই</button>
                         </div>
-                        <div id="progGlobalMemberFeedback" class="form-text small mt-1 text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</div>
+                        <div id="progGlobalMemberFeedback" class="form-text small mt-1">
+                            {% if logged_in_member %}
+                                <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>লগইনকৃত সদস্য: {{ logged_in_member.name }} ({{ logged_in_member.effective_role|default:"স্বেচ্ছাসেবক" }}) - অনুদানটি আপনার প্রোফাইলে যুক্ত হবে।</span>
+                            {% else %}
+                                <span class="text-muted">আইডি দিলে নাম ও মোবাইল স্বয়ংক্রিয়ভাবে লোড হবে।</span>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <!-- Donor Name & Phone Fields -->
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label fw-bold small">আপনার নাম <span class="text-danger">*</span></label>
-                            <input type="text" name="donor_name" id="progGlobalDonorName" class="form-control" placeholder="আপনার পূর্ণ নাম" required>
+                            <input type="text" name="donor_name" id="progGlobalDonorName" class="form-control" 
+                                value="{% if logged_in_member %}{{ logged_in_member.name }}{% elif user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}" 
+                                placeholder="আপনার পূর্ণ নাম" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-bold small">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                            <input type="tel" name="donor_phone" id="progGlobalDonorPhone" class="form-control" placeholder="০১XXXXXXXXX" required>
+                            <input type="tel" name="donor_phone" id="progGlobalDonorPhone" class="form-control" 
+                                value="{% if logged_in_member %}{{ logged_in_member.phone|default:'' }}{% endif %}" 
+                                placeholder="০১XXXXXXXXX" required>
                         </div>
                     </div>
 
