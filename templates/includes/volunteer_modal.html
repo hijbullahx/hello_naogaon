@@ -251,25 +251,37 @@
                                     <div class="col-12 col-md-7">
                                         <div class="d-flex flex-wrap gap-1">
                                             <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark" style="background-color: #fdf2f7; font-size: 0.78rem;">
-                                                <strong class="text-danger">bKash:</strong> <span class="font-monospace">01748-470965</span>
-                                                <button type="button" class="btn btn-sm p-0 ms-1 text-danger" onclick="copyVolunteerNumber('01748470965', 'বিকাশ নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
+                                                <strong class="text-danger">bKash:</strong> <span class="font-monospace">{{ manual_bkash.account_number|default:'01748-470965' }}</span>
+                                                <button type="button" class="btn btn-sm p-0 ms-1 text-danger" onclick="copyVolunteerNumber('{{ manual_bkash.account_number|default:'01748470965'|cut:'-'|cut:' ' }}', 'বিকাশ নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
                                             </span>
+                                            {% if manual_nagad and manual_nagad.account_number %}
                                             <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark bg-warning-subtle" style="font-size: 0.78rem;">
-                                                <strong class="text-warning-emphasis">Nagad:</strong> <span class="font-monospace">01748-470965</span>
-                                                <button type="button" class="btn btn-sm p-0 ms-1 text-dark" onclick="copyVolunteerNumber('01748470965', 'নগদ নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
+                                                <strong class="text-warning-emphasis">Nagad:</strong> <span class="font-monospace">{{ manual_nagad.account_number }}</span>
+                                                <button type="button" class="btn btn-sm p-0 ms-1 text-dark" onclick="copyVolunteerNumber('{{ manual_nagad.account_number|cut:'-'|cut:' ' }}', 'নগদ নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
                                             </span>
+                                            {% endif %}
+                                            {% if manual_rocket and manual_rocket.account_number %}
                                             <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark bg-primary-subtle" style="font-size: 0.78rem;">
-                                                <strong class="text-primary">Rocket:</strong> <span class="font-monospace">01748-470965-7</span>
-                                                <button type="button" class="btn btn-sm p-0 ms-1 text-primary" onclick="copyVolunteerNumber('017484709657', 'রকেট নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
+                                                <strong class="text-primary">Rocket:</strong> <span class="font-monospace">{{ manual_rocket.account_number }}</span>
+                                                <button type="button" class="btn btn-sm p-0 ms-1 text-primary" onclick="copyVolunteerNumber('{{ manual_rocket.account_number|cut:'-'|cut:' ' }}', 'রকেট নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
                                             </span>
+                                            {% endif %}
+                                            {% if manual_upay and manual_upay.account_number %}
+                                            <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark bg-info-subtle" style="font-size: 0.78rem;">
+                                                <strong class="text-info-emphasis">Upay:</strong> <span class="font-monospace">{{ manual_upay.account_number }}</span>
+                                                <button type="button" class="btn btn-sm p-0 ms-1 text-info-emphasis" onclick="copyVolunteerNumber('{{ manual_upay.account_number|cut:'-'|cut:' ' }}', 'উপায় নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
+                                            </span>
+                                            {% endif %}
                                         </div>
                                     </div>
+                                    {% if manual_bank and manual_bank.account_number %}
                                     <div class="col-12 col-md-5">
                                         <div class="p-2 border rounded-2 bg-white small" style="font-size: 0.75rem;">
-                                            <div class="fw-bold text-success">Dutch-Bangla Bank (নওগাঁ শাখা)</div>
-                                            <div>হিসাব: <span class="font-monospace fw-bold">1234567890</span> | রাউটিং: <span class="font-monospace">0902600925</span></div>
+                                            <div class="fw-bold text-success">{{ manual_bank.bank_name|default:'Dutch-Bangla Bank' }}{% if manual_bank.branch %} ({{ manual_bank.branch }}){% endif %}</div>
+                                            <div>হিসাব: <span class="font-monospace fw-bold">{{ manual_bank.account_number }}</span>{% if manual_bank.swift_code %} | রাউটিং: <span class="font-monospace">{{ manual_bank.swift_code }}</span>{% endif %}</div>
                                         </div>
                                     </div>
+                                    {% endif %}
                                 </div>
 
                                 <div class="p-2 bg-white rounded-3 border">
@@ -279,9 +291,10 @@
                                             <label class="form-label small fw-semibold mb-1">পেমেন্ট মাধ্যম</label>
                                             <select name="manual_channel" id="volManualChannel" class="form-select form-select-sm">
                                                 <option value="bKash">bKash (বিকাশ)</option>
-                                                <option value="Nagad">Nagad (নগদ)</option>
-                                                <option value="Rocket">Rocket (রকেট)</option>
-                                                <option value="Bank">ব্যাংক ডিপোজিট</option>
+                                                {% if manual_nagad and manual_nagad.account_number %}<option value="Nagad">Nagad (নগদ)</option>{% endif %}
+                                                {% if manual_rocket and manual_rocket.account_number %}<option value="Rocket">Rocket (রকেট)</option>{% endif %}
+                                                {% if manual_upay and manual_upay.account_number %}<option value="Upay">Upay (উপায়)</option>{% endif %}
+                                                {% if manual_bank and manual_bank.account_number %}<option value="Bank">ব্যাংক ডিপোজিট</option>{% endif %}
                                             </select>
                                         </div>
                                         <div class="col-sm-4">

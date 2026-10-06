@@ -2766,392 +2766,191 @@
 
         <!-- ================= TAB 6: BANK & DONATIONS ================= -->
         <div class="tab-pane fade" id="bank-section" role="tabpanel">
-            <div class="row g-4">
-
-                <!-- 1. Donation Page Hero & Text Content Card -->
-                <div class="col-lg-6">
-                    <div class="card border-0 shadow-sm rounded-3 h-100">
-                        <div class="card-header bg-success text-white py-3">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-hand-holding-heart me-2"></i>১. অনুদান
-                                পেজ হিরো ব্যানার ও বিবরণ টেক্সট</h5>
+            <div class="row justify-content-center">
+                <!-- Payment & Bank Configuration Card (Full Width) -->
+                <div class="col-12 col-xl-11">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title fw-bold mb-0">
+                                <i class="fas fa-wallet me-2"></i>অনলাইন ও ম্যানুয়াল পেমেন্ট এবং ব্যাংক কনফিগারেশন
+                            </h5>
+                            <span class="badge bg-light text-primary fw-bold">PayStation অটো + ম্যানুয়াল পেমেন্ট</span>
                         </div>
-                        <div class="card-body">
-                            <form action="{% url 'core:update_donation_content' %}" method="post"
-                                enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">হিরো টাইটেল (Hero Title) *</label>
-                                    <input type="text" name="hero_title" value="{{ donation_content.hero_title }}"
-                                        required class="form-control">
+                        <div class="card-body p-4">
+                            <!-- A. PayStation Automated Payment Info Banner -->
+                            <div class="p-3 mb-4 rounded-3 border border-primary bg-primary-subtle bg-opacity-25 shadow-sm">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm"><i class="fas fa-bolt me-1"></i> PayStation অটো গেটওয়ে</span>
+                                        <span class="badge bg-success-subtle text-success border border-success px-2 py-1"><i class="fas fa-check-circle me-1"></i>সক্রিয় (Live)</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#paystationSummaryModal">
+                                        <i class="fas fa-chart-line me-1"></i>PayStation লাইভ ড্যাশবোর্ড
+                                    </button>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">হিরো সাব-টাইটেল (Subtitle)</label>
-                                    <textarea name="hero_subtitle" rows="2"
-                                        class="form-control">{{ donation_content.hero_subtitle }}</textarea>
+                                <div class="small text-dark mb-1">
+                                    <strong>অনলাইন অটো পেমেন্ট:</strong> bKash, Nagad, Rocket, Upay, Visa, MasterCard ইত্যাদি সমস্ত অনলাইন পেমেন্ট <strong>PayStation</strong> গেটওয়ের মাধ্যমে সম্পূর্ণ স্বয়ংক্রিয়ভাবে প্রসেস হচ্ছে। এর জন্য কোনো আলাদা নম্বর বা সেটিং কনফিগার করার প্রয়োজন নেই।
                                 </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                        <label class="form-label fw-bold mb-0">হিরো ব্যাকগ্রাউন্ড ছবি</label>
-                                        <div class="d-flex align-items-center gap-1">
-                                            <span class="badge bg-light text-secondary border small">সর্বোচ্চ 1
-                                                MB</span>
-                                            <a href="https://www.resizepixel.com" target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
-                                            </a>
+                                <div class="small text-muted" style="font-size: 0.82rem;">
+                                    * অনুদানকারী বা সদস্য অনলাইনে "স্বয়ংক্রিয় পেমেন্ট গেটওয়ে" নির্বাচন করলে সরাসরি PayStation চেকআউটে নিয়ে যাওয়া হয় এবং পেমেন্ট শেষে স্বয়ংক্রিয়ভাবে ট্রানজেকশন যুক্ত ও কনফার্ম হয়।
+                                </div>
+                            </div>
+
+                            <!-- B. Manual Payment Setup Form -->
+                            <div class="pt-2">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h5 class="fw-bold text-dark mb-0">
+                                        <i class="fas fa-hand-holding-usd text-success me-2"></i>অফিশিয়াল ম্যানুয়াল পেমেন্ট সেটিংস
+                                    </h5>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning small">ওয়েবসাইটের সকল স্থানে স্বয়ংক্রিয়ভাবে সিঙ্ক হবে</span>
+                                </div>
+                                <p class="text-muted small mb-4">
+                                    এখানে দেওয়া বিকাশ নম্বর ও অন্যান্য তথ্যসমূহ অনুদান মডাল (Donate Modal), ভলান্টিয়ার রেজিস্ট্রেশন ফি এবং ওয়েবসাইটের সব জায়গায় ম্যানুয়াল পেমেন্ট সেকশনে সরাসরি প্রদর্শিত হবে।
+                                </p>
+
+                                <form action="{% url 'core:update_bank' %}" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    {% with bank=banks.first %}
+                                    <input type="hidden" name="bank_id" value="{{ bank.id|default:'' }}">
+
+                                    <!-- 1. Mobile Wallets (bKash, Nagad, Rocket, Upay) -->
+                                    <div class="p-3 bg-light rounded-3 border mb-4">
+                                        <div class="fw-bold text-dark small mb-3 pb-2 border-bottom d-flex align-items-center justify-content-between">
+                                            <span><i class="fas fa-mobile-alt text-primary me-2"></i>মোবাইল ওয়ালেট নম্বরসমূহ (Send Money / Merchant):</span>
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle small">* শুধুমাত্র বিকাশ নম্বর বাধ্যতামূলক</span>
                                         </div>
-                                    </div>
-                                    {% if donation_content.hero_image %}
-                                    {% if donation_content.hero_image %}<div class="mb-2"><img
-                                            src="{{ donation_content.hero_image.url }}" style="height: 70px;"
-                                            class="rounded border"></div>{% endif %}
-                                    {% endif %}
-                                    <input type="file" name="hero_image" class="form-control" accept="image/*"
-                                        onchange="validateDashboardImage(this, 1024, 'দানের পেজ ব্যানার ছবি')">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">কেন দান করবেন? (Why Donate Title)</label>
-                                    <input type="text" name="why_donate_title"
-                                        value="{{ donation_content.why_donate_title }}" class="form-control mb-2">
-                                    <textarea name="why_donate_text" rows="3"
-                                        class="form-control">{{ donation_content.why_donate_text }}</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">স্বচ্ছতা ও জবাবদিহিতা (Transparency Text)</label>
-                                    <input type="text" name="transparency_title"
-                                        value="{{ donation_content.transparency_title }}" class="form-control mb-2">
-                                    <textarea name="transparency_text" rows="3"
-                                        class="form-control">{{ donation_content.transparency_text }}</textarea>
-                                </div>
-                                <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-save me-1"></i>
-                                    পেজ কন্টেন্ট আপডেট করুন</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                                        <div class="row g-3">
+                                            <!-- bKash (MANDATORY) -->
+                                            <div class="col-md-7">
+                                                <label class="form-label small fw-bold mb-1">
+                                                    <span class="text-danger"><i class="fas fa-mobile-alt me-1"></i>bKash (বিকাশ) নম্বর</span>
+                                                    <span class="text-danger fw-bold">* (বাধ্যতামূলক)</span>
+                                                </label>
+                                                <input type="text" name="bkash_number" value="{{ bkash_method.account_number|default:'01748-470965' }}" class="form-control font-monospace fw-bold border-danger-subtle" placeholder="017XXXXXXXX" required>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label small fw-bold mb-1">bKash ধরণ</label>
+                                                <select name="bkash_type" class="form-select">
+                                                    <option value="Personal" {% if bkash_method.account_type == 'Personal' or not bkash_method %}selected{% endif %}>পার্সোনাল (Personal)</option>
+                                                    <option value="Merchant" {% if bkash_method.account_type == 'Merchant' %}selected{% endif %}>মার্চেন্ট (Merchant)</option>
+                                                    <option value="Agent" {% if bkash_method.account_type == 'Agent' %}selected{% endif %}>এজেন্ট (Agent)</option>
+                                                </select>
+                                            </div>
 
-                <!-- 2. Bank Account & QR Code Card -->
-                <div class="col-lg-6">
-                    <div class="card border-0 shadow-sm rounded-3 h-100">
-                        <div class="card-header bg-teal text-white py-3" style="background-color: #20c997 !important;">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-university me-2"></i>২. ব্যাংক একাউন্ট
-                                ও bKash/Nagad QR কোড</h5>
-                        </div>
-                        <div class="card-body">
-                            <form action="{% url 'core:update_bank' %}" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                {% with bank=banks.first %}
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">ব্যাংকের নাম</label>
-                                        <input type="text" name="bank_name"
-                                            value="{{ bank.bank_name|default:'Dutch-Bangla Bank' }}"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">একাউন্ট নাম (Account Name)</label>
-                                        <input type="text" name="account_name"
-                                            value="{{ bank.account_name|default:'Helpline Hello Naogaon' }}"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">একাউন্ট নম্বর (Account Number)</label>
-                                        <input type="text" name="account_number"
-                                            value="{{ bank.account_number|default:'1234567890' }}"
-                                            class="form-control fw-bold">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">রাউটিং নম্বর (Routing Number)</label>
-                                        <input type="text" name="swift_code"
-                                            value="{{ bank.swift_code|default:'0902600925' }}" class="form-control">
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div
-                                            class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                            <label class="form-label fw-bold mb-0">bKash/Nagad QR কোড ছবি আপলোড
-                                                করুন</label>
-                                            <div class="d-flex align-items-center gap-1">
-                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 300
-                                                    KB</span>
-                                                <a href="https://www.resizepixel.com" target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                    <i class="fas fa-external-link-alt me-1"></i>ছবি রিসাইজ করুন (Free)
-                                                </a>
+                                            <!-- Nagad (OPTIONAL) -->
+                                            <div class="col-md-7">
+                                                <label class="form-label small fw-bold mb-1">
+                                                    <span class="text-warning-emphasis"><i class="fas fa-wallet me-1"></i>Nagad (নগদ) নম্বর</span>
+                                                    <small class="text-muted fw-normal">(ঐচ্ছিক)</small>
+                                                </label>
+                                                <input type="text" name="nagad_number" value="{{ nagad_method.account_number|default:'' }}" class="form-control font-monospace" placeholder="017XXXXXXXX (না থাকলে ফাঁকা রাখুন)">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label small fw-bold mb-1">Nagad ধরণ <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <select name="nagad_type" class="form-select">
+                                                    <option value="Personal" {% if nagad_method.account_type == 'Personal' or not nagad_method %}selected{% endif %}>পার্সোনাল (Personal)</option>
+                                                    <option value="Merchant" {% if nagad_method.account_type == 'Merchant' %}selected{% endif %}>মার্চেন্ট (Merchant)</option>
+                                                    <option value="Agent" {% if nagad_method.account_type == 'Agent' %}selected{% endif %}>এজেন্ট (Agent)</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Rocket (OPTIONAL) -->
+                                            <div class="col-md-7">
+                                                <label class="form-label small fw-bold mb-1">
+                                                    <span class="text-primary"><i class="fas fa-university me-1"></i>Rocket (রকেট) নম্বর</span>
+                                                    <small class="text-muted fw-normal">(ঐচ্ছিক)</small>
+                                                </label>
+                                                <input type="text" name="rocket_number" value="{{ rocket_method.account_number|default:'' }}" class="form-control font-monospace" placeholder="017XXXXXXXX-X (না থাকলে ফাঁকা রাখুন)">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label small fw-bold mb-1">Rocket ধরণ <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <select name="rocket_type" class="form-select">
+                                                    <option value="Personal" {% if rocket_method.account_type == 'Personal' or not rocket_method %}selected{% endif %}>পার্সোনাল (Personal)</option>
+                                                    <option value="Merchant" {% if rocket_method.account_type == 'Merchant' %}selected{% endif %}>মার্চেন্ট (Merchant)</option>
+                                                    <option value="Agent" {% if rocket_method.account_type == 'Agent' %}selected{% endif %}>এজেন্ট (Agent)</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Upay (OPTIONAL) -->
+                                            <div class="col-md-7">
+                                                <label class="form-label small fw-bold mb-1 text-secondary">
+                                                    <i class="fas fa-hand-holding-usd me-1"></i>Upay (উপায়) নম্বর
+                                                    <small class="text-muted fw-normal">(ঐচ্ছিক)</small>
+                                                </label>
+                                                <input type="text" name="upay_number" value="{{ upay_method.account_number|default:'' }}" class="form-control font-monospace" placeholder="ঐচ্ছিক নম্বর">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label small fw-bold mb-1">Upay ধরণ <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <select name="upay_type" class="form-select">
+                                                    <option value="Personal" {% if upay_method.account_type == 'Personal' or not upay_method %}selected{% endif %}>পার্সোনাল (Personal)</option>
+                                                    <option value="Merchant" {% if upay_method.account_type == 'Merchant' %}selected{% endif %}>মার্চেন্ট (Merchant)</option>
+                                                </select>
                                             </div>
                                         </div>
-                                        {% if qrcodes.first and qrcodes.first.image %}
-                                        {% if qrcodes.first and qrcodes.first.image %}<div class="mb-2"><img
-                                                src="{{ qrcodes.first.image.url }}" style="height: 100px;"
-                                                class="rounded border p-1"></div>{% endif %}
-                                        {% endif %}
-                                        <input type="file" name="qr_image" class="form-control" accept="image/*"
-                                            onchange="validateDashboardImage(this, 300, 'QR কোড ছবি')">
                                     </div>
-                                </div>
-                                <button type="submit" class="btn btn-success fw-bold mt-4"><i
-                                        class="fas fa-save me-1"></i> ব্যাংক ও QR কোড আপডেট করুন</button>
-                                {% endwith %}
-                            </form>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- 3. Active Donation Campaigns Card -->
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm rounded-3">
-                        <div
-                            class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-bullhorn me-2"></i>৩. বিশেষ অনুদান
-                                ক্যাম্পেইন (Donation Campaigns)</h5>
-                            <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal"
-                                data-bs-target="#campaignModal"><i class="fas fa-plus me-1"></i> নতুন ক্যাম্পেইন তৈরি
-                                করুন</button>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>ছবি</th>
-                                            <th>ক্যাম্পেইনের নাম</th>
-                                            <th>টার্গেট গোল (৳)</th>
-                                            <th>সংগৃহীত (৳)</th>
-                                            <th>মেয়াদ</th>
-                                            <th>অ্যাকশন</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for c in campaigns %}
-                                        <tr>
-                                            <td>
-                                                {% if c.image %}
-                                                {% if c.image %}<img src="{{ c.image.url }}"
-                                                    style="height: 45px; width: 60px; object-fit: cover;"
-                                                    class="rounded">{% endif %}
-                                                {% else %}
-                                                <span class="badge bg-secondary">ছবি নেই</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <div class="fw-bold text-dark">{{ c.title }}</div>
-                                                <small class="text-muted d-block text-truncate"
-                                                    style="max-width: 300px;">{{ c.description }}</small>
-                                            </td>
-                                            <td><span class="fw-bold text-primary">৳ {{ c.goal_amount }}</span></td>
-                                            <td><span class="fw-bold text-success">৳ {{ c.raised_amount }}</span></td>
-                                            <td><small class="text-secondary">{{ c.start_date|date:"d M" }} - {{ c.end_date|date:"d M Y"|default:"চলমান" }}</small></td>
-                                            <td>
-                                                <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                                    data-bs-toggle="modal" data-bs-target="#editCampModal_{{ c.id }}"><i
-                                                        class="fas fa-edit"></i></button>
-                                                <a href="{% url 'core:delete_campaign' c.id %}"
-                                                    onclick="return confirm('ক্যাম্পেইনটি মুছে ফেলতে চান?');"
-                                                    class="btn btn-sm btn-outline-danger"><i
-                                                        class="fas fa-trash"></i></a>
-                                            </td>
-                                        </tr>
-
-                                        <!-- Edit Campaign Modal -->
-                                        <div class="modal fade" id="editCampModal_{{ c.id }}" tabindex="-1"
-                                            aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-primary text-white">
-                                                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i>
-                                                            ক্যাম্পেইন এডিট করুন</h5>
-                                                        <button type="button" class="btn-close btn-close-white"
-                                                            data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <form action="{% url 'core:save_campaign' %}" method="post"
-                                                        enctype="multipart/form-data">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="campaign_id" value="{{ c.id }}">
-                                                        <div class="modal-body">
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">ক্যাম্পেইনের নাম
-                                                                    *</label>
-                                                                <input type="text" name="title" value="{{ c.title }}"
-                                                                    required class="form-control">
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold">বিবরণ</label>
-                                                                <textarea name="description" rows="3"
-                                                                    class="form-control">{{ c.description }}</textarea>
-                                                            </div>
-                                                            <div class="row g-2 mb-3">
-                                                                <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">টার্গেট অনুদান (৳)
-                                                                        *</label>
-                                                                    <input type="number" name="goal_amount"
-                                                                        value="{{ c.goal_amount }}" required
-                                                                        class="form-control fw-bold">
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">সংগৃহীত অনুদান
-                                                                        (৳)</label>
-                                                                    <input type="number" name="raised_amount"
-                                                                        value="{{ c.raised_amount }}"
-                                                                        class="form-control">
-                                                                </div>
-                                                            </div>
-                                                            <div class="row g-2 mb-3">
-                                                                <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">শুরুর
-                                                                        তারিখ</label>
-                                                                    <input type="date" name="start_date"
-                                                                        value="{{ c.start_date|date:'Y-m-d' }}"
-                                                                        class="form-control">
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <label class="form-label fw-bold">শেষ তারিখ</label>
-                                                                    <input type="date" name="end_date"
-                                                                        value="{{ c.end_date|date:'Y-m-d' }}"
-                                                                        class="form-control">
-                                                                </div>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <div
-                                                                    class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                                                    <label class="form-label fw-bold mb-0">ছবি আপলোড
-                                                                        করুন</label>
-                                                                    <div class="d-flex align-items-center gap-1">
-                                                                        <span
-                                                                            class="badge bg-light text-secondary border small">সর্বোচ্চ
-                                                                            800 KB</span>
-                                                                        <a href="https://www.resizepixel.com"
-                                                                            target="_blank" rel="noopener noreferrer"
-                                                                            class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                                            <i
-                                                                                class="fas fa-external-link-alt me-1"></i>ছবি
-                                                                            রিসাইজ করুন (Free)
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                                {% if c.image %}
-                                                                {% if c.image %}<div class="mb-2"><img
-                                                                        src="{{ c.image.url }}" style="height: 60px;"
-                                                                        class="rounded"></div>{% endif %}
-                                                                {% endif %}
-                                                                <input type="file" name="image" class="form-control"
-                                                                    accept="image/*"
-                                                                    onchange="validateDashboardImage(this, 800, 'ক্যাম্পেইন কভার ছবি')">
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">বাতিল</button>
-                                                            <button type="submit" class="btn btn-primary fw-bold">আপডেট
-                                                                করুন</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
+                                    <!-- 2. Bank Account Details (OPTIONAL) -->
+                                    <div class="p-3 bg-light rounded-3 border mb-4">
+                                        <div class="fw-bold text-dark small mb-3 pb-2 border-bottom">
+                                            <i class="fas fa-university text-success me-2"></i>অফিশিয়াল ব্যাংক একাউন্ট তথ্য <small class="text-muted fw-normal">(ঐচ্ছিক - ব্যাংক পেমেন্ট না থাকলে ফাঁকা রাখতে পারেন):</small>
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold mb-1">ব্যাংকের নাম <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <input type="text" name="bank_name" value="{{ bank.bank_name|default:'' }}" class="form-control" placeholder="যেমন: Dutch-Bangla Bank">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold mb-1">একাউন্ট নাম (Account Name) <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <input type="text" name="account_name" value="{{ bank.account_name|default:'' }}" class="form-control" placeholder="যেমন: Helpline Hello Naogaon">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold mb-1">একাউন্ট নম্বর (Account Number) <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <input type="text" name="account_number" value="{{ bank.account_number|default:'' }}" class="form-control fw-bold font-monospace" placeholder="1234567890">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold mb-1">শাখা (Branch) <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <input type="text" name="branch" value="{{ bank.branch|default:'' }}" class="form-control" placeholder="যেমন: নওগাঁ শাখা">
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label class="form-label small fw-bold mb-1">রাউটিং / সুইফট কোড (Routing / Swift Code) <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <input type="text" name="swift_code" value="{{ bank.swift_code|default:'' }}" class="form-control font-monospace" placeholder="যেমন: 0902600925">
                                             </div>
                                         </div>
-                                        {% empty %}
-                                        <tr>
-                                            <td colspan="6" class="text-center py-4 text-muted">কোনো অনুদান ক্যাম্পেইন
-                                                পাওয়া যায়নি।</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                                    </div>
 
-                <!-- 4. Emergency Appeals Card -->
-                <div class="col-lg-6">
-                    <div class="card border-0 shadow-sm rounded-3">
-                        <div
-                            class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-exclamation-triangle me-2"></i>৪. জরুরি
-                                আবেদন (Emergency Appeals)</h5>
-                            <button class="btn btn-light btn-sm fw-bold text-danger" data-bs-toggle="modal"
-                                data-bs-target="#appealModal"><i class="fas fa-plus me-1"></i> নতুন আবেদন</button>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="list-group list-group-flush">
-                                {% for a in emergency_appeals %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <div class="d-flex align-items-center">
-                                        {% if a.image %}
-                                        {% if a.image %}<img src="{{ a.image.url }}"
-                                            style="height: 45px; width: 45px; object-fit: cover;"
-                                            class="rounded me-3">{% endif %}
-                                        {% endif %}
-                                        <div>
-                                            <h6 class="fw-bold mb-0 text-dark">{{ a.title }}</h6>
-                                            <small class="text-muted d-block text-truncate" style="max-width: 250px;">{{ a.description }}</small>
+                                    <!-- 3. Instructions & QR Code (OPTIONAL) -->
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-7">
+                                            <label class="form-label small fw-bold mb-1">ম্যানুয়াল পেমেন্ট নির্দেশিকা (Donors Instruction Note) <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                            <textarea name="manual_instructions" rows="4" class="form-control" placeholder="যেমন: টাকা পাঠানোর পর প্রেরকের মোবাইল নম্বর ও TrxID প্রদান করুন">{{ bkash_method.instructions|default:'টাকা পাঠানোর পর প্রেরকের মোবাইল নম্বর এবং TrxID প্রদান করে ফর্মটি সাবমিট করুন।' }}</textarea>
+                                        </div>
+
+                                        <div class="col-md-5">
+                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                                <label class="form-label small fw-bold mb-0">bKash / Nagad QR কোড <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
+                                                <span class="badge bg-light text-secondary border small">সর্বোচ্চ 500 KB</span>
+                                            </div>
+                                            {% if qrcodes.first and qrcodes.first.image %}
+                                            <div class="mb-2">
+                                                <img src="{{ qrcodes.first.image.url }}" style="height: 80px;" class="rounded border p-1 bg-white">
+                                            </div>
+                                            {% endif %}
+                                            <input type="file" name="qr_image" class="form-control" accept="image/*" onchange="validateDashboardImage(this, 500, 'QR কোড ছবি')">
+                                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">ডোনাররা স্ক্যান করে সরাসরি টাকা পাঠাতে পারবেন।</small>
                                         </div>
                                     </div>
-                                    <div>
-                                        <a href="{% url 'core:delete_emergency_appeal' a.id %}"
-                                            onclick="return confirm('আবেদনটি মুছে ফেলতে চান?');"
-                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+
+                                    <div class="text-end">
+                                        <button type="submit" class="btn btn-success btn-lg fw-bold px-4 py-2 shadow-sm">
+                                            <i class="fas fa-save me-2"></i>ম্যানুয়াল পেমেন্ট ও ব্যাংক তথ্য সংরক্ষণ করুন
+                                        </button>
                                     </div>
-                                </div>
-                                {% empty %}
-                                <div class="p-3 text-center text-muted">কোনো জরুরি আবেদন নেই।</div>
-                                {% endfor %}
+                                    {% endwith %}
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- 5. Donation Impact & FAQs Card -->
-                <div class="col-lg-6">
-                    <div class="card border-0 shadow-sm rounded-3">
-                        <div
-                            class="card-header bg-secondary text-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0"><i class="fas fa-question-circle me-2"></i>৫. অনুদান
-                                সংক্রান্ত FAQ & প্রভাব</h5>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-light btn-sm fw-bold" data-bs-toggle="modal"
-                                    data-bs-target="#impactModal"><i class="fas fa-plus me-1"></i> প্রভাব যোগ</button>
-                                <button class="btn btn-dark btn-sm fw-bold" data-bs-toggle="modal"
-                                    data-bs-target="#faqModal"><i class="fas fa-plus me-1"></i> FAQ যোগ</button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h6 class="fw-bold text-success mb-2"><i class="fas fa-chart-line me-1"></i> দান প্রভাব
-                                সূচকসমূহ (Impacts)</h6>
-                            <div class="mb-4">
-                                {% for imp in impacts %}
-                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                                    <div><span class="badge bg-success me-2">৳ {{ imp.amount }}</span><small
-                                            class="fw-semibold text-dark">{{ imp.description }}</small></div>
-                                    <a href="{% url 'core:delete_impact' imp.id %}"
-                                        onclick="return confirm('আইটেমটি মুছবেন?');" class="text-danger small"><i
-                                            class="fas fa-trash"></i></a>
-                                </div>
-                                {% empty %}
-                                {% endfor %}
-                            </div>
-
-                            <h6 class="fw-bold text-primary mb-2"><i class="fas fa-comments me-1"></i> সাধারণ
-                                প্রশ্নোত্তর (FAQs)</h6>
-                            <div>
-                                {% for faq in faqs %}
-                                <div class="d-flex justify-content-between align-items-start border-bottom py-2">
-                                    <div>
-                                        <div class="fw-bold small text-dark">Q: {{ faq.question }}</div>
-                                        <small class="text-secondary">A: {{ faq.answer }}</small>
-                                    </div>
-                                    <a href="{% url 'core:delete_faq' faq.id %}"
-                                        onclick="return confirm('FAQ টি মুছবেন?');" class="text-danger small ms-2"><i
-                                            class="fas fa-trash"></i></a>
-                                </div>
-                                {% empty %}
-                                <small class="text-muted">কোনো FAQ নেই।</small>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 

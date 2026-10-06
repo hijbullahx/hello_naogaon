@@ -603,18 +603,18 @@
                                 </span>
                                 <div>
                                     <div class="fw-bold fs-5 text-dark font-monospace">
-                                        <a href="tel:01748470965" class="text-dark text-decoration-none" title="কল করতে ট্যাপ করুন">
-                                            01748-470965
+                                        <a href="tel:{{ manual_bkash.account_number|default:'01748470965'|cut:'-'|cut:' ' }}" class="text-dark text-decoration-none" title="কল করতে ট্যাপ করুন">
+                                            {{ manual_bkash.account_number|default:'01748-470965' }}
                                         </a>
                                     </div>
-                                    <small class="text-muted"><i class="fas fa-user me-1 text-success"></i>পার্সোনাল (Send Money)</small>
+                                    <small class="text-muted"><i class="fas fa-user me-1 text-success"></i>{{ manual_bkash.account_type|default:'Personal' }} (Send Money)</small>
                                 </div>
                             </div>
                             <div class="d-flex gap-2">
-                                <a href="tel:01748470965" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold" title="সরাসরি কল দিন">
+                                <a href="tel:{{ manual_bkash.account_number|default:'01748470965'|cut:'-'|cut:' ' }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold" title="সরাসরি কল দিন">
                                     <i class="fas fa-phone-alt me-1"></i>কল
                                 </a>
-                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold" onclick="copyDonationNumber('01748470965', 'বিকাশ নম্বরটি কপি হয়েছে!')" title="নম্বর কপি করুন">
+                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold" onclick="copyDonationNumber('{{ manual_bkash.account_number|default:'01748470965'|cut:'-'|cut:' ' }}', 'বিকাশ নম্বরটি কপি হয়েছে!')" title="নম্বর কপি করুন">
                                     <i class="fas fa-copy me-1"></i>কপি
                                 </button>
                             </div>
@@ -623,12 +623,21 @@
 
                     <!-- Payment Badges / Other Methods -->
                     <div class="d-flex flex-wrap gap-2 mb-3">
-                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-dark fw-bold shadow-sm" onclick="copyDonationNumber('01748470965', 'নগদ নম্বর কপি হয়েছে!')">
-                            <i class="fas fa-wallet text-warning me-1"></i>নগদ: <span class="font-monospace">01748-470965</span> <i class="fas fa-copy ms-1 text-muted"></i>
+                        {% if manual_nagad and manual_nagad.account_number %}
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-dark fw-bold shadow-sm" onclick="copyDonationNumber('{{ manual_nagad.account_number|cut:'-'|cut:' ' }}', 'নগদ নম্বর কপি হয়েছে!')">
+                            <i class="fas fa-wallet text-warning me-1"></i>নগদ: <span class="font-monospace">{{ manual_nagad.account_number }}</span> <i class="fas fa-copy ms-1 text-muted"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-dark fw-bold shadow-sm" onclick="copyDonationNumber('017484709657', 'রকেট নম্বর কপি হয়েছে!')">
-                            <i class="fas fa-university text-primary me-1"></i>রকেট: <span class="font-monospace">01748-470965-7</span> <i class="fas fa-copy ms-1 text-muted"></i>
+                        {% endif %}
+                        {% if manual_rocket and manual_rocket.account_number %}
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-dark fw-bold shadow-sm" onclick="copyDonationNumber('{{ manual_rocket.account_number|cut:'-'|cut:' ' }}', 'রকেট নম্বর কপি হয়েছে!')">
+                            <i class="fas fa-university text-primary me-1"></i>রকেট: <span class="font-monospace">{{ manual_rocket.account_number }}</span> <i class="fas fa-copy ms-1 text-muted"></i>
                         </button>
+                        {% endif %}
+                        {% if manual_upay and manual_upay.account_number %}
+                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-dark fw-bold shadow-sm" onclick="copyDonationNumber('{{ manual_upay.account_number|cut:'-'|cut:' ' }}', 'উপায় নম্বর কপি হয়েছে!')">
+                            <i class="fas fa-hand-holding-usd text-info me-1"></i>উপায়: <span class="font-monospace">{{ manual_upay.account_number }}</span> <i class="fas fa-copy ms-1 text-muted"></i>
+                        </button>
+                        {% endif %}
                     </div>
 
                     <!-- QR Code & Bank Details -->
@@ -646,18 +655,18 @@
                         </div>
 
                         <div class="col-sm-7">
-                            {% if banks %}
-                            {% with bank=banks.first %}
+                            {% if manual_bank and manual_bank.account_number %}
+                            {% with bank=manual_bank %}
                             <div class="bank-info-box p-3 bg-light rounded-3 border">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <div class="fw-bold text-success" data-i18n="home.bank.heading">ব্যাংক একাউন্ট</div>
-                                    <button type="button" class="btn btn-sm btn-link text-success p-0 fw-bold text-decoration-none" onclick="copyDonationNumber('{{ bank.account_number|default:1234567890 }}', 'ব্যাংক একাউন্ট নম্বর কপি হয়েছে!')">
+                                    <button type="button" class="btn btn-sm btn-link text-success p-0 fw-bold text-decoration-none" onclick="copyDonationNumber('{{ bank.account_number }}', 'ব্যাংক একাউন্ট নম্বর কপি হয়েছে!')">
                                         <i class="fas fa-copy me-1"></i>কপি
                                     </button>
                                 </div>
                                 <div class="fw-bold text-dark">{{ bank.account_name|default:"Helpline Hello Naogaon" }}</div>
                                 <div class="small text-secondary">{{ bank.bank_name|default:"Dutch-Bangla Bank" }} ({{ bank.branch|default:"Naogaon Branch" }})</div>
-                                <div class="small text-dark mt-1 font-monospace"><strong>Account:</strong> {{ bank.account_number|default:"1234567890" }}</div>
+                                <div class="small text-dark mt-1 font-monospace"><strong>Account:</strong> {{ bank.account_number }}</div>
                                 <div class="small text-dark font-monospace"><strong>Routing:</strong> {{ bank.swift_code|default:"0902600925" }}</div>
                             </div>
                             {% endwith %}

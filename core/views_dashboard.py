@@ -278,6 +278,11 @@ def dashboard_home(request):
     photos = Photo.objects.all().order_by('-id')
     banks = Bank.objects.all()
     qrcodes = QRCode.objects.all()
+    donation_methods = DonationMethod.objects.all()
+    bkash_method = DonationMethod.objects.filter(name__iexact='bKash').first()
+    nagad_method = DonationMethod.objects.filter(name__iexact='Nagad').first()
+    rocket_method = DonationMethod.objects.filter(name__iexact='Rocket').first()
+    upay_method = DonationMethod.objects.filter(name__iexact='Upay').first()
 
     # Donation Page Models
     donation_content, _ = DonationPageContent.objects.get_or_create(pk=1)
@@ -437,6 +442,11 @@ def dashboard_home(request):
         'photos': photos,
         'banks': banks,
         'qrcodes': qrcodes,
+        'donation_methods': donation_methods,
+        'bkash_method': bkash_method,
+        'nagad_method': nagad_method,
+        'rocket_method': rocket_method,
+        'upay_method': upay_method,
         'donation_content': donation_content,
         'campaigns': campaigns,
         'emergency_appeals': emergency_appeals,
@@ -898,55 +908,121 @@ def delete_news(request, pk):
 
 @staff_member_required
 def update_bank_and_donation(request):
-    """Update Bank Account details & bKash QR code image"""
+    """Update Manual Payment Methods (bKash, Nagad, Rocket, Upay), Bank Account & QR Code"""
     if not can_user_edit_finance(request.user):
         messages.warning(request, "আর্থিক হিসাব পরিবর্তনের অনুমতি শুধুমাত্র প্রধান এডমিন ও কোষাধ্যক্ষের রয়েছে।")
         return redirect("/dashboard/?tab=finance-section")
 
     if request.method == 'POST':
+        # 1. Bank Account Details
         b_id = request.POST.get('bank_id')
-        bank_name = request.POST.get('bank_name')
-        account_name = request.POST.get('account_name')
-        account_number = request.POST.get('account_number')
-        branch = request.POST.get('branch', '')
-        swift_code = request.POST.get('swift_code', '')
+        bank_name = request.POST.get('bank_name', '').strip()
+        account_name = request.POST.get('account_name', '').strip()
+        account_number = request.POST.get('account_number', '').strip()
+        branch = request.POST.get('branch', '').strip()
+        swift_code = request.POST.get('swift_code', '').strip()
+
+        # 2. Manual Payment Numbers & Types
+        bkash_number = request.POST.get('bkash_number', '').strip()
+        bkash_type = request.POST.get('bkash_type', 'Personal').strip()
+
+        nagad_number = request.POST.get('nagad_number', '').strip()
+        nagad_type = request.POST.get('nagad_type', 'Personal').strip()
+
+        rocket_number = request.POST.get('rocket_number', '').strip()
+        rocket_type = request.POST.get('rocket_type', 'Personal').strip()
+
+        upay_number = request.POST.get('upay_number', '').strip()
+        upay_type = request.POST.get('upay_type', 'Personal').strip()
+
+        manual_instructions = request.POST.get('manual_instructions', '').strip()
+
+        # bKash is mandatory, everything else is optional
+        if not bkash_number:
+            messages.error(request, 'বিকাশ (bKash) নম্বরটি প্রদান করা বাধ্যতামূলক!')
+            return redirect('/dashboard/?tab=bank-section')
 
         try:
+            # 1. Save or Update Bank (Optional)
+            bank = Bank.objects.first() if not b_id else Bank.objects.filter(pk=b_id).first()
             if bank_name and account_number:
-                if b_id:
-                    bank = Bank.objects.filter(pk=b_id).first()
-                    if bank:
-                        bank.bank_name = bank_name
-                        bank.account_name = account_name
-                        bank.account_number = account_number
-                        bank.branch = branch
-                        bank.swift_code = swift_code
-                        bank.save()
+                if bank:
+                    bank.bank_name = bank_name
+                    bank.account_name = account_name
+                    bank.account_number = account_number
+                    bank.branch = branch
+                    bank.swift_code = swift_code
+                    bank.is_active = True
+                    bank.save()
                 else:
                     Bank.objects.create(
                         bank_name=bank_name,
                         account_name=account_name,
                         account_number=account_number,
                         branch=branch,
-                        swift_code=swift_code
+                        swift_code=swift_code,
+                        is_active=True
                     )
+            elif bank and not account_number:
+                bank.account_number = ''
+                bank.is_active = False
+                bank.save()
 
+            # 2. Save bKash Method (Mandatory)
+            bkash_method, _ = DonationMethod.objects.get_or_create(name='bKash')
+            bkash_method.account_number = bkash_number
+            bkash_method.account_type = bkash_type
+            bkash_method.icon_class = 'fas fa-mobile-alt'
+            if manual_instructions:
+                bkash_method.instructions = manual_instructions
+            bkash_method.is_active = True
+            bkash_method.save()
+
+            # 3. Save Nagad Method (Optional)
+            nagad_method, _ = DonationMethod.objects.get_or_create(name='Nagad')
+            nagad_method.account_number = nagad_number
+            nagad_method.account_type = nagad_type
+            nagad_method.icon_class = 'fas fa-wallet'
+            if manual_instructions:
+                nagad_method.instructions = manual_instructions
+            nagad_method.is_active = bool(nagad_number)
+            nagad_method.save()
+
+            # 4. Save Rocket Method (Optional)
+            rocket_method, _ = DonationMethod.objects.get_or_create(name='Rocket')
+            rocket_method.account_number = rocket_number
+            rocket_method.account_type = rocket_type
+            rocket_method.icon_class = 'fas fa-university'
+            if manual_instructions:
+                rocket_method.instructions = manual_instructions
+            rocket_method.is_active = bool(rocket_number)
+            rocket_method.save()
+
+            # 5. Save Upay Method (Optional)
+            upay_method, _ = DonationMethod.objects.get_or_create(name='Upay')
+            upay_method.account_number = upay_number
+            upay_method.account_type = upay_type
+            upay_method.icon_class = 'fas fa-hand-holding-usd'
+            upay_method.is_active = bool(upay_number)
+            upay_method.save()
+
+            # 6. Handle QR Code Image Upload (Optional)
             if 'qr_image' in request.FILES:
                 qr_file = request.FILES['qr_image']
-                if not validate_image_size(request, qr_file, max_kb=300, field_name='QR কোড ছবি'):
+                if not validate_image_size(request, qr_file, max_kb=500, field_name='QR কোড ছবি'):
                     return redirect('/dashboard/?tab=bank-section')
 
-                bkash_method, _ = DonationMethod.objects.get_or_create(name='bKash')
-                qr = QRCode.objects.filter(method=bkash_method).first()
+                qr = QRCode.objects.filter(method=bkash_method).first() or QRCode.objects.first()
                 if qr:
                     qr.image = qr_file
+                    qr.method = bkash_method
                     qr.save()
                 else:
                     QRCode.objects.create(method=bkash_method, image=qr_file)
 
-            messages.success(request, 'ব্যাংক হিসাব ও পেমেন্ট তথ্য সফলভাবে সেভ করা হয়েছে!')
+            messages.success(request, 'ম্যানুয়াল পেমেন্ট তথ্য সফলভাবে সংরক্ষিত হয়েছে! ওয়েবসাইটে সকল স্থানে নতুন তথ্য প্রদর্শিত হবে।')
         except Exception as e:
-            messages.error(request, f'ব্যাংক তথ্য বা QR কোড সংরক্ষণে সমস্যা হয়েছে: {str(e)}')
+            messages.error(request, f'পেমেন্ট তথ্য সংরক্ষণে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required

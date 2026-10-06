@@ -60,12 +60,34 @@ def site_settings_context(request):
         except Exception:
             pass
 
+    manual_bkash = None
+    manual_nagad = None
+    manual_rocket = None
+    manual_upay = None
+    manual_bank = None
+    manual_qrcode = None
+    try:
+        manual_bkash = DonationMethod.objects.filter(name__iexact='bKash').first()
+        manual_nagad = DonationMethod.objects.filter(name__iexact='Nagad').first()
+        manual_rocket = DonationMethod.objects.filter(name__iexact='Rocket').first()
+        manual_upay = DonationMethod.objects.filter(name__iexact='Upay').first()
+        manual_bank = Bank.objects.first()
+        manual_qrcode = QRCode.objects.first()
+    except Exception:
+        pass
+
     return {
         'site_setting': setting,
         'global_programs': global_programs,
         'global_banks': global_banks,
         'global_donation_methods': global_donation_methods,
         'global_qrcodes': global_qrcodes,
+        'manual_bkash': manual_bkash,
+        'manual_nagad': manual_nagad,
+        'manual_rocket': manual_rocket,
+        'manual_upay': manual_upay,
+        'manual_bank': manual_bank,
+        'manual_qrcode': manual_qrcode,
         'global_team_members': global_team_members,
         'global_volunteers': global_volunteers,
         'featured_board_program': featured_board_program,
