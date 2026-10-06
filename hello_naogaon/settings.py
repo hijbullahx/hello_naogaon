@@ -163,6 +163,35 @@ STATIC_ROOT = env('STATIC_ROOT', default=BASE_DIR / 'staticfiles')
 MEDIA_URL = env('MEDIA_URL', default='/media/')
 MEDIA_ROOT = env('MEDIA_ROOT', default=BASE_DIR / 'media')
 
+# File Upload Settings & Permissions to prevent 500 Server Errors in Production
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10 MB in-memory upload buffer
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024   # 25 MB max body size
+
+# Storage backend with safe unicode/bengali filename sanitization & auto-folder creation
+STORAGES = {
+    "default": {
+        "BACKEND": "core.storage.SafeFileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+# Ensure MEDIA_ROOT and standard upload subdirectories exist with proper permissions
+try:
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+    for _sub in [
+        'volunteers', 'team', 'programs', 'events', 'news', 'gallery',
+        'site', 'about', 'success_stories', 'donations/campaigns',
+        'donations/appeals', 'donations/qrcodes', 'donations/receipts',
+        'donations/hero'
+    ]:
+        os.makedirs(os.path.join(MEDIA_ROOT, _sub), exist_ok=True)
+except Exception:
+    pass
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

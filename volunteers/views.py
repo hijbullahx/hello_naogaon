@@ -215,7 +215,7 @@ def apply_volunteer(request):
         is_public_details = request.POST.get('is_public_details') == 'on'
         image = request.FILES.get('image')
 
-        # 500 KB Max Image Limit Validation
+        # 500 KB Max Image Limit Validation & PIL Integrity Check
         if image:
             max_size_bytes = 500 * 1024  # 500 KB
             if image.size > max_size_bytes:
@@ -225,6 +225,20 @@ def apply_volunteer(request):
                     f'ছবির সাইজ সর্বোচ্চ 500 KB হতে পারবে (আপনার ছবির সাইজ: {size_kb:.1f} KB)। '
                     f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কমিয়ে আপলোড করুন।'
                 )
+                return redirect(next_url if next_url else 'volunteers:apply')
+
+            try:
+                from PIL import Image
+                image.seek(0)
+                with Image.open(image) as img:
+                    img.verify()
+                image.seek(0)
+            except Exception:
+                try:
+                    image.seek(0)
+                except Exception:
+                    pass
+                messages.error(request, 'ছবির ফাইলটি সঠিক ফরম্যাটে নেই বা ক্ষতিগ্রস্ত। অনুগ্রহ করে একটি বৈধ JPG, PNG বা WebP ছবি দিন।')
                 return redirect(next_url if next_url else 'volunteers:apply')
 
         last_donated_val = None
@@ -279,8 +293,8 @@ def apply_volunteer(request):
                         trx_id=trx_id,
                         status='pending'
                     )
-                except ValueError as e:
-                    messages.error(request, str(e))
+                except Exception as e:
+                    messages.error(request, f'আবেদন সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
                     return redirect(next_url if next_url else 'volunteers:apply')
 
                 # Create corresponding ProgramDonation record for tracking in financial ledger
@@ -338,8 +352,8 @@ def apply_volunteer(request):
                         tran_id=gen_tran_id,
                         status='pending'
                     )
-                except ValueError as e:
-                    messages.error(request, str(e))
+                except Exception as e:
+                    messages.error(request, f'আবেদন সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
                     return redirect(next_url if next_url else 'volunteers:apply')
 
                 # Create initiated ProgramDonation for gateway checkout

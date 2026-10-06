@@ -169,18 +169,48 @@ def can_user_edit_general(user):
 
 def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"):
     """
-    Validates uploaded image file size dynamically within 100KB to 1MB range.
+    Validates uploaded image file size dynamically and verifies image integrity.
+    Prevents corrupt files, HEIC or non-image files from crashing the server with 500 error.
     """
-    if image_file and image_file.size > max_kb * 1024:
+    if not image_file:
+        return True
+
+    if image_file.size > max_kb * 1024:
         size_kb = image_file.size / 1024
         limit_str = f"{max_kb / 1024:.0f} MB" if max_kb >= 1024 else f"{max_kb} KB"
         size_str = f"{size_kb / 1024:.2f} MB" if size_kb >= 1024 else f"{size_kb:.1f} KB"
-        messages.error(
-            request,
-            f'{field_name}-র সাইজ সর্বোচ্চ {limit_str} হতে পারবে (আপনার ফাইলের সাইজ: {size_str})। '
-            f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কিছুটা কমিয়ে পুনরায় আপলোড করুন।'
-        )
+        try:
+            messages.error(
+                request,
+                f'{field_name}-র সাইজ সর্বোচ্চ {limit_str} হতে পারবে (আপনার ফাইলের সাইজ: {size_str})। '
+                f'অনুগ্রহ করে resizepixel.com থেকে ছবির সাইজ কিছুটা কমিয়ে পুনরায় আপলোড করুন।'
+            )
+        except Exception:
+            pass
         return False
+
+    # Validate image format and integrity using PIL
+    try:
+        from PIL import Image
+        image_file.seek(0)
+        with Image.open(image_file) as img:
+            img.verify()
+        image_file.seek(0)
+    except Exception:
+        try:
+            image_file.seek(0)
+        except Exception:
+            pass
+        try:
+            messages.error(
+                request,
+                f'{field_name}-টি সঠিক ইমেজ ফরম্যাটে নেই অথবা ফাইলটি ক্ষতিগ্রস্ত/সমর্থিত নয়। '
+                f'অনুগ্রহ করে একটি বৈধ JPG, JPEG, PNG বা WebP ফরম্যাটের ছবি আপলোড করুন।'
+            )
+        except Exception:
+            pass
+        return False
+
     return True
 
 def ensure_default_stat_counters():
@@ -484,8 +514,11 @@ def update_hero_section(request):
                 return redirect('/dashboard/?tab=home-section')
             setting.hero_image = request.FILES['hero_image']
 
-        setting.save()
-        messages.success(request, 'হেডার, হিরো ও যোগাযোগের তথ্য সফলভাবে আপডেট হয়েছে!')
+        try:
+            setting.save()
+            messages.success(request, 'হেডার, হিরো ও যোগাযোগের তথ্য সফলভাবে আপডেট হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'ছবি বা তথ্য সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required
@@ -496,26 +529,29 @@ def update_about_section(request):
         return redirect("/dashboard/")
 
     if request.method == 'POST':
-        setting, _ = SiteSetting.objects.get_or_create(pk=1)
-        setting.about_heading = request.POST.get('about_heading', setting.about_heading)
-        setting.about_text = request.POST.get('about_text', setting.about_text)
-        setting.save()
+        try:
+            setting, _ = SiteSetting.objects.get_or_create(pk=1)
+            setting.about_heading = request.POST.get('about_heading', setting.about_heading)
+            setting.about_text = request.POST.get('about_text', setting.about_text)
+            setting.save()
 
-        # Handle Featured Main Image (1MB max)
-        if 'featured_image' in request.FILES:
-            if not validate_image_size(request, request.FILES['featured_image'], max_kb=1024, field_name='ফিচারড ছবি'):
-                return redirect('/dashboard/?tab=home-section')
-            AboutImage.objects.filter(is_featured=True).delete()
-            AboutImage.objects.create(image=request.FILES['featured_image'], is_featured=True)
+            # Handle Featured Main Image (1MB max)
+            if 'featured_image' in request.FILES:
+                if not validate_image_size(request, request.FILES['featured_image'], max_kb=1024, field_name='ফিচারড ছবি'):
+                    return redirect('/dashboard/?tab=home-section')
+                AboutImage.objects.filter(is_featured=True).delete()
+                AboutImage.objects.create(image=request.FILES['featured_image'], is_featured=True)
 
-        # Handle Sub/Grid Image Uploads (600KB max each, support multiple)
-        grid_files = request.FILES.getlist('sub_images') or request.FILES.getlist('grid_image')
-        for g_file in grid_files:
-            if not validate_image_size(request, g_file, max_kb=600, field_name='গ্রিড ছবি'):
-                return redirect('/dashboard/?tab=home-section')
-            AboutImage.objects.create(image=g_file, is_featured=False)
+            # Handle Sub/Grid Image Uploads (600KB max each, support multiple)
+            grid_files = request.FILES.getlist('sub_images') or request.FILES.getlist('grid_image')
+            for g_file in grid_files:
+                if not validate_image_size(request, g_file, max_kb=600, field_name='গ্রিড ছবি'):
+                    return redirect('/dashboard/?tab=home-section')
+                AboutImage.objects.create(image=g_file, is_featured=False)
 
-        messages.success(request, 'আমাদের সম্পর্কে সেকশনের তথ্য আপডেট হয়েছে!')
+            messages.success(request, 'আমাদের সম্পর্কে সেকশনের তথ্য আপডেট হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'ছবি বা তথ্য আপলোড করতে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=home-section')
 
 @staff_member_required
@@ -664,51 +700,54 @@ def save_program(request):
         is_featured_board = (status == 'ongoing') and (request.POST.get('is_featured_board') in ['1', 'on', 'true', True])
         send_sms_notification = (status in ['ongoing', 'upcoming']) and (request.POST.get('send_sms_notification') in ['1', 'on', 'true', True])
 
-        old_target = None
-        if prog_id:
-            prog = Program.objects.filter(pk=prog_id).first()
-            if prog:
-                old_target = prog.target_amount
-                prog.title = title
-                prog.short_description = short_description
-                prog.description = description
-                prog.status = status
-                prog.icon_class = icon_class
-                prog.badge_color = badge_color
-                prog.target_amount = target_amount
-                prog.is_featured_board = is_featured_board
-                if image_file:
-                    prog.image = image_file
-                prog.save()
+        try:
+            old_target = None
+            if prog_id:
+                prog = Program.objects.filter(pk=prog_id).first()
+                if prog:
+                    old_target = prog.target_amount
+                    prog.title = title
+                    prog.short_description = short_description
+                    prog.description = description
+                    prog.status = status
+                    prog.icon_class = icon_class
+                    prog.badge_color = badge_color
+                    prog.target_amount = target_amount
+                    prog.is_featured_board = is_featured_board
+                    if image_file:
+                        prog.image = image_file
+                    prog.save()
 
+                    # Trigger SMS notification only if explicitly checked by admin for ongoing/upcoming program
+                    if send_sms_notification:
+                        from programs.program_notifications import notify_members_volunteers_program_fund
+                        notify_members_volunteers_program_fund(prog, request=request)
+                        messages.info(request, f'"{title}" কার্যক্রমের এসএমএস নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হচ্ছে।')
+
+                    messages.success(request, f'কার্যক্রম "{title}" আপডেট হয়েছে!')
+                else:
+                    messages.warning(request, 'কার্যক্রমটি খুঁজে পাওয়া যায়নি।')
+            else:
+                prog = Program.objects.create(
+                    title=title,
+                    short_description=short_description,
+                    description=description,
+                    status=status,
+                    icon_class=icon_class,
+                    badge_color=badge_color,
+                    target_amount=target_amount,
+                    is_featured_board=is_featured_board,
+                    image=image_file
+                )
                 # Trigger SMS notification only if explicitly checked by admin for ongoing/upcoming program
                 if send_sms_notification:
                     from programs.program_notifications import notify_members_volunteers_program_fund
                     notify_members_volunteers_program_fund(prog, request=request)
                     messages.info(request, f'"{title}" কার্যক্রমের এসএমএস নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হচ্ছে।')
 
-                messages.success(request, f'কার্যক্রম "{title}" আপডেট হয়েছে!')
-            else:
-                messages.warning(request, 'কার্যক্রমটি খুঁজে পাওয়া যায়নি।')
-        else:
-            prog = Program.objects.create(
-                title=title,
-                short_description=short_description,
-                description=description,
-                status=status,
-                icon_class=icon_class,
-                badge_color=badge_color,
-                target_amount=target_amount,
-                is_featured_board=is_featured_board,
-                image=image_file
-            )
-            # Trigger SMS notification only if explicitly checked by admin for ongoing/upcoming program
-            if send_sms_notification:
-                from programs.program_notifications import notify_members_volunteers_program_fund
-                notify_members_volunteers_program_fund(prog, request=request)
-                messages.info(request, f'"{title}" কার্যক্রমের এসএমএস নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের কাছে পাঠানো হচ্ছে।')
-
-            messages.success(request, f'নতুন কার্যক্রম "{title}" যোগ করা হয়েছে!')
+                messages.success(request, f'নতুন কার্যক্রম "{title}" যোগ করা হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'কার্যক্রম সংরক্ষণ বা ছবি আপলোড করতে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=programs-section')
 
 @staff_member_required
@@ -815,27 +854,30 @@ def save_news(request):
 
         category, _ = Category.objects.get_or_create(name=category_name)
 
-        if art_id:
-            art = Article.objects.filter(pk=art_id).first()
-            if art:
-                art.title = title
-                art.content = content
-                art.category = category
-                if image_file:
-                    art.image = image_file
-                art.save()
-                messages.success(request, f'সংবাদ "{title}" আপডেট হয়েছে!')
+        try:
+            if art_id:
+                art = Article.objects.filter(pk=art_id).first()
+                if art:
+                    art.title = title
+                    art.content = content
+                    art.category = category
+                    if image_file:
+                        art.image = image_file
+                    art.save()
+                    messages.success(request, f'সংবাদ "{title}" আপডেট হয়েছে!')
+                else:
+                    messages.warning(request, 'সংবাদটি খুঁজে পাওয়া যায়নি।')
             else:
-                messages.warning(request, 'সংবাদটি খুঁজে পাওয়া যায়নি।')
-        else:
-            Article.objects.create(
-                title=title,
-                content=content,
-                category=category,
-                image=image_file,
-                is_published=True
-            )
-            messages.success(request, f'নতুন সংবাদ "{title}" প্রকাশ করা হয়েছে!')
+                Article.objects.create(
+                    title=title,
+                    content=content,
+                    category=category,
+                    image=image_file,
+                    is_published=True
+                )
+                messages.success(request, f'নতুন সংবাদ "{title}" প্রকাশ করা হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'সংবাদ সংরক্ষণ বা ছবি আপলোড করতে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=news-section')
 
 @staff_member_required
@@ -869,39 +911,42 @@ def update_bank_and_donation(request):
         branch = request.POST.get('branch', '')
         swift_code = request.POST.get('swift_code', '')
 
-        if bank_name and account_number:
-            if b_id:
-                bank = Bank.objects.filter(pk=b_id).first()
-                if bank:
-                    bank.bank_name = bank_name
-                    bank.account_name = account_name
-                    bank.account_number = account_number
-                    bank.branch = branch
-                    bank.swift_code = swift_code
-                    bank.save()
-            else:
-                Bank.objects.create(
-                    bank_name=bank_name,
-                    account_name=account_name,
-                    account_number=account_number,
-                    branch=branch,
-                    swift_code=swift_code
-                )
+        try:
+            if bank_name and account_number:
+                if b_id:
+                    bank = Bank.objects.filter(pk=b_id).first()
+                    if bank:
+                        bank.bank_name = bank_name
+                        bank.account_name = account_name
+                        bank.account_number = account_number
+                        bank.branch = branch
+                        bank.swift_code = swift_code
+                        bank.save()
+                else:
+                    Bank.objects.create(
+                        bank_name=bank_name,
+                        account_name=account_name,
+                        account_number=account_number,
+                        branch=branch,
+                        swift_code=swift_code
+                    )
 
-        if 'qr_image' in request.FILES:
-            qr_file = request.FILES['qr_image']
-            if not validate_image_size(request, qr_file, max_kb=300, field_name='QR কোড ছবি'):
-                return redirect('/dashboard/?tab=bank-section')
+            if 'qr_image' in request.FILES:
+                qr_file = request.FILES['qr_image']
+                if not validate_image_size(request, qr_file, max_kb=300, field_name='QR কোড ছবি'):
+                    return redirect('/dashboard/?tab=bank-section')
 
-            bkash_method, _ = DonationMethod.objects.get_or_create(name='bKash')
-            qr = QRCode.objects.filter(method=bkash_method).first()
-            if qr:
-                qr.image = qr_file
-                qr.save()
-            else:
-                QRCode.objects.create(method=bkash_method, image=qr_file)
+                bkash_method, _ = DonationMethod.objects.get_or_create(name='bKash')
+                qr = QRCode.objects.filter(method=bkash_method).first()
+                if qr:
+                    qr.image = qr_file
+                    qr.save()
+                else:
+                    QRCode.objects.create(method=bkash_method, image=qr_file)
 
-        messages.success(request, 'ব্যাংক হিসাব ও পেমেন্ট তথ্য সফলভাবে সেভ করা হয়েছে!')
+            messages.success(request, 'ব্যাংক হিসাব ও পেমেন্ট তথ্য সফলভাবে সেভ করা হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'ব্যাংক তথ্য বা QR কোড সংরক্ষণে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
@@ -912,21 +957,24 @@ def update_donation_page_content(request):
         return redirect("/dashboard/?tab=finance-section")
 
     if request.method == 'POST':
-        content, _ = DonationPageContent.objects.get_or_create(pk=1)
-        content.hero_title = request.POST.get('hero_title', content.hero_title)
-        content.hero_subtitle = request.POST.get('hero_subtitle', content.hero_subtitle)
-        content.why_donate_title = request.POST.get('why_donate_title', content.why_donate_title)
-        content.why_donate_text = request.POST.get('why_donate_text', content.why_donate_text)
-        content.transparency_title = request.POST.get('transparency_title', content.transparency_title)
-        content.transparency_text = request.POST.get('transparency_text', content.transparency_text)
+        try:
+            content, _ = DonationPageContent.objects.get_or_create(pk=1)
+            content.hero_title = request.POST.get('hero_title', content.hero_title)
+            content.hero_subtitle = request.POST.get('hero_subtitle', content.hero_subtitle)
+            content.why_donate_title = request.POST.get('why_donate_title', content.why_donate_title)
+            content.why_donate_text = request.POST.get('why_donate_text', content.why_donate_text)
+            content.transparency_title = request.POST.get('transparency_title', content.transparency_title)
+            content.transparency_text = request.POST.get('transparency_text', content.transparency_text)
 
-        if 'hero_image' in request.FILES:
-            if not validate_image_size(request, request.FILES['hero_image'], max_kb=1024, field_name='দানের পেজ ব্যানার ছবি'):
-                return redirect('/dashboard/?tab=bank-section')
-            content.hero_image = request.FILES['hero_image']
+            if 'hero_image' in request.FILES:
+                if not validate_image_size(request, request.FILES['hero_image'], max_kb=1024, field_name='দানের পেজ ব্যানার ছবি'):
+                    return redirect('/dashboard/?tab=bank-section')
+                content.hero_image = request.FILES['hero_image']
 
-        content.save()
-        messages.success(request, 'দানের পেজের তথ্য সফলভাবে আপডেট করা হয়েছে!')
+            content.save()
+            messages.success(request, 'দানের পেজের তথ্য সফলভাবে আপডেট করা হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'দানের পেজের তথ্য সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
@@ -949,34 +997,37 @@ def save_campaign(request):
         if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='ক্যাম্পেইন কভার ছবি'):
             return redirect('/dashboard/?tab=bank-section')
 
-        if c_id:
-            camp = Campaign.objects.filter(pk=c_id).first()
-            if camp:
-                camp.title = title
-                camp.description = description
-                camp.goal_amount = goal_amount
-                camp.raised_amount = raised_amount
-                if start_date:
-                    camp.start_date = start_date
-                if end_date:
-                    camp.end_date = end_date
-                if image_file:
-                    camp.image = image_file
-                camp.save()
-                messages.success(request, f'ক্যাম্পেইন "{title}" আপডেট করা হয়েছে!')
+        try:
+            if c_id:
+                camp = Campaign.objects.filter(pk=c_id).first()
+                if camp:
+                    camp.title = title
+                    camp.description = description
+                    camp.goal_amount = goal_amount
+                    camp.raised_amount = raised_amount
+                    if start_date:
+                        camp.start_date = start_date
+                    if end_date:
+                        camp.end_date = end_date
+                    if image_file:
+                        camp.image = image_file
+                    camp.save()
+                    messages.success(request, f'ক্যাম্পেইন "{title}" আপডেট করা হয়েছে!')
+                else:
+                    messages.warning(request, 'ক্যাম্পেইনটি খুঁজে পাওয়া যায়নি।')
             else:
-                messages.warning(request, 'ক্যাম্পেইনটি খুঁজে পাওয়া যায়নি।')
-        else:
-            camp = Campaign.objects.create(
-                title=title,
-                description=description,
-                goal_amount=goal_amount,
-                raised_amount=raised_amount,
-                start_date=start_date or date.today(),
-                end_date=end_date or None,
-                image=image_file
-            )
-            messages.success(request, f'নতুন ক্যাম্পেইন "{title}" তৈরি করা হয়েছে!')
+                camp = Campaign.objects.create(
+                    title=title,
+                    description=description,
+                    goal_amount=goal_amount,
+                    raised_amount=raised_amount,
+                    start_date=start_date or date.today(),
+                    end_date=end_date or None,
+                    image=image_file
+                )
+                messages.success(request, f'নতুন ক্যাম্পেইন "{title}" তৈরি করা হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'ক্যাম্পেইন সংরক্ষণ বা ছবি আপলোড করতে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
@@ -1011,24 +1062,27 @@ def save_emergency_appeal(request):
         if image_file and not validate_image_size(request, image_file, max_kb=800, field_name='জরুরি আপিল ছবি'):
             return redirect('/dashboard/?tab=bank-section')
 
-        if appeal_id:
-            app = EmergencyAppeal.objects.filter(pk=appeal_id).first()
-            if app:
-                app.title = title
-                app.description = description
-                if image_file:
-                    app.image = image_file
-                app.save()
-                messages.success(request, f'জরুরি আবেদন "{title}" আপডেট করা হয়েছে!')
+        try:
+            if appeal_id:
+                app = EmergencyAppeal.objects.filter(pk=appeal_id).first()
+                if app:
+                    app.title = title
+                    app.description = description
+                    if image_file:
+                        app.image = image_file
+                    app.save()
+                    messages.success(request, f'জরুরি আবেদন "{title}" আপডেট করা হয়েছে!')
+                else:
+                    messages.warning(request, 'আবেদনটি খুঁজে পাওয়া যায়নি।')
             else:
-                messages.warning(request, 'আবেদনটি খুঁজে পাওয়া যায়নি।')
-        else:
-            EmergencyAppeal.objects.create(
-                title=title,
-                description=description,
-                image=image_file
-            )
-            messages.success(request, f'নতুন জরুরি আবেদন "{title}" তৈরি করা হয়েছে!')
+                EmergencyAppeal.objects.create(
+                    title=title,
+                    description=description,
+                    image=image_file
+                )
+                messages.success(request, f'নতুন জরুরি আবেদন "{title}" তৈরি করা হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'জরুরি আবেদন সংরক্ষণ বা ছবি আপলোড করতে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=bank-section')
 
 @staff_member_required
@@ -1503,52 +1557,56 @@ def save_team_member(request):
                 user_created_or_updated = True
 
         # 4. Save Team Member
-        if tm:
-            tm.name = name
-            tm.role = role
-            tm.custom_role = custom_role if role == 'অন্যান্য' else ''
-            tm.email = email
-            tm.phone = phone
-            tm.blood_group = blood_group
-            tm.last_donated = last_donated
-            tm.is_public_details = is_public_details
-            tm.division = division
-            tm.district = district
-            tm.upazila = upazila
-            tm.address = address
-            tm.bio = bio
-            tm.order = order
-            if custom_member_id:
-                tm.member_id = custom_member_id
-            if auth_user:
-                tm.user = auth_user
-            if image_file:
-                tm.image = image_file
-            tm.save()
-            messages.success(request, f'সদস্য আইডি "{tm.member_id}" অনুযায়ী টিম সদস্য "{name}"-এর তথ্য সফলভাবে আপডেট হয়েছে!')
-        else:
-            tm = TeamMember(
-                name=name,
-                role=role,
-                custom_role=custom_role if role == 'অন্যান্য' else '',
-                email=email,
-                phone=phone,
-                blood_group=blood_group,
-                last_donated=last_donated,
-                is_public_details=is_public_details,
-                division=division,
-                district=district,
-                upazila=upazila,
-                address=address,
-                bio=bio,
-                order=order,
-                user=auth_user,
-                image=image_file
-            )
-            if custom_member_id:
-                tm.member_id = custom_member_id
-            tm.save()
-            messages.success(request, f'সদস্য আইডি "{tm.member_id}" দিয়ে টিম সদস্য "{name}" সফলভাবে যুক্ত হয়েছে!')
+        try:
+            if tm:
+                tm.name = name
+                tm.role = role
+                tm.custom_role = custom_role if role == 'অন্যান্য' else ''
+                tm.email = email
+                tm.phone = phone
+                tm.blood_group = blood_group
+                tm.last_donated = last_donated
+                tm.is_public_details = is_public_details
+                tm.division = division
+                tm.district = district
+                tm.upazila = upazila
+                tm.address = address
+                tm.bio = bio
+                tm.order = order
+                if custom_member_id:
+                    tm.member_id = custom_member_id
+                if auth_user:
+                    tm.user = auth_user
+                if image_file:
+                    tm.image = image_file
+                tm.save()
+                messages.success(request, f'সদস্য আইডি "{tm.member_id}" অনুযায়ী টিম সদস্য "{name}"-এর তথ্য সফলভাবে আপডেট হয়েছে!')
+            else:
+                tm = TeamMember(
+                    name=name,
+                    role=role,
+                    custom_role=custom_role if role == 'অন্যান্য' else '',
+                    email=email,
+                    phone=phone,
+                    blood_group=blood_group,
+                    last_donated=last_donated,
+                    is_public_details=is_public_details,
+                    division=division,
+                    district=district,
+                    upazila=upazila,
+                    address=address,
+                    bio=bio,
+                    order=order,
+                    user=auth_user,
+                    image=image_file
+                )
+                if custom_member_id:
+                    tm.member_id = custom_member_id
+                tm.save()
+                messages.success(request, f'সদস্য আইডি "{tm.member_id}" দিয়ে টিম সদস্য "{name}" সফলভাবে যুক্ত হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'টিম সদস্যের তথ্য বা ছবি সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
+            return redirect('/dashboard/?tab=volunteers-section')
 
         # 5. Email Notification to Member (fail-silently)
         if email:
@@ -1750,40 +1808,43 @@ def save_financial_transaction(request):
         if receipt_file and not validate_image_size(request, receipt_file, max_kb=800, field_name='রশিদ/ভাউচার ফাইল'):
             return redirect('/dashboard/?tab=finance-section')
 
-        if trx_id_db:
-            trx = FinancialTransaction.objects.filter(pk=trx_id_db).first()
-            if trx:
-                trx.transaction_type = t_type
-                trx.program = prog
-                trx.title = title
-                trx.category = category
-                trx.amount = amount
-                trx.payment_method = payment_method
-                trx.trx_id = trx_id
-                trx.donor_name = donor_name
-                trx.date = date_val
-                trx.note = note
-                if receipt_file:
-                    trx.receipt = receipt_file
-                trx.save()
-                messages.success(request, 'আর্থিক লেনদেন আপডেট করা হয়েছে!')
+        try:
+            if trx_id_db:
+                trx = FinancialTransaction.objects.filter(pk=trx_id_db).first()
+                if trx:
+                    trx.transaction_type = t_type
+                    trx.program = prog
+                    trx.title = title
+                    trx.category = category
+                    trx.amount = amount
+                    trx.payment_method = payment_method
+                    trx.trx_id = trx_id
+                    trx.donor_name = donor_name
+                    trx.date = date_val
+                    trx.note = note
+                    if receipt_file:
+                        trx.receipt = receipt_file
+                    trx.save()
+                    messages.success(request, 'আর্থিক লেনদেন আপডেট করা হয়েছে!')
+                else:
+                    messages.warning(request, 'লেনদেনটি খুঁজে পাওয়া যায়নি।')
             else:
-                messages.warning(request, 'লেনদেনটি খুঁজে পাওয়া যায়নি।')
-        else:
-            FinancialTransaction.objects.create(
-                transaction_type=t_type,
-                program=prog,
-                title=title,
-                category=category,
-                amount=amount,
-                payment_method=payment_method,
-                trx_id=trx_id,
-                donor_name=donor_name,
-                date=date_val,
-                note=note,
-                receipt=receipt_file
-            )
-            messages.success(request, 'নতুন আর্থিক লেনদেন অন্তর্ভুক্ত করা হয়েছে!')
+                FinancialTransaction.objects.create(
+                    transaction_type=t_type,
+                    program=prog,
+                    title=title,
+                    category=category,
+                    amount=amount,
+                    payment_method=payment_method,
+                    trx_id=trx_id,
+                    donor_name=donor_name,
+                    date=date_val,
+                    note=note,
+                    receipt=receipt_file
+                )
+                messages.success(request, 'নতুন আর্থিক লেনদেন অন্তর্ভুক্ত করা হয়েছে!')
+        except Exception as e:
+            messages.error(request, f'আর্থিক লেনদেন বা রশিদ ফাইল সংরক্ষণে সমস্যা হয়েছে: {str(e)}')
     return redirect('/dashboard/?tab=finance-section')
 
 @staff_member_required
@@ -2124,13 +2185,16 @@ def save_gallery_photo(request):
             if not validate_image_size(request, image_file, max_kb=1024, field_name='গ্যালারির ছবি'):
                 return redirect('/dashboard/?tab=gallery-section')
 
-            album, _ = Album.objects.get_or_create(title='Main Gallery')
-            Photo.objects.create(
-                album=album,
-                image=image_file,
-                caption=caption
-            )
-            messages.success(request, 'গ্যালারিতে নতুন ছবি আপলোড করা হয়েছে!')
+            try:
+                album, _ = Album.objects.get_or_create(title='Main Gallery')
+                Photo.objects.create(
+                    album=album,
+                    image=image_file,
+                    caption=caption
+                )
+                messages.success(request, 'গ্যালারিতে নতুন ছবি আপলোড করা হয়েছে!')
+            except Exception as e:
+                messages.error(request, f'গ্যালারির ছবি আপলোড বা সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
         else:
             messages.error(request, 'দয়া করে একটি ছবি নির্বাচন করুন')
     return redirect('/dashboard/?tab=gallery-section')
@@ -2545,7 +2609,11 @@ def update_profile(request):
             tm.image = photo_file
             changes.append('প্রোফাইল ছবি আপডেট হয়েছে')
 
-        tm.save()
+        try:
+            tm.save()
+        except Exception as e:
+            messages.error(request, f'প্রোফাইল ছবি বা তথ্য সংরক্ষণে সমস্যা হয়েছে: {str(e)}')
+            return redirect(redirect_target)
 
     # Update Volunteer profile if exists
     vp = getattr(user, 'volunteer_profile', None)
@@ -2574,7 +2642,11 @@ def update_profile(request):
         if new_address and new_address != vp.address:
             vp.address = new_address
             changes.append(f'ঠিকানা: {new_address}')
-        vp.save()
+        try:
+            vp.save()
+        except Exception as e:
+            messages.error(request, f'স্বেচ্ছাসেবক প্রোফাইল তথ্য সংরক্ষণে সমস্যা হয়েছে: {str(e)}')
+            return redirect(redirect_target)
 
     # Send notification email if changes made
     if changes and (new_email or user.email):
