@@ -2314,14 +2314,19 @@ def approve_program_donation(request, pk):
                     vol = Volunteer.objects.filter(pk=vol_id).first()
                 except Exception:
                     pass
+            elif donation.membership_id:
+                vol = Volunteer.objects.filter(member_id__iexact=donation.membership_id).first()
+
             if not vol and donation.tran_id:
                 vol = Volunteer.objects.filter(tran_id=donation.tran_id).first()
             if not vol and donation.donor_phone:
-                vol = Volunteer.objects.filter(phone=donation.donor_phone, status='pending').first()
+                vol = Volunteer.objects.filter(phone=donation.donor_phone).first()
 
-            if vol and vol.status != 'approved':
-                vol.status = 'approved'
+            if vol:
+                if vol.status != 'approved':
+                    vol.status = 'approved'
                 vol.payment_status = 'paid'
+                vol.payment_method = donation.payment_method or 'Manual'
                 if not vol.member_id:
                     vol.member_id = generate_unique_member_id(prefix_str="")
                 vol.save()

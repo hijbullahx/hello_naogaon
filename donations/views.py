@@ -62,25 +62,31 @@ def member_pledge_lookup(request):
     vol = Volunteer.objects.filter(member_id__iexact=member_id, status='approved').first()
     if vol:
         sub = vol.subscription_summary
-        has_pledge = (vol.contribution_frequency == 'monthly' and vol.contribution_amount and float(vol.contribution_amount) > 0)
+        has_cyclic_chada = vol.has_cyclic_chada
+        is_reg_due = vol.is_registration_fee_due
+        reg_fee = float(vol.registration_fee or 100.0)
         return JsonResponse({
             'found': True,
             'is_team_member': False,
+            'is_volunteer': True,
             'member_id': vol.member_id,
             'full_name': vol.full_name,
             'role': 'স্বেচ্ছাসেবক সদস্য',
             'phone': vol.phone,
             'email': vol.email or '',
-            'has_pledge': has_pledge,
-            'frequency': 'monthly' if has_pledge else (vol.contribution_frequency or 'none'),
-            'frequency_display': 'মাসিক চাঁদা' if has_pledge else 'ইচ্ছানুযায়ী',
+            'has_pledge': has_cyclic_chada,
+            'has_cyclic_chada': has_cyclic_chada,
+            'is_reg_fee_due': is_reg_due,
+            'registration_fee': reg_fee,
+            'frequency': 'monthly' if has_cyclic_chada else (vol.contribution_frequency or 'none'),
+            'frequency_display': 'মাসিক চাঁদা' if has_cyclic_chada else ('নিবন্ধন ফি' if is_reg_due else 'ইচ্ছানুযায়ী'),
             'amount': sub['suggested_amount'],
-            'monthly_fee': sub['monthly_fee'],
+            'monthly_fee': sub['monthly_fee'] if has_cyclic_chada else 0.0,
             'due_amount': sub['due_amount'],
-            'advance_amount': sub['advance_amount'],
+            'advance_amount': sub['advance_amount'] if has_cyclic_chada else 0.0,
             'total_paid': sub['total_paid'],
-            'total_billed': sub['total_billed'],
-            'months_billed': sub['months_billed'],
+            'total_billed': sub['total_billed'] if has_cyclic_chada else 0.0,
+            'months_billed': sub['months_billed'] if has_cyclic_chada else 0,
             'join_date_formatted': sub['join_date_formatted'],
             'billing_day': sub['billing_day'],
             'status_label': sub['status_label'],
@@ -94,12 +100,16 @@ def member_pledge_lookup(request):
         return JsonResponse({
             'found': True,
             'is_team_member': True,
+            'is_volunteer': False,
             'member_id': tm.member_id,
             'full_name': tm.name,
             'role': tm.effective_role,
             'phone': tm.phone or '',
             'email': tm.email or '',
             'has_pledge': True,
+            'has_cyclic_chada': True,
+            'is_reg_fee_due': False,
+            'registration_fee': 0.0,
             'frequency': 'monthly',
             'frequency_display': 'মাসিক চাঁদা',
             'amount': sub['suggested_amount'],
@@ -159,7 +169,9 @@ def api_members_search(request):
 
     for vol in vol_qs:
         sub = vol.subscription_summary
-        has_pledge = (vol.contribution_frequency == 'monthly' and vol.contribution_amount and float(vol.contribution_amount) > 0)
+        has_cyclic_chada = vol.has_cyclic_chada
+        is_reg_due = vol.is_registration_fee_due
+        reg_fee = float(vol.registration_fee or 100.0)
         members.append({
             'member_id': vol.member_id or '',
             'name': vol.full_name,
@@ -168,14 +180,18 @@ def api_members_search(request):
             'email': vol.email or '',
             'photo_url': vol.image.url if vol.image else '',
             'is_team': False,
-            'frequency': 'monthly' if has_pledge else 'none',
-            'frequency_display': 'মাসিক চাঁদা' if has_pledge else 'ইচ্ছানুযায়ী',
+            'is_volunteer': True,
+            'has_cyclic_chada': has_cyclic_chada,
+            'is_reg_fee_due': is_reg_due,
+            'registration_fee': reg_fee,
+            'frequency': 'monthly' if has_cyclic_chada else 'none',
+            'frequency_display': 'মাসিক চাঁদা' if has_cyclic_chada else ('নিবন্ধন ফি' if is_reg_due else 'ইচ্ছানুযায়ী'),
             'pledge_amount': sub['suggested_amount'],
-            'monthly_fee': sub['monthly_fee'],
+            'monthly_fee': sub['monthly_fee'] if has_cyclic_chada else 0.0,
             'due_amount': sub['due_amount'],
-            'advance_amount': sub['advance_amount'],
+            'advance_amount': sub['advance_amount'] if has_cyclic_chada else 0.0,
             'total_paid': sub['total_paid'],
-            'months_billed': sub['months_billed'],
+            'months_billed': sub['months_billed'] if has_cyclic_chada else 0,
             'join_date_formatted': sub['join_date_formatted'],
             'status_label': sub['status_label'],
         })
@@ -251,13 +267,25 @@ def initiate_payment(request):
 
         vol = Volunteer.objects.filter(member_id__iexact=membership_id).first() if membership_id else None
         if vol:
-            donation_type = 'volunteer'
-            donor_name = vol.full_name
-            donor_phone = vol.phone
-            donor_email = vol.email or ''
-            if not frequency or frequency == 'one_time':
-                if vol.contribution_frequency and vol.contribution_frequency != 'none':
-                    frequency = vol.contribution_frequency
+            is_reg_payment = (request.POST.get('is_reg_payment') == 'true') or (
+                vol.is_registration_fee_due and not vol.has_cyclic_chada
+            )
+            if is_reg_payment:
+                donation_type = 'volunteer_registration'
+                frequency = 'one_time'
+                donor_name = vol.full_name
+                donor_phone = vol.phone
+                donor_email = vol.email or ''
+                if not note:
+                    note = f"সদস্য নিবন্ধন ফি পরিশোধ - {vol.full_name} ({vol.member_id})"
+            else:
+                donation_type = 'volunteer'
+                donor_name = vol.full_name
+                donor_phone = vol.phone
+                donor_email = vol.email or ''
+                if not frequency or frequency == 'one_time':
+                    if vol.contribution_frequency and vol.contribution_frequency != 'none':
+                        frequency = vol.contribution_frequency
         else:
             tm = TeamMember.objects.filter(member_id__iexact=membership_id).first() if membership_id else None
             if tm:
@@ -501,13 +529,17 @@ def process_successful_payment(donation, payment_data, request=None):
                 vol_obj = Volunteer.objects.filter(pk=vid).first()
             except (ValueError, TypeError):
                 pass
+        elif donation.membership_id:
+            vol_obj = Volunteer.objects.filter(member_id__iexact=donation.membership_id).first()
+
         if not vol_obj and donation.tran_id:
             vol_obj = Volunteer.objects.filter(tran_id=donation.tran_id).first()
         if not vol_obj and donation.donor_phone:
-            vol_obj = Volunteer.objects.filter(phone=donation.donor_phone, status='pending').first()
+            vol_obj = Volunteer.objects.filter(phone=donation.donor_phone).first()
 
         if vol_obj:
-            vol_obj.status = 'approved'
+            if vol_obj.status != 'approved':
+                vol_obj.status = 'approved'
             vol_obj.payment_status = 'paid'
             vol_obj.payment_method = payment_method
             vol_obj.trx_id = trx_id

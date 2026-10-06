@@ -143,7 +143,15 @@ def get_member_subscription_summary(member, today=None):
     ).exclude(donation_type__in=['volunteer_registration', 'general'])
     total_paid = float(paid_qs.aggregate(total=Sum('amount'))['total'] or 0.0)
 
+    is_reg_due = getattr(member, 'is_registration_fee_due', False)
+    reg_fee_amount = float(getattr(member, 'registration_fee', 100.0) or 100.0)
+    has_cyclic = getattr(member, 'has_cyclic_chada', (monthly_fee > 0))
+
     if monthly_fee <= 0:
+        due_amount = reg_fee_amount if is_reg_due else 0.0
+        status_label = f"নিবন্ধন ফি বকেয়া: ৳{int(reg_fee_amount)}" if is_reg_due else 'পরিশোধিত / ঐচ্ছিক'
+        suggested_amount = reg_fee_amount if is_reg_due else 100.0
+
         return {
             'member_id': member.member_id or '',
             'name': member_name,
@@ -157,11 +165,14 @@ def get_member_subscription_summary(member, today=None):
             'months_billed': 0,
             'total_billed': 0.0,
             'total_paid': total_paid,
-            'due_amount': 0.0,
+            'due_amount': due_amount,
             'advance_amount': total_paid,
             'balance': total_paid,
-            'status_label': 'ইচ্ছানুযায়ী',
-            'suggested_amount': 100.0,
+            'status_label': status_label,
+            'suggested_amount': suggested_amount,
+            'is_reg_fee_due': is_reg_due,
+            'registration_fee': reg_fee_amount,
+            'has_cyclic_chada': False,
             'next_billing_date': today,
             'next_billing_date_formatted': today.strftime('%d-%m-%Y'),
         }
@@ -216,9 +227,13 @@ def get_member_subscription_summary(member, today=None):
         'balance': balance,
         'status_label': status_label,
         'suggested_amount': suggested_amount,
+        'is_reg_fee_due': is_reg_due,
+        'registration_fee': reg_fee_amount,
+        'has_cyclic_chada': has_cyclic,
         'next_billing_date': next_billing_date,
         'next_billing_date_formatted': next_billing_date.strftime('%d-%m-%Y'),
     }
+
 
 def send_member_registration_notification(member):
     """

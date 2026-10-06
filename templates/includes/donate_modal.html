@@ -175,6 +175,10 @@
                                      data-member-role="{{ tm.effective_role }}"
                                      data-member-phone="{{ tm.phone|default:'' }}"
                                      data-member-email="{{ tm.email|default:'' }}"
+                                     data-is-volunteer="false"
+                                     data-has-chada="true"
+                                     data-is-reg-fee-due="false"
+                                     data-reg-fee="0"
                                      data-monthly-fee="{{ tm.monthly_fee|floatformat:0 }}"
                                      data-due-amount="{{ tm.subscription_summary.due_amount|floatformat:0 }}"
                                      data-advance-amount="{{ tm.subscription_summary.advance_amount|floatformat:0 }}"
@@ -217,6 +221,10 @@
                                      data-member-role="স্বেচ্ছাসেবক সদস্য"
                                      data-member-phone="{{ vol.phone|default:'' }}"
                                      data-member-email="{{ vol.email|default:'' }}"
+                                     data-is-volunteer="true"
+                                     data-has-chada="{% if vol.has_cyclic_chada %}true{% else %}false{% endif %}"
+                                     data-is-reg-fee-due="{% if vol.is_registration_fee_due %}true{% else %}false{% endif %}"
+                                     data-reg-fee="{{ vol.registration_fee|default:100|floatformat:0 }}"
                                      data-monthly-fee="{{ vol.monthly_fee|floatformat:0 }}"
                                      data-due-amount="{{ vol.subscription_summary.due_amount|floatformat:0 }}"
                                      data-advance-amount="{{ vol.subscription_summary.advance_amount|floatformat:0 }}"
@@ -260,6 +268,8 @@
 
                         <!-- Selected Member Details & Subscription Summary -->
                         <div id="selectedMemberSection" class="p-3 bg-light rounded-4 border border-success-subtle mb-3 d-none">
+                            <input type="hidden" name="is_reg_payment" id="mem_form_is_reg_payment" value="false">
+
                             <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
                                     <i class="fas fa-user-check text-success fs-5"></i>
@@ -272,8 +282,8 @@
                                 </button>
                             </div>
 
-                            <!-- Live Subscription Financial Breakdown Cards -->
-                            <div class="row g-2 mb-3">
+                            <!-- 1. Live Subscription Financial Breakdown Cards (Only when member has cyclic/monthly chada) -->
+                            <div id="memMonthlySubscriptionCardsBox" class="row g-2 mb-3">
                                 <div class="col-6 col-sm-3">
                                     <div class="p-2 bg-white rounded-3 border text-center">
                                         <small class="text-muted d-block" style="font-size: 0.72rem;">নির্ধারিত মাসিক চাঁদা</small>
@@ -301,11 +311,45 @@
                                 </div>
                             </div>
 
+                            <!-- 2. Registration Fee Due Box (Shown ONLY when volunteer has no monthly chada and has unpaid registration fee) -->
+                            <div id="memRegistrationFeeDueBox" class="p-3 bg-white border border-danger-subtle rounded-3 mb-3 d-none">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; font-size: 1.25rem;">
+                                            <i class="fas fa-id-badge"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0 fs-6">সদস্য নিবন্ধন ফি (Registration Fee)</h6>
+                                            <small class="text-secondary">পূর্বে নিবন্ধনের সময় নিবন্ধন ফি বাকি থাকায় শুধুমাত্র নির্ধারিত সদস্য ফি প্রযোজ্য।</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill shadow-sm" id="memRegFeeBadge">বকেয়া: ৳১০০</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. Voluntary Donation Status Box (Shown when volunteer has no monthly chada and registration fee is paid) -->
+                            <div id="memVoluntaryStatusBox" class="p-3 bg-white border border-success-subtle rounded-3 mb-3 d-none">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; font-size: 1.25rem;">
+                                            <i class="fas fa-heart"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0 fs-6">সদস্য স্ট্যাটাস সম্পূর্ণ কার্যকর</h6>
+                                            <small class="text-secondary">আপনার কোনো নির্দিষ্ট বা বাধ্যতামূলক মাসিক চাঁদা নেই (ইচ্ছানুযায়ী অনুদান প্রযোজ্য)।</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">পরিশোধিত</span>
+                                </div>
+                            </div>
+
                             <!-- Amount Selection & Custom Input -->
                             <input type="hidden" name="frequency" id="memberPayFrequency" value="monthly">
                             <div class="row g-2 align-items-end">
                                 <div class="col-12">
-                                    <label class="form-label fw-bold text-dark small mb-1">প্রদেয় চাঁদার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold text-dark small mb-1" id="memberAmtLabel">প্রদেয় চাঁদার পরিমাণ (BDT / ৳) <span class="text-danger">*</span></label>
                                     <div class="d-flex flex-wrap gap-1 mb-2" id="memberAmtPillsContainer">
                                         <!-- Dynamically generated pills -->
                                     </div>
@@ -316,10 +360,22 @@
                                 </div>
                             </div>
 
-                            <!-- Custom Pay Policy Note -->
-                            <div class="alert alert-warning-subtle border border-warning-subtle p-2 rounded-3 small mt-3 mb-0">
+                            <!-- Policy Note (For Monthly Subscriptions) -->
+                            <div id="memMonthlyNotice" class="alert alert-warning-subtle border border-warning-subtle p-2 rounded-3 small mt-3 mb-0">
                                 <i class="fas fa-info-circle text-warning me-1"></i>
                                 <strong>কাস্টম পেমেন্ট নিয়ম:</strong> আপনি যেকোনো পরিমাণ টাকা লিখতে পারেন। কম পরিশোধ করলে বাকি টাকা বকেয়া থাকবে, আর বেশি পরিশোধ করলে তা স্বয়ংক্রিয়ভাবে পরবর্তী মাসের চাঁদা হিসেবে অগ্রিম (Advance) জমা থাকবে।
+                            </div>
+
+                            <!-- Policy Note (For Registration Fee Only) -->
+                            <div id="memRegFeeNotice" class="alert alert-info-subtle border border-info-subtle p-2 rounded-3 small mt-3 mb-0 d-none">
+                                <i class="fas fa-info-circle text-primary me-1"></i>
+                                <strong>নিবন্ধন ফি সংক্রান্ত তথ্য:</strong> আপনার কোনো নিয়মিত বা সাইক্লিক মাসিক চাঁদা ধার্য নেই। পূর্বে নিবন্ধনের সময় নিবন্ধন ফি গ্রহণ না করায় শুধুমাত্র নির্ধারিত <strong>১০০ টাকা</strong> নিবন্ধন ফি পরিশোধ করতে হবে।
+                            </div>
+
+                            <!-- Policy Note (For Voluntary Donation) -->
+                            <div id="memVoluntaryNotice" class="alert alert-success-subtle border border-success-subtle p-2 rounded-3 small mt-3 mb-0 d-none">
+                                <i class="fas fa-heart text-danger me-1"></i>
+                                <strong>ইচ্ছানুযায়ী অনুদান:</strong> আপনার জন্য কোনো বাধ্যতামূলক বা সাইক্লিক মাসিক চাঁদা নেই। সংগঠনের সাধারণ ফান্ডে আপনি নিজ ইচ্ছানুযায়ী যেকোনো পরিমাণ অর্থ অনুদান হিসেবে প্রদান করতে পারেন।
                             </div>
 
                             <!-- Payment Method Choice (Gateway vs Manual) -->
@@ -1040,6 +1096,140 @@ function clearModalMemberSearch() {
     }
 }
 
+// Helper to render member view based on registration fee / cyclic chada status
+function renderMemberPaymentView(opts) {
+    var isVolunteer = !!opts.isVolunteer;
+    var hasChada = !!opts.hasChada;
+    var isRegDue = !!opts.isRegDue;
+    var regFee = opts.regFee || 100;
+    var monthlyFee = opts.monthlyFee || 0;
+    var dueAmount = opts.dueAmount || 0;
+    var advanceAmount = opts.advanceAmount || 0;
+    var totalPaid = opts.totalPaid || 0;
+    var monthsBilled = opts.monthsBilled || '1';
+    var joinDate = opts.joinDate || '';
+    var suggestedAmount = opts.suggestedAmount || 0;
+
+    var isRegPaymentInput = document.getElementById('mem_is_reg_payment');
+    var monthlyCardsBox = document.getElementById('memMonthlySubscriptionCardsBox');
+    var regFeeDueBox = document.getElementById('memRegistrationFeeDueBox');
+    var voluntaryStatusBox = document.getElementById('memVoluntaryStatusBox');
+    var amtLabel = document.getElementById('memberAmtLabel');
+    var monthlyNotice = document.getElementById('memMonthlyNotice');
+    var regFeeNotice = document.getElementById('memRegFeeNotice');
+    var voluntaryNotice = document.getElementById('memVoluntaryNotice');
+    var pillsContainer = document.getElementById('memberAmtPillsContainer');
+    var amtInput = document.getElementById('memberPayAmountInput');
+    var btnText = document.getElementById('memberBtnText');
+    var isManual = document.getElementById('memRadioManual') && document.getElementById('memRadioManual').checked;
+
+    // Reset visibility of conditional blocks
+    if (monthlyCardsBox) monthlyCardsBox.classList.add('d-none');
+    if (regFeeDueBox) regFeeDueBox.classList.add('d-none');
+    if (voluntaryStatusBox) voluntaryStatusBox.classList.add('d-none');
+    if (monthlyNotice) monthlyNotice.classList.add('d-none');
+    if (regFeeNotice) regFeeNotice.classList.add('d-none');
+    if (voluntaryNotice) voluntaryNotice.classList.add('d-none');
+
+    if (isVolunteer && !hasChada) {
+        // Volunteer without cyclic chada
+        if (isRegDue) {
+            // Case 1: Registration fee is due (e.g., legacy volunteer or unpaid)
+            if (isRegPaymentInput) isRegPaymentInput.value = 'true';
+            if (regFeeDueBox) regFeeDueBox.classList.remove('d-none');
+            if (regFeeNotice) regFeeNotice.classList.remove('d-none');
+            if (amtLabel) amtLabel.innerHTML = 'নিবন্ধন ফি (টাকা) <span class="text-danger">*</span>';
+
+            if (pillsContainer) {
+                pillsContainer.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + regFee + ')">৳' + regFee + ' (নিবন্ধন ফি পরিশোধ)</button>';
+            }
+            if (amtInput) amtInput.value = regFee;
+
+            if (btnText) {
+                btnText.innerHTML = isManual 
+                    ? 'নিবন্ধন ফি ম্যানুয়াল পেমেন্ট জমা দিন &rarr;' 
+                    : 'নিবন্ধন ফি পরিশোধ করুন (৳' + regFee + ') &rarr;';
+            }
+        } else {
+            // Case 2: Registration fee is already paid, voluntary contribution only
+            if (isRegPaymentInput) isRegPaymentInput.value = 'false';
+            if (voluntaryStatusBox) voluntaryStatusBox.classList.remove('d-none');
+            if (voluntaryNotice) voluntaryNotice.classList.remove('d-none');
+            if (amtLabel) amtLabel.innerHTML = 'ঐচ্ছিক অনুদানের পরিমাণ (টাকা) <span class="text-danger">*</span>';
+
+            if (pillsContainer) {
+                pillsContainer.innerHTML = 
+                    '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill active" onclick="setMemberAmount(100)">৳১০০</button> ' +
+                    '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(200)">৳২০০</button> ' +
+                    '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(500)">৳৫০০</button> ' +
+                    '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(1000)">৳১০০০</button> ' +
+                    '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(2000)">৳২০০০</button>';
+            }
+            if (amtInput) amtInput.value = suggestedAmount > 0 ? suggestedAmount : 100;
+
+            if (btnText) {
+                btnText.innerHTML = isManual 
+                    ? 'ম্যানুয়াল অনুদান জমা দিন &rarr;' 
+                    : 'অনুদানের পেমেন্ট করুন &rarr;';
+            }
+        }
+    } else {
+        // Case 3: Monthly cyclic chada selected (or Team Member)
+        if (isRegPaymentInput) isRegPaymentInput.value = 'false';
+        if (monthlyCardsBox) monthlyCardsBox.classList.remove('d-none');
+        if (monthlyNotice) monthlyNotice.classList.remove('d-none');
+        if (amtLabel) amtLabel.innerHTML = 'চাঁদা / পেমেন্টের পরিমাণ (টাকা) <span class="text-danger">*</span>';
+
+        // Update monthly cards
+        var feeDisp = document.getElementById('summaryMonthlyFeeDisplay');
+        if (feeDisp) feeDisp.innerText = '৳' + monthlyFee;
+        var joinDisp = document.getElementById('summaryJoinDateDisplay');
+        if (joinDisp) joinDisp.innerText = joinDate || 'N/A';
+        var mBilledDisp = document.getElementById('summaryMonthsBilledDisplay');
+        if (mBilledDisp) mBilledDisp.innerText = '(' + monthsBilled + ' মাস প্রযোজ্য)';
+        var paidDisp = document.getElementById('summaryTotalPaidDisplay');
+        if (paidDisp) paidDisp.innerText = '৳' + totalPaid;
+
+        var statusBox = document.getElementById('summaryStatusBox');
+        var statusDisplay = document.getElementById('summaryStatusDisplay');
+        if (statusBox && statusDisplay) {
+            statusBox.className = 'p-2 rounded-3 border text-center ';
+            if (dueAmount > 0) {
+                statusBox.className += 'bg-danger-subtle border-danger-subtle text-danger';
+                statusDisplay.innerHTML = 'বকেয়া: ৳' + dueAmount;
+            } else if (advanceAmount > 0) {
+                statusBox.className += 'bg-primary-subtle border-primary-subtle text-primary';
+                statusDisplay.innerHTML = 'অগ্রিম: ৳' + advanceAmount;
+            } else {
+                statusBox.className += 'bg-success-subtle border-success-subtle text-success';
+                statusDisplay.innerHTML = 'পরিশোধিত';
+            }
+        }
+
+        // Quick pills for monthly fees
+        if (pillsContainer) {
+            var pillsHtml = '';
+            if (dueAmount > 0) {
+                pillsHtml += '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + dueAmount + ')">৳' + dueAmount + ' (বকেয়া পরিশোধ)</button> ';
+            }
+            var defActive = (dueAmount <= 0) ? 'active' : '';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill ' + defActive + '" onclick="setMemberAmount(' + monthlyFee + ')">৳' + monthlyFee + ' (১ মাস)</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 2) + ')">৳' + (monthlyFee * 2) + ' (২ মাস)</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 3) + ')">৳' + (monthlyFee * 3) + ' (৩ মাস)</button> ';
+            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 6) + ')">৳' + (monthlyFee * 6) + ' (৬ মাস)</button>';
+            pillsContainer.innerHTML = pillsHtml;
+        }
+
+        if (amtInput) amtInput.value = suggestedAmount > 0 ? suggestedAmount : monthlyFee;
+
+        if (btnText) {
+            btnText.innerHTML = isManual 
+                ? 'ম্যানুয়াল পেমেন্ট তথ্য জমা দিন &rarr;' 
+                : 'সরাসরি অনলাইন পেমেন্ট করুন &rarr;';
+        }
+    }
+}
+
 // Select a member in Member Tab
 function selectModalMember(elem) {
     document.querySelectorAll('#memberCardsList .member-select-item').forEach(function(item) {
@@ -1063,13 +1253,17 @@ function selectModalMember(elem) {
     var memberPhone = elem.getAttribute('data-member-phone') || '';
     var memberEmail = elem.getAttribute('data-member-email') || '';
     var memberRole = elem.getAttribute('data-member-role') || '';
-    var monthlyFee = parseFloat(elem.getAttribute('data-monthly-fee') || '100');
+    var isVolunteer = elem.getAttribute('data-is-volunteer') === 'true';
+    var hasChada = elem.getAttribute('data-has-chada') === 'true';
+    var isRegDue = elem.getAttribute('data-is-reg-fee-due') === 'true';
+    var regFee = parseFloat(elem.getAttribute('data-reg-fee') || '100');
+    var monthlyFee = parseFloat(elem.getAttribute('data-monthly-fee') || '0');
     var dueAmount = parseFloat(elem.getAttribute('data-due-amount') || '0');
     var advanceAmount = parseFloat(elem.getAttribute('data-advance-amount') || '0');
     var totalPaid = parseFloat(elem.getAttribute('data-total-paid') || '0');
     var monthsBilled = elem.getAttribute('data-months-billed') || '1';
     var joinDate = elem.getAttribute('data-join-date') || '';
-    var suggestedAmount = parseFloat(elem.getAttribute('data-suggested-amount') || monthlyFee);
+    var suggestedAmount = parseFloat(elem.getAttribute('data-suggested-amount') || (hasChada ? monthlyFee : (isRegDue ? regFee : 100)));
 
     document.getElementById('mem_form_membership_id').value = memberId;
     document.getElementById('mem_form_donor_name').value = memberName;
@@ -1080,69 +1274,23 @@ function selectModalMember(elem) {
     document.getElementById('selectedMemberIdDisplay').innerText = 'ID: ' + (memberId || 'N/A');
     document.getElementById('selectedMemberRoleDisplay').innerText = memberRole;
 
-    // Subscription summary breakdown
-    var feeDisp = document.getElementById('summaryMonthlyFeeDisplay');
-    if (feeDisp) {
-        feeDisp.innerText = monthlyFee > 0 ? ('৳' + monthlyFee) : 'ইচ্ছানুযায়ী';
-    }
-    var joinDisp = document.getElementById('summaryJoinDateDisplay');
-    if (joinDisp) joinDisp.innerText = joinDate;
-    var mBilledDisp = document.getElementById('summaryMonthsBilledDisplay');
-    if (mBilledDisp) {
-        mBilledDisp.innerText = monthlyFee > 0 ? ('(' + monthsBilled + ' মাস প্রযোজ্য)') : '(বাধ্যতামূলক নয়)';
-    }
-    var paidDisp = document.getElementById('summaryTotalPaidDisplay');
-    if (paidDisp) paidDisp.innerText = '৳' + totalPaid;
-
-    var statusBox = document.getElementById('summaryStatusBox');
-    var statusDisplay = document.getElementById('summaryStatusDisplay');
-    if (statusBox && statusDisplay) {
-        statusBox.className = 'p-2 rounded-3 border text-center ';
-        if (monthlyFee <= 0) {
-            statusBox.className += 'bg-success-subtle border-success-subtle text-success';
-            statusDisplay.innerHTML = '<i class="fas fa-heart me-1"></i>ইচ্ছানুযায়ী অনুদান';
-        } else if (dueAmount > 0) {
-            statusBox.className += 'bg-danger-subtle border-danger-subtle text-danger';
-            statusDisplay.innerHTML = 'বকেয়া: ৳' + dueAmount;
-        } else if (advanceAmount > 0) {
-            statusBox.className += 'bg-primary-subtle border-primary-subtle text-primary';
-            statusDisplay.innerHTML = 'অগ্রিম: ৳' + advanceAmount;
-        } else {
-            statusBox.className += 'bg-success-subtle border-success-subtle text-success';
-            statusDisplay.innerHTML = 'পরিশোধিত';
-        }
-    }
-
-    // Dynamic quick pills
-    var pillsContainer = document.getElementById('memberAmtPillsContainer');
-    if (pillsContainer) {
-        var pillsHtml = '';
-        if (monthlyFee <= 0) {
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill active" onclick="setMemberAmount(100)">৳১০০</button> ';
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(200)">৳২০০</button> ';
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(500)">৳৫০০</button> ';
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(1000)">৳১০০০</button> ';
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(2000)">৳২০০০</button>';
-        } else {
-            if (dueAmount > 0) {
-                pillsHtml += '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + dueAmount + ')">৳' + dueAmount + ' (বকেয়া পরিশোধ)</button> ';
-            }
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill ' + (dueAmount <= 0 ? 'active' : '') + '" onclick="setMemberAmount(' + monthlyFee + ')">৳' + monthlyFee + ' (১ মাস)</button> ';
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 2) + ')">৳' + (monthlyFee * 2) + ' (২ মাস)</button> ';
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 3) + ')">৳' + (monthlyFee * 3) + ' (৩ মাস)</button> ';
-            pillsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (monthlyFee * 6) + ')">৳' + (monthlyFee * 6) + ' (৬ মাস)</button>';
-        }
-        pillsContainer.innerHTML = pillsHtml;
-    }
-
-    var amtInput = document.getElementById('memberPayAmountInput');
-    if (amtInput) {
-        amtInput.value = suggestedAmount;
-    }
+    renderMemberPaymentView({
+        isVolunteer: isVolunteer,
+        hasChada: hasChada,
+        isRegDue: isRegDue,
+        regFee: regFee,
+        monthlyFee: monthlyFee,
+        dueAmount: dueAmount,
+        advanceAmount: advanceAmount,
+        totalPaid: totalPaid,
+        monthsBilled: monthsBilled,
+        joinDate: joinDate,
+        suggestedAmount: suggestedAmount
+    });
 
     var freqSelect = document.getElementById('memberPayFrequency');
     if (freqSelect) {
-        freqSelect.value = 'monthly';
+        freqSelect.value = hasChada ? 'monthly' : 'one_time';
     }
 
     var sec = document.getElementById('selectedMemberSection');
@@ -1152,15 +1300,6 @@ function selectModalMember(elem) {
     if (submitBtn) {
         submitBtn.removeAttribute('disabled');
     }
-    var btnText = document.getElementById('memberBtnText');
-    if (btnText) {
-        var isManual = document.getElementById('memRadioManual') && document.getElementById('memRadioManual').checked;
-        if (isManual) {
-            btnText.innerHTML = 'ম্যানুয়াল পেমেন্ট তথ্য জমা দিন (অনুমোদনের জন্য) &rarr;';
-        } else {
-            btnText.innerHTML = 'সরাসরি অনলাইন পেমেন্ট করুন &rarr;';
-        }
-    }
 
     // Live asynchronous sync to fetch latest verified payments & calculations
     if (memberId) {
@@ -1168,71 +1307,40 @@ function selectModalMember(elem) {
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data && data.found) {
+                    var liveIsVolunteer = (data.is_volunteer !== undefined) ? !!data.is_volunteer : isVolunteer;
+                    var liveHasChada = (data.has_cyclic_chada !== undefined) ? !!data.has_cyclic_chada : hasChada;
+                    var liveIsRegDue = (data.is_reg_fee_due !== undefined) ? !!data.is_reg_fee_due : isRegDue;
+                    var liveRegFee = (data.registration_fee !== undefined) ? parseFloat(data.registration_fee) : regFee;
                     var livePaid = (data.total_paid !== undefined) ? parseFloat(data.total_paid) : totalPaid;
                     var liveDue = (data.due_amount !== undefined) ? parseFloat(data.due_amount) : dueAmount;
                     var liveAdv = (data.advance_amount !== undefined) ? parseFloat(data.advance_amount) : advanceAmount;
                     var liveFee = (data.monthly_fee !== undefined) ? parseFloat(data.monthly_fee) : monthlyFee;
                     var liveSuggested = (data.amount !== undefined) ? parseFloat(data.amount) : suggestedAmount;
-                    
-                    // Update current element data attributes
+
+                    // Update element data attributes
+                    elem.setAttribute('data-is-volunteer', liveIsVolunteer ? 'true' : 'false');
+                    elem.setAttribute('data-has-chada', liveHasChada ? 'true' : 'false');
+                    elem.setAttribute('data-is-reg-fee-due', liveIsRegDue ? 'true' : 'false');
+                    elem.setAttribute('data-reg-fee', liveRegFee);
                     elem.setAttribute('data-total-paid', livePaid);
                     elem.setAttribute('data-due-amount', liveDue);
                     elem.setAttribute('data-advance-amount', liveAdv);
                     elem.setAttribute('data-monthly-fee', liveFee);
                     elem.setAttribute('data-suggested-amount', liveSuggested);
 
-                    // Update UI text
-                    var paidDisp = document.getElementById('summaryTotalPaidDisplay');
-                    if (paidDisp) paidDisp.innerText = '৳' + livePaid;
-
-                    var feeDisp = document.getElementById('summaryMonthlyFeeDisplay');
-                    if (feeDisp) feeDisp.innerText = '৳' + liveFee;
-
-                    var sBox = document.getElementById('summaryStatusBox');
-                    var sDisplay = document.getElementById('summaryStatusDisplay');
-                    if (sBox && sDisplay) {
-                        sBox.className = 'p-2 rounded-3 border text-center ';
-                        if (liveFee <= 0) {
-                            sBox.className += 'bg-success-subtle border-success-subtle text-success';
-                            sDisplay.innerHTML = '<i class="fas fa-heart me-1"></i>ইচ্ছানুযায়ী অনুদান';
-                        } else if (liveDue > 0) {
-                            sBox.className += 'bg-danger-subtle border-danger-subtle text-danger';
-                            sDisplay.innerHTML = 'বকেয়া: ৳' + liveDue;
-                        } else if (liveAdv > 0) {
-                            sBox.className += 'bg-primary-subtle border-primary-subtle text-primary';
-                            sDisplay.innerHTML = 'অগ্রিম: ৳' + liveAdv;
-                        } else {
-                            sBox.className += 'bg-success-subtle border-success-subtle text-success';
-                            sDisplay.innerHTML = 'পরিশোধিত';
-                        }
-                    }
-
-                    // Update quick pills if due changed
-                    var pCont = document.getElementById('memberAmtPillsContainer');
-                    if (pCont) {
-                        var pHtml = '';
-                        if (liveFee <= 0) {
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill active" onclick="setMemberAmount(100)">৳১০০</button> ';
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(200)">৳২০০</button> ';
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(500)">৳৫০০</button> ';
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(1000)">৳১০০০</button> ';
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-success rounded-pill mem-amt-pill" onclick="setMemberAmount(2000)">৳২০০০</button>';
-                        } else {
-                            if (liveDue > 0) {
-                                pHtml += '<button type="button" class="btn btn-sm btn-outline-danger rounded-pill mem-amt-pill active" onclick="setMemberAmount(' + liveDue + ')">৳' + liveDue + ' (বকেয়া পরিশোধ)</button> ';
-                            }
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill ' + (liveDue <= 0 ? 'active' : '') + '" onclick="setMemberAmount(' + liveFee + ')">৳' + liveFee + ' (১ মাস)</button> ';
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 2) + ')">৳' + (liveFee * 2) + ' (২ মাস)</button> ';
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 3) + ')">৳' + (liveFee * 3) + ' (৩ মাস)</button> ';
-                            pHtml += '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mem-amt-pill" onclick="setMemberAmount(' + (liveFee * 6) + ')">৳' + (liveFee * 6) + ' (৬ মাস)</button>';
-                        }
-                        pCont.innerHTML = pHtml;
-                    }
-
-                    var aInp = document.getElementById('memberPayAmountInput');
-                    if (aInp && (!aInp.value || aInp.value == suggestedAmount)) {
-                        aInp.value = liveSuggested;
-                    }
+                    renderMemberPaymentView({
+                        isVolunteer: liveIsVolunteer,
+                        hasChada: liveHasChada,
+                        isRegDue: liveIsRegDue,
+                        regFee: liveRegFee,
+                        monthlyFee: liveFee,
+                        dueAmount: liveDue,
+                        advanceAmount: liveAdv,
+                        totalPaid: livePaid,
+                        monthsBilled: monthsBilled,
+                        joinDate: joinDate,
+                        suggestedAmount: liveSuggested
+                    });
                 }
             })
             .catch(function(e) {
@@ -1256,6 +1364,8 @@ function resetModalMemberSelection() {
     document.getElementById('mem_form_membership_id').value = '';
     document.getElementById('mem_form_donor_name').value = '';
     document.getElementById('mem_form_donor_phone').value = '';
+    var isRegPaymentInput = document.getElementById('mem_is_reg_payment');
+    if (isRegPaymentInput) isRegPaymentInput.value = 'false';
 
     var submitBtn = document.getElementById('memberPaySubmitBtn');
     if (submitBtn) {

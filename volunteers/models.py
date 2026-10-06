@@ -97,6 +97,39 @@ class Volunteer(models.Model):
         return max(0, 90 - diff)
 
     @property
+    def has_cyclic_chada(self):
+        """
+        Returns True only if the volunteer explicitly opted into recurring monthly/cyclic subscription during registration.
+        """
+        return bool(
+            self.contribution_frequency == 'monthly'
+            and self.contribution_amount
+            and float(self.contribution_amount) > 0
+        )
+
+    @property
+    def is_registration_fee_due(self):
+        """
+        Returns True if volunteer has not paid the registration fee.
+        Covers unpaid payment_status as well as legacy/free volunteers who registered in the earlier system
+        without paying registration fee (payment_method == 'Free / Existing').
+        """
+        if self.payment_status == 'unpaid':
+            return True
+        if self.payment_method == 'Free / Existing':
+            from donations.models import ProgramDonation
+            if self.member_id:
+                paid = ProgramDonation.objects.filter(
+                    membership_id__iexact=self.member_id,
+                    donation_type='volunteer_registration',
+                    status__in=['approved', 'completed']
+                ).exists()
+                if paid:
+                    return False
+            return True
+        return False
+
+    @property
     def name(self):
         return self.full_name
 
@@ -173,6 +206,14 @@ class TeamMember(models.Model):
     @property
     def full_name(self):
         return self.name
+
+    @property
+    def has_cyclic_chada(self):
+        return True
+
+    @property
+    def is_registration_fee_due(self):
+        return False
 
     @property
     def full_address(self):
