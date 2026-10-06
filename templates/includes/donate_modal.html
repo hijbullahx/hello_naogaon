@@ -769,7 +769,7 @@
                                     <div class="text-end d-none d-sm-block" style="min-width: 90px;">
                                         <div class="small fw-bold text-success">{{ p.progress_percent }}% পূরণ</div>
                                         <div class="progress" style="height: 5px;">
-                                            <div class="progress-bar bg-success" style="width: {{ p.progress_percent }}%;"></div>
+                                            <div class="progress-bar bg-success" style="width: {{ p.progress_percent }}%; min-width: {% if p.raised_amount > 0 %}3px{% else %}0{% endif %};"></div>
                                         </div>
                                     </div>
                                 </div>

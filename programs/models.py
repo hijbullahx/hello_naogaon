@@ -36,8 +36,19 @@ class Program(models.Model):
     @property
     def progress_percent(self):
         if self.target_amount and self.target_amount > 0:
-            pct = (float(self.raised_amount or 0) / float(self.target_amount)) * 100
-            return min(100, int(pct))
+            raised = float(self.raised_amount or 0)
+            target = float(self.target_amount)
+            if raised <= 0:
+                return 0
+            pct = (raised / target) * 100
+            if pct >= 100:
+                return 100
+            if pct < 1:
+                val = round(pct, 2)
+                if val == 0:
+                    val = 0.1
+                return int(val) if val == int(val) else val
+            return int(round(pct))
         return 0
 
     def save(self, *args, **kwargs):
