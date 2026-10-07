@@ -2660,7 +2660,7 @@
                                     </td>
                                     {% if can_edit_finance %}
                                     <td>
-                                        {% if trx.can_be_deleted %}
+                                        {% if trx.can_be_edited_or_deleted %}
                                         <button type="button" class="btn btn-sm btn-outline-primary me-1"
                                             data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}" title="এডিট করুন"><i
                                                 class="fas fa-edit"></i></button>
@@ -2668,9 +2668,6 @@
                                             onclick="return confirm('অর্থায়াক হিসাবটি মুছে ফেলতে চান?');"
                                             class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
                                         {% else %}
-                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1"
-                                            data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}" title="বিবরণ দেখুন / এডিট"><i
-                                                class="fas fa-edit"></i></button>
                                         <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2"
                                               title="অনলাইন গেটওয়ে বা অনুমোদিত অনুদান থেকে স্বয়ংক্রিয়ভাবে আসা আয় অপরিবর্তনীয় ও স্থায়ী হিসাব">
                                             <i class="fas fa-lock me-1 text-warning"></i>স্থায়ী হিসাব
@@ -2680,6 +2677,7 @@
                                     {% endif %}
                                 </tr>
 
+                                {% if can_edit_finance and trx.can_be_edited_or_deleted %}
                                 <!-- Edit Transaction Modal -->
                                 <div class="modal fade" id="editTrxModal_{{ trx.id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog">
@@ -2805,9 +2803,10 @@
                                         </div>
                                     </div>
                                 </div>
+                                {% endif %}
                                 {% empty %}
                                 <tr>
-                                    <td colspan="8" class="text-center py-4 text-muted">কোনো আয়-ব্যয়ের হিসাব পাওয়া
+                                    <td colspan="{% if can_edit_finance %}9{% else %}8{% endif %}" class="text-center py-4 text-muted">কোনো আয়-ব্যয়ের হিসাব পাওয়া
                                         যায়নি।</td>
                                 </tr>
                                 {% endfor %}

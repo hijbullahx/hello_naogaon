@@ -161,6 +161,7 @@ class FinancialTransaction(models.Model):
     donor_name = models.CharField(max_length=200, blank=True, help_text="দাতা বা গ্রহণকারীর নাম")
     date = models.DateField()
     note = models.TextField(blank=True)
+    is_manual_entry = models.BooleanField(default=False, verbose_name=_('এডমিনের নিজস্ব এন্ট্রি'), help_text=_('এডমিন নিজে ড্যাশবোর্ড থেকে সরাসরি ইনপুট দিয়েছেন কিনা'))
     receipt = models.ImageField(upload_to='donations/receipts/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -185,23 +186,33 @@ class FinancialTransaction(models.Model):
         return None
 
     @property
-    def can_be_deleted(self):
+    def can_be_edited_or_deleted(self):
         """
-        Business Rules:
-        - All expenses (ব্যয় / খরচ) can be deleted by admin anytime.
-        - Direct manual income entries inputted by admin in the ledger can be deleted.
-        - Income originating from automated gateway payments or approved donations CANNOT be deleted.
+        Business Rule:
+        ONLY transactions directly inputted by admin into the Financial Ledger
+        ('নতুন আয়/ব্যয় লিখুন' modal) can be edited or deleted.
+        Any transaction generated from donations, payment gateway, registration,
+        or approval CANNOT be edited or deleted by anyone.
         """
-        if self.transaction_type == 'expense':
-            return True
-
-        pd = self.linked_donation
-        if pd:
-            # If from automated payment or already approved, permanent and non-deletable
-            if pd.is_automated_payment() or pd.status == 'approved':
+        # If not flagged as admin manual entry, definitely not editable/deletable
+        if not self.is_manual_entry:
+            return False
+        # If linked to a donation, permanently locked
+        if self.donation_id:
+            return False
+        if self.trx_id:
+            from django.db.models import Q
+            if ProgramDonation.objects.filter(Q(trx_id=self.trx_id) | Q(tran_id=self.trx_id)).exists():
                 return False
-
         return True
+
+    @property
+    def can_be_deleted(self):
+        return self.can_be_edited_or_deleted
+
+    @property
+    def can_be_edited(self):
+        return self.can_be_edited_or_deleted
 
 
 class ProgramDonation(models.Model):

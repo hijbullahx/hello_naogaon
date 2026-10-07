@@ -167,6 +167,31 @@ def can_user_edit_general(user):
         return True
     return False
 
+def sync_program_raised_amount(prog):
+    """
+    Recalculates and synchronizes a program's raised_amount with 100% mathematical precision.
+    Sums:
+    1. Approved ProgramDonation records for this program.
+    2. Direct income FinancialTransactions linked to this program without a linked donation.
+    """
+    if not prog:
+        return
+    donations_sum = ProgramDonation.objects.filter(
+        program=prog,
+        status='approved'
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+
+    ledger_direct_sum = FinancialTransaction.objects.filter(
+        program=prog,
+        transaction_type='income',
+        donation__isnull=True
+    ).exclude(
+        trx_id__in=ProgramDonation.objects.filter(program=prog).values_list('trx_id', flat=True)
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+
+    prog.raised_amount = Decimal(str(donations_sum)) + Decimal(str(ledger_direct_sum))
+    prog.save(update_fields=['raised_amount'])
+
 def validate_image_size(request, image_file, max_kb=1024, field_name="ছবি"):
     """
     Validates uploaded image file size dynamically and verifies image integrity.
@@ -301,9 +326,27 @@ def dashboard_home(request):
     if end_date:
         transactions = transactions.filter(date__lte=end_date)
 
-    total_income = transactions.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or 0
-    total_expense = transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_income = transactions.filter(transaction_type='income').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    total_expense = transactions.filter(transaction_type='expense').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     net_balance = total_income - total_expense
+
+    program_donations_qs = ProgramDonation.objects.filter(
+        Q(status='approved') | 
+        Q(status='rejected') | 
+        Q(status='pending', payment_method__startswith='Manual')
+    )
+    if start_date:
+        program_donations_qs = program_donations_qs.filter(created_at__date__gte=start_date)
+    if end_date:
+        program_donations_qs = program_donations_qs.filter(created_at__date__lte=end_date)
+    program_donations = program_donations_qs.order_by('-created_at')
+
+    total_prog_don_qs = ProgramDonation.objects.filter(status='approved')
+    if start_date:
+        total_prog_don_qs = total_prog_don_qs.filter(created_at__date__gte=start_date)
+    if end_date:
+        total_prog_don_qs = total_prog_don_qs.filter(created_at__date__lte=end_date)
+    total_program_donations = total_prog_don_qs.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
 
     # Role and access permissions
     user_role_info = get_user_dashboard_role(request.user)
@@ -454,12 +497,8 @@ def dashboard_home(request):
         'faqs': faqs,
         'transactions': transactions,
         'paystation_data': paystation_data,
-        'program_donations': ProgramDonation.objects.filter(
-            Q(status='approved') | 
-            Q(status='rejected') | 
-            Q(status='pending', payment_method__startswith='Manual')
-        ).order_by('-created_at'),
-        'total_program_donations': ProgramDonation.objects.filter(status='approved').aggregate(Sum('amount'))['amount__sum'] or 0,
+        'program_donations': program_donations,
+        'total_program_donations': total_program_donations,
         'total_income': total_income,
         'total_expense': total_expense,
         'net_balance': net_balance,
@@ -1983,6 +2022,10 @@ def save_financial_transaction(request):
             if trx_id_db:
                 trx = FinancialTransaction.objects.filter(pk=trx_id_db).first()
                 if trx:
+                    if not trx.can_be_edited:
+                        messages.error(request, 'এই লেনদেনটি এডিট করার অনুমতি নেই! অনলাইন গেটওয়ে বা অনুমোদিত অনুদানের হিসাব স্থায়ী হিসেবে সংরক্ষিত।')
+                        return redirect('/dashboard/?tab=finance-section')
+                    old_prog = trx.program
                     trx.transaction_type = t_type
                     trx.program = prog
                     trx.title = title
@@ -1996,6 +2039,10 @@ def save_financial_transaction(request):
                     if receipt_file:
                         trx.receipt = receipt_file
                     trx.save()
+                    if old_prog:
+                        sync_program_raised_amount(old_prog)
+                    if prog and prog != old_prog:
+                        sync_program_raised_amount(prog)
                     messages.success(request, 'আর্থিক লেনদেন আপডেট করা হয়েছে!')
                 else:
                     messages.warning(request, 'লেনদেনটি খুঁজে পাওয়া যায়নি।')
@@ -2011,8 +2058,11 @@ def save_financial_transaction(request):
                     donor_name=donor_name,
                     date=date_val,
                     note=note,
-                    receipt=receipt_file
+                    receipt=receipt_file,
+                    is_manual_entry=True
                 )
+                if prog:
+                    sync_program_raised_amount(prog)
                 messages.success(request, 'নতুন আর্থিক লেনদেন অন্তর্ভুক্ত করা হয়েছে!')
         except Exception as e:
             messages.error(request, f'আর্থিক লেনদেন বা রশিদ ফাইল সংরক্ষণে সমস্যা হয়েছে: {str(e)}')
@@ -2022,9 +2072,8 @@ def save_financial_transaction(request):
 def delete_financial_transaction(request, pk):
     """
     Delete a Financial Transaction safely with business rule enforcement:
-    - Expenses (খরচ) can be deleted anytime.
-    - Direct manual income entries inputted by admin can be deleted.
-    - Income originating from automated gateway payments or approved donations CANNOT be deleted.
+    - Only direct manual transactions entered by admin in the ledger can be deleted.
+    - Automated gateway transactions and approved donations CANNOT be deleted.
     """
     if not can_user_edit_finance(request.user):
         messages.warning(request, "আর্থিক হিসাব পরিবর্তনের অনুমতি শুধুমাত্র প্রধান এডমিন ও কোষাধ্যক্ষের রয়েছে।")
@@ -2042,14 +2091,14 @@ def delete_financial_transaction(request, pk):
         )
         return redirect('/dashboard/?tab=finance-section')
 
-    # If this was an income linked to a program, sync the program's raised_amount
-    if trx.transaction_type == 'income' and trx.program:
-        prog = trx.program
-        prog.raised_amount = max(0, (prog.raised_amount or 0) - trx.amount)
-        prog.save()
-
+    prog = trx.program
     trx_title = trx.title
     trx.delete()
+
+    # If linked to a program, synchronize raised_amount mathematically
+    if prog:
+        sync_program_raised_amount(prog)
+
     messages.success(request, f'আর্থিক লেনদেন "{trx_title}" সফলভাবে মুছে ফেলা হয়েছে এবং হিসাব সমন্বয় করা হয়েছে!')
     return redirect('/dashboard/?tab=finance-section')
 
@@ -2556,65 +2605,76 @@ def approve_program_donation(request, pk):
         messages.warning(request, 'অনুদানের তথ্যটি ইতিমধ্যে অনুমোদিত বা মুছে ফেলা হয়েছে।')
         return redirect('/dashboard/?tab=finance-section')
 
-    if donation.status != 'approved':
-        donation.status = 'approved'
-        donation.save()
+    if donation.status == 'approved':
+        messages.info(request, 'এই অনুদানটি ইতিমধ্যে অনুমোদিত অবস্থায় রয়েছে।')
+        return redirect('/dashboard/?tab=finance-section')
 
-        # Update program raised_amount if linked
-        if donation.program:
-            prog = donation.program
-            prog.raised_amount = (prog.raised_amount or 0) + donation.amount
-            prog.save()
-            category_name = f"কার্যক্রম: {prog.title}"
-            title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
-        elif donation.donation_type == 'volunteer_registration' or (donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_')):
-            category_name = "সদস্য নিবন্ধন ফি"
-            title_name = f"সদস্য নিবন্ধন ফি ({donation.donor_name})"
-            # Auto-approve linked Volunteer if exists
-            from volunteers.models import Volunteer, generate_unique_member_id
-            from volunteers.views import send_member_notifications
-            vol = None
-            if donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_'):
-                try:
-                    vol_id = int(str(donation.membership_id).replace('NEW_VOL_', ''))
-                    vol = Volunteer.objects.filter(pk=vol_id).first()
-                except Exception:
-                    pass
-            elif donation.membership_id:
-                vol = Volunteer.objects.filter(member_id__iexact=donation.membership_id).first()
+    donation.status = 'approved'
+    if not donation.trx_id:
+        donation.trx_id = f"HN{donation.id}"
+    donation.save()
 
-            if not vol and donation.tran_id:
-                vol = Volunteer.objects.filter(tran_id=donation.tran_id).first()
-            if not vol and donation.donor_phone:
-                vol = Volunteer.objects.filter(phone=donation.donor_phone).first()
+    # Update program raised_amount if linked using exact mathematical synchronization
+    if donation.program:
+        sync_program_raised_amount(donation.program)
+        category_name = f"কার্যক্রম: {donation.program.title}"
+        title_name = f"কার্যক্রম অনুদান - {donation.program.title} ({donation.donor_name})"
+    elif donation.donation_type == 'volunteer_registration' or (donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_')):
+        category_name = "সদস্য নিবন্ধন ফি"
+        title_name = f"সদস্য নিবন্ধন ফি ({donation.donor_name})"
+        # Auto-approve linked Volunteer if exists
+        from volunteers.models import Volunteer, generate_unique_member_id
+        from volunteers.views import send_member_notifications
+        vol = None
+        if donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_'):
+            try:
+                vol_id = int(str(donation.membership_id).replace('NEW_VOL_', ''))
+                vol = Volunteer.objects.filter(pk=vol_id).first()
+            except Exception:
+                pass
+        elif donation.membership_id:
+            vol = Volunteer.objects.filter(member_id__iexact=donation.membership_id).first()
 
-            if vol:
-                if vol.status != 'approved':
-                    vol.status = 'approved'
-                vol.payment_status = 'paid'
-                vol.payment_method = donation.payment_method or 'Manual'
-                if not vol.member_id:
-                    vol.member_id = generate_unique_member_id(prefix_str="")
-                vol.save()
-                donation.membership_id = vol.member_id
-                donation.save(update_fields=['membership_id'])
-                try:
-                    send_member_notifications(vol)
-                except Exception as ex:
-                    print(f"[VOL NOTIFY ERROR ON DONATION APPROVE] {ex}")
-        elif donation.donation_type == 'volunteer':
-            category_name = "স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা"
-            title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
-        else:
-            category_name = "সাধারণ আর্থিক সহায়তা"
-            title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
+        if not vol and donation.tran_id:
+            vol = Volunteer.objects.filter(tran_id=donation.tran_id).first()
+        if not vol and donation.donor_phone:
+            vol = Volunteer.objects.filter(phone=donation.donor_phone).first()
 
-        trx_note = f"পেমেন্ট মাধ্যম: {donation.payment_method} | Trx ID: {donation.trx_id or 'N/A'} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | ফোন: {donation.donor_phone}"
-        if donation.program:
-            trx_note += f" | কার্যক্রম: {donation.program.title}"
-        if donation.note:
-            trx_note += f" | নোট: {donation.note}"
+        if vol:
+            if vol.status != 'approved':
+                vol.status = 'approved'
+            vol.payment_status = 'paid'
+            vol.payment_method = donation.payment_method or 'Manual'
+            if not vol.member_id:
+                vol.member_id = generate_unique_member_id(prefix_str="")
+            vol.save()
+            donation.membership_id = vol.member_id
+            donation.save(update_fields=['membership_id'])
+            try:
+                send_member_notifications(vol)
+            except Exception as ex:
+                print(f"[VOL NOTIFY ERROR ON DONATION APPROVE] {ex}")
+    elif donation.donation_type == 'volunteer':
+        category_name = "স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা"
+        title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
+    else:
+        category_name = "সাধারণ আর্থিক সহায়তা"
+        title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
 
+    trx_note = f"পেমেন্ট মাধ্যম: {donation.payment_method} | Trx ID: {donation.trx_id or 'N/A'} | মেম্বার আইডি: {donation.membership_id or 'N/A'} | ফোন: {donation.donor_phone}"
+    if donation.program:
+        trx_note += f" | কার্যক্রম: {donation.program.title}"
+    if donation.note:
+        trx_note += f" | নোট: {donation.note}"
+
+    # Idempotent FinancialTransaction check: create or update to prevent duplicates
+    existing_trx = FinancialTransaction.objects.filter(
+        Q(donation=donation) |
+        (Q(trx_id=donation.trx_id) if donation.trx_id else Q(pk__in=[])) |
+        (Q(trx_id=donation.tran_id) if donation.tran_id else Q(pk__in=[]))
+    ).first()
+
+    if not existing_trx:
         FinancialTransaction.objects.create(
             donation=donation,
             transaction_type='income',
@@ -2626,16 +2686,28 @@ def approve_program_donation(request, pk):
             trx_id=donation.trx_id or f"HN{donation.id}",
             donor_name=donation.donor_name,
             date=date.today(),
-            note=trx_note
+            note=trx_note,
+            is_manual_entry=False
         )
-        # Dispatch SMS & Email receipt to donor via unified notification service
-        try:
-            from donations.donation_notifications import notify_donor_donation_approved
-            notify_donor_donation_approved(donation, request=request)
-        except Exception as ex:
-            print(f"[DONOR APPROVAL NOTIFICATION ERROR] {ex}")
+    else:
+        existing_trx.donation = donation
+        existing_trx.is_manual_entry = False
+        existing_trx.amount = donation.amount
+        existing_trx.trx_id = donation.trx_id or existing_trx.trx_id
+        existing_trx.save()
 
-        messages.success(request, f'অনুদান (৳{donation.amount}) সফলভাবে অনুমোদিত হয়েছে এবং ফাইন্যান্স লেজারে যুক্ত হয়েছে!')
+    # Re-sync program funds if linked to ensure 100% precision
+    if donation.program:
+        sync_program_raised_amount(donation.program)
+
+    # Dispatch SMS & Email receipt to donor via unified notification service
+    try:
+        from donations.donation_notifications import notify_donor_donation_approved
+        notify_donor_donation_approved(donation, request=request)
+    except Exception as ex:
+        print(f"[DONOR APPROVAL NOTIFICATION ERROR] {ex}")
+
+    messages.success(request, f'অনুদান (৳{donation.amount}) সফলভাবে অনুমোদিত হয়েছে এবং ফাইন্যান্স লেজারে যুক্ত হয়েছে!')
     return redirect('/dashboard/?tab=finance-section')
 
 @staff_member_required
@@ -2683,15 +2755,14 @@ def delete_program_donation(request, pk):
     )
     linked_trxs.delete()
 
-    # If linked to a program and raised_amount was affected, sync program amount
-    if donation.program and donation.status == 'approved':
-        prog = donation.program
-        prog.raised_amount = max(0, (prog.raised_amount or 0) - donation.amount)
-        prog.save()
-
+    prog = donation.program
     donor_name = donation.donor_name
     amount = donation.amount
     donation.delete()
+
+    # If linked to a program, mathematically recalculate raised_amount
+    if prog:
+        sync_program_raised_amount(prog)
 
     messages.success(request, f'অনুদানের তথ্য ({donor_name} - ৳{amount}) সফলভাবে মুছে ফেলা হয়েছে এবং হিসাব সমন্বয় করা হয়েছে!')
     return redirect('/dashboard/?tab=finance-section')
