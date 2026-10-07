@@ -979,9 +979,15 @@
                                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-id-card me-2"></i>টিম মেম্বার ও পরিচালনা পর্ষদ (Team Members - {{ team_members.count }} জন)</h5>
                                 <small class="text-white-50"><i class="fas fa-arrows-alt me-1"></i>মাউস দিয়ে ড্র্যাগ (Drag & Drop) করে তালিকার ক্রম পরিবর্তন করতে পারেন (ওয়েবসাইটেও একই ক্রমে দেখাবে)</small>
                             </div>
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-white text-dark shadow-xs border px-3 py-2 rounded-pill">
+                                    <i class="fas fa-home text-success me-1"></i>হোমপেজে নির্বাচিত: <strong id="homepageHeaderCount" class="text-success">{{ homepage_team_members_count|default:"0" }}</strong> / ১৫ জন
+                                </span>
                                 <span id="reorderStatusToast" class="badge bg-white text-success px-3 py-2 shadow-sm rounded-pill d-none">
                                     <i class="fas fa-check-circle me-1"></i>ক্রম সফলভাবে সংরক্ষিত হয়েছে!
+                                </span>
+                                <span id="homepageToggleToast" class="badge bg-white text-success px-3 py-2 shadow-sm rounded-pill d-none">
+                                    <i class="fas fa-check-circle me-1"></i><span id="homepageToggleToastText">হালনাগাদ হয়েছে!</span>
                                 </span>
                                 {% if can_edit_all %}
                                 <button class="btn btn-warning btn-sm fw-bold shadow-sm text-dark" data-bs-toggle="modal" data-bs-target="#teamInviteModal">
@@ -1002,6 +1008,10 @@
                                         <tr>
                                             <th style="width: 45px;" class="text-center text-muted" title="ড্র্যাগ হ্যান্ডেল"><i class="fas fa-grip-vertical"></i></th>
                                             <th style="width: 50px;" class="text-center">ক্রম</th>
+                                            <th style="width: 140px;" class="text-center" title="হোমপেজের শীর্ষ নেতৃত্বে প্রদর্শনের জন্য নির্বাচন (সর্বোচ্চ ১৫ জন)">
+                                                <span>হোমপেজে শো</span>
+                                                <span class="badge bg-success py-0 px-2 d-block mx-auto mt-1" id="homepageMembersCountBadge" style="font-size: 0.7rem; width: fit-content;">{{ homepage_team_members_count|default:"0" }} / ১৫</span>
+                                            </th>
                                             <th>ছবি</th>
                                             <th>সদস্যের নাম ও আইডি</th>
                                             <th>পদবী / ভূমিকা (Role)</th>
@@ -1018,6 +1028,22 @@
                                                 <i class="fas fa-grip-lines fs-5"></i>
                                             </td>
                                             <td class="text-center text-muted fw-bold row-index-num font-monospace">{{ forloop.counter }}</td>
+                                            <td class="text-center bg-light-subtle">
+                                                <div class="form-check form-switch d-flex justify-content-center mb-1">
+                                                    <input class="form-check-input homepage-member-toggle cursor-pointer" 
+                                                           type="checkbox" 
+                                                           role="switch" 
+                                                           data-id="{{ tm.id }}" 
+                                                           data-name="{{ tm.name }}"
+                                                           id="homepageToggle_{{ tm.id }}"
+                                                           {% if tm.show_on_homepage %}checked{% endif %}
+                                                           {% if not can_edit_all %}disabled{% endif %}
+                                                           title="হোমপেজে প্রদর্শন চালু বা বন্ধ করতে ক্লিক করুন">
+                                                </div>
+                                                <span class="badge {% if tm.show_on_homepage %}bg-success-subtle text-success border border-success-subtle{% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %} homepage-status-badge py-0 px-2" id="homepageStatusBadge_{{ tm.id }}" style="font-size: 0.68rem;">
+                                                    {% if tm.show_on_homepage %}হোমে দৃশ্যমান{% else %}লুকানো{% endif %}
+                                                </span>
+                                            </td>
                                             <td>
                                                 {% if tm.image %}
                                                 <img src="{{ tm.image.url }}" style="width: 45px; height: 45px; object-fit: cover;" class="rounded-circle border">
@@ -1175,6 +1201,17 @@
                                                                             </div>
                                                                         </div>
 
+                                                                        <!-- Homepage Display Checkbox -->
+                                                                        <div class="col-md-12">
+                                                                            <div class="form-check form-switch bg-primary-subtle p-3 rounded border border-primary-subtle">
+                                                                                <input class="form-check-input ms-0 me-2" type="checkbox" id="tm_edit_show_homepage_{{ tm.id }}" name="show_on_homepage" {% if tm.show_on_homepage %}checked{% endif %}>
+                                                                                <label class="form-check-label fw-bold text-dark" for="tm_edit_show_homepage_{{ tm.id }}">
+                                                                                    <i class="fas fa-home text-primary me-1"></i>হোমপেজে প্রদর্শন করুন (শীর্ষ ১৫ জন)
+                                                                                </label>
+                                                                                <div class="form-text text-muted ps-4">হোমপেজের শীর্ষ পরিচালনা পর্ষদ সার্কেলে এই সদস্যকে প্রদর্শন করতে টিক চিহ্ন দিন। (সর্বোচ্চ ১৫ জন পর্যন্ত নির্বাচন সম্ভব)</div>
+                                                                            </div>
+                                                                        </div>
+
                                                                         <!-- Login Account Section -->
                                                                         <div class="col-md-12">
                                                                             <div class="p-3 bg-light rounded-3 border">
@@ -1207,7 +1244,7 @@
                                         </tr>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="{% if can_edit_all %}7{% else %}6{% endif %}" class="text-center py-4 text-muted">কোনো টিম মেম্বার তথ্য যোগ করা হয়নি।</td>
+                                            <td colspan="{% if can_edit_all %}10{% else %}9{% endif %}" class="text-center py-4 text-muted">কোনো টিম মেম্বার তথ্য যোগ করা হয়নি।</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -3732,6 +3769,17 @@
                             </div>
                         </div>
 
+                        <!-- Homepage Display Checkbox -->
+                        <div class="col-md-12">
+                            <div class="form-check form-switch bg-primary-subtle p-3 rounded border border-primary-subtle">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="tm_create_show_homepage" name="show_on_homepage" {% if homepage_team_members_count < 15 %}checked{% endif %}>
+                                <label class="form-check-label fw-bold text-dark" for="tm_create_show_homepage">
+                                    <i class="fas fa-home text-primary me-1"></i>হোমপেজে প্রদর্শন করুন (শীর্ষ ১৫ জন)
+                                </label>
+                                <div class="form-text text-muted ps-4">হোমপেজের শীর্ষ পরিচালনা পর্ষদ সার্কেলে এই সদস্যকে প্রদর্শন করতে টিক চিহ্ন দিন। (সর্বোচ্চ ১৫ জন পর্যন্ত রাখা যাবে)</div>
+                            </div>
+                        </div>
+
                         <!-- Login Account Credentials Section (Hidden for 'অন্যান্য' role) -->
                         <div class="col-md-12 d-none" id="create_login_account_section">
                             <div class="p-3 bg-light rounded-3 border">
@@ -4743,6 +4791,9 @@
 
         // Initialize Drag and Drop Ordering for Team Members
         initTeamMemberSortable();
+
+        // Initialize Homepage Display Checkbox Toggle for Team Members
+        initHomepageMemberToggle();
     });
 
     function initTeamMemberSortable() {
@@ -4821,6 +4872,110 @@
                 });
             });
         }
+    }
+
+    function initHomepageMemberToggle() {
+        const toggles = document.querySelectorAll('.homepage-member-toggle');
+        if (!toggles.length) return;
+
+        function updateCounts(count) {
+            const headerCount = document.getElementById('homepageHeaderCount');
+            if (headerCount) headerCount.textContent = count;
+            const badgeCount = document.getElementById('homepageMembersCountBadge');
+            if (badgeCount) badgeCount.textContent = `${count} / ১৫`;
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('homepageToggleToast');
+            const toastText = document.getElementById('homepageToggleToastText');
+            if (!toast) return;
+            if (toastText) toastText.textContent = message;
+            if (isError) {
+                toast.classList.remove('text-success');
+                toast.classList.add('text-danger');
+            } else {
+                toast.classList.remove('text-danger');
+                toast.classList.add('text-success');
+            }
+            toast.classList.remove('d-none');
+            setTimeout(() => {
+                toast.classList.add('d-none');
+            }, 3000);
+        }
+
+        toggles.forEach(toggle => {
+            toggle.addEventListener('change', function () {
+                const memberId = this.dataset.id;
+                const memberName = this.dataset.name || 'সদস্য';
+                const isChecked = this.checked;
+
+                // Calculate currently checked on the page
+                const activeCount = document.querySelectorAll('.homepage-member-toggle:checked').length;
+
+                // Frontend validation
+                if (isChecked && activeCount > 15) {
+                    alert('হোমপেজে সর্বোচ্চ ১৫ জন টিম মেম্বার প্রদর্শন করা যাবে!\nনতুন কাউকে যুক্ত করতে চাইলে প্রথমে অন্য কাউকে আনচেক করুন।');
+                    this.checked = false;
+                    return;
+                }
+
+                if (!isChecked && activeCount < 1) {
+                    alert('হোমপেজে কমপক্ষে ১ জন সদস্য প্রদর্শন থাকা বাধ্যতামূলক!\nএটি বন্ধ করা যাবে না।');
+                    this.checked = true;
+                    return;
+                }
+
+                this.disabled = true;
+                const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+                const csrfToken = csrfEl ? csrfEl.value : '';
+
+                fetch(`/dashboard/toggle-team-member-homepage/${memberId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams({
+                        'state': isChecked ? '1' : '0'
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    this.disabled = false;
+                    if (data.success) {
+                        const isNowShown = Boolean(typeof data.show_on_homepage !== 'undefined' ? data.show_on_homepage : data.is_shown);
+                        this.checked = isNowShown;
+                        const count = data.current_count !== undefined ? data.current_count : (data.active_count !== undefined ? data.active_count : activeCount);
+                        updateCounts(count);
+
+                        const statusBadge = document.getElementById(`homepageStatusBadge_${memberId}`);
+                        if (statusBadge) {
+                            if (isNowShown) {
+                                statusBadge.className = 'badge bg-success-subtle text-success border border-success-subtle homepage-status-badge py-0 px-2';
+                                statusBadge.textContent = 'হোমে দৃশ্যমান';
+                            } else {
+                                statusBadge.className = 'badge bg-secondary-subtle text-secondary border border-secondary-subtle homepage-status-badge py-0 px-2';
+                                statusBadge.textContent = 'লুকানো';
+                            }
+                        }
+
+                        showToast(data.message || 'সফলভাবে হালনাগাদ হয়েছে!');
+                    } else {
+                        // Revert check
+                        this.checked = !isChecked;
+                        alert(data.error || data.message || 'হালনাগাদ করতে ব্যর্থ হয়েছে।');
+                        showToast(data.error || data.message || 'ব্যর্থ হয়েছে', true);
+                    }
+                })
+                .catch(err => {
+                    this.disabled = false;
+                    this.checked = !isChecked;
+                    console.error('Error toggling member homepage status:', err);
+                    alert('সার্ভারের সাথে যোগাযোগ করা সম্ভব হয়নি। আবার চেষ্টা করুন।');
+                });
+            });
+        });
     }
 
     function filterAdminEmergencyTable() {

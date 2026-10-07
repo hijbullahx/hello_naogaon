@@ -61,6 +61,7 @@ urlpatterns = [
     path('dashboard/save-team-member/', views_dashboard.save_team_member, name='save_team_member'),
     path('dashboard/delete-team-member/<int:pk>/', views_dashboard.delete_team_member, name='delete_team_member'),
     path('dashboard/reorder-team-members/', views_dashboard.reorder_team_members, name='reorder_team_members'),
+    path('dashboard/toggle-team-member-homepage/<int:pk>/', views_dashboard.toggle_team_member_homepage, name='toggle_team_member_homepage'),
     path('dashboard/generate-team-invite/', views_dashboard.generate_team_invite, name='generate_team_invite'),
     path('dashboard/delete-team-invite/<int:pk>/', views_dashboard.delete_team_invite, name='delete_team_invite'),
     path('dashboard/save-transaction/', views_dashboard.save_financial_transaction, name='save_transaction'),

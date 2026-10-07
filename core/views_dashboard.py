@@ -471,6 +471,7 @@ def dashboard_home(request):
         'can_edit_all': can_edit_all,
         'can_edit_finance': can_edit_finance,
         'team_role_choices': TeamMember.ROLE_CHOICES,
+        'homepage_team_members_count': TeamMember.objects.filter(show_on_homepage=True).count(),
         'president_count': president_count,
         'secretary_count': secretary_count,
         'treasurer_count': treasurer_count,
@@ -1649,6 +1650,24 @@ def save_team_member(request):
                 tm.address = address
                 tm.bio = bio
                 tm.order = order
+
+                # Show on homepage validation
+                show_on_homepage_raw = request.POST.get('show_on_homepage')
+                if show_on_homepage_raw is not None:
+                    is_show_on_homepage_checked = bool(show_on_homepage_raw)
+                    if is_show_on_homepage_checked:
+                        if not tm.show_on_homepage and TeamMember.objects.filter(show_on_homepage=True).exclude(pk=tm.pk).count() >= 15:
+                            messages.warning(request, 'হোমপেজে সর্বোচ্চ ১৫ জন সদস্যের কোটা পূর্ণ রয়েছে। তাই এই সদস্যের হোমপেজ প্রদর্শন বন্ধ রাখা হয়েছে।')
+                            tm.show_on_homepage = False
+                        else:
+                            tm.show_on_homepage = True
+                    else:
+                        if tm.show_on_homepage and TeamMember.objects.filter(show_on_homepage=True).exclude(pk=tm.pk).count() == 0:
+                            messages.warning(request, 'হোমপেজে প্রদর্শনের জন্য কমপক্ষে ১ জন সদস্য অবশ্যই নির্বাচিত থাকতে হবে। তাই হোমপেজ প্রদর্শন সক্রিয় রাখা হয়েছে।')
+                            tm.show_on_homepage = True
+                        else:
+                            tm.show_on_homepage = False
+
                 if custom_member_id:
                     tm.member_id = custom_member_id
                 if auth_user:
@@ -1658,6 +1677,15 @@ def save_team_member(request):
                 tm.save()
                 messages.success(request, f'সদস্য আইডি "{tm.member_id}" অনুযায়ী টিম সদস্য "{name}"-এর তথ্য সফলভাবে আপডেট হয়েছে!')
             else:
+                show_on_homepage_raw = request.POST.get('show_on_homepage')
+                new_show_on_homepage = True
+                if show_on_homepage_raw is not None:
+                    new_show_on_homepage = bool(show_on_homepage_raw)
+                
+                if new_show_on_homepage and TeamMember.objects.filter(show_on_homepage=True).count() >= 15:
+                    messages.warning(request, 'হোমপেজে সর্বোচ্চ ১৫ জন সদস্যের কোটা পূর্ণ থাকায় নতুন সদস্যটি সাধারণ তালিকায় সংরক্ষিত হয়েছে।')
+                    new_show_on_homepage = False
+
                 tm = TeamMember(
                     name=name,
                     role=role,
@@ -1667,6 +1695,7 @@ def save_team_member(request):
                     blood_group=blood_group,
                     last_donated=last_donated,
                     is_public_details=is_public_details,
+                    show_on_homepage=new_show_on_homepage,
                     division=division,
                     district=district,
                     upazila=upazila,
@@ -1776,6 +1805,71 @@ def reorder_team_members(request):
             continue
 
     return JsonResponse({'success': True, 'message': 'সদস্যদের ক্রম সফলভাবে হালনাগাদ হয়েছে!'})
+
+@staff_member_required
+def toggle_team_member_homepage(request, pk):
+    """
+    Toggle a team member's visibility on the homepage top leadership circle.
+    Constraints:
+      - Maximum 15 members on homepage.
+      - Minimum 1 member on homepage.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'শুধুমাত্র POST রিকোয়েস্ট গ্রহণযোগ্য।'}, status=405)
+
+    if not request.user.is_superuser and not can_user_edit_general(request.user):
+        return JsonResponse({'success': False, 'message': 'এই সুবিধা ব্যবহারের অনুমতি আপনার নেই।'}, status=403)
+
+    tm = TeamMember.objects.filter(pk=pk).first()
+    if not tm:
+        return JsonResponse({'success': False, 'message': 'টিম সদস্যের তথ্য খুঁজে পাওয়া যায়নি।'}, status=404)
+
+    target_state = request.POST.get('state')
+    if target_state is not None:
+        desired_active = (target_state.lower() in ['true', '1', 'on', 'yes'])
+    else:
+        desired_active = not tm.show_on_homepage
+
+    current_active_count = TeamMember.objects.filter(show_on_homepage=True).count()
+
+    if desired_active:
+        if not tm.show_on_homepage and current_active_count >= 15:
+            return JsonResponse({
+                'success': False,
+                'message': 'হোমপেজে সর্বোচ্চ ১৫ জন সদস্য প্রদর্শন করা সম্ভব। নতুন কাউকে যুক্ত করতে পূর্বে নির্বাচিত কাউকে আনচেক করুন।',
+                'error': 'হোমপেজে সর্বোচ্চ ১৫ জন সদস্য প্রদর্শন করা সম্ভব। নতুন কাউকে যুক্ত করতে পূর্বে নির্বাচিত কাউকে আনচেক করুন।',
+                'active_count': current_active_count,
+                'current_count': current_active_count,
+                'is_shown': tm.show_on_homepage,
+                'show_on_homepage': tm.show_on_homepage
+            }, status=400)
+    else:
+        if tm.show_on_homepage and current_active_count <= 1:
+            return JsonResponse({
+                'success': False,
+                'message': 'হোমপেজে প্রদর্শনের জন্য কমপক্ষে ১ জন সদস্য অবশ্যই নির্বাচিত থাকতে হবে।',
+                'error': 'হোমপেজে প্রদর্শনের জন্য কমপক্ষে ১ জন সদস্য অবশ্যই নির্বাচিত থাকতে হবে।',
+                'active_count': current_active_count,
+                'current_count': current_active_count,
+                'is_shown': tm.show_on_homepage,
+                'show_on_homepage': tm.show_on_homepage
+            }, status=400)
+
+    tm.show_on_homepage = desired_active
+    tm.save(update_fields=['show_on_homepage'])
+
+    new_count = TeamMember.objects.filter(show_on_homepage=True).count()
+    status_text = "হোমপেজে যুক্ত করা হয়েছে" if tm.show_on_homepage else "হোমপেজ থেকে বাদ দেওয়া হয়েছে"
+    return JsonResponse({
+        'success': True,
+        'message': f'"{tm.name}" সফলভাবে {status_text}!',
+        'is_shown': tm.show_on_homepage,
+        'show_on_homepage': tm.show_on_homepage,
+        'active_count': new_count,
+        'current_count': new_count,
+        'member_id': tm.id,
+        'member_name': tm.name
+    })
 
 @staff_member_required
 def generate_team_invite(request):

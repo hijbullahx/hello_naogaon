@@ -193,6 +193,11 @@ class TeamMember(models.Model):
     image = models.ImageField(upload_to='team/', blank=True, null=True, verbose_name="ছবি")
     bio = models.TextField(blank=True, verbose_name="সংক্ষিপ্ত বিবরণ")
     order = models.IntegerField(default=0, help_text='Order to display on the team page', verbose_name="প্রদর্শনের ক্রম")
+    show_on_homepage = models.BooleanField(
+        default=True, 
+        verbose_name="হোমপেজে প্রদর্শন", 
+        help_text="হোমপেজের শীর্ষ নেতৃত্ব সেকশনে প্রদর্শন করবেন কিনা (সর্বোচ্চ ১৫ জন)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True, verbose_name="যোগদানের তারিখ")
 
     class Meta:

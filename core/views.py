@@ -45,10 +45,14 @@ def home(request):
         default=Value(100) + F('role_priority'),
         output_field=IntegerField(),
     )
-    leadership_members = TeamMember.objects.annotate(
+    leadership_qs = TeamMember.objects.filter(show_on_homepage=True)
+    if not leadership_qs.exists():
+        leadership_qs = TeamMember.objects.all()
+
+    leadership_members = leadership_qs.annotate(
         role_priority=role_priority,
         effective_order=effective_order
-    ).order_by('effective_order', 'id')
+    ).order_by('effective_order', 'id')[:15]
 
     recent_news = Article.objects.filter(is_published=True).order_by('-publish_date')[:3]
     banks = Bank.objects.filter(is_active=True)
