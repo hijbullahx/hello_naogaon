@@ -151,6 +151,7 @@ class FinancialTransaction(models.Model):
     ]
 
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES, default='income')
+    donation = models.ForeignKey('donations.ProgramDonation', on_delete=models.SET_NULL, null=True, blank=True, related_name='financial_transactions', verbose_name=_('প্রাপ্ত অনুদান লিংক'))
     program = models.ForeignKey('programs.Program', on_delete=models.SET_NULL, null=True, blank=True, related_name='financial_transactions', verbose_name=_('কার্যক্রম (Program)'))
     title = models.CharField(max_length=255, help_text="খাতের নাম বা শিরোনাম")
     category = models.CharField(max_length=100, default="সাধারণ অনুদান")
@@ -170,6 +171,37 @@ class FinancialTransaction(models.Model):
 
     def __str__(self):
         return f"{self.get_transaction_type_display()} - {self.title}: ৳{self.amount}"
+
+    @property
+    def linked_donation(self):
+        """Retrieve linked ProgramDonation either directly or via trx_id/tran_id matching"""
+        if self.donation_id:
+            return self.donation
+        if self.trx_id:
+            from django.db.models import Q
+            return ProgramDonation.objects.filter(
+                Q(trx_id=self.trx_id) | Q(tran_id=self.trx_id)
+            ).first()
+        return None
+
+    @property
+    def can_be_deleted(self):
+        """
+        Business Rules:
+        - All expenses (ব্যয় / খরচ) can be deleted by admin anytime.
+        - Direct manual income entries inputted by admin in the ledger can be deleted.
+        - Income originating from automated gateway payments or approved donations CANNOT be deleted.
+        """
+        if self.transaction_type == 'expense':
+            return True
+
+        pd = self.linked_donation
+        if pd:
+            # If from automated payment or already approved, permanent and non-deletable
+            if pd.is_automated_payment() or pd.status == 'approved':
+                return False
+
+        return True
 
 
 class ProgramDonation(models.Model):
@@ -223,6 +255,35 @@ class ProgramDonation(models.Model):
     def __str__(self):
         type_lbl = self.get_donation_type_display()
         return f'{self.donor_name} - {type_lbl} (৳{self.amount}) - {self.get_status_display()}'
+
+    def is_automated_payment(self):
+        """
+        Check if the donation was processed via automated payment gateway.
+        """
+        method = (self.payment_method or '').lower()
+        if 'manual' in method or 'ম্যানুয়াল' in method or 'cash' in method or 'নগদ' in method:
+            return False
+        if self.bank_tran_id:
+            return True
+        if any(gw in method for gw in ['online gateway', 'paystation', 'sslcommerz', 'shurjopay', 'aamarpay', 'merchant']):
+            return True
+        if self.tran_id and not ('manual' in method):
+            return True
+        return False
+
+    @property
+    def can_be_deleted(self):
+        """
+        Business Rule:
+        1. Automated donations cannot be deleted at all.
+        2. Manual donations cannot be deleted after approval.
+        3. Only unapproved/pending/rejected manual submissions can be deleted.
+        """
+        if self.is_automated_payment():
+            return False
+        if self.status == 'approved':
+            return False
+        return True
 
 
 class PaymentGatewaySetting(models.Model):

@@ -565,6 +565,7 @@ def process_successful_payment(donation, payment_data, request=None):
     # 2. Record FinancialTransaction (income) if not already created
     if not FinancialTransaction.objects.filter(trx_id=trx_id, transaction_type='income').exists():
         FinancialTransaction.objects.create(
+            donation=donation,
             transaction_type='income',
             program=donation.program,
             title=title_name,

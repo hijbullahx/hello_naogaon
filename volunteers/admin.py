@@ -38,6 +38,7 @@ class VolunteerAdmin(admin.ModelAdmin):
                 trx_id = vol.trx_id or (linked_donation.trx_id if linked_donation else None) or f"REG{vol.id}"
                 if not FinancialTransaction.objects.filter(trx_id=trx_id, transaction_type='income').exists():
                     FinancialTransaction.objects.create(
+                        donation=linked_donation,
                         transaction_type='income',
                         title=f"সদস্য নিবন্ধন ফি ({vol.full_name}) - আইডি: {vol.member_id}",
                         category="সদস্য নিবন্ধন ফি",

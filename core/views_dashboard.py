@@ -1466,6 +1466,7 @@ def approve_volunteer(request, pk):
         trx_id = vol.trx_id or (linked_donation.trx_id if linked_donation else None) or f"REG{vol.id}"
         if not FinancialTransaction.objects.filter(trx_id=trx_id, transaction_type='income').exists():
             FinancialTransaction.objects.create(
+                donation=linked_donation,
                 transaction_type='income',
                 title=f"সদস্য নিবন্ধন ফি ({vol.full_name}) - আইডি: {vol.member_id}",
                 category="সদস্য নিবন্ধন ফি",
@@ -2019,17 +2020,37 @@ def save_financial_transaction(request):
 
 @staff_member_required
 def delete_financial_transaction(request, pk):
-    """Delete a Financial Transaction safely"""
-    trx = FinancialTransaction.objects.filter(pk=pk).first()
+    """
+    Delete a Financial Transaction safely with business rule enforcement:
+    - Expenses (খরচ) can be deleted anytime.
+    - Direct manual income entries inputted by admin can be deleted.
+    - Income originating from automated gateway payments or approved donations CANNOT be deleted.
+    """
     if not can_user_edit_finance(request.user):
         messages.warning(request, "আর্থিক হিসাব পরিবর্তনের অনুমতি শুধুমাত্র প্রধান এডমিন ও কোষাধ্যক্ষের রয়েছে।")
         return redirect("/dashboard/?tab=finance-section")
 
-    if trx:
-        trx.delete()
-        messages.success(request, 'আর্থিক লেনদেন মুছে ফেলা হয়েছে!')
-    else:
+    trx = FinancialTransaction.objects.filter(pk=pk).first()
+    if not trx:
         messages.warning(request, 'লেনদেনটি ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
+        return redirect('/dashboard/?tab=finance-section')
+
+    if not trx.can_be_deleted:
+        messages.error(
+            request, 
+            "এই লেনদেনটি মুছে ফেলা সম্ভব নয়! স্বয়ংক্রিয় অনলাইন পেমেন্ট বা অনুমোদিত প্রাপ্ত আর্থিক সহায়তা থেকে আসা আয় স্থায়ীভাবে সংরক্ষিত থাকে।"
+        )
+        return redirect('/dashboard/?tab=finance-section')
+
+    # If this was an income linked to a program, sync the program's raised_amount
+    if trx.transaction_type == 'income' and trx.program:
+        prog = trx.program
+        prog.raised_amount = max(0, (prog.raised_amount or 0) - trx.amount)
+        prog.save()
+
+    trx_title = trx.title
+    trx.delete()
+    messages.success(request, f'আর্থিক লেনদেন "{trx_title}" সফলভাবে মুছে ফেলা হয়েছে এবং হিসাব সমন্বয় করা হয়েছে!')
     return redirect('/dashboard/?tab=finance-section')
 
 @staff_member_required
@@ -2234,6 +2255,7 @@ def save_member_cash_payment(request):
 
         # 2. Create FinancialTransaction (income)
         FinancialTransaction.objects.create(
+            donation=donation,
             transaction_type='income',
             title=title_name,
             category=cat_name,
@@ -2594,6 +2616,7 @@ def approve_program_donation(request, pk):
             trx_note += f" | নোট: {donation.note}"
 
         FinancialTransaction.objects.create(
+            donation=donation,
             transaction_type='income',
             program=donation.program,
             title=title_name,
@@ -2617,17 +2640,60 @@ def approve_program_donation(request, pk):
 
 @staff_member_required
 def delete_program_donation(request, pk):
-    """Delete a donation entry safely"""
-    donation = ProgramDonation.objects.filter(pk=pk).first()
+    """
+    Safely delete a donation entry with strict business rule validation and full financial ledger sync.
+    Rules:
+      1. Automated payment gateway donations CANNOT be deleted.
+      2. Approved manual donations CANNOT be deleted.
+      3. Only unapproved/pending/rejected manual submissions CAN be deleted.
+      4. When deleted, fully sync and remove any associated financial transactions, adjust program raised funds, etc.
+    """
     if not can_user_edit_finance(request.user):
         messages.warning(request, "আর্থিক হিসাব পরিবর্তনের অনুমতি শুধুমাত্র প্রধান এডমিন ও কোষাধ্যক্ষের রয়েছে।")
         return redirect("/dashboard/?tab=finance-section")
 
-    if donation:
-        donation.delete()
-        messages.success(request, 'অনুদানের তথ্য মুছে ফেলা হয়েছে!')
-    else:
+    donation = ProgramDonation.objects.filter(pk=pk).first()
+    if not donation:
         messages.warning(request, 'অনুদানের তথ্য ইতিমধ্যে মুছে ফেলা হয়েছে বা খুঁজে পাওয়া যায়নি।')
+        return redirect('/dashboard/?tab=finance-section')
+
+    # Rule 1: Automated gateway donations cannot be deleted
+    if donation.is_automated_payment():
+        messages.error(
+            request, 
+            "অনলাইন গেটওয়ের মাধ্যমে আসা স্বয়ংক্রিয় লেনদেন মুছে ফেলা সম্ভব নয়! এটি সিস্টেম অডিট রেকর্ডের জন্য স্থায়ীভাবে সংরক্ষিত।"
+        )
+        return redirect('/dashboard/?tab=finance-section')
+
+    # Rule 2: Approved manual donations cannot be deleted
+    if donation.status == 'approved':
+        messages.error(
+            request, 
+            "অনুমোদিত অনুদান মুছে ফেলা যাবে না! অনুমোদনের পূর্বে শুধুমাত্র অপেক্ষমাণ বা বাতিলকৃত আবেদন মুছে ফেলা সম্ভব।"
+        )
+        return redirect('/dashboard/?tab=finance-section')
+
+    # Rule 3: Deletion allowed for pending / rejected / unapproved submissions
+    # Sync with FinancialTransaction: remove any linked transaction if one exists
+    from donations.models import FinancialTransaction
+    linked_trxs = FinancialTransaction.objects.filter(
+        Q(donation=donation) |
+        (Q(trx_id=donation.trx_id) if donation.trx_id else Q(pk__in=[])) |
+        (Q(trx_id=donation.tran_id) if donation.tran_id else Q(pk__in=[]))
+    )
+    linked_trxs.delete()
+
+    # If linked to a program and raised_amount was affected, sync program amount
+    if donation.program and donation.status == 'approved':
+        prog = donation.program
+        prog.raised_amount = max(0, (prog.raised_amount or 0) - donation.amount)
+        prog.save()
+
+    donor_name = donation.donor_name
+    amount = donation.amount
+    donation.delete()
+
+    messages.success(request, f'অনুদানের তথ্য ({donor_name} - ৳{amount}) সফলভাবে মুছে ফেলা হয়েছে এবং হিসাব সমন্বয় করা হয়েছে!')
     return redirect('/dashboard/?tab=finance-section')
 
 @staff_member_required

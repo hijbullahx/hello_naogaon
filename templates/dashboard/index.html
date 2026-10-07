@@ -2561,10 +2561,17 @@
                                             class="btn btn-sm btn-outline-warning fw-bold me-1" title="বাতিল করুন"><i
                                                 class="fas fa-times me-1"></i>বাতিল</a>
                                         {% endif %}
+                                        {% if pd.can_be_deleted %}
                                         <a href="{% url 'core:delete_donation' pd.id %}"
                                             onclick="return confirm('এই এন্ট্রিটি মুছে ফেলতে চান?');"
                                             class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i
                                                 class="fas fa-trash"></i></a>
+                                        {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2"
+                                              title="{% if pd.is_automated_payment %}অনলাইন গেটওয়ের মাধ্যমে আসা স্বয়ংক্রিয় লেনদেন অপরিবর্তনীয়{% else %}অনুমোদিত অনুদান অপরিবর্তনীয় ও স্থায়ী হিসাব{% endif %}">
+                                            <i class="fas fa-lock me-1 text-warning"></i>স্থায়ী হিসাব
+                                        </span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -2653,12 +2660,22 @@
                                     </td>
                                     {% if can_edit_finance %}
                                     <td>
+                                        {% if trx.can_be_deleted %}
                                         <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                            data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}"><i
+                                            data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}" title="এডিট করুন"><i
                                                 class="fas fa-edit"></i></button>
                                         <a href="{% url 'core:delete_transaction' trx.id %}"
                                             onclick="return confirm('অর্থায়াক হিসাবটি মুছে ফেলতে চান?');"
-                                            class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                            class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
+                                        {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                            data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}" title="বিবরণ দেখুন / এডিট"><i
+                                                class="fas fa-edit"></i></button>
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2"
+                                              title="অনলাইন গেটওয়ে বা অনুমোদিত অনুদান থেকে স্বয়ংক্রিয়ভাবে আসা আয় অপরিবর্তনীয় ও স্থায়ী হিসাব">
+                                            <i class="fas fa-lock me-1 text-warning"></i>স্থায়ী হিসাব
+                                        </span>
+                                        {% endif %}
                                     </td>
                                     {% endif %}
                                 </tr>
