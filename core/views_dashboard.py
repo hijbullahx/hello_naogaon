@@ -2146,9 +2146,10 @@ def ajax_get_member_subscription_ledger(request):
     for pd in donations_qs:
         is_approved = pd.status in ['approved', 'completed']
         amt = float(pd.amount)
+        is_subscription = pd.donation_type in ['volunteer', 'leadership']
         if is_approved:
             total_approved_all += amt
-            if pd.donation_type not in ['volunteer_registration', 'general'] or pd.donation_type == 'volunteer':
+            if is_subscription:
                 total_subscription_approved += amt
             else:
                 total_other_approved += amt
@@ -2156,8 +2157,9 @@ def ajax_get_member_subscription_ledger(request):
         is_cash = 'Cash' in (pd.payment_method or '') or 'নগদ' in (pd.payment_method or '')
         is_auto = bool(pd.tran_id or pd.card_type or not is_cash)
 
-        category_display = "সদস্য মাসিক চাঁদা"
-        if pd.donation_type == 'volunteer_registration':
+        if is_subscription:
+            category_display = "সদস্য মাসিক চাঁদা"
+        elif pd.donation_type == 'volunteer_registration':
             category_display = "সদস্য নিবন্ধন ফি"
         elif pd.donation_type == 'general':
             category_display = "সাধারণ আর্থিক সহায়তা"
@@ -2165,6 +2167,8 @@ def ajax_get_member_subscription_ledger(request):
             category_display = f"কার্যক্রম: {pd.program.title}" if pd.program else "কার্যক্রম অনুদান"
         elif pd.donation_type == 'emergency':
             category_display = "জরুরি ত্রাণ তহবিল"
+        else:
+            category_display = "অন্যান্য সহায়তা"
 
         payments.append({
             'id': pd.id,
@@ -2654,9 +2658,12 @@ def approve_program_donation(request, pk):
                 send_member_notifications(vol)
             except Exception as ex:
                 print(f"[VOL NOTIFY ERROR ON DONATION APPROVE] {ex}")
-    elif donation.donation_type == 'volunteer':
-        category_name = "স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা"
-        title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
+    elif donation.donation_type in ['volunteer', 'leadership']:
+        category_name = "সদস্য মাসিক চাঁদা"
+        title_name = f"সদস্য মাসিক চাঁদা ({donation.donor_name})"
+    elif donation.donation_type == 'emergency':
+        category_name = "জরুরি ত্রাণ ও চিকিৎসা তহবিল"
+        title_name = f"জরুরি তহবিল অনুদান ({donation.donor_name})"
     else:
         category_name = "সাধারণ আর্থিক সহায়তা"
         title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"

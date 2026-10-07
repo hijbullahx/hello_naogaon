@@ -165,7 +165,8 @@ def notify_donor_donation_approved(donation, request=None):
     member_sub = None
     balance_sms_text = ""
     balance_email_text = ""
-    if donation.membership_id:
+    is_chada_payment = donation.donation_type in ['volunteer', 'leadership']
+    if donation.membership_id and is_chada_payment:
         try:
             from volunteers.models import TeamMember, Volunteer
             from volunteers.subscription_services import get_member_subscription_summary
@@ -192,7 +193,7 @@ def notify_donor_donation_approved(donation, request=None):
     # 1. Donor SMS
     if donation.donor_phone:
         try:
-            if member_sub:
+            if is_chada_payment and member_sub:
                 donor_sms = (
                     f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
                     f"আপনার ৳{donation.amount:,.0f} চাঁদা অনুমোদিত হয়েছে। "
@@ -213,9 +214,9 @@ def notify_donor_donation_approved(donation, request=None):
     if donation.donor_email:
         try:
             paragraphs = [
-                f"হেল্পলাইন হ্যালো নওগাঁর মাধ্যমে মানবতার সেবায় আপনার ৳{donation.amount:,.2f} অনুদান/চাঁদাটি সফলভাবে যাচাই ও অনুমোদিত হয়েছে।",
+                f"হেল্পলাইন হ্যালো নওগাঁর মাধ্যমে মানবতার সেবায় আপনার ৳{donation.amount:,.2f} অনুদান/সহায়তাটি সফলভাবে যাচাই ও অনুমোদিত হয়েছে।",
             ]
-            if balance_email_text:
+            if is_chada_payment and balance_email_text:
                 paragraphs.append(balance_email_text)
             paragraphs.append("আপনার এই মহতী অবদান অসহায় ও সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াতে আমাদের প্রেরণা যোগাবে। সংগঠনের পক্ষ থেকে আপনার প্রতি আন্তরিক ধন্যবাদ ও কৃতজ্ঞতা প্রকাশ করছি।")
 
@@ -231,7 +232,7 @@ def notify_donor_donation_approved(donation, request=None):
                 {'label': 'পেমেন্ট মাধ্যম', 'value': donation.payment_method},
             ])
 
-            if member_sub:
+            if is_chada_payment and member_sub:
                 details.append({'label': 'নির্ধারিত মাসিক চাঁদা', 'value': f"৳ {member_sub.get('monthly_fee', 0):,.2f}"})
                 details.append({'label': 'সর্বমোট পরিশোধিত চাঁদা', 'value': f"৳ {member_sub.get('total_paid', 0):,.2f}"})
                 if member_sub.get('due_amount', 0) > 0:
@@ -245,7 +246,7 @@ def notify_donor_donation_approved(donation, request=None):
                 {'label': 'ট্রানজেকশন আইডি (TrxID)', 'value': donation.trx_id or donation.tran_id},
                 {'label': 'ইনভয়েস ট্র্যাকিং নং', 'value': donation.tran_id or str(donation.id)},
                 {'label': 'অনুমোদনের তারিখ', 'value': datetime.now().strftime('%d %B, %Y %I:%M %p')},
-                {'label': 'কার্যক্রম / খাত', 'value': donation.program.title if donation.program else ('সদস্য চাঁদা' if donation.membership_id else 'সাধারণ তহবিল')},
+                {'label': 'কার্যক্রম / খাত', 'value': donation.program.title if donation.program else ('সদস্য মাসিক চাঁদা' if is_chada_payment else ('জরুরি ত্রাণ তহবিল' if donation.donation_type == 'emergency' else 'সাধারণ তহবিল'))},
                 {'label': 'বর্তমান অবস্থা', 'value': 'অনুমোদিত (Approved)'},
             ])
 

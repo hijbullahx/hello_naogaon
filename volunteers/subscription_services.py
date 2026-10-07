@@ -135,12 +135,13 @@ def get_member_subscription_summary(member, today=None):
     member_name = getattr(member, 'name', getattr(member, 'full_name', ''))
     effective_role = getattr(member, 'effective_role', 'সদস্য')
 
-    # Calculate all successful payments made under this member_id (excluding one-time volunteer registration fee)
+    # Calculate only payments specifically made for monthly subscription (excluding general donations, programs, etc.)
     from donations.models import ProgramDonation
     paid_qs = ProgramDonation.objects.filter(
         membership_id=member.member_id,
-        status__in=['approved', 'completed']
-    ).exclude(donation_type__in=['volunteer_registration', 'general'])
+        status__in=['approved', 'completed'],
+        donation_type__in=['volunteer', 'leadership']
+    )
     total_paid = float(paid_qs.aggregate(total=Sum('amount'))['total'] or 0.0)
 
     is_reg_due = getattr(member, 'is_registration_fee_due', False)

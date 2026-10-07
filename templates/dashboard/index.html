@@ -2509,9 +2509,12 @@
                                         {% if pd.program %}
                                         <span class="badge bg-primary text-white mb-1"><i class="fas fa-project-diagram me-1"></i>কার্যক্রম ভিত্তিক</span>
                                         <div class="small fw-bold text-dark text-truncate" style="max-width: 170px;" title="{{ pd.program.title }}">{{ pd.program.title }}</div>
-                                        {% elif pd.membership_id or pd.donation_type == 'volunteer' or pd.donation_type == 'leadership' %}
+                                        {% elif pd.donation_type == 'volunteer' or pd.donation_type == 'leadership' %}
                                         <span class="badge bg-success text-white mb-1"><i class="fas fa-users me-1"></i>সদস্য চাঁদা</span>
-                                        <div class="small text-muted">সদস্য তহবিল</div>
+                                        <div class="small text-muted">সদস্য মাসিক চাঁদা</div>
+                                        {% elif pd.donation_type == 'volunteer_registration' %}
+                                        <span class="badge bg-info text-white mb-1"><i class="fas fa-id-card me-1"></i>নিবন্ধন ফি</span>
+                                        <div class="small text-muted">সদস্য নিবন্ধন ফি</div>
                                         {% elif pd.donation_type == 'emergency' %}
                                         <span class="badge bg-danger text-white mb-1"><i class="fas fa-heartbeat me-1"></i>জরুরি তহবিল</span>
                                         <div class="small text-muted">ত্রাণ ও চিকিৎসা</div>
@@ -5503,10 +5506,16 @@
             else if (p.status === 'pending') badgeClass = 'bg-warning text-dark';
 
             let typeBadge = '<span class="badge bg-light text-dark border">' + p.category + '</span>';
-            if (p.donation_type === 'volunteer') {
+            if (p.donation_type === 'volunteer' || p.donation_type === 'leadership') {
                 typeBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle">মাসিক চাঁদা</span>';
             } else if (p.donation_type === 'general') {
                 typeBadge = '<span class="badge bg-info-subtle text-dark border border-info-subtle">সাধারণ অনুদান</span>';
+            } else if (p.donation_type === 'program') {
+                typeBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle">কার্যক্রম অনুদান</span>';
+            } else if (p.donation_type === 'emergency') {
+                typeBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle">জরুরি ত্রাণ</span>';
+            } else if (p.donation_type === 'volunteer_registration') {
+                typeBadge = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">নিবন্ধন ফি</span>';
             }
 
             let sourceCol = '';

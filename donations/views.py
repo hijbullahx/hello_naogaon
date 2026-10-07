@@ -510,9 +510,12 @@ def process_successful_payment(donation, payment_data, request=None):
     elif donation.donation_type == 'volunteer_registration' or (donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_')):
         category_name = 'সদস্য নিবন্ধন ফি'
         title_name = f"সদস্য নিবন্ধন ফি ({donation.donor_name})"
-    elif donation.donation_type == 'volunteer':
-        category_name = 'স্বেচ্ছাসেবক মাসিক চাঁদা / সহায়তা'
-        title_name = f"স্বেচ্ছাসেবক চাঁদা ({donation.donor_name})"
+    elif donation.donation_type in ['volunteer', 'leadership']:
+        category_name = 'সদস্য মাসিক চাঁদা'
+        title_name = f"সদস্য মাসিক চাঁদা ({donation.donor_name})"
+    elif donation.donation_type == 'emergency':
+        category_name = 'জরুরি ত্রাণ ও চিকিৎসা তহবিল'
+        title_name = f"জরুরি তহবিল অনুদান ({donation.donor_name})"
     else:
         category_name = 'সাধারণ আর্থিক সহায়তা'
         title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
@@ -575,8 +578,15 @@ def process_successful_payment(donation, payment_data, request=None):
             trx_id=trx_id,
             donor_name=donation.donor_name,
             date=date.today(),
-            note=trx_note
+            note=trx_note,
+            is_manual_entry=False
         )
+    if donation.program:
+        try:
+            from core.views_dashboard import sync_program_raised_amount
+            sync_program_raised_amount(donation.program)
+        except Exception:
+            pass
 
     # 3. Dispatch Notifications to Donor & Admin
     if not vol_obj:

@@ -155,7 +155,11 @@ class Volunteer(models.Model):
         from django.db.models import Sum
         if not self.member_id:
             return 0.0
-        qs = ProgramDonation.objects.filter(membership_id__iexact=self.member_id, status__in=['approved', 'completed']).exclude(donation_type__in=['volunteer_registration', 'general'])
+        qs = ProgramDonation.objects.filter(
+            membership_id__iexact=self.member_id,
+            status__in=['approved', 'completed'],
+            donation_type__in=['volunteer', 'leadership']
+        )
         return float(qs.aggregate(t=Sum('amount'))['t'] or 0.0)
 
     def save(self, *args, **kwargs):

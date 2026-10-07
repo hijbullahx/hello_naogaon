@@ -804,10 +804,12 @@
                                         <td>
                                             {% if don.program %}
                                             <span class="badge bg-success text-white"><i class="fas fa-tasks me-1"></i>{{ don.program.title }}</span>
-                                            {% elif don.donation_type == 'volunteer' %}
+                                            {% elif don.donation_type == 'volunteer' or don.donation_type == 'leadership' %}
                                             <span class="badge bg-primary text-white"><i class="fas fa-hand-holding-usd me-1"></i>মাসিক চাঁদা</span>
                                             {% elif don.donation_type == 'volunteer_registration' %}
                                             <span class="badge bg-info text-dark"><i class="fas fa-id-card me-1"></i>নিবন্ধন ফি</span>
+                                            {% elif don.donation_type == 'emergency' %}
+                                            <span class="badge bg-danger text-white"><i class="fas fa-heartbeat me-1"></i>জরুরি তহবিল</span>
                                             {% else %}
                                             <span class="badge bg-secondary text-white"><i class="fas fa-donate me-1"></i>সাধারণ অনুদান</span>
                                             {% endif %}
