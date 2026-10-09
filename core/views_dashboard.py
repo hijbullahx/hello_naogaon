@@ -583,6 +583,10 @@ def update_about_section(request):
             setting, _ = SiteSetting.objects.get_or_create(pk=1)
             setting.about_heading = request.POST.get('about_heading', setting.about_heading)
             setting.about_text = request.POST.get('about_text', setting.about_text)
+            if 'mission_text' in request.POST:
+                setting.mission_text = request.POST.get('mission_text', '')
+            if 'vision_text' in request.POST:
+                setting.vision_text = request.POST.get('vision_text', '')
             setting.save()
 
             # Handle Featured Main Image (1MB max)

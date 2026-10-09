@@ -399,8 +399,23 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">মেইন প্যারাগ্রাফ/বিবরণ</label>
-                                    <textarea name="about_text" rows="5"
+                                    <textarea name="about_text" rows="4"
                                         class="form-control">{{ site_setting.about_text }}</textarea>
+                                </div>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-success"><i class="fas fa-bullseye me-1"></i>আমাদের লক্ষ্য (Mission)</label>
+                                        <textarea name="mission_text" rows="3"
+                                            class="form-control" placeholder="সংগঠনের সুনির্দিষ্ট লক্ষ্য বা উদ্দেশ্য লিখুন...">{{ site_setting.mission_text }}</textarea>
+                                        <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>'আমাদের সম্পর্কে' পেজে 'আমাদের লক্ষ্য' কার্ডে প্রদর্শিত হবে</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-primary"><i class="fas fa-eye me-1"></i>আমাদের রূপকল্প (Vision)</label>
+                                        <textarea name="vision_text" rows="3"
+                                            class="form-control" placeholder="সংগঠনের ভবিষ্যৎ রূপকল্প বা দর্শন লিখুন...">{{ site_setting.vision_text }}</textarea>
+                                        <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>'আমাদের সম্পর্কে' পেজে 'আমাদের রূপকল্প' কার্ডে প্রদর্শিত হবে</small>
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">
