@@ -1898,4 +1898,33 @@ function resetGeneralMemberSelection() {
     var searchInput = document.getElementById('genMemberSearchInput');
     if (searchInput) searchInput.value = '';
 }
+
+// Global function to open donation modal with a specific program selected
+window.openProgramDonationModal = function(programId) {
+    var openModal = document.querySelector('.modal.show');
+    if (openModal && openModal.id !== 'directDonateModal') {
+        var openInstance = bootstrap.Modal.getInstance(openModal);
+        if (openInstance) openInstance.hide();
+    }
+
+    setTimeout(function() {
+        var donateModalEl = document.getElementById('directDonateModal');
+        if (donateModalEl && typeof bootstrap !== 'undefined') {
+            var dm = bootstrap.Modal.getInstance(donateModalEl) || new bootstrap.Modal(donateModalEl);
+            dm.show();
+            if (typeof goToDonateFlow === 'function') {
+                goToDonateFlow('program');
+            }
+            if (programId && typeof selectModalProgram === 'function') {
+                setTimeout(function() {
+                    var card = document.querySelector('.program-choice-card[data-prog-id="' + programId + '"]');
+                    if (card) {
+                        selectModalProgram(card);
+                        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }, 100);
+            }
+        }
+    }, openModal && openModal.id !== 'directDonateModal' ? 300 : 50);
+};
 </script>

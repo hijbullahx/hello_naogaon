@@ -178,6 +178,13 @@ document.addEventListener('DOMContentLoaded', function() {
             var button = event.relatedTarget;
             if (button) {
                 var pId = button.getAttribute('data-program-id') || '';
+                if (typeof openProgramDonationModal === 'function') {
+                    event.preventDefault();
+                    var inst = bootstrap.Modal.getInstance(modalElem);
+                    if (inst) inst.hide();
+                    openProgramDonationModal(pId);
+                    return;
+                }
                 var pTitle = button.getAttribute('data-program-title') || 'সাধারণ কার্যক্রম';
                 var targetAmt = parseFloat(button.getAttribute('data-target-amount')) || 0;
                 var raisedAmt = parseFloat(button.getAttribute('data-raised-amount')) || 0;

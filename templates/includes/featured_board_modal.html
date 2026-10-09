@@ -221,30 +221,11 @@
             if (bm) bm.hide();
         }
 
-        // Open unified direct donate modal for this program
         setTimeout(function() {
-            var donateModalEl = document.getElementById('directDonateModal');
-            if (donateModalEl && typeof bootstrap !== 'undefined') {
-                var dm = bootstrap.Modal.getInstance(donateModalEl) || new bootstrap.Modal(donateModalEl);
-                dm.show();
-                if (typeof goToDonateFlow === 'function') {
-                    goToDonateFlow('program');
-                }
-                if (progId && typeof selectModalProgram === 'function') {
-                    var card = document.querySelector('.program-choice-card[data-prog-id="' + progId + '"]');
-                    if (card) {
-                        selectModalProgram(card);
-                    }
-                }
-            } else {
-                // Fallback to program specific modal if available
-                var progModalEl = document.getElementById('programDonateModal_' + progId);
-                if (progModalEl && typeof bootstrap !== 'undefined') {
-                    var pm = bootstrap.Modal.getInstance(progModalEl) || new bootstrap.Modal(progModalEl);
-                    pm.show();
-                }
+            if (typeof openProgramDonationModal === 'function') {
+                openProgramDonationModal(progId);
             }
-        }, 350);
+        }, 300);
     };
 
     document.addEventListener('DOMContentLoaded', initFeaturedBoardModal);

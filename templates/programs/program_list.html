@@ -42,7 +42,7 @@
                 <div class="card-footer bg-white border-top-0 pb-4 d-flex gap-2">
                     <a href="{% url 'programs:program_detail' program.id %}" class="btn btn-outline-success flex-grow-1" data-i18n="programs.detail">বিস্তারিত</a>
                     {% if program.target_amount %}
-                    <button type="button" class="btn btn-danger fw-bold text-nowrap" data-bs-toggle="modal" data-bs-target="#programDonationModal" data-program-id="{{ program.id }}" data-program-title="{{ program.title }}" data-target-amount="{{ program.target_amount }}" data-raised-amount="{{ program.raised_amount }}" data-progress-percent="{{ program.progress_percent }}">
+                    <button type="button" class="btn btn-danger fw-bold text-nowrap" onclick="openProgramDonationModal({{ program.id }})">
                         <i class="fas fa-hand-holding-heart me-1"></i><span data-i18n="programs.donate">সহায়তা দিন</span>
                     </button>
                     {% endif %}

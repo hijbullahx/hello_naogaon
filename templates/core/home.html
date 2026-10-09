@@ -396,10 +396,7 @@
                             {% if prog.target_amount %}
                             <button type="button"
                                 class="btn btn-sm btn-danger fw-bold rounded-pill px-2 py-1 shadow-sm text-nowrap"
-                                data-bs-toggle="modal" data-bs-target="#programDonationModal"
-                                data-program-id="{{ prog.id }}" data-program-title="{{ prog.title }}"
-                                data-target-amount="{{ prog.target_amount|default:0 }}" data-raised-amount="{{ prog.raised_amount|default:0 }}"
-                                data-progress-percent="{{ prog.progress_percent }}"
+                                onclick="openProgramDonationModal({{ prog.id }})"
                                 title="এই কার্যক্রমে অনুদান দিন">
                                 <i class="fas fa-hand-holding-heart me-1"></i><span
                                     data-i18n="home.programs.donate_btn">সহায়তা দিন</span>
@@ -777,7 +774,7 @@
                                     </a>
                                     {% if prog.target_amount %}
                                     <button type="button" class="btn btn-sm btn-danger fw-bold rounded-pill px-3 py-1 shadow-sm text-nowrap"
-                                            data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#programDonateModal_{{ prog.id }}" title="এই কার্যক্রমে অনুদান দিন">
+                                            onclick="openProgramDonationModal({{ prog.id }})" title="এই কার্যক্রমে অনুদান দিন">
                                         <i class="fas fa-hand-holding-heart me-1"></i>সহায়তা দিন
                                     </button>
                                     {% endif %}
