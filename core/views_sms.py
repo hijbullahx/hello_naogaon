@@ -19,6 +19,24 @@ def inbound_sms_webhook(request):
     if request.method not in ['POST', 'GET']:
         return HttpResponse("Method not allowed", status=405)
 
+    # 0. Authenticate incoming webhook request with dedicated secret (fail closed if not configured)
+    import hmac
+    expected_secret = getattr(settings, 'AUTOMAS_WEBHOOK_SECRET', '').strip()
+    if not expected_secret:
+        logger.error(f"[INBOUND SMS REJECTED] AUTOMAS_WEBHOOK_SECRET is not configured in settings. Rejecting request from {request.META.get('REMOTE_ADDR')}")
+        return HttpResponse("Unauthorized", status=401)
+
+    # Prefer HTTP header or POST parameter over query string
+    provided_token = (
+        request.headers.get('X-Webhook-Token') or request.headers.get('X-Api-Key') or
+        request.POST.get('token') or request.POST.get('secret') or request.POST.get('apikey') or
+        request.GET.get('token') or request.GET.get('secret') or request.GET.get('apikey') or ''
+    ).strip()
+
+    if not provided_token or not hmac.compare_digest(provided_token, expected_secret):
+        logger.warning(f"[INBOUND SMS UNAUTHORIZED] Rejected unauthorized webhook request from {request.META.get('REMOTE_ADDR')}")
+        return HttpResponse("Unauthorized", status=401)
+
     data = request.POST if request.method == 'POST' else request.GET
 
     # Extract sender from various possible field names used by aggregators
@@ -49,12 +67,11 @@ def inbound_sms_webhook(request):
 
     logger.info(f"[INBOUND SMS RECEIVED] From: {clean_sender} | Content: {message}")
 
-    # 1. Forward SMS directly to Admin Phone (+8801916314315)
+    # 1. Forward SMS directly to Admin Phone - compact 1-segment template (<= 70 chars)
     forward_sms_sent = False
     if admin_phone and message:
-        # Keep within single part length
-        short_msg = (message[:100] + '...') if len(message) > 100 else message
-        forward_text = f"[Helpline Hello Naogaon] ফিরতি বার্তা এসেছে! প্রেরক: {clean_sender}। বার্তা: {short_msg}"
+        short_msg = (message[:16] + '..') if len(message) > 16 else message
+        forward_text = f"[HN] ফিরতি SMS: {clean_sender}। {short_msg}। ইমেইল দেখুন"
         try:
             forward_sms_sent = send_sms(admin_phone, forward_text, is_alert=True)
             logger.info(f"[INBOUND SMS FORWARDED] Forwarded to admin {admin_phone}: {forward_sms_sent}")

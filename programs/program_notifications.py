@@ -146,7 +146,7 @@ def notify_members_volunteers_program_fund(program, request=None, async_mode=Tru
     if not program:
         return False
 
-    base_url = get_base_url(request) if request else "https://hellonaogaon.org"
+    base_url = get_base_url(request) if request else getattr(settings, 'SITE_URL', 'https://helplinehellonaogaon.com')
 
     if async_mode:
         worker = threading.Thread(

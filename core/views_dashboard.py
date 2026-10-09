@@ -406,6 +406,24 @@ def dashboard_home(request):
 
     # Member Subscription Dues & Overview (Finance Section)
     from volunteers.subscription_services import get_member_subscription_summary
+
+    # Pre-fetch total paid for all members in a single query to eliminate N+1 overhead
+    paid_totals_qs = (
+        ProgramDonation.objects.filter(
+            status='approved',
+            donation_type__in=['volunteer', 'leadership']
+        )
+        .exclude(membership_id__isnull=True)
+        .exclude(membership_id='')
+        .values('membership_id')
+        .annotate(total=Sum('amount'))
+    )
+    paid_totals = {
+        row['membership_id'].strip().upper(): float(row['total'] or 0.0)
+        for row in paid_totals_qs
+        if row['membership_id']
+    }
+
     member_subscription_list = []
     total_subscription_collected = 0.0
     total_subscription_dues = 0.0
@@ -413,7 +431,9 @@ def dashboard_home(request):
 
     # 1. Team Members
     for tm in team_members:
-        sub = get_member_subscription_summary(tm)
+        mid = (tm.member_id or '').strip().upper()
+        precomputed = paid_totals.get(mid, 0.0) if mid else 0.0
+        sub = get_member_subscription_summary(tm, precomputed_paid=precomputed)
         member_subscription_list.append({
             'member_id': tm.member_id or '',
             'name': tm.name,
@@ -439,7 +459,9 @@ def dashboard_home(request):
 
     # 2. Approved Volunteers
     for vol in volunteers.filter(status='approved').order_by('full_name'):
-        sub = vol.subscription_summary
+        mid = (vol.member_id or '').strip().upper()
+        precomputed = paid_totals.get(mid, 0.0) if mid else 0.0
+        sub = get_member_subscription_summary(vol, precomputed_paid=precomputed)
         member_subscription_list.append({
             'member_id': vol.member_id or '',
             'name': vol.full_name,
@@ -2712,11 +2734,13 @@ def approve_program_donation(request, pk):
         sync_program_raised_amount(donation.program)
 
     # Dispatch SMS & Email receipt to donor via unified notification service
-    try:
-        from donations.donation_notifications import notify_donor_donation_approved
-        notify_donor_donation_approved(donation, request=request)
-    except Exception as ex:
-        print(f"[DONOR APPROVAL NOTIFICATION ERROR] {ex}")
+    # (If a volunteer was already notified with member credentials above, skip duplicate general donation SMS)
+    if not vol:
+        try:
+            from donations.donation_notifications import notify_donor_donation_approved
+            notify_donor_donation_approved(donation, request=request)
+        except Exception as ex:
+            print(f"[DONOR APPROVAL NOTIFICATION ERROR] {ex}")
 
     messages.success(request, f'অনুদান (৳{donation.amount}) সফলভাবে অনুমোদিত হয়েছে এবং ফাইন্যান্স লেজারে যুক্ত হয়েছে!')
     return redirect('/dashboard/?tab=finance-section')

@@ -844,6 +844,10 @@
                 <!-- Complaint & Assistance Form -->
                 <form id="complaintForm" method="POST" action="{% url 'core:submit_complaint' %}">
                     {% csrf_token %}
+                    <!-- Anti-spam Honeypot -->
+                    <div style="display:none;" aria-hidden="true">
+                        <input type="text" name="website_hp" tabindex="-1" autocomplete="off">
+                    </div>
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label fw-bold text-dark small mb-1">

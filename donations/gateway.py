@@ -286,8 +286,6 @@ def get_paymently_config():
     except Exception as e:
         logger.warning(f"Could not load PaymentGatewaySetting from DB: {e}")
 
-    if not api_key:
-        api_key = 'METB4CSw9c4KcIB7P5HejGqbCE8lNSYsAfmJWzTp'
     if not api_url:
         api_url = 'https://helplinehellonaogaon.paymently.io/api'
 

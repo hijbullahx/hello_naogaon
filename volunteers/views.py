@@ -21,7 +21,7 @@ def send_member_notifications(volunteer):
     
     sms_contrib = ""
     if volunteer.contribution_frequency != 'none' and volunteer.contribution_amount and volunteer.contribution_amount > 0:
-        sms_contrib = f" | প্রতিশ্রুতি: {freq_text} ৳{volunteer.contribution_amount:,.0f}"
+        sms_contrib = f" | চাঁদা: ৳{volunteer.contribution_amount:,.0f}"
 
     subject = f"Helpline Hello Naogaon - সদস্য নিবন্ধন সম্পন্ন (আইডি: {volunteer.member_id})"
     
@@ -51,7 +51,8 @@ def send_member_notifications(volunteer):
 
     admin_phone = get_admin_phone()
     if volunteer.phone:
-        sms_text = f"[Helpline Hello Naogaon] {volunteer.full_name}, আপনার সদস্য নিবন্ধন সফল হয়েছে। সদস্য আইডি: {volunteer.member_id}{sms_contrib}। প্রয়োজনে: {admin_phone}"
+        # Compact 2-segment SMS template (<= 134 chars UCS-2)
+        sms_text = f"[Hello Naogaon] {volunteer.full_name}, সদস্য নিবন্ধন সম্পন্ন। আইডি: {volunteer.member_id}{sms_contrib}। হটলাইন: {admin_phone}"
         try:
             send_sms(volunteer.phone, sms_text)
         except Exception as e:
@@ -77,9 +78,10 @@ def send_member_notifications(volunteer):
     except Exception as e:
         print(f"[ADMIN VOLUNTEER EMAIL NOTIFY ERROR] {e}")
 
+    # Compact 1-segment Admin SIM alert (<= 70 chars UCS-2)
     if admin_phone:
         try:
-            admin_sms = f"[Helpline Hello Naogaon] নতুন সদস্য যুক্ত হয়েছেন: {volunteer.full_name}, মোবাইল: {volunteer.phone}, রক্ত: {volunteer.blood_group}। আইডি: {volunteer.member_id}।"
+            admin_sms = f"[Hello Naogaon] নতুন সদস্য: {volunteer.full_name} (আইডি: {volunteer.member_id})।"
             send_sms(admin_phone, admin_sms, is_alert=True)
         except Exception:
             pass
@@ -266,57 +268,88 @@ def apply_volunteer(request):
 
         if full_name and phone:
             import random
+            from datetime import timedelta
+            from django.utils import timezone
+            from django.db import transaction
+            from core.sms_utils import clean_bd_phone_number
             from donations.models import ProgramDonation
             from donations.gateway import initiate_active_gateway_session
 
+            clean_phone = clean_bd_phone_number(phone)
+            if not clean_phone or len(clean_phone) != 11 or not clean_phone.startswith('01'):
+                messages.error(request, 'সঠিক ১১ ডিজিটের বাংলাদেশি মোবাইল নম্বর প্রদান করুন।')
+                return redirect(next_url if next_url else 'volunteers:apply')
+
+            # Duplicate / rapid double-click race condition protection (within 60 seconds)
+            # 1. Atomic cache lock to prevent concurrent multi-worker race conditions
+            from django.core.cache import cache
+            lock_key = f"lock_apply_vol_{clean_phone}"
+            if not cache.add(lock_key, '1', timeout=60):
+                messages.info(request, f'ধন্যবাদ {full_name}! আপনার আবেদনটি ইতিমধ্যে সিস্টেমে জমা হচ্ছে। অনুগ্রহ করে অপেক্ষা করুন।')
+                return redirect(next_url if next_url else 'volunteers:apply')
+
+            # 2. Database debounce check for recent submission
+            recent_cutoff = timezone.now() - timedelta(seconds=60)
+            recent_vol = Volunteer.objects.filter(phone=clean_phone, application_date__gte=recent_cutoff).first()
+            if recent_vol:
+                messages.info(request, f'ধন্যবাদ {full_name}! আপনার আবেদনটি ইতিমধ্যে সিস্টেমে জমা হয়েছে। অনুগ্রহ করে অপেক্ষা করুন।')
+                return redirect(next_url if next_url else 'volunteers:apply')
+
+            existing_approved = Volunteer.objects.filter(phone=clean_phone, status='approved').first()
+            if existing_approved:
+                messages.warning(request, f'এই মোবাইল নম্বরটি দিয়ে ইতিমধ্যে সদস্য নিবন্ধন রয়েছে (আইডি: {existing_approved.member_id})।')
+                return redirect(next_url if next_url else 'volunteers:apply')
+
             if payment_mode == 'manual':
                 try:
-                    vol = Volunteer.objects.create(
-                        full_name=full_name,
-                        email=email if email else None,
-                        phone=phone,
-                        blood_group=blood_group if blood_group else None,
-                        occupation=occupation if occupation else None,
-                        division=division,
-                        district=district,
-                        upazila=upazila,
-                        address=address if address else None,
-                        last_donated=last_donated_val,
-                        contribution_frequency=contribution_frequency,
-                        contribution_amount=contribution_amount_val,
-                        is_public_details=is_public_details,
-                        image=image,
-                        registration_fee=100.00,
-                        payment_status='pending',
-                        payment_method=f"Manual ({manual_channel})",
-                        sender_account=sender_account,
-                        trx_id=trx_id,
-                        status='pending'
-                    )
+                    with transaction.atomic():
+                        vol = Volunteer.objects.create(
+                            full_name=full_name,
+                            email=email if email else None,
+                            phone=clean_phone,
+                            blood_group=blood_group if blood_group else None,
+                            occupation=occupation if occupation else None,
+                            division=division,
+                            district=district,
+                            upazila=upazila,
+                            address=address if address else None,
+                            last_donated=last_donated_val,
+                            contribution_frequency=contribution_frequency,
+                            contribution_amount=contribution_amount_val,
+                            is_public_details=is_public_details,
+                            image=image,
+                            registration_fee=100.00,
+                            payment_status='pending',
+                            payment_method=f"Manual ({manual_channel})",
+                            sender_account=sender_account,
+                            trx_id=trx_id,
+                            status='pending'
+                        )
+
+                        # Create corresponding ProgramDonation record for tracking in financial ledger
+                        ProgramDonation.objects.create(
+                            donation_type='volunteer_registration',
+                            donor_name=full_name,
+                            donor_phone=clean_phone,
+                            donor_email=email or '',
+                            amount=100.00,
+                            payment_method=f"Manual ({manual_channel})",
+                            sender_account=sender_account,
+                            trx_id=trx_id,
+                            status='pending',
+                            membership_id=f"NEW_VOL_{vol.id}",
+                            note=f"নতুন সদস্য নিবন্ধন ফি (ম্যানুয়াল যাচাই বাকি) - {full_name} ({clean_phone})"
+                        )
                 except Exception as e:
+                    cache.delete(lock_key)
                     messages.error(request, f'আবেদন সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
                     return redirect(next_url if next_url else 'volunteers:apply')
 
-                # Create corresponding ProgramDonation record for tracking in financial ledger
-                ProgramDonation.objects.create(
-                    donation_type='volunteer_registration',
-                    donor_name=full_name,
-                    donor_phone=phone,
-                    donor_email=email or '',
-                    amount=100.00,
-                    payment_method=f"Manual ({manual_channel})",
-                    sender_account=sender_account,
-                    trx_id=trx_id,
-                    status='pending',
-                    membership_id=f"NEW_VOL_{vol.id}",
-                    note=f"নতুন সদস্য নিবন্ধন ফি (ম্যানুয়াল যাচাই বাকি) - {full_name} ({phone})"
-                )
-
-                # Send Alert to Admin for Manual Verification
+                # Send Alert to Admin for Manual Verification (compact 1-segment template <= 70 chars)
                 admin_phone = get_admin_phone()
                 if admin_phone:
                     try:
-                        admin_sms = f"[Helpline Hello Naogaon] নতুন সদস্য আবেদন জমা হয়েছে: {full_name}, ফোন: {phone}, মাধ্যম: {manual_channel}, প্রেরক নং: {sender_account}। এডমিন প্যানেল থেকে অনুমোদন করুন।"
+                        admin_sms = f"[Hello Naogaon] নতুন সদস্য আবেদন: {full_name} ({manual_channel})। যাচাইয়ের জন্য এডমিন প্যানেল দেখুন।"
                         send_sms(admin_phone, admin_sms, is_alert=True)
                     except Exception:
                         pass
@@ -331,44 +364,46 @@ def apply_volunteer(request):
                 # Gateway / Automated Payment
                 gen_tran_id = f"REG_{int(datetime.now().timestamp())}_{random.randint(1000, 9999)}"
                 try:
-                    vol = Volunteer.objects.create(
-                        full_name=full_name,
-                        email=email if email else None,
-                        phone=phone,
-                        blood_group=blood_group if blood_group else None,
-                        occupation=occupation if occupation else None,
-                        division=division,
-                        district=district,
-                        upazila=upazila,
-                        address=address if address else None,
-                        last_donated=last_donated_val,
-                        contribution_frequency=contribution_frequency,
-                        contribution_amount=contribution_amount_val,
-                        is_public_details=is_public_details,
-                        image=image,
-                        registration_fee=100.00,
-                        payment_status='unpaid',
-                        payment_method='Online Gateway',
-                        tran_id=gen_tran_id,
-                        status='pending'
-                    )
+                    with transaction.atomic():
+                        vol = Volunteer.objects.create(
+                            full_name=full_name,
+                            email=email if email else None,
+                            phone=clean_phone,
+                            blood_group=blood_group if blood_group else None,
+                            occupation=occupation if occupation else None,
+                            division=division,
+                            district=district,
+                            upazila=upazila,
+                            address=address if address else None,
+                            last_donated=last_donated_val,
+                            contribution_frequency=contribution_frequency,
+                            contribution_amount=contribution_amount_val,
+                            is_public_details=is_public_details,
+                            image=image,
+                            registration_fee=100.00,
+                            payment_status='unpaid',
+                            payment_method='Online Gateway',
+                            tran_id=gen_tran_id,
+                            status='pending'
+                        )
+
+                        # Create initiated ProgramDonation for gateway checkout
+                        donation = ProgramDonation.objects.create(
+                            donation_type='volunteer_registration',
+                            donor_name=full_name,
+                            donor_phone=clean_phone,
+                            donor_email=email or '',
+                            amount=100.00,
+                            payment_method='Online Gateway',
+                            tran_id=gen_tran_id,
+                            status='initiated',
+                            membership_id=f"NEW_VOL_{vol.id}",
+                            note=f"নতুন সদস্য নিবন্ধন ফি (অনলাইন গেটওয়ে) - {full_name} ({clean_phone})"
+                        )
                 except Exception as e:
+                    cache.delete(lock_key)
                     messages.error(request, f'আবেদন সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
                     return redirect(next_url if next_url else 'volunteers:apply')
-
-                # Create initiated ProgramDonation for gateway checkout
-                donation = ProgramDonation.objects.create(
-                    donation_type='volunteer_registration',
-                    donor_name=full_name,
-                    donor_phone=phone,
-                    donor_email=email or '',
-                    amount=100.00,
-                    payment_method='Online Gateway',
-                    tran_id=gen_tran_id,
-                    status='initiated',
-                    membership_id=f"NEW_VOL_{vol.id}",
-                    note=f"নতুন সদস্য নিবন্ধন ফি (অনলাইন গেটওয়ে) - {full_name} ({phone})"
-                )
 
                 session_res = initiate_active_gateway_session(request, donation)
                 if session_res.get('success') and session_res.get('payment_url'):
@@ -548,9 +583,9 @@ def team_invite_register(request, token):
             invitation.registered_member = tm
             invitation.save()
 
-            # 1. Send SMS to newly registered Team Member
+            # 1. Send SMS to newly registered Team Member (compact 2-segment template)
             if tm.phone:
-                sms_text = f"[Helpline Hello Naogaon] শ্রদ্ধেয় {tm.name}, টিম মেম্বার হিসেবে আপনার নিবন্ধন সফল হয়েছে। পদবি: {tm.effective_role}, সদস্য আইডি: {tm.member_id}। ধন্যবাদ।"
+                sms_text = f"[Hello Naogaon] {tm.name}, টিম সদস্য নিবন্ধন সম্পন্ন। পদবি: {tm.effective_role}, আইডি: {tm.member_id}। ধন্যবাদ।"
                 try:
                     send_sms(tm.phone, sms_text)
                 except Exception as ex:

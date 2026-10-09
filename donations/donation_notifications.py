@@ -34,15 +34,10 @@ def notify_admin_new_manual_donation(donation, request=None):
     base_url = get_base_url(request)
     contact_phone, _ = get_admin_contact_info()
 
-    # 1. Admin SMS
+    # 1. Admin SMS (compact template)
     if admin_phone:
         try:
-            sms_text = (
-                f"[Helpline Hello Naogaon] নতুন ম্যানুয়াল পেমেন্ট জমা! "
-                f"দাতা: {donation.donor_name}, পরিমাণ: ৳{donation.amount:,.0f}, "
-                f"মাধ্যম: {donation.payment_method}, প্রেরক: {donation.sender_account or 'N/A'}, "
-                f"TrxID: {donation.trx_id or 'N/A'}। অনুমোদনের অপেক্ষায়।"
-            )
+            sms_text = f"[Hello Naogaon] নতুন ম্যানুয়াল অনুদান: ৳{donation.amount:,.0f} ({donation.payment_method})। যাচাইয়ের জন্য এডমিন প্যানেল দেখুন।"
             send_sms(admin_phone, sms_text)
         except Exception as e:
             logger.error(f"[ADMIN MANUAL DONATION SMS ERROR] {e}")
@@ -107,13 +102,12 @@ def notify_donor_manual_submission(donation, request=None):
     """
     contact_phone, contact_email = get_admin_contact_info()
 
-    # 1. Donor SMS
+    # 1. Donor SMS (compact template)
     if donation.donor_phone:
         try:
             donor_sms = (
-                f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
-                f"আপনার ৳{donation.amount:,.0f} ম্যানুয়াল অনুদান/চাঁদার তথ্য সফলভাবে গৃহীত হয়েছে (যাচাই চলছে)। "
-                f"অ্যাডমিন অনুমোদন শেষে নিশ্চিতকরণ বার্তা পাবেন। প্রয়োজনে: {contact_phone}"
+                f"[Hello Naogaon] {donation.donor_name}, ৳{donation.amount:,.0f} সহায়তার তথ্য জমা হয়েছে (যাচাই চলছে)। "
+                f"অনুমোদনের পর নিশ্চিতকরণ বার্তা পাবেন। প্রয়োজনে: {contact_phone}"
             )
             send_sms(donation.donor_phone, donor_sms)
         except Exception as e:
@@ -190,21 +184,19 @@ def notify_donor_donation_approved(donation, request=None):
         except Exception as ex:
             logger.warning(f"Error calculating member subscription in approval notification: {ex}")
 
-    # 1. Donor SMS
+    # 1. Donor SMS (compact 2-segment template)
     if donation.donor_phone:
         try:
             if is_chada_payment and member_sub:
                 donor_sms = (
-                    f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
-                    f"আপনার ৳{donation.amount:,.0f} চাঁদা অনুমোদিত হয়েছে। "
+                    f"[Hello Naogaon] {donation.donor_name}, ৳{donation.amount:,.0f} চাঁদা অনুমোদিত। "
                     f"{balance_sms_text}। "
-                    f"TrxID: {donation.trx_id or donation.tran_id}। ধন্যবাদ। প্রয়োজনে: {contact_phone}"
+                    f"TrxID: {donation.trx_id or donation.tran_id}। ধন্যবাদ।"
                 )
             else:
                 donor_sms = (
-                    f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
-                    f"আপনার ৳{donation.amount:,.0f} অনুদান সফলভাবে অনুমোদিত হয়েছে। "
-                    f"TrxID: {donation.trx_id or donation.tran_id}। সংগঠনের পক্ষ থেকে ধন্যবাদ। প্রয়োজনে: {contact_phone}"
+                    f"[Hello Naogaon] {donation.donor_name}, আপনার ৳{donation.amount:,.0f} অনুদান অনুমোদিত হয়েছে। "
+                    f"TrxID: {donation.trx_id or donation.tran_id}। ধন্যবাদ।"
                 )
             send_sms(donation.donor_phone, donor_sms)
         except Exception as e:
@@ -282,9 +274,8 @@ def notify_donor_donation_rejected(donation, reason='', request=None):
     if donation.donor_phone:
         try:
             donor_sms = (
-                f"[Helpline Hello Naogaon] শ্রদ্ধেয় {donation.donor_name}, "
-                f"আপনার জমাকৃত ৳{donation.amount:,.0f} পেমেন্ট তথ্যের সাথে আমাদের হিসাব মেলেনি বা তা যাচাই করা সম্ভব হয়নি। "
-                f"কোনো সমস্যা বা ভুল হয়ে থাকলে অবিলম্বে যোগাযোগ করুন: {contact_phone}"
+                f"[Hello Naogaon] {donation.donor_name}, দাখিলকৃত ৳{donation.amount:,.0f} পেমেন্ট তথ্য যাচাইয়ে অসংগতি থাকায় বাতিল হয়েছে। "
+                f"প্রয়োজনে: {contact_phone}"
             )
             send_sms(donation.donor_phone, donor_sms)
         except Exception as e:

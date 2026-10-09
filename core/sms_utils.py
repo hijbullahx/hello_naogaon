@@ -67,12 +67,12 @@ def get_admin_phone():
     return clean_bd_phone_number(fallback) if fallback else '01916314315'
 
 
-ALERT_TIERS = [10.0, 8.0, 5.0, 4.0, 3.0, 2.0, 1.0]
+ALERT_TIERS = [10.0, 3.0]
 
 def evaluate_low_balance_alert(balance_val):
     """
-    Checks if balance has dropped below warning tiers (10, 8, 5, 4, 3, etc.).
-    Sends an alert SMS to admin phone without spamming repeatedly for the same tier.
+    Checks if balance has dropped below warning tiers (10 BDT, 3 BDT).
+    Sends a concise 1-segment alert SMS and free email alert to admin without repeated spam.
     """
     try:
         current_bal = float(balance_val)
@@ -80,15 +80,13 @@ def evaluate_low_balance_alert(balance_val):
         return
 
     admin_phone = get_admin_phone()
-    if not admin_phone:
-        return
 
     # If recharged above 10 BDT, reset the tracker
     if current_bal > 10.0:
         cache.delete('sms_last_alerted_tier')
         return
 
-    # Find the current matching tier (e.g. if 7.50, tier is 8.0)
+    # Find the current matching tier (e.g. if 7.50, tier is 10.0; if 2.50, tier is 3.0)
     current_tier = None
     for tier in ALERT_TIERS:
         if current_bal <= tier:
@@ -102,14 +100,40 @@ def evaluate_low_balance_alert(balance_val):
     if last_alerted_tier is not None and last_alerted_tier <= current_tier:
         return
 
-    # Send alert SMS
-    recharge_url = "asms.automas.com.bd/recharge_balance"
-    msg = f"[Helpline Hello Naogaon] জরুরি সতর্কবার্তা: আপনার এসএমএস ব্যালেন্স কমে {current_bal:.2f} টাকা হয়েছে। নিরবচ্ছিন্ন সেবার জন্য এখনই রিচার্জ করুন: {recharge_url}"
+    # 1. Send free Email Alert to admin
+    try:
+        from core.email_utils import send_system_email, get_admin_notification_emails
+        admin_emails = get_admin_notification_emails()
+        if admin_emails:
+            send_system_email(
+                subject=f"⚠️ জরুরি সতর্কতা: এসএমএস ব্যালেন্স কমে ৳{current_bal:.2f} হয়েছে",
+                recipient_list=admin_emails,
+                headline="এসএমএস গেটওয়ে ব্যালেন্স সতর্কবার্তা",
+                greeting="শ্রদ্ধেয় অ্যাডমিন,",
+                message_paragraphs=[
+                    f"আমাদের অটোগেটওয়ে এসএমএস ব্যালেন্স কমে ৳{current_bal:.2f} টাকায় নেমে এসেছে।",
+                    "নাগরিক সেবা ও সদস্য নিশ্চিতকরণ এসএমএস নিরবচ্ছিন্ন রাখতে অনতিবিলম্বে অটমাস পোর্টালে ব্যালেন্স রিচার্জ করুন।"
+                ],
+                details=[
+                    {'label': 'বর্তমান ব্যালেন্স', 'value': f"৳ {current_bal:.2f}"},
+                    {'label': 'সতর্কবার্তা টিয়ার', 'value': f"৳ {current_tier:.0f} বা তার নিচে"},
+                    {'label': 'রিচার্জ পোর্টাল', 'value': 'https://asms.automas.com.bd/recharge_balance'},
+                ],
+                footer_note="ব্যালেন্স নিঃশেষ হয়ে গেলে সদস্য নিবন্ধন ও অনুদান নোটিফিকেশন সাময়িকভাবে ব্যাহত হতে পারে।",
+                fail_silently=True
+            )
+    except Exception as em_err:
+        logger.warning(f"Failed to dispatch low SMS balance email: {em_err}")
 
-    logger.warning(f"[SMS LOW BALANCE ALERT] Triggering alert for tier {current_tier} (Bal: {current_bal}) to {admin_phone}")
-    success = send_sms(admin_phone, msg, is_alert=True)
-    if success:
-        cache.set('sms_last_alerted_tier', current_tier, 86400 * 7)
+    # 2. Send ultra-compact 1-segment alert SMS to admin SIM (<= 70 chars UCS-2)
+    if admin_phone:
+        recharge_url = "asms.automas.com.bd"
+        msg = f"[Hello Naogaon] এসএমএস ব্যালেন্স ৳{current_bal:.2f}। রিচার্জ: {recharge_url}"
+
+        logger.warning(f"[SMS LOW BALANCE ALERT] Triggering alert for tier {current_tier} (Bal: {current_bal}) to {admin_phone}")
+        success = send_sms(admin_phone, msg, is_alert=True)
+        if success:
+            cache.set('sms_last_alerted_tier', current_tier, 86400 * 3)
 
 
 def send_sms(phone_number, message, is_alert=False):

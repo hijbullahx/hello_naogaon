@@ -1,4 +1,7 @@
+import logging
 from django.shortcuts import render, redirect
+
+logger = logging.getLogger(__name__)
 from django.contrib import messages
 from programs.models import Program, Event, SuccessStory
 from news.models import Article
@@ -141,6 +144,26 @@ def submit_complaint(request):
         or 'application/json' in request.headers.get('Accept', '')
     )
 
+    # 1. Anti-abuse Honeypot check
+    honeypot = request.POST.get('website_hp', '').strip()
+    if honeypot:
+        logger.warning(f"[SPAM DETECTED] Honeypot triggered in complaint submission from IP {request.META.get('REMOTE_ADDR')}")
+        if is_ajax:
+            return JsonResponse({'success': True, 'complaint_no': 'HNC-RECORDED', 'message': 'আপনার বার্তা গৃহীত হয়েছে।'})
+        return redirect('core:home')
+
+    # 2. Rate-limiting by IP (Max 5 per hour per IP)
+    from django.core.cache import cache
+    ip_addr = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
+    ip_cache_key = f"rl_complaint_ip_{ip_addr}"
+    ip_count = cache.get(ip_cache_key, 0)
+    if ip_count >= 5:
+        error_msg = "অতিরিক্ত অনুরোধের কারণে সাময়িক বিরতি দিন। কিছুক্ষণ পর পুনরায় চেষ্টা করুন।"
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': error_msg}, status=429)
+        messages.error(request, error_msg)
+        return redirect('core:home')
+
     name = request.POST.get('name', '').strip()
     phone = request.POST.get('phone', '').strip()
     subject_type = request.POST.get('subject_type', 'তথ্য ও সহায়তা আবেদন').strip() or 'তথ্য ও সহায়তা আবেদন'
@@ -153,6 +176,29 @@ def submit_complaint(request):
             return JsonResponse({'success': False, 'message': error_msg}, status=400)
         messages.error(request, error_msg)
         return redirect('core:home')
+
+    # 3. Clean and validate Bangladeshi phone number
+    from core.sms_utils import clean_bd_phone_number, send_sms, get_admin_phone
+    cleaned_phone = clean_bd_phone_number(phone)
+    if not cleaned_phone:
+        error_msg = "সঠিক ১১ ডিজিটের বাংলাদেশি মোবাইল নম্বর প্রদান করুন।"
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': error_msg}, status=400)
+        messages.error(request, error_msg)
+        return redirect('core:home')
+
+    # 4. Debounce / duplicate protection per phone number (cooldown 180s)
+    phone_cache_key = f"rl_complaint_phone_{cleaned_phone}"
+    if cache.get(phone_cache_key):
+        error_msg = "আপনার বার্তাটি ইতিমধ্যে গৃহীত হয়েছে। অনুগ্রহ করে ৩ মিনিট অপেক্ষা করুন।"
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': error_msg}, status=429)
+        messages.warning(request, error_msg)
+        return redirect('core:home')
+
+    # Set rate limits
+    cache.set(ip_cache_key, ip_count + 1, 3600)
+    cache.set(phone_cache_key, True, 180)
 
     # Generate unique tracking number (e.g. HNC-260913-7482)
     current_time = timezone.now()
@@ -172,7 +218,7 @@ def submit_complaint(request):
         {'label': 'ট্র্যাকিং নং', 'value': complaint_no},
         {'label': 'তথ্যের ধরন / বিষয়', 'value': subject_type},
         {'label': 'প্রেরণকারীর নাম', 'value': name},
-        {'label': 'মোবাইল নম্বর', 'value': phone},
+        {'label': 'মোবাইল নম্বর', 'value': cleaned_phone},
         {'label': 'ঠিকানা', 'value': address if address else 'উল্লেখ করা হয়নি'},
         {'label': 'দাখিলের তারিখ ও সময়', 'value': submission_time_str},
         {'label': 'বিস্তারিত বিবরণ / আবেদন', 'value': details},
@@ -196,20 +242,19 @@ def submit_complaint(request):
     except Exception:
         pass
 
-    from core.sms_utils import send_sms, get_admin_phone
     admin_phone = get_admin_phone()
 
-    # Dispatch SMS to Complainant
-    sms_text = f"[Helpline Hello Naogaon] আপনার তথ্য/আবেদন সফলভাবে গৃহীত হয়েছে। ট্র্যাকিং নং: {complaint_no}। তথ্যের গোপনীয়তা রক্ষা করা হবে। প্রয়োজনে: {admin_phone}"
+    # Dispatch SMS to Complainant (compact 2-segment template)
+    sms_text = f"[Hello Naogaon] আপনার নাগরিক বার্তা গৃহীত হয়েছে। ট্র্যাকিং নং: {complaint_no}। তথ্যের গোপনীয়তা রক্ষা করা হবে। প্রয়োজনে: {admin_phone}"
     try:
-        send_sms(phone, sms_text)
+        send_sms(cleaned_phone, sms_text)
     except Exception:
         pass
 
-    # Dispatch Notification SMS to Admin SIM
+    # Dispatch Notification SMS to Admin SIM (compact 1-segment template <= 70 chars)
     if admin_phone:
         try:
-            admin_sms = f"[Helpline Hello Naogaon] নতুন নাগরিক বার্তা! বিষয়: {subject_type}। ট্র্যাকিং: {complaint_no}। প্রেরক: {phone}। ইমেইল চেক করুন।"
+            admin_sms = f"[Hello Naogaon] নতুন নাগরিক বার্তা #{complaint_no}। বিস্তারিত ইমেইলে দেখুন।"
             send_sms(admin_phone, admin_sms, is_alert=True)
         except Exception:
             pass
@@ -220,7 +265,7 @@ def submit_complaint(request):
             'success': True,
             'complaint_no': complaint_no,
             'message': success_msg,
-            'phone': phone,
+            'phone': cleaned_phone,
         })
 
     messages.success(request, success_msg)

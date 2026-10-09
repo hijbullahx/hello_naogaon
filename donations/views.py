@@ -317,11 +317,15 @@ def initiate_payment(request):
         messages.error(request, "দয়া করে নাম, মোবাইল নম্বর এবং আর্থিক সহায়তার পরিমাণ সঠিকভাবে লিখুন।")
         return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
 
+    from decimal import Decimal, InvalidOperation
+    from datetime import timedelta
+    from django.utils import timezone
+
     try:
-        amount_val = float(amount)
+        amount_val = Decimal(str(amount).strip())
         if amount_val <= 0:
             raise ValueError()
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, InvalidOperation):
         messages.error(request, "দয়া করে সঠিক আর্থিক পরিমাণ লিখুন।")
         return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
 
@@ -339,23 +343,48 @@ def initiate_payment(request):
             messages.error(request, "ম্যানুয়াল পেমেন্ট সম্পন্ন করতে আপনার প্রেরক অ্যাকাউন্ট বা মোবাইল নম্বর প্রদান করুন।")
             return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
 
-        donation = ProgramDonation.objects.create(
-            donation_type=donation_type,
-            frequency=frequency,
-            program=prog,
-            donor_name=donor_name,
-            donor_email=donor_email,
+        # Debounce rapid duplicate manual donation submission (within 60s) using atomic cache lock
+        from django.core.cache import cache
+        from django.db import transaction
+        lock_key = f"lock_manual_don_{donor_phone}_{amount_val}"
+        if not cache.add(lock_key, '1', timeout=60):
+            messages.info(request, f"ধন্যবাদ {donor_name}! আপনার সহায়তার তথ্যটি ইতিমধ্যে সিস্টেমে জমা হচ্ছে। অনুগ্রহ করে অপেক্ষা করুন।")
+            return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
+
+        recent_cutoff = timezone.now() - timedelta(seconds=60)
+        recent_dup = ProgramDonation.objects.filter(
             donor_phone=donor_phone,
-            membership_id=membership_id if membership_id else None,
             amount=amount_val,
-            payment_method=f"Manual ({manual_channel})",
-            sender_account=sender_account,
-            card_type=manual_channel,
-            trx_id=trx_id,
-            tran_id=tran_id,
-            note=note,
-            status='pending'
-        )
+            status='pending',
+            created_at__gte=recent_cutoff
+        ).first()
+        if recent_dup:
+            messages.info(request, f"ধন্যবাদ {donor_name}! আপনার সহায়তার তথ্যটি ইতিমধ্যে সিস্টেমে জমা হয়েছে। অনুগ্রহ করে যাচাইয়ের জন্য অপেক্ষা করুন।")
+            return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
+
+        try:
+            with transaction.atomic():
+                donation = ProgramDonation.objects.create(
+                    donation_type=donation_type,
+                    frequency=frequency,
+                    program=prog,
+                    donor_name=donor_name,
+                    donor_email=donor_email,
+                    donor_phone=donor_phone,
+                    membership_id=membership_id if membership_id else None,
+                    amount=amount_val,
+                    payment_method=f"Manual ({manual_channel})",
+                    sender_account=sender_account,
+                    card_type=manual_channel,
+                    trx_id=trx_id,
+                    tran_id=tran_id,
+                    note=note,
+                    status='pending'
+                )
+        except Exception as e:
+            cache.delete(lock_key)
+            messages.error(request, "অনুদান তথ্য সংরক্ষণ করতে সমস্যা হয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।")
+            return redirect(request.META.get('HTTP_REFERER') or '/?donate=1')
 
         from .donation_notifications import notify_admin_new_manual_donation, notify_donor_manual_submission
         notify_admin_new_manual_donation(donation, request=request)
@@ -466,14 +495,31 @@ def confirm_checkout_payment(request, tran_id):
 
 def process_successful_payment(donation, payment_data, request=None):
     """
-    Idempotent processor for verified completed donations:
-    1. Updates donation status to 'approved'
-    2. Updates program raised amount
-    3. Records FinancialTransaction
-    4. Dispatches SMS & Email receipts to donor
-    5. Dispatches Admin alert SMS & Email
+    Idempotent, concurrency-safe processor for verified completed donations:
+    1. Uses select_for_update() inside transaction.atomic() to prevent race conditions.
+    2. Updates donation status to 'approved'
+    3. Updates program raised amount
+    4. Records FinancialTransaction
+    5. Dispatches SMS & Email receipts only AFTER transaction commits
     """
+    from django.db import transaction
+    from decimal import Decimal, InvalidOperation
+
     if donation.status == 'approved':
+        return donation
+
+    # Verify payment amount according to gateway contract
+    raw_amount = payment_data.get('amount') or payment_data.get('payment_amount') or payment_data.get('trx_amount') or payment_data.get('paid_amount')
+    try:
+        paid_amount = Decimal(str(raw_amount).strip()) if raw_amount is not None else None
+    except (InvalidOperation, TypeError, ValueError):
+        paid_amount = None
+
+    if paid_amount is None or paid_amount < donation.amount:
+        logger.error(
+            f"[PAYMENT REJECTED] Amount validation failed for donation {donation.id}: "
+            f"expected {donation.amount}, received {paid_amount}"
+        )
         return donation
 
     raw_method = payment_data.get('payment_method') or 'Online Gateway'
@@ -493,110 +539,127 @@ def process_successful_payment(donation, payment_data, request=None):
     trx_id = payment_data.get('transaction_id') or payment_data.get('trx_id') or donation.tran_id
     invoice_id = str(payment_data.get('invoice_id') or donation.bank_tran_id or '')
 
-    donation.status = 'approved'
-    donation.payment_method = payment_method
-    donation.card_type = payment_method
-    donation.bank_tran_id = invoice_id
-    donation.trx_id = trx_id
-    donation.save()
+    notifications_to_send = []
 
-    # 1. Update Program raised_amount
-    if donation.program:
-        prog = donation.program
-        prog.raised_amount = (prog.raised_amount or 0) + donation.amount
-        prog.save()
-        category_name = f"কার্যক্রম: {prog.title}"
-        title_name = f"কার্যক্রম অনুদান - {prog.title} ({donation.donor_name})"
-    elif donation.donation_type == 'volunteer_registration' or (donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_')):
-        category_name = 'সদস্য নিবন্ধন ফি'
-        title_name = f"সদস্য নিবন্ধন ফি ({donation.donor_name})"
-    elif donation.donation_type in ['volunteer', 'leadership']:
-        category_name = 'সদস্য মাসিক চাঁদা'
-        title_name = f"সদস্য মাসিক চাঁদা ({donation.donor_name})"
-    elif donation.donation_type == 'emergency':
-        category_name = 'জরুরি ত্রাণ ও চিকিৎসা তহবিল'
-        title_name = f"জরুরি তহবিল অনুদান ({donation.donor_name})"
-    else:
-        category_name = 'সাধারণ আর্থিক সহায়তা'
-        title_name = f"সাধারণ আর্থিক সহায়তা ({donation.donor_name})"
+    with transaction.atomic():
+        locked_donation = ProgramDonation.objects.select_for_update().filter(pk=donation.pk).first()
+        if not locked_donation or locked_donation.status == 'approved':
+            return locked_donation or donation
 
-    # Handle Volunteer registration approval & notification if applicable
-    is_vol_reg = donation.donation_type == 'volunteer_registration' or (donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_'))
-    vol_obj = None
-    if is_vol_reg:
-        from volunteers.models import Volunteer, generate_unique_member_id
-        from volunteers.views import send_member_notifications
-        
-        if donation.membership_id and str(donation.membership_id).startswith('NEW_VOL_'):
+        locked_donation.status = 'approved'
+        locked_donation.payment_method = payment_method
+        locked_donation.card_type = payment_method
+        locked_donation.bank_tran_id = invoice_id
+        locked_donation.trx_id = trx_id
+        locked_donation.save()
+
+        # 1. Update Program raised_amount
+        if locked_donation.program:
+            prog = locked_donation.program
+            prog.raised_amount = (prog.raised_amount or 0) + locked_donation.amount
+            prog.save()
+            category_name = f"কার্যক্রম: {prog.title}"
+            title_name = f"কার্যক্রম অনুদান - {prog.title} ({locked_donation.donor_name})"
+        elif locked_donation.donation_type == 'volunteer_registration' or (locked_donation.membership_id and str(locked_donation.membership_id).startswith('NEW_VOL_')):
+            category_name = 'সদস্য নিবন্ধন ফি'
+            title_name = f"সদস্য নিবন্ধন ফি ({locked_donation.donor_name})"
+        elif locked_donation.donation_type in ['volunteer', 'leadership']:
+            category_name = 'সদস্য মাসিক চাঁদা'
+            title_name = f"সদস্য মাসিক চাঁদা ({locked_donation.donor_name})"
+        elif locked_donation.donation_type == 'emergency':
+            category_name = 'জরুরি ত্রাণ ও চিকিৎসা তহবিল'
+            title_name = f"জরুরি তহবিল অনুদান ({locked_donation.donor_name})"
+        else:
+            category_name = 'সাধারণ আর্থিক সহায়তা'
+            title_name = f"সাধারণ আর্থিক সহায়তা ({locked_donation.donor_name})"
+
+        # Handle Volunteer registration approval & notification if applicable
+        is_vol_reg = locked_donation.donation_type == 'volunteer_registration' or (locked_donation.membership_id and str(locked_donation.membership_id).startswith('NEW_VOL_'))
+        vol_obj = None
+        if is_vol_reg:
+            from volunteers.models import Volunteer, generate_unique_member_id
+
+            if locked_donation.membership_id and str(locked_donation.membership_id).startswith('NEW_VOL_'):
+                try:
+                    vid = int(str(locked_donation.membership_id).replace('NEW_VOL_', ''))
+                    vol_obj = Volunteer.objects.filter(pk=vid).first()
+                except (ValueError, TypeError):
+                    pass
+            elif locked_donation.membership_id:
+                vol_obj = Volunteer.objects.filter(member_id__iexact=locked_donation.membership_id).first()
+
+            if not vol_obj and locked_donation.tran_id:
+                vol_obj = Volunteer.objects.filter(tran_id=locked_donation.tran_id).first()
+            if not vol_obj and locked_donation.donor_phone:
+                vol_obj = Volunteer.objects.filter(phone=locked_donation.donor_phone).first()
+
+            if vol_obj:
+                if vol_obj.status != 'approved':
+                    vol_obj.status = 'approved'
+                vol_obj.payment_status = 'paid'
+                vol_obj.payment_method = payment_method
+                vol_obj.trx_id = trx_id
+                if not vol_obj.member_id:
+                    vol_obj.member_id = generate_unique_member_id(prefix_str="")
+                vol_obj.save()
+                locked_donation.membership_id = vol_obj.member_id
+                locked_donation.save(update_fields=['membership_id'])
+                notifications_to_send.append(('vol', vol_obj))
+
+        trx_note = f"পেমেন্ট মাধ্যম: {payment_method} | TrxID: {trx_id} | ইনভয়েস: {invoice_id} | মোবাইল: {locked_donation.donor_phone}"
+        if locked_donation.membership_id:
+            trx_note += f" | মেম্বার আইডি: {locked_donation.membership_id}"
+        if locked_donation.program:
+            trx_note += f" | কার্যক্রম: {locked_donation.program.title}"
+        if locked_donation.note:
+            trx_note += f" | নোট: {locked_donation.note}"
+
+        # 2. Record FinancialTransaction (income) if not already created
+        if not FinancialTransaction.objects.filter(trx_id=trx_id, transaction_type='income').exists():
+            FinancialTransaction.objects.create(
+                donation=locked_donation,
+                transaction_type='income',
+                program=locked_donation.program,
+                title=title_name,
+                category=category_name,
+                amount=locked_donation.amount,
+                payment_method=payment_method,
+                trx_id=trx_id,
+                donor_name=locked_donation.donor_name,
+                date=date.today(),
+                note=trx_note,
+                is_manual_entry=False
+            )
+
+        if locked_donation.program:
             try:
-                vid = int(str(donation.membership_id).replace('NEW_VOL_', ''))
-                vol_obj = Volunteer.objects.filter(pk=vid).first()
-            except (ValueError, TypeError):
+                from core.views_dashboard import sync_program_raised_amount
+                sync_program_raised_amount(locked_donation.program)
+            except Exception:
                 pass
-        elif donation.membership_id:
-            vol_obj = Volunteer.objects.filter(member_id__iexact=donation.membership_id).first()
 
-        if not vol_obj and donation.tran_id:
-            vol_obj = Volunteer.objects.filter(tran_id=donation.tran_id).first()
-        if not vol_obj and donation.donor_phone:
-            vol_obj = Volunteer.objects.filter(phone=donation.donor_phone).first()
+        if not vol_obj:
+            notifications_to_send.append(('donor', locked_donation))
 
-        if vol_obj:
-            if vol_obj.status != 'approved':
-                vol_obj.status = 'approved'
-            vol_obj.payment_status = 'paid'
-            vol_obj.payment_method = payment_method
-            vol_obj.trx_id = trx_id
-            if not vol_obj.member_id:
-                vol_obj.member_id = generate_unique_member_id(prefix_str="")
-            vol_obj.save()
-            donation.membership_id = vol_obj.member_id
-            donation.save(update_fields=['membership_id'])
-            try:
-                send_member_notifications(vol_obj)
-            except Exception as ex:
-                logger.error(f"[VOL NOTIFY ERROR ON PAYMENT PROCESS] {ex}")
+        # 3. Dispatch Notifications only AFTER database transaction is safely committed
+        def _dispatch_payment_notifications():
+            for n_type, n_target in notifications_to_send:
+                if n_type == 'vol':
+                    try:
+                        from volunteers.views import send_member_notifications
+                        send_member_notifications(n_target)
+                    except Exception as ex:
+                        logger.error(f"[VOL NOTIFY ERROR ON PAYMENT PROCESS] {ex}")
+                elif n_type == 'donor':
+                    try:
+                        from donations.donation_notifications import notify_donor_donation_approved
+                        notify_donor_donation_approved(n_target, request=request)
+                    except Exception as ex:
+                        logger.error(f"[DONATION APPROVAL NOTIFICATIONS ERROR] {ex}")
 
-    trx_note = f"পেমেন্ট মাধ্যম: {payment_method} | TrxID: {trx_id} | ইনভয়েস: {invoice_id} | মোবাইল: {donation.donor_phone}"
-    if donation.membership_id:
-        trx_note += f" | মেম্বার আইডি: {donation.membership_id}"
-    if donation.program:
-        trx_note += f" | কার্যক্রম: {donation.program.title}"
-    if donation.note:
-        trx_note += f" | নোট: {donation.note}"
+        transaction.on_commit(_dispatch_payment_notifications)
 
-    # 2. Record FinancialTransaction (income) if not already created
-    if not FinancialTransaction.objects.filter(trx_id=trx_id, transaction_type='income').exists():
-        FinancialTransaction.objects.create(
-            donation=donation,
-            transaction_type='income',
-            program=donation.program,
-            title=title_name,
-            category=category_name,
-            amount=donation.amount,
-            payment_method=payment_method,
-            trx_id=trx_id,
-            donor_name=donation.donor_name,
-            date=date.today(),
-            note=trx_note,
-            is_manual_entry=False
-        )
-    if donation.program:
-        try:
-            from core.views_dashboard import sync_program_raised_amount
-            sync_program_raised_amount(donation.program)
-        except Exception:
-            pass
-
-    # 3. Dispatch Notifications to Donor & Admin
-    if not vol_obj:
-        from donations.donation_notifications import notify_donor_donation_approved
-        try:
-            notify_donor_donation_approved(donation, request=request)
-        except Exception as ex:
-            logger.error(f"[DONATION APPROVAL NOTIFICATIONS ERROR] {ex}")
-
-    return donation
+    return locked_donation
 
 
 @csrf_exempt
@@ -619,11 +682,9 @@ def payment_success(request):
         except Exception:
             pass
 
-    # Fallback to most recent initiated donation from current user if nothing passed
+    # Fallback to session tran_id if not explicitly provided
     if not tran_id and not invoice_number:
-        recent_init = ProgramDonation.objects.filter(status='initiated').order_by('-id').first()
-        if recent_init:
-            tran_id = recent_init.tran_id
+        tran_id = request.session.get('last_donation_tran_id')
 
     # 1. PayStation Verification
     target_invoice = invoice_number or tran_id
@@ -640,11 +701,24 @@ def payment_success(request):
                     except Exception:
                         pass
                 if donation:
+                    # Validate paid amount from PayStation response before proceeding
+                    paid_raw = ps_data.get('payment_amount') or ps_data.get('trx_amount')
+                    from decimal import Decimal, InvalidOperation
+                    try:
+                        paid_amount = Decimal(str(paid_raw).strip()) if paid_raw is not None else None
+                    except (InvalidOperation, TypeError, ValueError):
+                        paid_amount = None
+
+                    if paid_amount is None or paid_amount < donation.amount:
+                        logger.error(f"[PAYMENT REJECTED] PayStation amount mismatch for donation {donation.id}: expected {donation.amount}, received {paid_amount}")
+                        messages.error(request, "পেমেন্টের পরিমাণ সঠিক নয় বা অসম্পূর্ণ।")
+                        return redirect('core:home')
+
                     payment_data = {
                         'payment_method': ps_data.get('payment_method') or donation.payment_method or 'PayStation',
                         'transaction_id': ps_data.get('trx_id') or target_invoice,
                         'invoice_id': target_invoice,
-                        'amount': ps_data.get('payment_amount') or donation.amount
+                        'amount': paid_amount
                     }
                     process_successful_payment(donation, payment_data, request=request)
                     request.session.pop('last_donation_tran_id', None)
@@ -685,6 +759,19 @@ def payment_success(request):
                 donation = ProgramDonation.objects.filter(bank_tran_id=invoice_id).first()
 
             if donation:
+                # Validate paid amount from Paymently response before proceeding
+                paid_raw = verification_res.get('amount')
+                from decimal import Decimal, InvalidOperation
+                try:
+                    paid_amount = Decimal(str(paid_raw).strip()) if paid_raw is not None else None
+                except (InvalidOperation, TypeError, ValueError):
+                    paid_amount = None
+
+                if paid_amount is None or paid_amount < donation.amount:
+                    logger.error(f"[PAYMENT REJECTED] Paymently amount mismatch for donation {donation.id}: expected {donation.amount}, received {paid_amount}")
+                    messages.error(request, "পেমেন্টের পরিমাণ সঠিক নয় বা অসম্পূর্ণ।")
+                    return redirect('core:home')
+
                 process_successful_payment(donation, verification_res, request=request)
                 if donation.donation_type == 'volunteer_registration':
                     messages.success(
@@ -777,21 +864,42 @@ def payment_ipn(request):
         logger.warning(f"Failed to parse IPN payload: {e}")
         payload = request.POST.dict()
 
-    invoice_number = payload.get('invoice_number')
-    trx_status = str(payload.get('trx_status', '')).lower()
+    # 1. PayStation IPN handler (Requires trusted server-side status verification)
+    ps_invoice = payload.get('invoice_number') or payload.get('invoice') or payload.get('tran_id')
+    if ps_invoice and not payload.get('invoice_id'):
+        ps_res = verify_paystation_payment(ps_invoice)
+        if str(ps_res.get('status_code')) == '200' and ps_res.get('data'):
+            ps_data = ps_res['data']
+            ps_status = str(ps_data.get('trx_status', '')).lower()
+            if 'success' in ps_status:
+                donation = ProgramDonation.objects.filter(tran_id=ps_invoice).first()
+                if not donation and ps_data.get('opt_a'):
+                    try:
+                        donation = ProgramDonation.objects.filter(pk=int(ps_data['opt_a'])).first()
+                    except Exception:
+                        pass
 
-    # 1. PayStation IPN handler
-    if invoice_number and 'success' in trx_status:
-        donation = ProgramDonation.objects.filter(tran_id=invoice_number).first()
-        if donation:
-            payment_data = {
-                'payment_method': payload.get('payment_method') or 'PayStation',
-                'transaction_id': payload.get('trx_id') or invoice_number,
-                'invoice_id': invoice_number,
-                'amount': payload.get('trx_amount') or donation.amount
-            }
-            process_successful_payment(donation, payment_data, request=request)
-            return JsonResponse({'status': 'success'})
+                if donation:
+                    paid_raw = ps_data.get('payment_amount') or ps_data.get('trx_amount')
+                    payment_data = {
+                        'payment_method': ps_data.get('payment_method') or donation.payment_method or 'PayStation',
+                        'transaction_id': ps_data.get('trx_id') or ps_invoice,
+                        'invoice_id': ps_invoice,
+                        'amount': paid_raw
+                    }
+                    res_donation = process_successful_payment(donation, payment_data, request=request)
+                    if res_donation and res_donation.status == 'approved':
+                        return JsonResponse({'status': 'success', 'message': 'PayStation payment approved'})
+                    return JsonResponse({'status': 'rejected', 'error': 'Amount validation failed'}, status=400)
+                else:
+                    logger.error(f"[PAYSTATION IPN REJECTED] No donation found for verified invoice {ps_invoice}")
+                    return JsonResponse({'status': 'rejected', 'error': 'Donation not found'}, status=404)
+            else:
+                logger.warning(f"[PAYSTATION IPN REJECTED] PayStation status not successful: {ps_status}")
+                return JsonResponse({'status': 'rejected', 'error': f'Payment status {ps_status}'}, status=400)
+        else:
+            logger.error(f"[PAYSTATION IPN REJECTED] PayStation verification failed for invoice {ps_invoice}: {ps_res}")
+            return JsonResponse({'status': 'rejected', 'error': 'PayStation verification failed'}, status=400)
 
     # 2. Paymently IPN handler
     invoice_id = payload.get('invoice_id')
@@ -809,8 +917,10 @@ def payment_ipn(request):
                 donation = ProgramDonation.objects.filter(bank_tran_id=invoice_id).first()
 
             if donation:
-                process_successful_payment(donation, verification_res, request=request)
-                return JsonResponse({'status': 'SUCCESS', 'message': 'Payment approved'})
+                res_donation = process_successful_payment(donation, verification_res, request=request)
+                if res_donation and res_donation.status == 'approved':
+                    return JsonResponse({'status': 'SUCCESS', 'message': 'Payment approved'})
+                return JsonResponse({'status': 'REJECTED', 'error': 'Amount validation failed'}, status=400)
 
     return JsonResponse({'status': 'RECEIVED'})
 

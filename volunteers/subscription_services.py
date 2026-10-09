@@ -107,7 +107,7 @@ def calculate_billing_cycles(join_date, today=None):
         cycles = max(1, months_diff)
     return cycles
 
-def get_member_subscription_summary(member, today=None):
+def get_member_subscription_summary(member, today=None, precomputed_paid=None):
     """
     Calculates the complete subscription & fee summary for a TeamMember or Volunteer:
     - monthly_fee (pledged fee for volunteer or fixed 500/100 for team member)
@@ -136,13 +136,16 @@ def get_member_subscription_summary(member, today=None):
     effective_role = getattr(member, 'effective_role', 'সদস্য')
 
     # Calculate only payments specifically made for monthly subscription (excluding general donations, programs, etc.)
-    from donations.models import ProgramDonation
-    paid_qs = ProgramDonation.objects.filter(
-        membership_id=member.member_id,
-        status__in=['approved', 'completed'],
-        donation_type__in=['volunteer', 'leadership']
-    )
-    total_paid = float(paid_qs.aggregate(total=Sum('amount'))['total'] or 0.0)
+    if precomputed_paid is not None:
+        total_paid = float(precomputed_paid or 0.0)
+    else:
+        from donations.models import ProgramDonation
+        paid_qs = ProgramDonation.objects.filter(
+            membership_id=member.member_id,
+            status__in=['approved', 'completed'],
+            donation_type__in=['volunteer', 'leadership']
+        )
+        total_paid = float(paid_qs.aggregate(total=Sum('amount'))['total'] or 0.0)
 
     is_reg_due = getattr(member, 'is_registration_fee_due', False)
     reg_fee_amount = float(getattr(member, 'registration_fee', 100.0) or 100.0)
@@ -246,18 +249,20 @@ def send_member_registration_notification(member):
     member_name = getattr(member, 'name', getattr(member, 'full_name', ''))
     effective_role = getattr(member, 'effective_role', 'সদস্য')
 
-    # 1. SMS Notification
+    # 1. SMS Notification (compact 2-segment template <= 134 chars UCS-2)
     if member.phone:
+        short_name = member_name[:16].strip()
+        sms_pay_url = f"helplinehellonaogaon.com/?m={member.member_id}"
         if summary['monthly_fee'] > 0:
             sms_msg = (
-                f"[Helpline Hello Naogaon] {member_name}, আপনাকে স্বাগতম! "
-                f"সদস্য আইডি: {member.member_id} ({effective_role})। প্রতিশ্রুত মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। "
-                f"সহজে চাঁদা পরিশোধ করুন: {payment_url}"
+                f"[Hello Naogaon] {short_name}, স্বাগতম! "
+                f"আইডি: {member.member_id}। চাঁদা: ৳{summary['monthly_fee']:,.0f}। "
+                f"পরিশোধ: {sms_pay_url}"
             )
         else:
             sms_msg = (
-                f"[Helpline Hello Naogaon] {member_name}, আপনাকে স্বাগতম! "
-                f"সদস্য আইডি: {member.member_id} ({effective_role})। কোনো নির্দিষ্ট মাসিক চাঁদা নেই, ইচ্ছানুযায়ী অনুদান দিতে পারবেন: {payment_url}"
+                f"[Hello Naogaon] {short_name}, স্বাগতম! "
+                f"আইডি: {member.member_id}। স্বেচ্ছায় অনুদান: {sms_pay_url}"
             )
         try:
             send_sms(member.phone, sms_msg)
@@ -343,12 +348,13 @@ def send_member_monthly_reminder(member, today=None, force=False):
 
     due_str = f"৳{summary['due_amount']:,.0f}"
     
-    # 1. SMS Reminder
+    # 1. SMS Reminder (compact 2-segment template <= 134 chars UCS-2)
     if member.phone:
+        short_name = member_name[:16].strip()
+        sms_pay_url = f"helplinehellonaogaon.com/?m={member.member_id}"
         sms_msg = (
-            f"[Helpline Hello Naogaon] {member_name}, মাসিক চাঁদা রিমাইন্ডার (আইডি: {member.member_id})। "
-            f"মাসিক চাঁদা: ৳{summary['monthly_fee']:,.0f}। মোট বকেয়া: {due_str} টাকা। "
-            f"অনলাইনে পরিশোধ করুন: {payment_url}"
+            f"[Hello Naogaon] {short_name}, বকেয়া: {due_str} (আইডি: {member.member_id})। "
+            f"পরিশোধ: {sms_pay_url}"
         )
         try:
             send_sms(member.phone, sms_msg)

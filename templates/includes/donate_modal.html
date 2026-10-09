@@ -1160,21 +1160,28 @@ document.addEventListener('DOMContentLoaded', function() {
         progCountBadge.innerText = progItems.length + ' জন সদস্য';
     }
 
-    // Auto-open donate popup modal if redirected with ?donate=1 or ?member_id= or #donate
+    // Auto-open donate popup modal if redirected with ?donate=1 or ?m= or ?member_id= or #donate
     try {
         var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('donate') || urlParams.has('member_id') || window.location.hash === '#donate' || window.location.hash === '#directDonateModal') {
+        var memberId = (urlParams.get('m') || urlParams.get('member_id') || '').trim();
+        if (urlParams.has('donate') || memberId || window.location.hash === '#donate' || window.location.hash === '#directDonateModal') {
             if (modalElem && typeof bootstrap !== 'undefined') {
                 var myModal = new bootstrap.Modal(modalElem);
                 myModal.show();
-                var memberId = urlParams.get('member_id');
                 if (memberId) {
                     goToModalStep('member');
                     var searchInput = document.getElementById('memberSearchInput');
                     if (searchInput) {
                         searchInput.value = memberId;
                         filterModalMembers(memberId);
-                        var matched = document.querySelector('#memberCardsList .member-select-item[data-member-id="' + memberId + '"]');
+                        var matched = null;
+                        var items = document.querySelectorAll('#memberCardsList .member-select-item');
+                        items.forEach(function(item) {
+                            var dId = (item.getAttribute('data-member-id') || '').trim();
+                            if (dId && dId.toLowerCase() === memberId.toLowerCase()) {
+                                matched = item;
+                            }
+                        });
                         if (matched) {
                             matched.click();
                         }
