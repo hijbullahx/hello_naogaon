@@ -581,38 +581,6 @@ def team_invite_register(request, token):
                 except Exception as ex:
                     print(f"[TEAM MEMBER EMAIL ERROR] {ex}")
 
-            # 3. Send Notification to Admin (SMS & Email)
-            admin_phone = get_admin_phone()
-            if admin_phone:
-                try:
-                    send_sms(admin_phone, f"[Helpline Hello Naogaon] নতুন টিম মেম্বার যুক্ত হয়েছেন: {tm.name}, পদবি: {tm.effective_role}, আইডি: {tm.member_id}, ফোন: {tm.phone}।", is_alert=True)
-                except Exception:
-                    pass
-
-            try:
-                admin_emails = get_admin_notification_emails()
-                if admin_emails:
-                    send_system_email(
-                        subject=f"👤 নতুন টিম মেম্বার নিবন্ধন — {tm.name} ({tm.effective_role})",
-                        recipient_list=admin_emails,
-                        headline="নতুন টিম মেম্বার নিবন্ধন সম্পন্ন",
-                        greeting="শ্রদ্ধেয় অ্যাডমিন,",
-                        message_paragraphs=[
-                            f"আমন্ত্রণ লিংকের মাধ্যমে একজন নতুন টিম মেম্বার সফলভাবে নিবন্ধন সম্পন্ন করেছেন। পদবি: {tm.effective_role}, সদস্য আইডি: #{tm.member_id}।"
-                        ],
-                        details=[
-                            {'label': 'নাম', 'value': tm.name},
-                            {'label': 'পদবি', 'value': tm.effective_role},
-                            {'label': 'সদস্য আইডি', 'value': tm.member_id},
-                            {'label': 'মোবাইল নম্বর', 'value': tm.phone},
-                            {'label': 'ইমেইল', 'value': tm.email or 'নেই'},
-                        ],
-                        footer_note="এডমিন ড্যাশবোর্ড থেকে এই সদস্যের তথ্য দেখতে ও পরিচালনা করতে পারবেন।",
-                        fail_silently=True
-                    )
-            except Exception:
-                pass
-
             return render(request, 'volunteers/team_invite_success.html', {
                 'member': tm,
                 'role': tm.effective_role,
