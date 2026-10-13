@@ -256,12 +256,12 @@ def apply_volunteer(request):
                 contribution_amount_val = 0
 
         payment_mode = request.POST.get('payment_mode', 'gateway').strip()
-        manual_channel = request.POST.get('manual_channel', 'bKash').strip()
-        sender_account = request.POST.get('sender_account', '').strip()
-        trx_id = request.POST.get('trx_id', '').strip()
 
-        if payment_mode == 'manual' and not sender_account:
-            messages.error(request, 'ম্যানুয়াল পেমেন্টের ক্ষেত্রে প্রেরকের মোবাইল নম্বর / অ্যাকাউন্ট নম্বর প্রদান করা আবশ্যক।')
+        if payment_mode == 'manual':
+            messages.error(
+                request,
+                'স্বেচ্ছাসেবক/সদস্য নিবন্ধনে ম্যানুয়াল পেমেন্ট আর প্রযোজ্য নয়। অনুগ্রহ করে স্বয়ংক্রিয় অনলাইন পেমেন্ট গেটওয়ের মাধ্যমে ১০০ টাকা পরিশোধ করুন।'
+            )
             return redirect(next_url if next_url else 'volunteers:apply')
 
         if full_name and phone:
@@ -269,112 +269,53 @@ def apply_volunteer(request):
             from donations.models import ProgramDonation
             from donations.gateway import initiate_active_gateway_session
 
-            if payment_mode == 'manual':
-                try:
-                    vol = Volunteer.objects.create(
-                        full_name=full_name,
-                        email=email if email else None,
-                        phone=phone,
-                        blood_group=blood_group if blood_group else None,
-                        occupation=occupation if occupation else None,
-                        division=division,
-                        district=district,
-                        upazila=upazila,
-                        address=address if address else None,
-                        last_donated=last_donated_val,
-                        contribution_frequency=contribution_frequency,
-                        contribution_amount=contribution_amount_val,
-                        is_public_details=is_public_details,
-                        image=image,
-                        registration_fee=100.00,
-                        payment_status='pending',
-                        payment_method=f"Manual ({manual_channel})",
-                        sender_account=sender_account,
-                        trx_id=trx_id,
-                        status='pending'
-                    )
-                except Exception as e:
-                    messages.error(request, f'আবেদন সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
-                    return redirect(next_url if next_url else 'volunteers:apply')
-
-                # Create corresponding ProgramDonation record for tracking in financial ledger
-                ProgramDonation.objects.create(
-                    donation_type='volunteer_registration',
-                    donor_name=full_name,
-                    donor_phone=phone,
-                    donor_email=email or '',
-                    amount=100.00,
-                    payment_method=f"Manual ({manual_channel})",
-                    sender_account=sender_account,
-                    trx_id=trx_id,
-                    status='pending',
-                    membership_id=f"NEW_VOL_{vol.id}",
-                    note=f"নতুন সদস্য নিবন্ধন ফি (ম্যানুয়াল যাচাই বাকি) - {full_name} ({phone})"
-                )
-
-                # Send Alert to Admin for Manual Verification
-                admin_phone = get_admin_phone()
-                if admin_phone:
-                    try:
-                        admin_sms = f"[Helpline Hello Naogaon] নতুন সদস্য আবেদন জমা হয়েছে: {full_name}, ফোন: {phone}, মাধ্যম: {manual_channel}, প্রেরক নং: {sender_account}। এডমিন প্যানেল থেকে অনুমোদন করুন।"
-                        send_sms(admin_phone, admin_sms, is_alert=True)
-                    except Exception:
-                        pass
-
-                messages.success(
-                    request, 
-                    f'ধন্যবাদ {full_name}! আপনার সদস্য রেজিস্ট্রেশন আবেদন ও ১০০ টাকা ম্যানুয়াল পেমেন্ট তথ্য সফলভাবে জমা হয়েছে। অ্যাডমিন প্যানেল থেকে তথ্য যাচাই ও অনুমোদনের পর আপনার সদস্য আইডি প্রস্তুত হবে এবং আপনার মোবাইল ও ইমেইলে বার্তা পাঠানো হবে।'
-                )
-                return redirect(next_url if next_url else 'volunteers:apply')
-
-            else:
-                # Gateway / Automated Payment
-                gen_tran_id = f"REG_{int(datetime.now().timestamp())}_{random.randint(1000, 9999)}"
-                try:
-                    vol = Volunteer.objects.create(
-                        full_name=full_name,
-                        email=email if email else None,
-                        phone=phone,
-                        blood_group=blood_group if blood_group else None,
-                        occupation=occupation if occupation else None,
-                        division=division,
-                        district=district,
-                        upazila=upazila,
-                        address=address if address else None,
-                        last_donated=last_donated_val,
-                        contribution_frequency=contribution_frequency,
-                        contribution_amount=contribution_amount_val,
-                        is_public_details=is_public_details,
-                        image=image,
-                        registration_fee=100.00,
-                        payment_status='unpaid',
-                        payment_method='Online Gateway',
-                        tran_id=gen_tran_id,
-                        status='pending'
-                    )
-                except Exception as e:
-                    messages.error(request, f'আবেদন সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
-                    return redirect(next_url if next_url else 'volunteers:apply')
-
-                # Create initiated ProgramDonation for gateway checkout
-                donation = ProgramDonation.objects.create(
-                    donation_type='volunteer_registration',
-                    donor_name=full_name,
-                    donor_phone=phone,
-                    donor_email=email or '',
-                    amount=100.00,
+            # Gateway / Automated Payment
+            gen_tran_id = f"REG_{int(datetime.now().timestamp())}_{random.randint(1000, 9999)}"
+            try:
+                vol = Volunteer.objects.create(
+                    full_name=full_name,
+                    email=email if email else None,
+                    phone=phone,
+                    blood_group=blood_group if blood_group else None,
+                    occupation=occupation if occupation else None,
+                    division=division,
+                    district=district,
+                    upazila=upazila,
+                    address=address if address else None,
+                    last_donated=last_donated_val,
+                    contribution_frequency=contribution_frequency,
+                    contribution_amount=contribution_amount_val,
+                    is_public_details=is_public_details,
+                    image=image,
+                    registration_fee=100.00,
+                    payment_status='unpaid',
                     payment_method='Online Gateway',
                     tran_id=gen_tran_id,
-                    status='initiated',
-                    membership_id=f"NEW_VOL_{vol.id}",
-                    note=f"নতুন সদস্য নিবন্ধন ফি (অনলাইন গেটওয়ে) - {full_name} ({phone})"
+                    status='pending'
                 )
+            except Exception as e:
+                messages.error(request, f'আবেদন সংরক্ষণ করতে সমস্যা হয়েছে: {str(e)}')
+                return redirect(next_url if next_url else 'volunteers:apply')
 
-                session_res = initiate_active_gateway_session(request, donation)
-                if session_res.get('success') and session_res.get('payment_url'):
-                    return redirect(session_res['payment_url'])
-                else:
-                    return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
+            # Create initiated ProgramDonation for gateway checkout
+            donation = ProgramDonation.objects.create(
+                donation_type='volunteer_registration',
+                donor_name=full_name,
+                donor_phone=phone,
+                donor_email=email or '',
+                amount=100.00,
+                payment_method='Online Gateway',
+                tran_id=gen_tran_id,
+                status='initiated',
+                membership_id=f"NEW_VOL_{vol.id}",
+                note=f"নতুন সদস্য নিবন্ধন ফি (অনলাইন গেটওয়ে) - {full_name} ({phone})"
+            )
+
+            session_res = initiate_active_gateway_session(request, donation)
+            if session_res.get('success') and session_res.get('payment_url'):
+                return redirect(session_res['payment_url'])
+            else:
+                return redirect('donations:gateway_checkout', tran_id=donation.tran_id)
         else:
             messages.error(request, 'দয়া করে আপনার নাম এবং মোবাইল নম্বর সঠিকভাবে লিখুন।')
 

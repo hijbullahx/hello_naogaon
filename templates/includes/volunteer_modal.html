@@ -35,7 +35,7 @@
                                 <span class="badge bg-success rounded-pill px-3 py-1">৳১০০ ফি</span>
                             </div>
                             <p class="small text-secondary mb-0" style="line-height: 1.5;">
-                                সংগঠনের সদস্য/স্বেচ্ছাসেবক হিসেবে নিবন্ধনের জন্য ১০০ টাকা ফি প্রযোজ্য। অনলাইনে স্বয়ংক্রিয় গেটওয়ের মাধ্যমে পরিশোধ করলে <strong>তাৎক্ষণিকভাবে মেম্বার আইডি</strong> তৈরি হয়ে যাবে। ম্যানুয়াল পেমেন্টে অ্যাডমিন যাচাই শেষে আইডি দেওয়া হবে। <strong>নিবন্ধনের পর কোনো বাধ্যতামূলক মাসিক চাঁদা নেই;</strong> পরবর্তীতে আপনি যখন খুশি 'সদস্য চাঁদা' তহবিল থেকে যেকোনো পরিমাণ অনুদান প্রদান করতে পারবেন।
+                                সংগঠনের সদস্য/স্বেচ্ছাসেবক হিসেবে নিবন্ধনের জন্য ১০০ টাকা ফি প্রযোজ্য। অনলাইনে স্বয়ংক্রিয় গেটওয়ের (বিকাশ, নগদ, রকেট, উপায় বা কার্ড) মাধ্যমে ফি পরিশোধ করলেই <strong>তাৎক্ষণিকভাবে স্বয়ংক্রিয়ভাবে মেম্বার আইডি</strong> তৈরি হয়ে আপনার মোবাইল ও ইমেইলে চলে যাবে। <strong>নিবন্ধনের পর কোনো বাধ্যতামূলক মাসিক চাঁদা নেই;</strong> পরবর্তীতে আপনি যখন খুশি 'সদস্য চাঁদা' তহবিল থেকে যেকোনো পরিমাণ অনুদান প্রদান করতে পারবেন।
                             </p>
                         </div>
                     </div>
@@ -194,122 +194,36 @@
                         </div>
 
                         <!-- ========================================== -->
-                        <!-- REGISTRATION PAYMENT METHOD SELECTION     -->
+                        <!-- REGISTRATION PAYMENT METHOD                -->
                         <!-- ========================================== -->
                         <div class="col-12 mt-4 pt-3 border-top">
+                            <input type="hidden" name="payment_mode" value="gateway" id="volRadioGateway">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <h6 class="fw-bold text-dark mb-0">
-                                    <i class="fas fa-credit-card text-success me-1"></i>নিবন্ধন ফি পরিশোধের মাধ্যম <span class="text-danger">*</span>
+                                    <i class="fas fa-credit-card text-success me-1"></i>নিবন্ধন ফি পরিশোধের মাধ্যম
                                 </h6>
-                                <span class="badge bg-success-subtle text-success border border-success fw-bold px-2 py-1">
+                                <span class="badge bg-success-subtle text-success border border-success fw-bold px-3 py-1">
                                     নিবন্ধন ফি: ৳ ১০০
                                 </span>
                             </div>
 
-                            <div class="row g-2 mb-3">
-                                <!-- Option A: Automated Gateway -->
-                                <div class="col-md-6">
-                                    <div class="p-3 border rounded-3 cursor-pointer vol-pay-mode-card border-success bg-success-subtle bg-opacity-25 h-100 transition-all" 
-                                         id="volCardModeGateway" onclick="selectVolunteerPayMode('gateway')">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <input type="radio" name="payment_mode" value="gateway" id="volRadioGateway" class="form-check-input m-0" checked>
-                                                <label class="fw-bold text-dark small mb-0 cursor-pointer" for="volRadioGateway">অনলাইন পেমেন্ট গেটওয়ে</label>
-                                            </div>
-                                            <span class="badge bg-success text-white py-1 px-2" style="font-size: 0.68rem;">তাৎক্ষণিক আইডি</span>
+                            <div class="p-3 border rounded-3 border-success bg-success-subtle bg-opacity-25">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; font-size: 0.95rem;">
+                                            <i class="fas fa-bolt"></i>
                                         </div>
-                                        <p class="text-secondary small mb-0" style="font-size: 0.76rem;">
-                                            বিকাশ, নগদ, রকেট, উপায় ও কার্ডের মাধ্যমে সরাসরি পেমেন্ট করুন। সফল পেমেন্টে সাথে সাথে আইডি পাবেন।
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <!-- Option B: Manual Payment -->
-                                <div class="col-md-6">
-                                    <div class="p-3 border rounded-3 cursor-pointer vol-pay-mode-card bg-white h-100 transition-all" 
-                                         id="volCardModeManual" onclick="selectVolunteerPayMode('manual')">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <input type="radio" name="payment_mode" value="manual" id="volRadioManual" class="form-check-input m-0">
-                                                <label class="fw-bold text-dark small mb-0 cursor-pointer" for="volRadioManual">ম্যানুয়াল পেমেন্ট (সেন্ড মানি)</label>
-                                            </div>
-                                            <span class="badge bg-warning text-dark py-1 px-2" style="font-size: 0.68rem;">অ্যাডমিন যাচাই</span>
+                                        <div>
+                                            <strong class="text-dark d-block">অনলাইন অটোমেটেড পেমেন্ট গেটওয়ে</strong>
+                                            <small class="text-secondary">বিকাশ, নগদ, রকেট, উপায় ও যেকোনো ব্যাংক কার্ড</small>
                                         </div>
-                                        <p class="text-secondary small mb-0" style="font-size: 0.76rem;">
-                                            আমাদের একাউন্টে ১০০ টাকা পাঠিয়ে প্রেরক নম্বর দিন। অ্যাডমিন যাচাই করে আপনার সদস্যপদ অনুমোদন করবেন।
-                                        </p>
                                     </div>
+                                    <span class="badge bg-success text-white py-1 px-2" style="font-size: 0.72rem;">তাৎক্ষণিক অটোমেটিক আইডি</span>
                                 </div>
+                                <p class="text-secondary small mb-0" style="font-size: 0.78rem; line-height: 1.5;">
+                                    নিচের বাটনে ক্লিক করলে আপনি সরাসরি সুরক্ষিত পেমেন্ট গেটওয়েতে চলে যাবেন। সেখানে ১০০ টাকা ফি সফলভাবে পরিশোধ হওয়ার সাথে সাথে আপনার মেম্বার আইডি তৈরি হয়ে স্বয়ংক্রিয়ভাবে স্ক্রিনে এবং আপনার মোবাইল ও ইমেইলে বার্তা পৌঁছে যাবে।
+                                </p>
                             </div>
-
-                            <!-- Manual Payment Details Box (Hidden by default, shown when manual is selected) -->
-                            <div id="volManualDetailsBox" class="p-3 bg-light rounded-3 border border-warning-subtle d-none">
-                                <h6 class="fw-bold text-dark small mb-2">
-                                    <i class="fas fa-university text-success me-1"></i>আমাদের অফিশিয়াল অ্যাকাউন্টসমূহ (১০০ টাকা পাঠান):
-                                </h6>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-12 col-md-7">
-                                        <div class="d-flex flex-wrap gap-1">
-                                            <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark" style="background-color: #fdf2f7; font-size: 0.78rem;">
-                                                <strong class="text-danger">bKash:</strong> <span class="font-monospace">{{ manual_bkash.account_number|default:'01748-470965' }}</span>
-                                                <button type="button" class="btn btn-sm p-0 ms-1 text-danger" onclick="copyVolunteerNumber('{{ manual_bkash.account_number|default:'01748470965'|cut:'-'|cut:' ' }}', 'বিকাশ নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
-                                            </span>
-                                            {% if manual_nagad and manual_nagad.account_number %}
-                                            <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark bg-warning-subtle" style="font-size: 0.78rem;">
-                                                <strong class="text-warning-emphasis">Nagad:</strong> <span class="font-monospace">{{ manual_nagad.account_number }}</span>
-                                                <button type="button" class="btn btn-sm p-0 ms-1 text-dark" onclick="copyVolunteerNumber('{{ manual_nagad.account_number|cut:'-'|cut:' ' }}', 'নগদ নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
-                                            </span>
-                                            {% endif %}
-                                            {% if manual_rocket and manual_rocket.account_number %}
-                                            <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark bg-primary-subtle" style="font-size: 0.78rem;">
-                                                <strong class="text-primary">Rocket:</strong> <span class="font-monospace">{{ manual_rocket.account_number }}</span>
-                                                <button type="button" class="btn btn-sm p-0 ms-1 text-primary" onclick="copyVolunteerNumber('{{ manual_rocket.account_number|cut:'-'|cut:' ' }}', 'রকেট নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
-                                            </span>
-                                            {% endif %}
-                                            {% if manual_upay and manual_upay.account_number %}
-                                            <span class="badge d-flex align-items-center gap-1 p-2 rounded-2 border text-dark bg-info-subtle" style="font-size: 0.78rem;">
-                                                <strong class="text-info-emphasis">Upay:</strong> <span class="font-monospace">{{ manual_upay.account_number }}</span>
-                                                <button type="button" class="btn btn-sm p-0 ms-1 text-info-emphasis" onclick="copyVolunteerNumber('{{ manual_upay.account_number|cut:'-'|cut:' ' }}', 'উপায় নম্বর কপি হয়েছে!')" title="কপি"><i class="fas fa-copy"></i></button>
-                                            </span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    {% if manual_bank and manual_bank.account_number %}
-                                    <div class="col-12 col-md-5">
-                                        <div class="p-2 border rounded-2 bg-white small" style="font-size: 0.75rem;">
-                                            <div class="fw-bold text-success">{{ manual_bank.bank_name|default:'Dutch-Bangla Bank' }}{% if manual_bank.branch %} ({{ manual_bank.branch }}){% endif %}</div>
-                                            <div>হিসাব: <span class="font-monospace fw-bold">{{ manual_bank.account_number }}</span>{% if manual_bank.swift_code %} | রাউটিং: <span class="font-monospace">{{ manual_bank.swift_code }}</span>{% endif %}</div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-
-                                <div class="p-2 bg-white rounded-3 border">
-                                    <div class="fw-bold text-dark small mb-2"><i class="fas fa-receipt text-success me-1"></i>টাকা পাঠানোর পর নিচের তথ্য পূরণ করুন:</div>
-                                    <div class="row g-2">
-                                        <div class="col-sm-4">
-                                            <label class="form-label small fw-semibold mb-1">পেমেন্ট মাধ্যম</label>
-                                            <select name="manual_channel" id="volManualChannel" class="form-select form-select-sm">
-                                                <option value="bKash">bKash (বিকাশ)</option>
-                                                {% if manual_nagad and manual_nagad.account_number %}<option value="Nagad">Nagad (নগদ)</option>{% endif %}
-                                                {% if manual_rocket and manual_rocket.account_number %}<option value="Rocket">Rocket (রকেট)</option>{% endif %}
-                                                {% if manual_upay and manual_upay.account_number %}<option value="Upay">Upay (উপায়)</option>{% endif %}
-                                                {% if manual_bank and manual_bank.account_number %}<option value="Bank">ব্যাংক ডিপোজিট</option>{% endif %}
-                                            </select>
-                                        </div>
-                                        <div class="col-sm-4">
-                                            <label class="form-label small fw-semibold mb-1">প্রেরকের নম্বর / A/C <span class="text-danger">*</span></label>
-                                            <input type="text" name="sender_account" id="volSenderAccount" class="form-control form-control-sm font-monospace" placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন">
-                                        </div>
-                                        <div class="col-sm-4">
-                                            <label class="form-label small fw-semibold mb-1">TrxID / স্লিপ নম্বর <small class="text-muted fw-normal">(ঐচ্ছিক)</small></label>
-                                            <input type="text" name="trx_id" id="volTrxId" class="form-control form-control-sm font-monospace" placeholder="যেমন: BLM3984829">
-                                        </div>
-                                    </div>
-                                    <small class="text-muted mt-1 d-block" style="font-size: 0.72rem;">* টাকা পাঠিয়ে তথ্য জমা দিলে তা অ্যাডমিনের কাছে যাবে এবং যাচাই শেষে আপনাকে এসএমএস ও ইমেইলে সদস্য আইডি পাঠানো হবে।</small>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -318,7 +232,7 @@
                 <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between align-items-center">
                     <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
                     <button type="submit" id="volSubmitBtn" class="btn btn-success fw-bold px-4 rounded-pill shadow-sm">
-                        <i class="fas fa-lock me-1"></i> ৳১০০ ফি দিয়ে রেজিস্ট্রেশন সম্পন্ন করুন
+                        <i class="fas fa-lock me-1"></i> ৳১০০ ফি দিয়ে অনলাইনে পেমেন্ট করুন
                     </button>
                 </div>
             </form>
@@ -328,51 +242,6 @@
 
 <!-- Volunteer Modal Specific JavaScript -->
 <script>
-function selectVolunteerPayMode(mode) {
-    var cardGateway = document.getElementById('volCardModeGateway');
-    var cardManual = document.getElementById('volCardModeManual');
-    var radioGateway = document.getElementById('volRadioGateway');
-    var radioManual = document.getElementById('volRadioManual');
-    var manualBox = document.getElementById('volManualDetailsBox');
-    var submitBtn = document.getElementById('volSubmitBtn');
-    var senderInput = document.getElementById('volSenderAccount');
-
-    if (mode === 'manual') {
-        if (radioManual) radioManual.checked = true;
-        if (cardManual) cardManual.className = 'p-3 border rounded-3 cursor-pointer vol-pay-mode-card border-success bg-success-subtle bg-opacity-25 h-100 transition-all';
-        if (cardGateway) cardGateway.className = 'p-3 border rounded-3 cursor-pointer vol-pay-mode-card bg-white h-100 transition-all';
-        if (manualBox) manualBox.classList.remove('d-none');
-        if (senderInput) senderInput.setAttribute('required', 'required');
-        if (submitBtn) {
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> আবেদন ও পেমেন্ট তথ্য জমা দিন';
-        }
-    } else {
-        if (radioGateway) radioGateway.checked = true;
-        if (cardGateway) cardGateway.className = 'p-3 border rounded-3 cursor-pointer vol-pay-mode-card border-success bg-success-subtle bg-opacity-25 h-100 transition-all';
-        if (cardManual) cardManual.className = 'p-3 border rounded-3 cursor-pointer vol-pay-mode-card bg-white h-100 transition-all';
-        if (manualBox) manualBox.classList.add('d-none');
-        if (senderInput) senderInput.removeAttribute('required');
-        if (submitBtn) {
-            submitBtn.innerHTML = '<i class="fas fa-lock me-1"></i> ৳১০০ ফি দিয়ে রেজিস্ট্রেশন সম্পন্ন করুন';
-        }
-    }
-}
-
-function copyVolunteerNumber(num, msg) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(num).then(function() {
-            alert(msg || 'নম্বর কপি হয়েছে!');
-        });
-    } else {
-        var tempInput = document.createElement("input");
-        tempInput.value = num;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        alert(msg || 'নম্বর কপি হয়েছে!');
-    }
-}
 
 function handleVolunteerPledgeChange() {
     var freqSelect = document.getElementById('vol_contribution_frequency');
