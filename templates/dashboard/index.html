@@ -2491,6 +2491,251 @@
                 </div> <!-- End of #memberSubscriptionCollapse -->
             </div> <!-- End of #memberSubscriptionSection -->
 
+            <!-- Finance Ledger Card (Collapsible) -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div
+                    class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>তহবিল ও আয়-ব্যয়ের
+                        হিসাব খাতা (Financial Ledger)</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if can_edit_finance %}
+                        <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal"
+                            data-bs-target="#incomeModal"><i class="fas fa-plus-circle me-1"></i> নতুন আয়/অনুদান
+                            লিখুন</button>
+                        <button class="btn btn-danger btn-sm fw-bold" data-bs-toggle="modal"
+                            data-bs-target="#expenseModal"><i class="fas fa-minus-circle me-1"></i> নতুন ব্যয়/খরচ
+                            লিখুন</button>
+                        {% else %}
+                        <span class="badge bg-white text-dark py-2 px-3 shadow-sm border">
+                            <i class="fas fa-eye me-1 text-success"></i>হিসাব বিবরণী (View Only)
+                        </span>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-light fw-bold px-2 py-1 d-flex align-items-center gap-1 shadow-xs"
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#financialLedgerCollapse" 
+                                aria-expanded="false" 
+                                aria-controls="financialLedgerCollapse"
+                                id="financialLedgerToggleBtn"
+                                title="সেকশন খুলুন বা বন্ধ করুন">
+                            <span id="financialLedgerToggleBtnText">হিসাব খাতা খুলুন</span>
+                            <i class="fas fa-chevron-down ms-1" id="financialLedgerToggleChevron"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Collapsible Body -->
+                <div class="collapse" id="financialLedgerCollapse">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>তারিখ</th>
+                                        <th>টাইপ</th>
+                                        <th>কার্যক্রম (Program)</th>
+                                        <th>খাতের নাম / বিবরণ</th>
+                                        <th>ক্যাটাগরি</th>
+                                        <th>দাতা / গ্রহণকারী</th>
+                                        <th>পেমেন্ট মাধ্যম & Trx ID</th>
+                                        <th>পরিমাণ (টাকা)</th>
+                                        {% if can_edit_finance %}<th>অ্যাকশন</th>{% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for trx in transactions %}
+                                    <tr>
+                                        <td><small class="fw-bold text-secondary">{{ trx.date|date:"d M Y" }}</small></td>
+                                        <td>
+                                            {% if trx.transaction_type == 'income' %}
+                                            <span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>আয়</span>
+                                            {% else %}
+                                            <span class="badge bg-danger"><i class="fas fa-arrow-up me-1"></i>ব্যয়</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if trx.program %}
+                                            <span class="badge bg-success text-white fw-bold"><i
+                                                    class="fas fa-tasks me-1"></i>{{ trx.program.title }}</span>
+                                            {% else %}
+                                            <span class="text-muted small">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark">{{ trx.title }}</div>
+                                            {% if trx.note %}<small class="text-muted d-block">{{ trx.note }}</small>{% endif %}
+                                        </td>
+                                        <td><span class="badge bg-light text-dark border">{{ trx.category }}</span></td>
+                                        <td><small class="fw-semibold">{{ trx.donor_name|default:"-" }}</small></td>
+                                        <td>
+                                            <span class="badge bg-info text-dark">{{ trx.payment_method }}</span>
+                                            {% if trx.trx_id %}<small class="text-secondary d-block">ID: {{ trx.trx_id }}</small>{% endif %}
+                                        </td>
+                                        <td>
+                                            {% if trx.transaction_type == 'income' %}
+                                            <span class="fw-bold text-success fs-6">+ ৳ {{ trx.amount }}</span>
+                                            {% else %}
+                                            <span class="fw-bold text-danger fs-6">- ৳ {{ trx.amount }}</span>
+                                            {% endif %}
+                                        </td>
+                                        {% if can_edit_finance %}
+                                        <td>
+                                            {% if trx.can_be_edited_or_deleted %}
+                                            <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}" title="এডিট করুন"><i
+                                                    class="fas fa-edit"></i></button>
+                                            <a href="{% url 'core:delete_transaction' trx.id %}"
+                                                onclick="return confirm('অর্থায়াক হিসাবটি মুছে ফেলতে চান?');"
+                                                class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
+                                            {% else %}
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2"
+                                                  title="অনলাইন গেটওয়ে বা অনুমোদিত অনুদান থেকে স্বয়ংক্রিয়ভাবে আসা আয় অপরিবর্তনীয় ও স্থায়ী হিসাব">
+                                                <i class="fas fa-lock me-1 text-warning"></i>স্থায়ী হিসাব
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+
+                                    {% if can_edit_finance and trx.can_be_edited_or_deleted %}
+                                    <!-- Edit Transaction Modal -->
+                                    <div class="modal fade" id="editTrxModal_{{ trx.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div
+                                                    class="modal-header {% if trx.transaction_type == 'income' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                                                    <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> হিসাব
+                                                        এডিট করুন</h5>
+                                                    <button type="button" class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form action="{% url 'core:save_transaction' %}" method="post"
+                                                    enctype="multipart/form-data">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="transaction_id" value="{{ trx.id }}">
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">টাইপ *</label>
+                                                            <select name="transaction_type" class="form-select" required>
+                                                                <option value="income" {% if trx.transaction_type == 'income' %}selected{% endif %}>আয় / অনুদান (Income)</option>
+                                                                <option value="expense" {% if trx.transaction_type == 'expense' %}selected{% endif %}>
+                                                                    ব্যয় / খরচ (Expense)</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">কার্যক্রম (Program -
+                                                                ঐচ্ছিক)</label>
+                                                            <select name="program_id" class="form-select">
+                                                                <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --
+                                                                </option>
+                                                                {% for p in programs %}
+                                                                <option value="{{ p.id }}" {% if trx.program_id == p.id %}selected{% endif %}>{{ p.title }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">খাতের নাম / বিবরণ *</label>
+                                                            <input type="text" name="title" value="{{ trx.title }}" required
+                                                                class="form-control">
+                                                        </div>
+                                                        <div class="row g-2 mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
+                                                                <input type="number" step="0.01" name="amount"
+                                                                    value="{{ trx.amount }}" required
+                                                                    class="form-control fw-bold">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label fw-bold">ক্যাটাগরি</label>
+                                                                <input type="text" name="category"
+                                                                    value="{{ trx.category }}" class="form-control">
+                                                            </div>
+                                                        </div>
+                                                        <div class="row g-2 mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label fw-bold">পেমেন্ট মাধ্যম</label>
+                                                                <select name="payment_method" class="form-select">
+                                                                    <option value="bKash" {% if trx.payment_method == 'bKash' %}selected{% endif %}>bKash</option>
+                                                                    <option value="Nagad" {% if trx.payment_method == 'Nagad' %}selected{% endif %}>Nagad</option>
+                                                                    <option value="Bank Transfer" {% if trx.payment_method == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
+                                                                    <option value="Cash" {% if trx.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label fw-bold">Trx ID / মেমো নং</label>
+                                                                <input type="text" name="trx_id" value="{{ trx.trx_id }}"
+                                                                    class="form-control">
+                                                            </div>
+                                                        </div>
+                                                        <div class="row g-2 mb-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label fw-bold">দাতা / গ্রহীতার
+                                                                    নাম</label>
+                                                                <input type="text" name="donor_name"
+                                                                    value="{{ trx.donor_name }}" class="form-control">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label fw-bold">তারিখ *</label>
+                                                                <input type="date" name="date"
+                                                                    value="{{ trx.date|date:'Y-m-d' }}" required
+                                                                    class="form-control">
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">অতিরিক্ত নোট</label>
+                                                            <textarea name="note" rows="2"
+                                                                class="form-control">{{ trx.note }}</textarea>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                                                <label class="form-label fw-bold mb-0">ভাউচার / রশিদ
+                                                                    ছবি</label>
+                                                                <div class="d-flex align-items-center gap-1">
+                                                                    <span
+                                                                        class="badge bg-light text-secondary border small">সর্বোচ্চ
+                                                                        800 KB</span>
+                                                                    <a href="https://www.resizepixel.com" target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
+                                                                        <i class="fas fa-external-link-alt me-1"></i>ছবি
+                                                                        রিসাইজ করুন (Free)
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            {% if trx.receipt %}<div class="mb-2"><a
+                                                                    href="{{ trx.receipt.url }}" target="_blank"
+                                                                    class="small text-primary fw-bold"><i
+                                                                        class="fas fa-file-image me-1"></i>বর্তমান রশিদ
+                                                                    দেখুন</a></div>{% endif %}
+                                                            <input type="file" name="receipt" class="form-control"
+                                                                accept="image/*"
+                                                                onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">বাতিল</button>
+                                                        <button type="submit" class="btn btn-primary fw-bold">আপডেট
+                                                            করুন</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="{% if can_edit_finance %}9{% else %}8{% endif %}" class="text-center py-4 text-muted">কোনো আয়-ব্যয়ের হিসাব পাওয়া
+                                            যায়নি।</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Program Financial Contributions Section -->
             <div class="card border-0 shadow-sm rounded-3 mb-4">
                 <div
@@ -2595,237 +2840,6 @@
                                 {% empty %}
                                 <tr>
                                     <td colspan="9" class="text-center py-4 text-muted">এখনো কোনো প্রাপ্ত আর্থিক সহায়তা জমা হয়নি।</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Finance Ledger Card -->
-            <div class="card border-0 shadow-sm rounded-3">
-                <div
-                    class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>তহবিল ও আয়-ব্যয়ের
-                        হিসাব খাতা (Financial Ledger)</h5>
-                    <div class="d-flex gap-2">
-                        {% if can_edit_finance %}
-                        <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal"
-                            data-bs-target="#incomeModal"><i class="fas fa-plus-circle me-1"></i> নতুন আয়/অনুদান
-                            লিখুন</button>
-                        <button class="btn btn-danger btn-sm fw-bold" data-bs-toggle="modal"
-                            data-bs-target="#expenseModal"><i class="fas fa-minus-circle me-1"></i> নতুন ব্যয়/খরচ
-                            লিখুন</button>
-                        {% else %}
-                        <span class="badge bg-white text-dark py-2 px-3 shadow-sm border">
-                            <i class="fas fa-eye me-1 text-success"></i>হিসাব বিবরণী (View Only)
-                        </span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>তারিখ</th>
-                                    <th>টাইপ</th>
-                                    <th>কার্যক্রম (Program)</th>
-                                    <th>খাতের নাম / বিবরণ</th>
-                                    <th>ক্যাটাগরি</th>
-                                    <th>দাতা / গ্রহণকারী</th>
-                                    <th>পেমেন্ট মাধ্যম & Trx ID</th>
-                                    <th>পরিমাণ (টাকা)</th>
-                                    {% if can_edit_finance %}<th>অ্যাকশন</th>{% endif %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for trx in transactions %}
-                                <tr>
-                                    <td><small class="fw-bold text-secondary">{{ trx.date|date:"d M Y" }}</small></td>
-                                    <td>
-                                        {% if trx.transaction_type == 'income' %}
-                                        <span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>আয়</span>
-                                        {% else %}
-                                        <span class="badge bg-danger"><i class="fas fa-arrow-up me-1"></i>ব্যয়</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if trx.program %}
-                                        <span class="badge bg-success text-white fw-bold"><i
-                                                class="fas fa-tasks me-1"></i>{{ trx.program.title }}</span>
-                                        {% else %}
-                                        <span class="text-muted small">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="fw-bold text-dark">{{ trx.title }}</div>
-                                        {% if trx.note %}<small class="text-muted d-block">{{ trx.note }}</small>{% endif %}
-                                    </td>
-                                    <td><span class="badge bg-light text-dark border">{{ trx.category }}</span></td>
-                                    <td><small class="fw-semibold">{{ trx.donor_name|default:"-" }}</small></td>
-                                    <td>
-                                        <span class="badge bg-info text-dark">{{ trx.payment_method }}</span>
-                                        {% if trx.trx_id %}<small class="text-secondary d-block">ID: {{ trx.trx_id }}</small>{% endif %}
-                                    </td>
-                                    <td>
-                                        {% if trx.transaction_type == 'income' %}
-                                        <span class="fw-bold text-success fs-6">+ ৳ {{ trx.amount }}</span>
-                                        {% else %}
-                                        <span class="fw-bold text-danger fs-6">- ৳ {{ trx.amount }}</span>
-                                        {% endif %}
-                                    </td>
-                                    {% if can_edit_finance %}
-                                    <td>
-                                        {% if trx.can_be_edited_or_deleted %}
-                                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                            data-bs-toggle="modal" data-bs-target="#editTrxModal_{{ trx.id }}" title="এডিট করুন"><i
-                                                class="fas fa-edit"></i></button>
-                                        <a href="{% url 'core:delete_transaction' trx.id %}"
-                                            onclick="return confirm('অর্থায়াক হিসাবটি মুছে ফেলতে চান?');"
-                                            class="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"><i class="fas fa-trash"></i></a>
-                                        {% else %}
-                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2"
-                                              title="অনলাইন গেটওয়ে বা অনুমোদিত অনুদান থেকে স্বয়ংক্রিয়ভাবে আসা আয় অপরিবর্তনীয় ও স্থায়ী হিসাব">
-                                            <i class="fas fa-lock me-1 text-warning"></i>স্থায়ী হিসাব
-                                        </span>
-                                        {% endif %}
-                                    </td>
-                                    {% endif %}
-                                </tr>
-
-                                {% if can_edit_finance and trx.can_be_edited_or_deleted %}
-                                <!-- Edit Transaction Modal -->
-                                <div class="modal fade" id="editTrxModal_{{ trx.id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div
-                                                class="modal-header {% if trx.transaction_type == 'income' %}bg-success{% else %}bg-danger{% endif %} text-white">
-                                                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-1"></i> হিসাব
-                                                    এডিট করুন</h5>
-                                                <button type="button" class="btn-close btn-close-white"
-                                                    data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form action="{% url 'core:save_transaction' %}" method="post"
-                                                enctype="multipart/form-data">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="transaction_id" value="{{ trx.id }}">
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">টাইপ *</label>
-                                                        <select name="transaction_type" class="form-select" required>
-                                                            <option value="income" {% if trx.transaction_type == 'income' %}selected{% endif %}>আয় / অনুদান (Income)</option>
-                                                            <option value="expense" {% if trx.transaction_type == 'expense' %}selected{% endif %}>
-                                                                ব্যয় / খরচ (Expense)</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">কার্যক্রম (Program -
-                                                            ঐচ্ছিক)</label>
-                                                        <select name="program_id" class="form-select">
-                                                            <option value="">-- সাধারণ / কোনো নির্দিষ্ট কার্যক্রম নেই --
-                                                            </option>
-                                                            {% for p in programs %}
-                                                            <option value="{{ p.id }}" {% if trx.program_id == p.id %}selected{% endif %}>{{ p.title }}</option>
-                                                            {% endfor %}
-                                                        </select>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">খাতের নাম / বিবরণ *</label>
-                                                        <input type="text" name="title" value="{{ trx.title }}" required
-                                                            class="form-control">
-                                                    </div>
-                                                    <div class="row g-2 mb-3">
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold">পরিমাণ (টাকা) *</label>
-                                                            <input type="number" step="0.01" name="amount"
-                                                                value="{{ trx.amount }}" required
-                                                                class="form-control fw-bold">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold">ক্যাটাগরি</label>
-                                                            <input type="text" name="category"
-                                                                value="{{ trx.category }}" class="form-control">
-                                                        </div>
-                                                    </div>
-                                                    <div class="row g-2 mb-3">
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold">পেমেন্ট মাধ্যম</label>
-                                                            <select name="payment_method" class="form-select">
-                                                                <option value="bKash" {% if trx.payment_method == 'bKash' %}selected{% endif %}>bKash</option>
-                                                                <option value="Nagad" {% if trx.payment_method == 'Nagad' %}selected{% endif %}>Nagad</option>
-                                                                <option value="Bank Transfer" {% if trx.payment_method == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
-                                                                <option value="Cash" {% if trx.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold">Trx ID / মেমো নং</label>
-                                                            <input type="text" name="trx_id" value="{{ trx.trx_id }}"
-                                                                class="form-control">
-                                                        </div>
-                                                    </div>
-                                                    <div class="row g-2 mb-3">
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold">দাতা / গ্রহীতার
-                                                                নাম</label>
-                                                            <input type="text" name="donor_name"
-                                                                value="{{ trx.donor_name }}" class="form-control">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold">তারিখ *</label>
-                                                            <input type="date" name="date"
-                                                                value="{{ trx.date|date:'Y-m-d' }}" required
-                                                                class="form-control">
-                                                        </div>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">অতিরিক্ত নোট</label>
-                                                        <textarea name="note" rows="2"
-                                                            class="form-control">{{ trx.note }}</textarea>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <div
-                                                            class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
-                                                            <label class="form-label fw-bold mb-0">ভাউচার / রশিদ
-                                                                ছবি</label>
-                                                            <div class="d-flex align-items-center gap-1">
-                                                                <span
-                                                                    class="badge bg-light text-secondary border small">সর্বোচ্চ
-                                                                    800 KB</span>
-                                                                <a href="https://www.resizepixel.com" target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    class="badge bg-success-subtle text-success border border-success text-decoration-none py-1 px-2">
-                                                                    <i class="fas fa-external-link-alt me-1"></i>ছবি
-                                                                    রিসাইজ করুন (Free)
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                        {% if trx.receipt %}<div class="mb-2"><a
-                                                                href="{{ trx.receipt.url }}" target="_blank"
-                                                                class="small text-primary fw-bold"><i
-                                                                    class="fas fa-file-image me-1"></i>বর্তমান রশিদ
-                                                                দেখুন</a></div>{% endif %}
-                                                        <input type="file" name="receipt" class="form-control"
-                                                            accept="image/*"
-                                                            onchange="validateDashboardImage(this, 800, 'রশিদ/ভাউচার ফাইল')">
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
-                                                        data-bs-dismiss="modal">বাতিল</button>
-                                                    <button type="submit" class="btn btn-primary fw-bold">আপডেট
-                                                        করুন</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% empty %}
-                                <tr>
-                                    <td colspan="{% if can_edit_finance %}9{% else %}8{% endif %}" class="text-center py-4 text-muted">কোনো আয়-ব্যয়ের হিসাব পাওয়া
-                                        যায়নি।</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -5860,7 +5874,7 @@
         });
     }
 
-    // Toggle button state listener for Member Subscription Ledger Collapse
+    // Toggle button state listener for Member Subscription Ledger Collapse & Financial Ledger Collapse
     document.addEventListener('DOMContentLoaded', function() {
         const subCollapse = document.getElementById('memberSubscriptionCollapse');
         if (subCollapse) {
@@ -5877,6 +5891,28 @@
                 const btnText = document.getElementById('memberSubToggleBtnText');
                 const chevron = document.getElementById('memberSubToggleChevron');
                 if (btnText) btnText.innerText = 'লেজার খুলুন';
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            });
+        }
+
+        const finCollapse = document.getElementById('financialLedgerCollapse');
+        if (finCollapse) {
+            finCollapse.addEventListener('show.bs.collapse', function() {
+                const btnText = document.getElementById('financialLedgerToggleBtnText');
+                const chevron = document.getElementById('financialLedgerToggleChevron');
+                if (btnText) btnText.innerText = 'হিসাব খাতা বন্ধ করুন';
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+            });
+            finCollapse.addEventListener('hide.bs.collapse', function() {
+                const btnText = document.getElementById('financialLedgerToggleBtnText');
+                const chevron = document.getElementById('financialLedgerToggleChevron');
+                if (btnText) btnText.innerText = 'হিসাব খাতা খুলুন';
                 if (chevron) {
                     chevron.classList.remove('fa-chevron-up');
                     chevron.classList.add('fa-chevron-down');
