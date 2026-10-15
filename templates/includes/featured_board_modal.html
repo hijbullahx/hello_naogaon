@@ -83,8 +83,12 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
-                        <span>প্রয়োজন: <strong class="text-danger">৳{{ featured_board_program.target_amount|floatformat:0 }}</strong></span>
-                        <span class="text-success fw-bold">বাকি আছে ৳{{ featured_board_program.target_amount|add:featured_board_program.raised_amount|floatformat:0 }} এর অংশ</span>
+                        <span>বাকি প্রয়োজন: <strong class="text-danger">৳{{ featured_board_program.remaining_amount|floatformat:0 }}</strong></span>
+                        {% if featured_board_program.remaining_amount <= 0 %}
+                        <span class="text-success fw-bold"><i class="fas fa-check-double me-1"></i>লক্ষ্যমাত্রা অর্জিত হয়েছে! 🎉</span>
+                        {% else %}
+                        <span class="text-success fw-bold">বাকি আছে {{ featured_board_program.remaining_percent }}% অংশ</span>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}

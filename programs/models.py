@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 
 class Program(models.Model):
@@ -50,6 +51,19 @@ class Program(models.Model):
                 return int(val) if val == int(val) else val
             return int(round(pct))
         return 0
+
+    @property
+    def remaining_amount(self):
+        if self.target_amount and self.target_amount > 0:
+            raised = self.raised_amount or Decimal('0.00')
+            rem = self.target_amount - raised
+            return max(Decimal('0.00'), rem)
+        return Decimal('0.00')
+
+    @property
+    def remaining_percent(self):
+        pct = self.progress_percent
+        return max(0, 100 - int(round(pct)))
 
     def save(self, *args, **kwargs):
         if self.status != 'ongoing':
