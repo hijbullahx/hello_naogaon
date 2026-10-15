@@ -103,7 +103,7 @@ def admin_dashboard_stats(request):
     """
     try:
         total_donors = BloodDonor.objects.count()
-        total_volunteers = Volunteer.objects.count()
+        total_volunteers = Volunteer.objects.filter(status='approved').count()
         ongoing_programs = Program.objects.filter(status='ongoing').count()
         total_articles = Article.objects.filter(is_published=True).count()
         total_photos = Photo.objects.count()

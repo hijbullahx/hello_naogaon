@@ -275,7 +275,9 @@ def dashboard_home(request):
     programs = Program.objects.all().order_by('order', '-id')
     articles = Article.objects.all().order_by('-publish_date')
     donors = BloodDonor.objects.all().order_by('-id')
-    volunteers = Volunteer.objects.all().order_by('-id')
+    volunteers = Volunteer.objects.exclude(
+        payment_status='unpaid', payment_method='Online Gateway'
+    ).order_by('-id')
     from django.db.models import Case, When, Value, IntegerField, F
     tm_role_priority = Case(
         When(role='সভাপতি', then=Value(1)),
@@ -1424,12 +1426,18 @@ def save_volunteer(request):
             except ValueError:
                 pass
 
+        from core.sms_utils import clean_bd_phone_number
+        cleaned_phone = clean_bd_phone_number(phone) or phone
+
         if vol_id:
             vol = Volunteer.objects.filter(pk=vol_id).first()
             if vol:
+                if Volunteer.objects.filter(phone=cleaned_phone).exclude(pk=vol_id).exists():
+                    messages.error(request, f'এই মোবাইল নম্বর ({cleaned_phone}) অন্য একজন সদস্যের প্রোফাইলে ইতিমধ্যে ব্যবহৃত হচ্ছে!')
+                    return redirect('/dashboard/?tab=volunteers-section')
                 vol.full_name = full_name
                 vol.email = email
-                vol.phone = phone
+                vol.phone = cleaned_phone
                 vol.blood_group = blood_group if blood_group else None
                 vol.occupation = occupation if occupation else None
                 vol.division = division or 'রাজশাহী'
@@ -1443,10 +1451,13 @@ def save_volunteer(request):
             else:
                 messages.warning(request, 'স্বেচ্ছাসেবকের তথ্য খুঁজে পাওয়া যায়নি।')
         else:
+            if Volunteer.objects.filter(phone=cleaned_phone).exists() or Volunteer.objects.filter(full_name__iexact=full_name, phone=cleaned_phone).exists():
+                messages.error(request, f'এই মোবাইল নম্বর ({cleaned_phone}) বা নাম দিয়ে ইতিমধ্যে একজন স্বেচ্ছাসেবক নিবন্ধিত আছেন!')
+                return redirect('/dashboard/?tab=volunteers-section')
             vol = Volunteer.objects.create(
                 full_name=full_name,
                 email=email,
-                phone=phone,
+                phone=cleaned_phone,
                 blood_group=blood_group if blood_group else None,
                 occupation=occupation if occupation else None,
                 division=division or 'রাজশাহী',

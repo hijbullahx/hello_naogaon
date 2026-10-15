@@ -266,8 +266,44 @@ def apply_volunteer(request):
 
         if full_name and phone:
             import random
+            from core.sms_utils import clean_bd_phone_number
             from donations.models import ProgramDonation
             from donations.gateway import initiate_active_gateway_session
+
+            cleaned_phone = clean_bd_phone_number(phone)
+            if not cleaned_phone or len(cleaned_phone) < 11:
+                messages.error(request, 'অনুগ্রহ করে একটি সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017xxxxxxxx)।')
+                return redirect(next_url if next_url else 'volunteers:apply')
+
+            # 1. Duplicate Member Validation: একই নাম + নম্বর বা একই নম্বর দিয়ে একাধিক সক্রিয় সদস্য হতে পারবে না
+            existing_vol = Volunteer.objects.filter(
+                Q(phone=cleaned_phone) | Q(full_name__iexact=full_name, phone=cleaned_phone),
+                status='approved'
+            ).first()
+            if not existing_vol:
+                existing_tm = TeamMember.objects.filter(phone=cleaned_phone).first()
+            else:
+                existing_tm = None
+
+            if existing_vol:
+                messages.error(
+                    request,
+                    f'এই মোবাইল নম্বর ({cleaned_phone}) দিয়ে ইতিমধ্যে একজন নিবন্ধিত সদস্য রয়েছেন '
+                    f'(নাম: {existing_vol.full_name}, সদস্য আইডি: {existing_vol.member_id or "বিদ্যমান"})। '
+                    f'একই ব্যক্তি বা মোবাইল নম্বর দিয়ে একাধিকবার নিবন্ধন করা যাবে না।'
+                )
+                return redirect(next_url if next_url else 'volunteers:apply')
+
+            if existing_tm:
+                messages.error(
+                    request,
+                    f'এই মোবাইল নম্বর ({cleaned_phone}) দিয়ে ইতিমধ্যে পরিচালনা পর্ষদ/টিমে একজন সদস্য যুক্ত আছেন '
+                    f'(নাম: {existing_tm.name}, পদবি: {existing_tm.role})। নতুন করে নিবন্ধনের প্রয়োজন নেই।'
+                )
+                return redirect(next_url if next_url else 'volunteers:apply')
+
+            # 2. Cleanup any previous UNPAID / incomplete attempts for this phone to avoid duplicate ghost records
+            Volunteer.objects.filter(phone=cleaned_phone, payment_status='unpaid').delete()
 
             # Gateway / Automated Payment
             gen_tran_id = f"REG_{int(datetime.now().timestamp())}_{random.randint(1000, 9999)}"
@@ -275,7 +311,7 @@ def apply_volunteer(request):
                 vol = Volunteer.objects.create(
                     full_name=full_name,
                     email=email if email else None,
-                    phone=phone,
+                    phone=cleaned_phone,
                     blood_group=blood_group if blood_group else None,
                     occupation=occupation if occupation else None,
                     division=division,
@@ -301,14 +337,14 @@ def apply_volunteer(request):
             donation = ProgramDonation.objects.create(
                 donation_type='volunteer_registration',
                 donor_name=full_name,
-                donor_phone=phone,
+                donor_phone=cleaned_phone,
                 donor_email=email or '',
                 amount=100.00,
                 payment_method='Online Gateway',
                 tran_id=gen_tran_id,
                 status='initiated',
                 membership_id=f"NEW_VOL_{vol.id}",
-                note=f"নতুন সদস্য নিবন্ধন ফি (অনলাইন গেটওয়ে) - {full_name} ({phone})"
+                note=f"নতুন সদস্য নিবন্ধন ফি (অনলাইন গেটওয়ে) - {full_name} ({cleaned_phone})"
             )
 
             session_res = initiate_active_gateway_session(request, donation)
