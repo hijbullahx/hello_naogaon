@@ -275,7 +275,9 @@ def dashboard_home(request):
     programs = Program.objects.all().order_by('order', '-id')
     articles = Article.objects.all().order_by('-publish_date')
     donors = BloodDonor.objects.all().order_by('-id')
-    volunteers = Volunteer.objects.all().order_by('-id')
+    volunteers = Volunteer.objects.exclude(
+        payment_status='unpaid', payment_method='Online Gateway'
+    ).order_by('-id')
     from django.db.models import Case, When, Value, IntegerField, F
     tm_role_priority = Case(
         When(role='সভাপতি', then=Value(1)),
@@ -1424,12 +1426,18 @@ def save_volunteer(request):
             except ValueError:
                 pass
 
+        from core.sms_utils import clean_bd_phone_number
+        cleaned_phone = clean_bd_phone_number(phone) or phone
+
         if vol_id:
             vol = Volunteer.objects.filter(pk=vol_id).first()
             if vol:
+                if Volunteer.objects.filter(phone=cleaned_phone).exclude(pk=vol_id).exists():
+                    messages.error(request, f'এই মোবাইল নম্বর ({cleaned_phone}) অন্য একজন সদস্যের প্রোফাইলে ইতিমধ্যে ব্যবহৃত হচ্ছে!')
+                    return redirect('/dashboard/?tab=volunteers-section')
                 vol.full_name = full_name
                 vol.email = email
-                vol.phone = phone
+                vol.phone = cleaned_phone
                 vol.blood_group = blood_group if blood_group else None
                 vol.occupation = occupation if occupation else None
                 vol.division = division or 'রাজশাহী'
@@ -1443,10 +1451,13 @@ def save_volunteer(request):
             else:
                 messages.warning(request, 'স্বেচ্ছাসেবকের তথ্য খুঁজে পাওয়া যায়নি।')
         else:
+            if Volunteer.objects.filter(phone=cleaned_phone).exists() or Volunteer.objects.filter(full_name__iexact=full_name, phone=cleaned_phone).exists():
+                messages.error(request, f'এই মোবাইল নম্বর ({cleaned_phone}) বা নাম দিয়ে ইতিমধ্যে একজন স্বেচ্ছাসেবক নিবন্ধিত আছেন!')
+                return redirect('/dashboard/?tab=volunteers-section')
             vol = Volunteer.objects.create(
                 full_name=full_name,
                 email=email,
-                phone=phone,
+                phone=cleaned_phone,
                 blood_group=blood_group if blood_group else None,
                 occupation=occupation if occupation else None,
                 division=division or 'রাজশাহী',
@@ -1485,6 +1496,10 @@ def approve_volunteer(request, pk):
     vol = Volunteer.objects.filter(pk=pk).first()
     if not vol:
         messages.warning(request, 'স্বেচ্ছাসেবকের তথ্য পাওয়া যায়নি।')
+        return redirect('/dashboard/?tab=volunteers-section')
+
+    if vol.payment_method == 'Online Gateway' and vol.payment_status == 'unpaid':
+        messages.error(request, 'এই আবেদনকারী অনলাইন গেটওয়ে নির্বাচন করেছিলেন এবং এখনো পেমেন্ট সম্পন্ন করেননি। পেমেন্ট গেটওয়ের মাধ্যমে পরিশোধিত না হওয়া পর্যন্ত অনুমোদন করা সম্ভব নয়।')
         return redirect('/dashboard/?tab=volunteers-section')
 
     if vol.status != 'approved':
@@ -2615,6 +2630,10 @@ def approve_program_donation(request, pk):
 
     if donation.status == 'approved':
         messages.info(request, 'এই অনুদানটি ইতিমধ্যে অনুমোদিত অবস্থায় রয়েছে।')
+        return redirect('/dashboard/?tab=finance-section')
+
+    if donation.payment_method == 'Online Gateway' and donation.status == 'initiated':
+        messages.error(request, 'এই অনুদানটি অনলাইন গেটওয়েতে শুরু করা হয়েছিল কিন্তু পেমেন্ট সম্পন্ন হয়নি। এটি ম্যানুয়ালি অনুমোদন করা যাবে না।')
         return redirect('/dashboard/?tab=finance-section')
 
     donation.status = 'approved'

@@ -1339,9 +1339,13 @@
                                             {% if can_edit_all %}
                                             <td>
                                                 {% if v.status != 'approved' %}
+                                                {% if v.payment_method == 'Online Gateway' and v.payment_status == 'unpaid' %}
+                                                <span class="badge bg-secondary py-1 px-2 me-1" title="অনলাইন গেটওয়েতে পেমেন্ট সম্পন্ন হয়নি"><i class="fas fa-hourglass-half me-1"></i>পেমেন্ট বাকি</span>
+                                                {% else %}
                                                 <a href="{% url 'core:approve_volunteer' v.id %}"
                                                     onclick="return confirm('এই সদস্যের আবেদন ও ১০০ টাকা ফি অনুমোদন করতে চান? সদস্য আইডি তৈরি হয়ে তার মোবাইল ও ইমেইলে বার্তা চলে যাবে।');"
                                                     class="btn btn-sm btn-success fw-bold me-1" title="অনুমোদন করুন"><i class="fas fa-check me-1"></i>অনুমোদন</a>
+                                                {% endif %}
                                                 {% endif %}
                                                 <a href="{% url 'core:delete_volunteer' v.id %}"
                                                     onclick="return confirm('স্বেচ্ছাসেবকের তথ্য মুছে ফেলতে চান?');"
@@ -2815,10 +2819,14 @@
                                     </td>
                                     <td>
                                         {% if pd.status != 'approved' %}
+                                        {% if pd.payment_method == 'Online Gateway' and pd.status == 'initiated' %}
+                                        <span class="badge bg-secondary py-1 px-2 me-1" title="অনলাইন গেটওয়েতে পেমেন্ট এখনো সম্পন্ন হয়নি"><i class="fas fa-hourglass-half me-1"></i>গেটওয়ে বাকি</span>
+                                        {% else %}
                                         <a href="{% url 'core:approve_donation' pd.id %}"
                                             onclick="return confirm('এই অনুদানটি অনুমোদন করতে চান? দাতার কাছে রসিদ ও নিশ্চিতকরণ বার্তা পাঠানো হবে।');"
                                             class="btn btn-sm btn-success fw-bold me-1" title="অনুমোদন করুন"><i
                                                 class="fas fa-check me-1"></i>অনুমোদন</a>
+                                        {% endif %}
                                         <a href="{% url 'core:reject_donation' pd.id %}"
                                             onclick="return confirm('এই অনুদানটি বাতিল করতে চান? দাতার কাছে নোটিফিকেশন পাঠানো হবে।');"
                                             class="btn btn-sm btn-outline-warning fw-bold me-1" title="বাতিল করুন"><i
