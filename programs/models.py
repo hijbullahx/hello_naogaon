@@ -62,8 +62,17 @@ class Program(models.Model):
 
     @property
     def remaining_percent(self):
-        pct = self.progress_percent
-        return max(0, 100 - int(round(pct)))
+        if not self.target_amount or self.target_amount <= 0:
+            return 0
+        rem = float(self.remaining_amount)
+        target = float(self.target_amount)
+        pct = (rem / target) * 100
+        if pct <= 0:
+            return 0
+        if pct >= 100:
+            return 100
+        val = round(pct, 2)
+        return int(val) if val == int(val) else val
 
     def save(self, *args, **kwargs):
         if self.status != 'ongoing':
