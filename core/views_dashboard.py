@@ -1498,6 +1498,10 @@ def approve_volunteer(request, pk):
         messages.warning(request, 'স্বেচ্ছাসেবকের তথ্য পাওয়া যায়নি।')
         return redirect('/dashboard/?tab=volunteers-section')
 
+    if vol.payment_method == 'Online Gateway' and vol.payment_status == 'unpaid':
+        messages.error(request, 'এই আবেদনকারী অনলাইন গেটওয়ে নির্বাচন করেছিলেন এবং এখনো পেমেন্ট সম্পন্ন করেননি। পেমেন্ট গেটওয়ের মাধ্যমে পরিশোধিত না হওয়া পর্যন্ত অনুমোদন করা সম্ভব নয়।')
+        return redirect('/dashboard/?tab=volunteers-section')
+
     if vol.status != 'approved':
         from datetime import date
         from volunteers.models import generate_unique_member_id
@@ -2626,6 +2630,10 @@ def approve_program_donation(request, pk):
 
     if donation.status == 'approved':
         messages.info(request, 'এই অনুদানটি ইতিমধ্যে অনুমোদিত অবস্থায় রয়েছে।')
+        return redirect('/dashboard/?tab=finance-section')
+
+    if donation.payment_method == 'Online Gateway' and donation.status == 'initiated':
+        messages.error(request, 'এই অনুদানটি অনলাইন গেটওয়েতে শুরু করা হয়েছিল কিন্তু পেমেন্ট সম্পন্ন হয়নি। এটি ম্যানুয়ালি অনুমোদন করা যাবে না।')
         return redirect('/dashboard/?tab=finance-section')
 
     donation.status = 'approved'

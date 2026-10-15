@@ -20,6 +20,8 @@ class VolunteerAdmin(admin.ModelAdmin):
 
         count = 0
         for vol in queryset:
+            if vol.payment_method == 'Online Gateway' and vol.payment_status == 'unpaid':
+                continue
             if vol.status != 'approved':
                 vol.status = 'approved'
                 vol.payment_status = 'paid'

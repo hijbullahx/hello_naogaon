@@ -619,12 +619,6 @@ def payment_success(request):
         except Exception:
             pass
 
-    # Fallback to most recent initiated donation from current user if nothing passed
-    if not tran_id and not invoice_number:
-        recent_init = ProgramDonation.objects.filter(status='initiated').order_by('-id').first()
-        if recent_init:
-            tran_id = recent_init.tran_id
-
     # 1. PayStation Verification
     target_invoice = invoice_number or tran_id
     if target_invoice:
