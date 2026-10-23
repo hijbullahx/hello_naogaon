@@ -30,12 +30,15 @@ AUTOMAS_STATUS_CODES = {
 def clean_bd_phone_number(phone_number, with_country_code=False):
     """
     Cleans and standardizes Bangladesh phone numbers.
-    Input can be '+88017XXXXXXXX', '88017XXXXXXXX', or '017XXXXXXXX'.
+    Input can be '+88017XXXXXXXX', '88017XXXXXXXX', '017XXXXXXXX', or Bengali numerals '০১৭১XXXXXXXX'.
     Returns '017XXXXXXXX' or '88017XXXXXXXX' based on flag.
     """
     if not phone_number:
         return ""
-    digits = "".join(ch for ch in str(phone_number) if ch.isdigit())
+    # Convert Bengali digits to English ASCII digits
+    bn_to_en = str.maketrans('০১২৩৪৫৬৭৮৯', '0123456789')
+    raw_str = str(phone_number).translate(bn_to_en)
+    digits = "".join(ch for ch in raw_str if ch.isdigit())
     
     # Strip leading 88 if present to get standard 11 digits
     if len(digits) == 13 and digits.startswith('8801'):
@@ -177,8 +180,9 @@ def send_sms(phone_number, message, is_alert=False):
                     logger.info(f"[AUTOMAS SMS SUCCESS] Sent to {cleaned_phone} | ID: {sms_id}")
                     print(f"[AUTOMAS SMS SUCCESS] To: {cleaned_phone} | ID: {sms_id}")
 
-                    # Trigger non-blocking low balance check after successful send
-                    if not is_alert:
+                    # Trigger non-blocking low balance check after successful send (throttled to avoid API spam)
+                    if not is_alert and not cache.get('sms_balance_check_throttled'):
+                        cache.set('sms_balance_check_throttled', True, 120)
                         try:
                             threading.Thread(target=check_sms_balance, kwargs={'trigger_low_balance_alert': True}, daemon=True).start()
                         except Exception as th_err:
