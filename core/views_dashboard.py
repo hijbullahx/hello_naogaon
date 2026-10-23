@@ -861,11 +861,17 @@ def broadcast_program_fund(request, pk):
         return redirect("/dashboard/?tab=programs-section")
 
     from programs.program_notifications import notify_members_volunteers_program_fund
-    notify_members_volunteers_program_fund(prog, request=request)
-    if prog.target_amount and float(prog.target_amount) > 0:
-        messages.success(request, f'"{prog.title}" কার্যক্রমের বাজেট (৳{prog.target_amount:,.0f}) নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের পাঠানো হয়েছে!')
+    result = notify_members_volunteers_program_fund(prog, request=request)
+    sms_count = result.get('sms_sent_count', 0) if isinstance(result, dict) else 0
+    fail_count = result.get('sms_failed_count', 0) if isinstance(result, dict) else 0
+
+    if sms_count > 0:
+        msg = f'"{prog.title}" কার্যক্রমের নোটিফিকেশন সফলভাবে {sms_count} জন সদস্য ও স্বেচ্ছাসেবকের মোবাইলে SMS পাঠানো হয়েছে!'
+        if fail_count > 0:
+            msg += f' ({fail_count} জনের নম্বরে ত্রুটির কারণে পাঠানো যায়নি)'
+        messages.success(request, msg)
     else:
-        messages.success(request, f'"{prog.title}" কার্যক্রমের নোটিফিকেশন সকল সদস্য ও স্বেচ্ছাসেবকদের পাঠানো হয়েছে!')
+        messages.warning(request, f'"{prog.title}" কার্যক্রমের জন্য কোনো প্রাপকের সক্রিয় মোবাইল নম্বর পাওয়া যায়নি বা এসএমএস পাঠানো যায়নি।')
     return redirect("/dashboard/?tab=programs-section")
 
 @staff_member_required

@@ -9,7 +9,9 @@ def get_base_url(request=None):
     """Returns absolute base URL without trailing slash"""
     if request:
         try:
-            return request.build_absolute_uri('/')[:-1]
+            url = request.build_absolute_uri('/')[:-1]
+            if not any(local_host in url for local_host in ['127.0.0.1', 'localhost', '0.0.0.0', 'testserver']):
+                return url
         except Exception:
             pass
     return getattr(settings, 'SITE_URL', 'https://helplinehellonaogaon.com').rstrip('/')
