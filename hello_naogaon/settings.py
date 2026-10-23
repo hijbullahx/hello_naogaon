@@ -112,13 +112,23 @@ DATABASES = {
     'default': env.db('DATABASE_URL', default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 }
 
-# Ensure MySQL/MariaDB database connection uses utf8mb4 encoding
+# Ensure MySQL/MariaDB database connection uses utf8mb4 encoding & unix socket if on Linux/cPanel
 if DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
     DATABASES['default'].setdefault('OPTIONS', {})
     DATABASES['default']['OPTIONS'].update({
         'charset': 'utf8mb4',
         'init_command': "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'",
+        'connect_timeout': 10,
     })
+    # On cPanel / CloudLinux servers, TCP connection to 'localhost:3306' frequently times out due to
+    # IPv6 (::1) lookup or skip-networking. Connect via standard unix socket if present:
+    for sock in ['/var/lib/mysql/mysql.sock', '/tmp/mysql.sock', '/var/run/mysqld/mysqld.sock']:
+        if os.path.exists(sock):
+            DATABASES['default']['OPTIONS']['unix_socket'] = sock
+            break
+    else:
+        if DATABASES['default'].get('HOST') == 'localhost':
+            DATABASES['default']['HOST'] = '127.0.0.1'
 
 
 # Password validation
